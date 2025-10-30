@@ -20,8 +20,6 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
-
-    // fragment
     @PostMapping
     public UserResponseDto create(@Valid @RequestBody UserCreateDto dto) {
         return userService.create(dto);
