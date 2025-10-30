@@ -1,12 +1,13 @@
 package com.pansgroup.projectbackend.service;
 
-import com.pansgroup.projectbackend.dto.UserDto;
-import com.pansgroup.projectbackend.model.User;
+import com.pansgroup.projectbackend.dto.UserCreateDto;
+import com.pansgroup.projectbackend.dto.UserResponseDto;
 
 import java.util.List;
 
 public interface UserService {
-    User create(User user);
-    List<UserDto> findAll();
+    UserResponseDto create(UserCreateDto dto);
+
+    List<UserResponseDto> findAll();
 
 }
