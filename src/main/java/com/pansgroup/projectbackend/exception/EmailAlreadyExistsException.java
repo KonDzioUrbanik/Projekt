@@ -1,11 +1,7 @@
 package com.pansgroup.projectbackend.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-@ResponseStatus(HttpStatus.CONFLICT)
-public class EmailAlreadyExistsException  extends RuntimeException {
-    public EmailAlreadyExistsException(String message) {
-        super("Email already exists: " + message);
+public class EmailAlreadyExistsException extends RuntimeException {
+    public EmailAlreadyExistsException(String email) {
+        super("Użytkownik z e-mailem '" + email + "' już istnieje.");
     }
 }

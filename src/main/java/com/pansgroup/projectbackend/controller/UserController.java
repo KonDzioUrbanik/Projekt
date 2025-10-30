@@ -1,9 +1,12 @@
 package com.pansgroup.projectbackend.controller;
 
+import com.pansgroup.projectbackend.dto.UserCreateDto;
 import com.pansgroup.projectbackend.dto.UserDto;
+import com.pansgroup.projectbackend.dto.UserResponseDto;
 import com.pansgroup.projectbackend.model.User;
 import com.pansgroup.projectbackend.repository.UserRepository;
 import com.pansgroup.projectbackend.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,15 +20,14 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
-
     @PostMapping
-    public User createUsers(@RequestBody User user){
-       return userService.create(user);
+    public UserResponseDto create(@Valid @RequestBody UserCreateDto dto) {
+        return userService.create(dto);
     }
+
     @GetMapping
-    public List<UserDto> findAll(){
+    public List<UserResponseDto> all() {
         return userService.findAll();
     }
-
 
 }
