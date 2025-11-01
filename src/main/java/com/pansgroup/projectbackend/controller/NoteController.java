@@ -33,6 +33,11 @@ public class NoteController {
         noteService.delete(id);
     }
 
+    @GetMapping("/{id}")
+    public NoteResponseDto getById(@PathVariable Long id) {
+        return noteService.findById(id);
+    }
+
     @GetMapping
     public List<NoteResponseDto> all() {
         return noteService.findAll();

@@ -59,6 +59,13 @@ public class NoteServiceImpl implements NoteService {
     }
 
     @Override
+    public NoteResponseDto findById(Long id) {
+        Note note = noteRepository.findById(id)
+                .orElseThrow(() -> new NoteNotFoundException(id));
+        return toResponse(note);
+    }
+
+    @Override
     public List<NoteResponseDto> findAll() {
         return noteRepository.findAll().stream()
                 .map(this::toResponse)
