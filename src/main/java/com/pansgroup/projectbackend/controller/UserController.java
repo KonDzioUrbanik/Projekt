@@ -1,15 +1,16 @@
 package com.pansgroup.projectbackend.controller;
 
 import com.pansgroup.projectbackend.dto.UserCreateDto;
-import com.pansgroup.projectbackend.dto.UserDto;
 import com.pansgroup.projectbackend.dto.UserResponseDto;
-import com.pansgroup.projectbackend.model.User;
 import com.pansgroup.projectbackend.repository.UserRepository;
 import com.pansgroup.projectbackend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -22,6 +23,7 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
+
     @PostMapping
     public UserResponseDto create(@Valid @RequestBody UserCreateDto dto) {
         return userService.create(dto);
@@ -41,5 +43,11 @@ public class UserController {
         return userService.findByEmail(email);
     }
 
-
+    @GetMapping("/me")
+    public UserResponseDto me(Authentication auth) {
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Brak uwierzytelnienia");
+        }
+        return userService.findByEmail(auth.getName());
+    }
 }
