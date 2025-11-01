@@ -51,6 +51,12 @@ public class NoteServiceImpl implements NoteService {
         return toResponse(updated);
     }
 
+    @Override
+    public void delete(Long id) {
+        Note note = noteRepository.findById(id)
+                .orElseThrow(() -> new NoteNotFoundException(id));
+        noteRepository.delete(note);
+    }
 
     @Override
     public List<NoteResponseDto> findAll() {

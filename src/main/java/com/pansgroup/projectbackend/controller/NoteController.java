@@ -28,6 +28,10 @@ public class NoteController {
         return noteService.update(id, dto);
     }
 
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        noteService.delete(id);
+    }
 
     @GetMapping
     public List<NoteResponseDto> all() {

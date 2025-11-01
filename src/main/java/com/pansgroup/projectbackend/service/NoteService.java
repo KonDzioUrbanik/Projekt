@@ -9,6 +9,7 @@ import java.util.List;
 public interface NoteService {
     NoteResponseDto create(NoteCreateDto dto);
     NoteResponseDto update(Long id, NoteUpdateDto dto);
+    void delete(Long id);
     List<NoteResponseDto> findAll();
     List<NoteResponseDto> findByUser(Long userId);
 }
