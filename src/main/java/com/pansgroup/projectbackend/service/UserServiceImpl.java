@@ -3,6 +3,7 @@ package com.pansgroup.projectbackend.service;
 import com.pansgroup.projectbackend.dto.UserCreateDto;
 import com.pansgroup.projectbackend.dto.UserResponseDto;
 import com.pansgroup.projectbackend.exception.EmailAlreadyExistsException;
+import com.pansgroup.projectbackend.exception.UsernameNotFoundException;
 import com.pansgroup.projectbackend.model.User;
 import com.pansgroup.projectbackend.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -51,6 +52,12 @@ public class UserServiceImpl implements UserService {
                 .toList();
     }
 
+    @Override
+    public UserResponseDto findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + email));
+    }
+
     private UserResponseDto toResponse(User u) {
         return new UserResponseDto(
                 u.getId(),
@@ -61,4 +68,5 @@ public class UserServiceImpl implements UserService {
                 u.getNrAlbumu()
         );
     }
+
 }

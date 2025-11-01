@@ -9,5 +9,6 @@ public interface UserService {
     UserResponseDto create(UserCreateDto dto);
 
     List<UserResponseDto> findAll();
+    UserResponseDto findByEmail(String email);
 
 }
