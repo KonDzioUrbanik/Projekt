@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pl">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Samouczek</title>
+
+        <!-- Import czcionek oraz ikon -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+        <!-- Główny arkusz stylów -->
+        <link rel="stylesheet" th:href="@{/style.css}">
+    </head>
+    <body>
+        <!-- Główny kontener -->
+        <div class="main-container">
+            <div class="tutorial-container">
+                <div class="title-section">
+                    <h1 class="main-title">Samouczek</h1>
+                    <p class="subtitle">Dowiedz się, jak korzystać z aplikacji</p>
+                </div>
+
+                <div class="tutorial-steps">
+                    <div class="tutorial-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3 class="step-title"><i class="fas fa-user-plus"></i> Lorem ipsum</h3>
+                            <p class="step-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas ultrices laoreet enim, ac ornare neque malesuada sed.</p>
+                        </div>
+                    </div>
+
+                    <div class="tutorial-step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3 class="step-title"><i class="fas fa-cog"></i> Lorem ipsum</h3>
+                            <p class="step-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas ultrices laoreet enim, ac ornare neque malesuada sed. Aenean auctor vehicula urna. Sed ut volutpat sem. Nunc placerat arcu quis tortor finibus, nec varius massa posuere.</p>
+                        </div>
+                    </div>
+
+                    <div class="tutorial-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3 class="step-title"><i class="fas fa-rocket"></i> Lorem ipsum</h3>
+                            <p class="step-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas ultrices laoreet enim, ac ornare neque malesuada sed. Aenean auctor vehicula urna. Sed ut volutpat sem. Nunc placerat arcu quis tortor finibus, nec varius massa posuere. Nulla malesuada nibh quis felis ultricies hendrerit. Morbi tincidunt eros ut turpis varius dapibus. Nunc eget erat nec enim feugiat tempor quis id nibh. Proin efficitur blandit nisl et cursus. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Pellentesque leo tortor, vulputate ac diam nec, elementum bibendum mauris. Donec vitae neque nisl. Aliquam tortor ipsum, commodo eu vestibulum sit amet, euismod ut turpis. Etiam ex urna, pretium in luctus at, gravida in augue.</p>
+                        </div>
+                    </div>
+
+                    <div class="tutorial-step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3 class="step-title"><i class="fas fa-lightbulb"></i> Lorem ipsum</h3>
+                            <p class="step-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas ultrices laoreet enim, ac ornare neque malesuada sed. Aenean auctor vehicula urna. Sed ut volutpat sem. Nunc placerat arcu quis tortor finibus, nec varius massa posuere. Nulla malesuada nibh quis felis ultricies hendrerit. Morbi tincidunt eros ut turpis varius dapibus.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tutorial-actions">
+                    <a th:href="@{/register}" class="btn btn-primary btn-full">
+                        <i class="fas fa-arrow-right"></i>
+                        <span>Zacznij teraz</span>
+                    </a>
+                </div>
+
+                <div class="auth-link-home">
+                    <a th:href="@{/}" class="back-link">
+                        <i class="fas fa-arrow-left"></i> Powrót do strony głównej
+                    </a>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
