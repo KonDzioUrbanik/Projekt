@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -11,6 +12,17 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 public class SecurityConfig {
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        // To całkowicie omija łańcuch filtrów Spring Security
+        return (web) -> web.ignoring().requestMatchers(
+                "/static/**",
+                "/favcion.png",
+                "/favcion.ico"
+                // Dodaj tu inne ścieżki do folderów statycznych, jeśli masz
+                // np. "/css/**", "/js/**", "/images/**"
+        );
+    }
 
     @Bean
     public SecurityFilterChain filterChain(
@@ -35,6 +47,10 @@ public class SecurityConfig {
                         "/register.js",
                         "/login.js",
                         "/api/auth/**",
+                        "/static/favicon.png",
+                        "/webjars/**",
+                        "/swagger-resources/**",
+                        "/favcion.ico",
                         "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**"
                 ).permitAll()
                 .anyRequest().authenticated()
