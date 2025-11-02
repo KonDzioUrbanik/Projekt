@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pl">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>[jakas nazwa]</title>
+
+        <!-- Import czcionek oraz ikon -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+        <!-- Główny arkusz stylów -->
+        <link rel="stylesheet" th:href="@{/style.css}">
+    </head>
+    <body>
+        <!-- Główny kontener -->
+        <div class="main-container">
+            <header class="main-header">
+                <h1>Witamy w [jakas nazwa]</h1>
+                <p>Twoje miejsce do zarządzania studiami.</p>
+            </header>
+
+            <!-- Nawigacja startowa -->
+            <nav class="start-nav">
+                <a th:href="@{/login}" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Zaloguj się
+                </a>
+                <a th:href="@{/register}" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> Stwórz konto
+                </a>
+                <a th:href="@{/tutorial}" class="btn btn-tertiary">
+                    <i class="fas fa-graduation-cap"></i> Zobacz samouczek
+                </a>
+            </nav>
+        </div>
+
+    </body>
+</html>

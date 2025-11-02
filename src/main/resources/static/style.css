@@ -1,0 +1,329 @@
+/* CZCIONKI I STYLE GLOBALNE */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
+:root{
+    /* */
+}
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f8f9fa;
+    color: #212529;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* LAYOUT I KONTENERY */
+.main-container{
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.auth-container{
+    text-align: center;
+    background: #ffffff;
+    padding: 40px 35px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    max-width: 450px;
+    width: 100%;
+    border: 1px solid #e9ecef;
+}
+
+.tutorial-container{
+    text-align: center;
+    background: #ffffff;
+    padding: 40px 35px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    max-width: 700px;
+    width: 100%;
+    border: 1px solid #e9ecef;
+}
+
+/* SEKCJA NAGŁÓWKA */
+.main-header{
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.auth-container .title-section,
+.tutorial-container .title-section{
+    margin-bottom: 30px;
+}
+
+.logo-circle{
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, #005efa 0%, #00a1ff 100%);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 10px 20px rgba(0, 94, 250, 0.2);
+}
+
+.logo-circle i{
+    font-size: 30px;
+    color: white;
+}
+
+h1, .main-title{
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 8px;
+}
+
+p, .subtitle{
+    font-size: 1.1rem;
+    color: #6c757d;
+    margin-bottom: 0;
+}
+
+/* PRZYCISKI */
+.start-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    max-width: 320px;
+}
+
+.btn{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    border: none;
+    width: 100%;
+    cursor: pointer;
+}
+
+.btn-full{
+    width: 100%;
+}
+
+.btn-primary{
+    background-color: #005efa;
+    color: white;
+    border: 2px solid #005efa;
+}
+.btn-primary:hover{
+    background-color: #004acb;
+    border-color: #004acb;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 94, 250, 0.2);
+}
+
+.btn-secondary{
+    background-color: #e9ecef;
+    color: #2d3748;
+    border: 2px solid #e9ecef;
+}
+
+.btn-secondary:hover{
+    background-color: #ced4da;
+    border-color: #ced4da;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.btn-tertiary{
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border: 2px solid #e9ecef;
+}
+
+.btn-tertiary:hover{
+    background-color: #e9ecef;
+    border-color: #e9ecef;
+    color: #2d3748;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+}
+
+/* FORMULARZE (login.html i register.html) */
+#loginForm-form, #registerForm{
+    margin: 30px 0;
+    text-align: left;
+}
+
+.form-group{
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.form-control{
+    width: 100%;
+    padding: 16px 18px;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    color: #2d3748;
+    background-color: #ffffff;
+    border: 1px solid #ced4da;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.form-control::placeholder{
+    color: #a0aec0;
+}
+
+.form-control:focus{
+    border-color: #005efa;
+    background-color: #fff;
+    box-shadow: 0 0 0 4px rgba(0, 94, 250, 0.1);
+    outline: none;
+}
+
+.recovery-password{
+    text-align: right;
+    margin-top: -10px;
+    margin-bottom: 20px;
+}
+
+.forgot-password{
+    color: #005efa;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.forgot-password:hover{
+    text-decoration: underline;
+}
+
+.auth-link{
+    text-align: center;
+    margin-top: 25px;
+}
+
+.small-text{
+    color: #718096;
+    margin-bottom: 0;
+    font-size: 0.95rem;
+}
+
+.link-accent{
+    color: #005efa;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.link-accent:hover{
+    text-decoration: underline;
+}
+
+.auth-link-home{
+    margin-top: 25px;
+    text-align: center;
+}
+
+.back-link{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #718096;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.back-link:hover{
+    color: #005efa;
+}
+
+/* SAMOUCZEK (tutorial.html) */
+.tutorial-steps{
+    margin: 30px 0;
+    text-align: left;
+}
+
+.tutorial-step{
+    display: flex;
+    gap: 20px;
+    margin-bottom: 16px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    border: 1px solid #e9ecef;
+}
+
+.tutorial-step:hover{
+    background: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+}
+
+.step-number{
+    flex-shrink: 0;
+    width: 45px;
+    height: 45px;
+    background-color: #005efa;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.step-content{
+    flex: 1;
+}
+
+.step-title{
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.step-title i{
+    color: #005efa;
+}
+
+.step-description{
+    font-size: 0.95rem;
+    color: #6c757d;
+    margin-bottom: 0;
+    line-height: 1.6;
+}
+
+.tutorial-actions{
+    margin-bottom: 20px;
+}
+
+.footer-text{
+    margin-top: 30px;
+}
+
+.footer-text p{
+    font-size: 0.9rem;
+    color: #adb5bd;
+}
