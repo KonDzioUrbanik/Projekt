@@ -87,6 +87,29 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
+    /* ---------- 404: nie znaleziono użytkownika ---------- */
+    @ExceptionHandler(UserNotFoundException.class)
+    ProblemDetail handleUserNotFound(UserNotFoundException ex, HttpServletRequest req) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        pd.setTitle("Not found");
+        pd.setDetail(ex.getMessage());
+        pd.setInstance(URI.create(req.getRequestURI()));
+        pd.setProperty("code", "user_not_found");
+        return pd;
+    }
+
+    /* ---------- 404: nie znaleziono notatki ---------- */
+    @ExceptionHandler(NoteNotFoundException.class)
+    ProblemDetail handleNoteNotFound(NoteNotFoundException ex, HttpServletRequest req) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        pd.setTitle("Not found");
+        pd.setDetail(ex.getMessage());
+        pd.setInstance(URI.create(req.getRequestURI()));
+        pd.setProperty("code", "note_not_found");
+        return pd;
+    }
+
+
     /* ---------- 409: kolizje biznesowe / unikalność ---------- */
     @ExceptionHandler(EmailAlreadyExistsException.class)
     ProblemDetail handleDuplicateEmail(EmailAlreadyExistsException ex, HttpServletRequest req) {
