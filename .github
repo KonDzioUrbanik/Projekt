@@ -1,0 +1,9 @@
+# ==========================================
+#  CODEOWNERS – automatyczne przypisywanie reviewera
+#  Repozytorium: KonDzioUrbanik/Projekt
+#  Właściciel: @KonDzioUrbanik
+# ==========================================
+
+# 🔹 Wszystkie pliki i foldery w repo wymagają akceptacji KonDzioUrbanik
+* @KonDzioUrbanik
+
