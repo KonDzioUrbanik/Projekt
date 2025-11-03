@@ -136,6 +136,16 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
+    @ExceptionHandler(ScheduleEntryNotFoundException.class)
+    ProblemDetail handleScheduleEntryNotFound(ScheduleEntryNotFoundException ex, HttpServletRequest req) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        pd.setTitle("Not found");
+        pd.setDetail(ex.getMessage());
+        pd.setInstance(URI.create(req.getRequestURI()));
+        pd.setProperty("code", "schedule_not_found"); // Poprawiony kod błędu
+        return pd;
+    }
+
 
     /* ---------- 409: kolizje biznesowe / unikalność ---------- */
     @ExceptionHandler(EmailAlreadyExistsException.class)
