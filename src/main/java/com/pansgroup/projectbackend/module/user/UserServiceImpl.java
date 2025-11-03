@@ -56,10 +56,7 @@ public class UserServiceImpl implements UserService {
         return toResponse(saved);
     }
 
-    /**
-     * Ekstrakcja numeru indeksu z adresu email.
-     * Przyklad: "123456@student.com" -> 123456
-     */
+
     private Integer extractIndexNumberFromEmail(String email) {
         if (email == null || email.isEmpty()) {
             return null;
@@ -74,7 +71,7 @@ public class UserServiceImpl implements UserService {
             if (Character.isDigit(c)) {
                 digits.append(c);
             } else {
-                break; // Stop na pierwszym nie-cyfrowym znaku
+                break;
             }
         }
 
