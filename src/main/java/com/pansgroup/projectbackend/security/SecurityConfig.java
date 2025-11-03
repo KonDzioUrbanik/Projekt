@@ -1,6 +1,3 @@
-// Kopia Twojego pliku: kondziourbanik/projekt/Projekt-4bcd86d02410d802b2773df99e0aba3be529dcba/src/main/java/com/pansgroup/projectbackend/security/SecurityConfig.java
-// Zobacz komentarze, co się zmieniło.
-
 package com.pansgroup.projectbackend.security;
 
 import com.pansgroup.projectbackend.model.User;
@@ -25,9 +22,9 @@ public class SecurityConfig {
                 "/static/**",
                 "/favcion.png",
                 "/favcion.ico",
-                "/style.css",
-                "/login.js",
-                "/register.js"
+                "/css/style.css",
+                "/js/login.js",
+                "/js/register.js"
         );
     }
 
