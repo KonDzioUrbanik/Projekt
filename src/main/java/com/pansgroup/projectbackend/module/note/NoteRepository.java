@@ -1,6 +1,5 @@
-package com.pansgroup.projectbackend.repository;
+package com.pansgroup.projectbackend.module.note;
 
-import com.pansgroup.projectbackend.model.Note;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

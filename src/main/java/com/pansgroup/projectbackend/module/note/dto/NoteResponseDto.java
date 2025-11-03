@@ -1,4 +1,4 @@
-package com.pansgroup.projectbackend.dto;
+package com.pansgroup.projectbackend.module.note.dto;
 
 import java.time.LocalDateTime;
 
