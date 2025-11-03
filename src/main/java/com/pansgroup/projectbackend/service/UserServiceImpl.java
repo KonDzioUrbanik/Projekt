@@ -26,6 +26,13 @@ public class UserServiceImpl implements UserService {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
+    // (w klasie UserServiceImpl)
+    @Override
+    public User findUserByEmailInternal(String email) {
+        String e = email.trim().toLowerCase(Locale.ROOT);
+        return userRepository.findByEmail(e)
+                .orElseThrow(() -> new UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + e));
+    }
 
     @Override
     public UserResponseDto create(UserCreateDto dto) {

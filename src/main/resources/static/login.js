@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 // przekierowanie po chwili
                 setTimeout(() => {
-                    window.location.href = "/";
+                    window.location.href = "/dashboard";
                 }, 1000);
             }
         } catch (err) {
