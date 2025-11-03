@@ -29,6 +29,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>("Resource not found: " + ex.getResourcePath(), HttpStatus.NOT_FOUND);
     }
 
+    /* ---- 409: Błąd duplikacji numeru albumu ----- */
+    @ExceptionHandler(AlbumNumberAlreadyExistsException.class)
+    ProblemDetail handleDuplicateAlbumNumber(AlbumNumberAlreadyExistsException ex, HttpServletRequest req) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        pd.setTitle("Duplicate album number");
+        pd.setInstance(URI.create(req.getRequestURI()));
+        pd.setProperty("code", "number_album_exists");
+        return pd;
+    }
+
+
     /* ---------- 400: błędy walidacji z @Valid na @RequestBody ---------- */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ProblemDetail handleValidation(MethodArgumentNotValidException ex, HttpServletRequest req) {
@@ -122,6 +133,16 @@ public class GlobalExceptionHandler {
         pd.setDetail(ex.getMessage());
         pd.setInstance(URI.create(req.getRequestURI()));
         pd.setProperty("code", "note_not_found");
+        return pd;
+    }
+
+    @ExceptionHandler(ScheduleEntryNotFoundException.class)
+    ProblemDetail handleScheduleEntryNotFound(ScheduleEntryNotFoundException ex, HttpServletRequest req) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        pd.setTitle("Not found");
+        pd.setDetail(ex.getMessage());
+        pd.setInstance(URI.create(req.getRequestURI()));
+        pd.setProperty("code", "schedule_not_found"); // Poprawiony kod błędu
         return pd;
     }
 

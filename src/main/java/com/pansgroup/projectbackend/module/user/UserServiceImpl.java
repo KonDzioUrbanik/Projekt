@@ -1,5 +1,6 @@
 package com.pansgroup.projectbackend.module.user;
 
+import com.pansgroup.projectbackend.exception.AlbumNumberAlreadyExistsException;
 import com.pansgroup.projectbackend.module.user.dto.LoginRequestDto;
 import com.pansgroup.projectbackend.module.user.dto.UserCreateDto;
 import com.pansgroup.projectbackend.module.user.dto.UserResponseDto;
@@ -36,13 +37,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseDto create(UserCreateDto dto) {
         String normalizedEmail = dto.email().trim().toLowerCase(Locale.ROOT);
+        Integer indexNumber = extractIndexNumberFromEmail(normalizedEmail);
+        if (indexNumber != null) {
+            if (userRepository.existsByNrAlbumu(indexNumber)){
+                throw new AlbumNumberAlreadyExistsException(indexNumber);
+            }
+        }
 
         if (userRepository.existsByEmail(normalizedEmail)) {
             throw new EmailAlreadyExistsException(normalizedEmail);
         }
-
-        // Ekstrakcja numeru indeksu z emaila
-        Integer indexNumber = extractIndexNumberFromEmail(normalizedEmail);
 
         User u = new User();
         u.setFirstName(dto.firstName().trim());

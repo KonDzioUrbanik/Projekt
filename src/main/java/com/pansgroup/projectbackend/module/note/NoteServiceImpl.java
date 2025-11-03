@@ -1,12 +1,15 @@
 package com.pansgroup.projectbackend.module.note;
 
+import com.pansgroup.projectbackend.exception.NoteNotFoundException;
+import com.pansgroup.projectbackend.exception.UserNotFoundException;
+import com.pansgroup.projectbackend.exception.UsernameNotFoundException;
 import com.pansgroup.projectbackend.module.note.dto.NoteCreateDto;
 import com.pansgroup.projectbackend.module.note.dto.NoteResponseDto;
 import com.pansgroup.projectbackend.module.note.dto.NoteUpdateDto;
-import com.pansgroup.projectbackend.exception.NoteNotFoundException;
-import com.pansgroup.projectbackend.exception.UserNotFoundException;
 import com.pansgroup.projectbackend.module.user.User;
 import com.pansgroup.projectbackend.module.user.UserRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,9 +27,9 @@ public class NoteServiceImpl implements NoteService {
     }
 
     @Override
-    public NoteResponseDto create(NoteCreateDto dto) {
-        User author = userRepository.findById(dto.userId())
-                .orElseThrow(() -> new UserNotFoundException(dto.userId()));
+    public NoteResponseDto create(NoteCreateDto dto, String email) {
+        User author = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Użytkownik o e-mailu: " + email + " nie istnieje"));
 
         Note note = new Note();
         note.setTitle(dto.title().trim());
@@ -39,8 +42,7 @@ public class NoteServiceImpl implements NoteService {
 
     @Override
     public NoteResponseDto update(Long id, NoteUpdateDto dto) {
-        Note note = noteRepository.findById(id)
-                .orElseThrow(() -> new NoteNotFoundException(id));
+        Note note = findNoteByIdAndEnsureOwnership(id);
 
         note.setTitle(dto.title().trim());
         note.setContent(dto.content().trim());
@@ -51,8 +53,7 @@ public class NoteServiceImpl implements NoteService {
 
     @Override
     public void delete(Long id) {
-        Note note = noteRepository.findById(id)
-                .orElseThrow(() -> new NoteNotFoundException(id));
+        Note note = findNoteByIdAndEnsureOwnership(id);
         noteRepository.delete(note);
     }
 
@@ -72,7 +73,7 @@ public class NoteServiceImpl implements NoteService {
 
     @Override
     public List<NoteResponseDto> findByUser(Long userId) {
-        // verify user exists to return 404 on invalid id
+        // verify users exists to return 404 on invalid id
         if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException(userId);
         }
@@ -94,5 +95,28 @@ public class NoteServiceImpl implements NoteService {
                 n.getUpdatedAt()
         );
     }
+
+    private String getCurrentUserEmail() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new IllegalStateException("Użytkownik nie jest uwierzytelniony.");
+        }
+        return authentication.getName();
+    }
+
+
+    private Note findNoteByIdAndEnsureOwnership(Long noteId) {
+        String userEmail = getCurrentUserEmail();
+
+        Note note = noteRepository.findById(noteId)
+                .orElseThrow(() -> new NoteNotFoundException(noteId));
+
+        if (!note.getAuthor().getEmail().equals(userEmail)) {
+            throw new NoteNotFoundException(noteId);
+        }
+
+        return note;
+    }
+
 }
 

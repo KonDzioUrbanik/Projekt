@@ -18,4 +18,5 @@ public record UserCreateDto(
         @NotBlank(message="{user.password.notBlank}")
         @Size(min=6,message="{user.password.size}")
         String password
+
 ) {}

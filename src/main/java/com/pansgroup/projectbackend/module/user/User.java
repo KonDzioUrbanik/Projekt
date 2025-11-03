@@ -2,6 +2,8 @@ package com.pansgroup.projectbackend.module.user;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,7 +22,7 @@ public class User {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    @Column(name = "nr_albumu")
+    @Column(unique = true)
     private Integer nrAlbumu;
 
     private String role;
