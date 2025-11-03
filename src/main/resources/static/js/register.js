@@ -14,30 +14,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const passwordConfirm = document.getElementById('password-confirm').value;
-        const role = document.getElementById('role').value;
-        const nrAlbumu = document.getElementById('nrAlbumu').value; // To jest string!
+        // const role = document.getElementById('role').value;
+        // const nrAlbumu = document.getElementById('nrAlbumu').value;
 
         if (password !== passwordConfirm) {
             displayError('Hasła nie są identyczne.');
             return; // Przerywamy wysyłkę
         }
 
-        if (!firstName || !lastName || !email || !password || !role || !nrAlbumu){
+        if (!firstName || !lastName || !email || !password /*|| !role || !nrAlbumu*/){
             displayError('Wszystkie pola są wymagane.');
             return;
         }
-
-        // Włączanie loader, tak jak w login.js
-        registerButton.disabled = true;
-        registerButton.querySelector("span").textContent = "Tworzenie konta...";
 
         const data = {
             firstName: firstName,
             lastName: lastName,
             email: email,
-            password: password,
-            role: role,
-            nrAlbumu: parseInt(nrAlbumu, 10)
+            password: password
+            // role: role,
+            // nrAlbumu: parseInt(nrAlbumu, 10)
         };
 
         try {
