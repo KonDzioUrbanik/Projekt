@@ -17,13 +17,5 @@ public record UserCreateDto(
 
         @NotBlank(message="{user.password.notBlank}")
         @Size(min=6,message="{user.password.size}")
-        String password,
-
-        @NotNull(message="Rola jest wymagana.")
-        String role,
-
-        @NotNull(message="{user.nrAlbumu.notNull}")
-        @Min(value=1,  message="{user.nrAlbumu.min}")
-        @Max(value=999999, message="{user.nrAlbumu.max}")
-        Integer nrAlbumu
+        String password
 ) {}

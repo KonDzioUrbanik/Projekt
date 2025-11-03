@@ -40,16 +40,52 @@ public class UserServiceImpl implements UserService {
             throw new EmailAlreadyExistsException(normalizedEmail);
         }
 
+        // Ekstrakcja numeru indeksu z emaila
+        Integer indexNumber = extractIndexNumberFromEmail(normalizedEmail);
+
         User u = new User();
         u.setFirstName(dto.firstName().trim());
         u.setLastName(dto.lastName().trim());
         u.setEmail(normalizedEmail);
         u.setPassword(passwordEncoder.encode(dto.password()));
-        u.setRole(dto.role());
-        u.setNrAlbumu(dto.nrAlbumu());
+        u.setRole("STUDENT"); // Automatycznie rola STUDENT
+        u.setNrAlbumu(indexNumber); // Z adresu email
 
         User saved = userRepository.save(u);
         return toResponse(saved);
+    }
+
+    /**
+     * Ekstrakcja numeru indeksu z adresu email.
+     * Przyklad: "123456@student.com" -> 123456
+     */
+    private Integer extractIndexNumberFromEmail(String email) {
+        if (email == null || email.isEmpty()) {
+            return null;
+        }
+
+        // Nr indeksu to pierwsze cyfry przed '@'
+        String localPart = email.split("@")[0];
+
+        // Ekstrakcja cyfr z początku
+        StringBuilder digits = new StringBuilder();
+        for (char c : localPart.toCharArray()) {
+            if (Character.isDigit(c)) {
+                digits.append(c);
+            } else {
+                break; // Stop na pierwszym nie-cyfrowym znaku
+            }
+        }
+
+        if (!digits.isEmpty()) {
+            try {
+                return Integer.parseInt(digits.toString());
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+
+        return null;
     }
 
     @Override
