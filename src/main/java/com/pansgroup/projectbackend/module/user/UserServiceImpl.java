@@ -29,7 +29,8 @@ public class UserServiceImpl implements UserService {
     public User findUserByEmailInternal(String email) {
         String e = email.trim().toLowerCase(Locale.ROOT);
         return userRepository.findByEmail(e)
-                .orElseThrow(() -> new UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + e));
+                // ZMIANA TYLKO TUTAJ:
+                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + e));
     }
 
     @Override

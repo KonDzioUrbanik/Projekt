@@ -100,7 +100,8 @@ public class GlobalExceptionHandler {
     /* ---------- 401: Błąd uwierzytelniania ---------- */
     @ExceptionHandler({
             BadCredentialsException.class, // Błąd ze Spring Security
-            com.pansgroup.projectbackend.exception.BadCredentialsException.class // Twój własny wyjątek
+            com.pansgroup.projectbackend.exception.BadCredentialsException.class,
+            com.pansgroup.projectbackend.exception.UsernameNotFoundException.class
     })
     ProblemDetail handleAuthFailed(Exception ex, HttpServletRequest req) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.UNAUTHORIZED);
@@ -112,17 +113,6 @@ public class GlobalExceptionHandler {
     }
     // ---------------------------------------------------------
 
-
-    /* ---------- 404: nie znaleziono użytkownika ---------- */
-    @ExceptionHandler(UserNotFoundException.class)
-    ProblemDetail handleUserNotFound(UserNotFoundException ex, HttpServletRequest req) {
-        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
-        pd.setTitle("Not found");
-        pd.setDetail(ex.getMessage());
-        pd.setInstance(URI.create(req.getRequestURI()));
-        pd.setProperty("code", "user_not_found");
-        return pd;
-    }
 
     /* ---------- 404: nie znaleziono notatki ---------- */
     @ExceptionHandler(NoteNotFoundException.class)
