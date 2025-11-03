@@ -15,10 +15,10 @@
          <!-- Główny arkusz stylów -->
         <link rel="stylesheet" th:href="@{/css/style.css}" href="/Projekt/src/main/resources/static/css/style.css">
     </head>
-    <body>
+    <body>   
         <header class="header-container">
             <div class="user-container">
-                
+                 <h2 th:text="${currentUser.nrAlbumu()}"></h2>
             </div>
             <div class="logout-container">
                 <a th:href="@{/logout}" class="btn btn-logout btn-full">
