@@ -6,6 +6,7 @@ import com.pansgroup.projectbackend.module.note.dto.NoteUpdateDto;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -18,8 +19,9 @@ public class NoteController {
     }
 
     @PostMapping
-    public NoteResponseDto create(@Valid @RequestBody NoteCreateDto dto) {
-        return noteService.create(dto);
+    public NoteResponseDto create(@Valid @RequestBody NoteCreateDto dto, Principal principal) {
+        String firstName = principal.getName();
+        return noteService.create(dto,firstName);
     }
 
     @PutMapping("/{id}")

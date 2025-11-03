@@ -11,9 +11,7 @@ public record NoteCreateDto(
 
         @NotBlank(message = "Treść jest wymagana.")
         @Size(min = 1, max = 4000, message = "Treść musi mieć od {min} do {max} znaków.")
-        String content,
+        String content
 
-        @NotNull(message = "Id użytkownika jest wymagane.")
-        Long userId
 ) {}
 
