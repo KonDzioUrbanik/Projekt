@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rejestracja</title>
+    <link rel="icon" th:href="@{/favcion.png}" type="image/png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,6 +46,8 @@
             <div class="form-group">
                 <input type="number" id="nrAlbumu" name="nrAlbumu" class="form-control" placeholder="Numer albumu" required>
             </div>
+
+            <div id="errorMessageContainer" style="color: red; margin-bottom: 10px; text-align: center; font-size: 0.9em;"></div>
 
 
             <button type="submit" class="btn btn-primary btn-full">

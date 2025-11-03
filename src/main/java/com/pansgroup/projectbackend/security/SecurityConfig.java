@@ -19,8 +19,6 @@ public class SecurityConfig {
                 "/static/**",
                 "/favcion.png",
                 "/favcion.ico"
-                // Dodaj tu inne ścieżki do folderów statycznych, jeśli masz
-                // np. "/css/**", "/js/**", "/images/**"
         );
     }
 
