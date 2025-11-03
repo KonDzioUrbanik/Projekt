@@ -13,7 +13,6 @@ public interface UserService {
     List<UserResponseDto> findAll();
     UserResponseDto findByEmail(String email);
     User authenticate(LoginRequestDto dto);
-    // (interfejs UserService)
     User findUserByEmailInternal(String email); // Potrzebujemy tego
 
 }

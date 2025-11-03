@@ -31,12 +31,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final UserService userService;
-    // USUNIĘTE: JwtService
     private final AuthenticationManager authManager; // NOWY
 
     public AuthController(UserService userService, AuthenticationManager authManager) { // ZMIENIONY konstruktor
         this.userService = userService;
-        // USUNIĘTE: jwtService
         this.authManager = authManager; // NOWY
     }
 
@@ -45,21 +43,18 @@ public class AuthController {
             @RequestBody LoginRequestDto dto,
             HttpServletRequest req
     ) {
-        // Uwierzytelnij za pomocą Spring Security
         Authentication authentication = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword())
         );
 
-        // Ustaw zalogowanego użytkownika w Kontekście Bezpieczeństwa
         SecurityContext sc = SecurityContextHolder.createEmptyContext();
         sc.setAuthentication(authentication);
         SecurityContextHolder.setContext(sc);
 
-        // Zapisz kontekst w sesji HTTP
+
         HttpSession session = req.getSession(true);
         session.setAttribute(SPRING_SECURITY_CONTEXT_KEY, sc);
 
-        // Pobierz pełne dane użytkownika, aby je zwrócić (jak wcześniej)
         User user = userService.authenticate(dto);
         return new UserResponseDto(
                 user.getId(),
@@ -70,8 +65,6 @@ public class AuthController {
                 user.getNrAlbumu()
         );
 
-        // USUNIĘTE: Generowanie tokena
-        // USUNIĘTE: Zwracanie LoginResponseDto(token, resp)
     }
 
     @PostMapping("/register")

@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class Note {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; //id note
+    private Long id;
 
     @Column(nullable = false, length = 150)
     private String title;
@@ -30,6 +30,6 @@ public class Note {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
-    private User author; //author of the note
+    private User author;
 }
 
