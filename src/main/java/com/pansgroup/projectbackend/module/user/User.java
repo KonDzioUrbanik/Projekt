@@ -1,4 +1,4 @@
-package com.pansgroup.projectbackend.model;
+package com.pansgroup.projectbackend.module.user;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;

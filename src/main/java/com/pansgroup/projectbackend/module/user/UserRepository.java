@@ -1,7 +1,5 @@
-package com.pansgroup.projectbackend.repository;
+package com.pansgroup.projectbackend.module.user;
 
-import com.pansgroup.projectbackend.dto.UserResponseDto;
-import com.pansgroup.projectbackend.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

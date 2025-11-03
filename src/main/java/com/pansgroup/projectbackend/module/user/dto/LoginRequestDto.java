@@ -1,4 +1,4 @@
-package com.pansgroup.projectbackend.dto;
+package com.pansgroup.projectbackend.module.user.dto;
 
 import lombok.Getter;
 import lombok.Setter;

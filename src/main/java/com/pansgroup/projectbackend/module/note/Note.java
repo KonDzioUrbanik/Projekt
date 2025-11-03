@@ -1,5 +1,6 @@
-package com.pansgroup.projectbackend.model;
+package com.pansgroup.projectbackend.module.note;
 
+import com.pansgroup.projectbackend.module.user.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

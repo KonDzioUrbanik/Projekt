@@ -1,14 +1,12 @@
-package com.pansgroup.projectbackend.service;
+package com.pansgroup.projectbackend.module.note;
 
-import com.pansgroup.projectbackend.dto.NoteCreateDto;
-import com.pansgroup.projectbackend.dto.NoteResponseDto;
-import com.pansgroup.projectbackend.dto.NoteUpdateDto;
+import com.pansgroup.projectbackend.module.note.dto.NoteCreateDto;
+import com.pansgroup.projectbackend.module.note.dto.NoteResponseDto;
+import com.pansgroup.projectbackend.module.note.dto.NoteUpdateDto;
 import com.pansgroup.projectbackend.exception.NoteNotFoundException;
 import com.pansgroup.projectbackend.exception.UserNotFoundException;
-import com.pansgroup.projectbackend.model.Note;
-import com.pansgroup.projectbackend.model.User;
-import com.pansgroup.projectbackend.repository.NoteRepository;
-import com.pansgroup.projectbackend.repository.UserRepository;
+import com.pansgroup.projectbackend.module.user.User;
+import com.pansgroup.projectbackend.module.user.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
