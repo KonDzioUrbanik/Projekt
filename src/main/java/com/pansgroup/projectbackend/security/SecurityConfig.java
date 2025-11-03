@@ -4,19 +4,17 @@
 package com.pansgroup.projectbackend.security;
 
 import com.pansgroup.projectbackend.model.User;
+import com.pansgroup.projectbackend.service.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-// USUNIĘTE: import SessionCreationPolicy
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.SecurityFilterChain;
-import com.pansgroup.projectbackend.service.UserService; // Zaimportuj swój serwis
 
 @Configuration
 public class SecurityConfig {
