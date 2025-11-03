@@ -3,8 +3,10 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>[jakas nazwa]</title>
-        <link rel="icon" th:href="@{/favcion.png}" type="image/png">
+        <title>PANSportal</title>
+
+        <link rel="icon" th:href="@{/favicon.png}" type="image/png">
+
         <!-- Import czcionek oraz ikon -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,7 +20,11 @@
         <!-- Główny kontener -->
         <div class="main-container">
             <header class="main-header">
-                <h1>Witamy w [jakas nazwa]</h1>
+                <div class="logo-circle">
+                    <i class="fas fa-university"></i>
+                </div>
+                
+                <h1>Witamy w PANSportal</h1>
                 <p>Twoje miejsce do zarządzania studiami.</p>
             </header>
 
