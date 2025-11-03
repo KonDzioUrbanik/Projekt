@@ -23,4 +23,8 @@ public class MainController {
     public String tutorialView() {
         return "tutorial";
     }
+    @GetMapping("/dashboard")
+    public String dashboardView() {
+        return "dashboard";
+    }
 }
