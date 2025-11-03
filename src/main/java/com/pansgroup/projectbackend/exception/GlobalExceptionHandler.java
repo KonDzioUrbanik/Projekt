@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+// NOWY IMPORT - dla błędu ze Spring Security
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -24,8 +26,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<Object> handleNoResourceFound(NoResourceFoundException ex) {
-        // Możesz zwrócić cokolwiek, np. prosty komunikat błędu
-        // Najważniejszy jest status 404
         return new ResponseEntity<>("Resource not found: " + ex.getResourcePath(), HttpStatus.NOT_FOUND);
     }
 
@@ -96,6 +96,23 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
+    // ---------- NOWA METODA OBSŁUGI BŁĘDU LOGOWANIA ----------
+    /* ---------- 401: Błąd uwierzytelniania ---------- */
+    @ExceptionHandler({
+            BadCredentialsException.class, // Błąd ze Spring Security
+            com.pansgroup.projectbackend.exception.BadCredentialsException.class // Twój własny wyjątek
+    })
+    ProblemDetail handleAuthFailed(Exception ex, HttpServletRequest req) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.UNAUTHORIZED);
+        pd.setTitle("Authentication failed");
+        pd.setDetail("Nieprawidłowe dane logowania.");
+        pd.setInstance(URI.create(req.getRequestURI()));
+        pd.setProperty("code", "auth_failed");
+        return pd;
+    }
+    // ---------------------------------------------------------
+
+
     /* ---------- 404: nie znaleziono użytkownika ---------- */
     @ExceptionHandler(UserNotFoundException.class)
     ProblemDetail handleUserNotFound(UserNotFoundException ex, HttpServletRequest req) {
@@ -146,6 +163,11 @@ public class GlobalExceptionHandler {
     /* ---------- 500: fallback ---------- */
     @ExceptionHandler(Exception.class)
     ProblemDetail handleGeneral(Exception ex, HttpServletRequest req) {
+        // Logowanie błędu może być przydatne do debugowania
+        // (możesz dodać tu logger)
+        System.err.println("Unhandled exception: " + ex.getMessage());
+        ex.printStackTrace();
+
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Wewnętrzny błąd serwera.");
         pd.setTitle("Unexpected error");
         pd.setInstance(URI.create(req.getRequestURI()));

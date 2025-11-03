@@ -29,16 +29,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: JSON.stringify({ email, password }),
             });
 
-            // Próbujemy odczytać JSON (ProblemDetail przy błędzie lub UserResponseDto przy sukcesie)
             const data = await response.json();
 
             if (!response.ok) {
-                // POPRAWKA: Używamy 'data.detail' (z ProblemDetail) zamiast 'data.message'
                 message.textContent = data.detail || "Nieprawidłowe dane logowania.";
                 message.style.color = "red";
             } else {
-                // POPRAWKA: Usuwamy logikę JWT (token i localStorage)
-                // Sesja jest zarządzana automatycznie przez cookie.
+
                 message.textContent = "Zalogowano pomyślnie!";
                 message.style.color = "green";
 
