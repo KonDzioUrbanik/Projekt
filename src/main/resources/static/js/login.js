@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!email || !password) {
             message.textContent = "Uzupełnij wszystkie pola.";
-            message.style.color = "red";
+            message.className = "form-message error"; // Użycie klas CSS
             return;
         }
 
@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
         button.disabled = true;
         button.querySelector("span").textContent = "Logowanie...";
         message.textContent = "";
+        message.className = "form-message";
 
         try {
             const response = await fetch("/api/auth/login", {
@@ -31,13 +32,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const data = await response.json();
 
-            if (!response.ok) {
+            if (!response.ok){
                 message.textContent = data.detail || "Nieprawidłowe dane logowania.";
-                message.style.color = "red";
-            } else {
-
+                console.log(data.detail);
+                message.className = "form-message error";
+            } 
+            else{
                 message.textContent = "Zalogowano pomyślnie!";
-                message.style.color = "green";
+                message.className = "form-message success";
 
                 // Przekierowanie po chwili
                 setTimeout(() => {
@@ -47,8 +49,9 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (err) {
             console.error("Błąd logowania:", err);
             message.textContent = "Błąd połączenia z serwerem.";
-            message.style.color = "red";
-        } finally {
+            message.className = "form-message error";
+        } 
+        finally{
             // Odblokuj przycisk niezależnie od wyniku
             button.disabled = false;
             button.querySelector("span").textContent = "Zaloguj się";

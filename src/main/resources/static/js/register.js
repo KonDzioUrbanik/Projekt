@@ -1,15 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-
     const registerForm = document.getElementById('registerForm');
     const errorMessageContainer = document.getElementById('errorMessageContainer');
-
+    const registerButton = document.getElementById('registerButton');
 
     registerForm.addEventListener('submit', async (event) => {
-
-
         event.preventDefault();
         errorMessageContainer.innerHTML = '';
+        errorMessageContainer.className = "form-message";
 
         const firstName = document.getElementById('imie').value;
         const lastName = document.getElementById('nazwisko').value;
@@ -24,6 +22,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return; // Przerywamy wysyłkę
         }
 
+        if (!firstName || !lastName || !email || !password || !role || !nrAlbumu){
+            displayError('Wszystkie pola są wymagane.');
+            return;
+        }
+
+        // Włączanie loader, tak jak w login.js
+        registerButton.disabled = true;
+        registerButton.querySelector("span").textContent = "Tworzenie konta...";
+
         const data = {
             firstName: firstName,
             lastName: lastName,
@@ -32,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
             role: role,
             nrAlbumu: parseInt(nrAlbumu, 10)
         };
-
 
         try {
             const response = await fetch('/api/auth/register', {
@@ -45,12 +51,15 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
 
-            if (response.ok) {
+            if (response.ok){
                 // Sukces! (Status 201 Created)
                 console.log('Rejestracja udana!');
-                // Przekierowujemy na stronę logowania
-                window.location.href = '/login';
-            } else {
+                displayError('Rejestracja udana! Przekierowywanie do logowania...', true);
+                setTimeout(() => {
+                    window.location.href = '/login';  // Przekierowujemy na stronę logowania
+                }, 2000);
+            }
+            else{
                 // Błąd! (np. 400 - walidacja, 409 - email zajęty)
                 // Próbujemy odczytać szczegóły błędu z ProblemDetail
                 const errorData = await response.json();
@@ -73,11 +82,19 @@ document.addEventListener('DOMContentLoaded', () => {
             // Błąd sieciowy (np. brak połączenia z serwerem)
             console.error('Błąd sieci:', error);
             displayError('Błąd połączenia z serwerem. Spróbuj ponownie później.');
+            registerButton.disabled = false;
+            registerButton.querySelector("span").textContent = "Utwórz konto";
         }
     });
 
-    // Funkcja pomocnicza do wyświetlania błędów
-    function displayError(message) {
-        errorMessageContainer.innerHTML = `<div class="error-message">${message}</div>`;
+    // Funkcja pomocnicza do wyświetlania błędów/sukcesu
+    function displayError(message, isSuccess = false){
+        errorMessageContainer.innerHTML = message; // Użycie innerHTML, aby renderować listę <ul>
+        if(isSuccess){
+            errorMessageContainer.className = "form-message success";
+        } 
+        else{
+            errorMessageContainer.className = "form-message error";
+        }
     }
 });
