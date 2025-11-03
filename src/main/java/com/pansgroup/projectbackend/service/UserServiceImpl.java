@@ -26,7 +26,7 @@ public class UserServiceImpl implements UserService {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
-    // (w klasie UserServiceImpl)
+
     @Override
     public User findUserByEmailInternal(String email) {
         String e = email.trim().toLowerCase(Locale.ROOT);
@@ -95,7 +95,7 @@ public class UserServiceImpl implements UserService {
             throw new BadCredentialsException("Nieprawidłowe dane logowania");
         }
 
-        return user; // zwracamy pełny obiekt User (bez DTO)
+        return user;
     }
 
 

@@ -19,22 +19,18 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
 
-    // (Twoje webSecurityCustomizer() zostaje bez zmian)
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring().requestMatchers(
                 "/static/**",
                 "/favcion.png",
                 "/favcion.ico",
-                "/style.css", // Dodaj tu CSS i JS, aby je ignorować
+                "/style.css",
                 "/login.js",
                 "/register.js"
         );
     }
 
-    // NOWY BEAN: Musimy powiedzieć Springowi, jak ma ładować użytkownika
-    // Użyjemy Twojego istniejącego UserService
-// Wróć do SecurityConfig.java i popraw UserDetailsService
     @Bean
     public UserDetailsService userDetailsService(UserService userService) {
         return email -> {
@@ -50,7 +46,6 @@ public class SecurityConfig {
         };
     }
 
-    // NOWY BEAN: Potrzebny do ręcznego logowania w AuthController
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
@@ -63,27 +58,19 @@ public class SecurityConfig {
         http.httpBasic(AbstractHttpConfigurer::disable);
         http.formLogin(AbstractHttpConfigurer::disable);
 
-        // USUNIĘTE: Konfiguracja STATELESS. Od teraz używamy sesji.
-        // http.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        // USUNIĘTE: Filtr JwtAuthFilter. Już go nie potrzebujemy.
-        // http.addFilterBefore(new JwtAuthFilter(secret), UsernamePasswordAuthenticationFilter.class);
-
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                         "/",
-                        "/login", // Strona logowania musi być dostępna
-                        "/register", // Strona rejestracji musi być dostępna
+                        "/login",
+                        "/register",
                         "/tutorial",
-                        "/api/auth/**" // API do logowania/rejestracji musi być dostępne
-                        // Reszta (style.css, login.js) jest w web.ignoring()
+                        "/api/auth/**"
                 ).permitAll()
-                // CHRONIMY /dashboard
                 .requestMatchers(
-                        "/dashboard", // Ta strona
-                        "/api/users/me" // To API
-                ).authenticated() // Wymaga zalogowania (sesji)
-                .anyRequest().authenticated() // Cała reszta też
+                        "/dashboard",
+                        "/api/users/me"
+                ).authenticated()
+                .anyRequest().authenticated()
         );
 
         return http.build();
