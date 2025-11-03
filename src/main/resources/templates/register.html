@@ -1,72 +1,71 @@
 <!DOCTYPE html>
 <html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rejestracja</title>
-    <link rel="icon" th:href="@{/favcion.png}" type="image/png">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Rejestracja - PANSportal</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <!-- Import czcionek oraz ikon -->
+        <link rel="icon" th:href="@{/favicon.png}" type="image/png">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+        <link rel="stylesheet" th:href="@{/css/style.css}">
 
-    <script src="/js/register.js"></script>
+        <script src="/js/register.js"></script>
+    </head>
+    <body>
+        <div class="main-container">
+            <div class="auth-container">
+                <div class="title-section">
+                    <h1 class="main-title">Zarejestruj się</h1>
+                    <p class="subtitle">Dołącz do nas już dziś!</p>
+                </div>
 
-</head>
-<body>
-<div class="main-container">
-    <div class="auth-container">
-        <div class="title-section">
-            <h1 class="main-title">Zarejestruj się</h1>
-            <p class="subtitle">Dołącz do nas już dziś!</p>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <input type="text" id="imie" name="imie" class="form-control" placeholder="Imię" >
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="nazwisko" name="nazwisko" class="form-control" placeholder="Nazwisko" >
+                    </div>
+                    <div class="form-group">
+                        <input type="email" id="email" name="email" class="form-control" placeholder="Adres e-mail" >
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Hasło (min. 6 znaków)" >
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="password-confirm" name="password-confirm" class="form-control" placeholder="Powtórz hasło" >
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="role" name="role" class="form-control" placeholder="Rola" >
+                    </div>
+                    <div class="form-group">
+                        <input type="number" id="nrAlbumu" name="nrAlbumu" class="form-control" placeholder="Numer albumu" >
+                    </div>
+
+                     <!-- Miejsce na błędy -->
+                    <div id="errorMessageContainer" class="form-message"></div>
+
+                    <button type="submit" class="btn btn-primary btn-full" id="registerButton">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Utwórz konto</span>
+                    </button>  
+                </form>
+
+                <div class="auth-link">
+                    <p class="small-text">Masz już konto? <a th:href="@{/login}" class="link-accent">Zaloguj się</a></p>
+                </div>
+
+                <div class="auth-link-home">
+                    <a th:href="@{/}" class="back-link">
+                        <i class="fas fa-arrow-left"></i> Powrót do strony głównej
+                    </a>
+                </div>
+            </div>
         </div>
-
-        <form id="registerForm">
-            <div class="form-group">
-                <input type="text" id="imie" name="imie" class="form-control" placeholder="Imię" required>
-            </div>
-            <div class="form-group">
-                <input type="text" id="nazwisko" name="nazwisko" class="form-control" placeholder="Nazwisko" required>
-            </div>
-            <div class="form-group">
-                <input type="email" id="email" name="email" class="form-control" placeholder="Adres e-mail" required>
-            </div>
-            <div class="form-group">
-                <input type="password" id="password" name="password" class="form-control" placeholder="Hasło (min. 6 znaków)" required>
-            </div>
-            <div class="form-group">
-                <input type="password" id="password-confirm" name="password-confirm" class="form-control" placeholder="Powtórz hasło" required>
-            </div>
-            <div class="form-group">
-                <input type="text" id="role" name="role" class="form-control" placeholder="Rola" required>
-            </div>
-            <div class="form-group">
-                <input type="number" id="nrAlbumu" name="nrAlbumu" class="form-control" placeholder="Numer albumu" required>
-            </div>
-
-            <div id="errorMessageContainer" style="color: red; margin-bottom: 10px; text-align: center; font-size: 0.9em;"></div>
-
-
-            <button type="submit" class="btn btn-primary btn-full">
-                <i class="fas fa-user-plus"></i>
-                <span>Utwórz konto</span>
-            </button>
-        </form>
-
-        <div class="auth-link">
-            <p class="small-text">Masz już konto? <a th:href="@{/login}" class="link-accent">Zaloguj się</a></p>
-        </div>
-
-        <div class="auth-link-home">
-            <a th:href="@{/}" class="back-link">
-                <i class="fas fa-arrow-left"></i> Powrót do strony głównej
-            </a>
-        </div>
-    </div>
-</div>
-
-</body>
+    </body>
 </html>
