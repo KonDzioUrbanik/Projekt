@@ -24,6 +24,10 @@
     --border-color-input: #ced4da;               /* Ramka dla inputa */
     --shadow-color: rgba(0, 0, 0, 0.08);         /* Cień pod kartą */
     --shadow-color-btn: rgba(0, 94, 250, 0.2);   /* Cień pod przyciskiem */
+
+    /* Kolory dla nagłówka */
+    --header-bg: #212020;            /* Tło nagłówka */
+    --navbar-left-bg: #262727;     /* Tło lewego paska nawigacyjnego */
 }
 
 /* CZCIONKI I STYLE GLOBALNE */
@@ -85,6 +89,17 @@ body{
     margin-bottom: 2.5rem;
 }
 
+.header-container{
+    display: flex;
+    justify-content: flex-end;
+    padding: 20px;
+    background-color: var(--header-bg);
+}
+
+.user-container{
+    
+}
+
 .auth-container .title-section,
 .tutorial-container .title-section{
     margin-bottom: 30px;
@@ -118,6 +133,25 @@ p, .subtitle{
     font-size: 1.1rem;
     color: var(--text-light);
     margin-bottom: 0;
+}
+
+/* SEKCJA MAIN */
+
+.dashboard-container{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    min-height: 100vh;
+}
+
+.navbar-left{
+    background-color: var(--navbar-left-bg);
+    width: 12vw;
+}
+
+.navbar-middle {
+    width: 88vw;
+    padding: 50px;
 }
 
 /* PRZYCISKI */
@@ -188,6 +222,34 @@ p, .subtitle{
     color: var(--text-dark);
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+}
+
+.btn-logout{
+    background-color: var(--color-primary);
+    color: var(--text-white);
+    border: 2px solid var(--color-primary);
+    padding: 7px 20px;
+    font-size: 0.8rem;
+}
+
+.btn-navbar-left{
+    background-color: var(--color-primary);
+    color: var(--text-white);
+    border: 2px solid var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 3px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: none;
+    width: 100%;
+    cursor: pointer;
+    font-size: 0.9rem;
 }
 
 /* FORMULARZE (login.html i register.html) */
