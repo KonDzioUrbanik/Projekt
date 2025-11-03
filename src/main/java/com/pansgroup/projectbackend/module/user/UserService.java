@@ -1,9 +1,8 @@
-package com.pansgroup.projectbackend.service;
+package com.pansgroup.projectbackend.module.user;
 
-import com.pansgroup.projectbackend.dto.LoginRequestDto;
-import com.pansgroup.projectbackend.dto.UserCreateDto;
-import com.pansgroup.projectbackend.dto.UserResponseDto;
-import com.pansgroup.projectbackend.model.User;
+import com.pansgroup.projectbackend.module.user.dto.LoginRequestDto;
+import com.pansgroup.projectbackend.module.user.dto.UserCreateDto;
+import com.pansgroup.projectbackend.module.user.dto.UserResponseDto;
 
 import java.util.List;
 

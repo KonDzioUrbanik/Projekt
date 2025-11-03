@@ -1,11 +1,9 @@
 // Plik: kondziourbanik/projekt/Projekt-4bcd86d02410d802b2773df99e0aba3be529dcba/src/main/java/com/pansgroup/projectbackend/controller/AuthController.java
-package com.pansgroup.projectbackend.controller;
+package com.pansgroup.projectbackend.module.user;
 
-import com.pansgroup.projectbackend.dto.LoginRequestDto;
-import com.pansgroup.projectbackend.dto.UserCreateDto;
-import com.pansgroup.projectbackend.dto.UserResponseDto;
-import com.pansgroup.projectbackend.model.User;
-import com.pansgroup.projectbackend.service.UserService;
+import com.pansgroup.projectbackend.module.user.dto.LoginRequestDto;
+import com.pansgroup.projectbackend.module.user.dto.UserCreateDto;
+import com.pansgroup.projectbackend.module.user.dto.UserResponseDto;
 // USUNIĘTE: import JwtService
 // USUNIĘTE: import LoginResponseDto
 import jakarta.servlet.http.HttpServletRequest;

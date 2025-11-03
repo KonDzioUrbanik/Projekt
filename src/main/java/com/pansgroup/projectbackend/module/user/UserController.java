@@ -1,9 +1,7 @@
-package com.pansgroup.projectbackend.controller;
+package com.pansgroup.projectbackend.module.user;
 
-import com.pansgroup.projectbackend.dto.UserCreateDto;
-import com.pansgroup.projectbackend.dto.UserResponseDto;
-import com.pansgroup.projectbackend.repository.UserRepository;
-import com.pansgroup.projectbackend.service.UserService;
+import com.pansgroup.projectbackend.module.user.dto.UserCreateDto;
+import com.pansgroup.projectbackend.module.user.dto.UserResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;

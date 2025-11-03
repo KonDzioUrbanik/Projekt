@@ -1,9 +1,8 @@
-package com.pansgroup.projectbackend.controller;
+package com.pansgroup.projectbackend.module.note;
 
-import com.pansgroup.projectbackend.dto.NoteCreateDto;
-import com.pansgroup.projectbackend.dto.NoteResponseDto;
-import com.pansgroup.projectbackend.dto.NoteUpdateDto;
-import com.pansgroup.projectbackend.service.NoteService;
+import com.pansgroup.projectbackend.module.note.dto.NoteCreateDto;
+import com.pansgroup.projectbackend.module.note.dto.NoteResponseDto;
+import com.pansgroup.projectbackend.module.note.dto.NoteUpdateDto;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
