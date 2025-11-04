@@ -14,4 +14,6 @@ public interface UserService {
     UserResponseDto updateUser(Long userId, UserUpdateDto dto);
     void changePassword(Long userId, PasswordChangeDto dto);
     UserResponseDto getCurrentUser(String email);
+    UserResponseDto updateRoleUser(String email, UserRoleUpdateDto dto);
+
 }
