@@ -1,28 +1,26 @@
-# Krok 1: Użyj obrazu z Javą i Mavenem do ZBUDOWANIA aplikacji
-FROM maven:3.8.5-openjdk-17 AS build
+# Krok 1: Budowanie (używamy pełnego JDK Temurin)
+FROM eclipse-temurin:17-jdk AS build
 WORKDIR /app
 
-# Skopiuj pliki Mavena i pobierz zależności (optymalizacja cache)
+# Kopiowanie i budowanie (bez zmian)
 COPY pom.xml .
 RUN mvn dependency:go-offline
-
-# Skopiuj resztę kodu źródłowego i zbuduj aplikację
 COPY src ./src
 RUN mvn package -DskipTests
 
 # -------------------------------------------------------------------
 
-# Krok 2: Użyj lekkiego obrazu Javy do URUCHOMIENIA aplikacji
-# Używamy bardziej stabilnego i konkretnego tagu obrazu
-FROM openjdk:17-jdk-slim-bullseye
+# Krok 2: Uruchamianie (używamy lekkiego JRE Temurin)
+# To jest nowa, stabilna linia, która zastępuje "openjdk"
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-# Ustaw domyślny port, który będzie widoczny
+# Ustaw domyślny port (bez zmian)
 EXPOSE 8090
 
-# Skopiuj zbudowany plik .jar z kroku "build"
+# Kopiowanie pliku .jar z kroku 1 (bez zmian)
 COPY --from=build /app/target/*.jar app.jar
 
-# Komenda uruchamiająca Twoją aplikację Spring Boot
+# Komenda uruchamiająca (bez zmian)
 ENTRYPOINT ["java", "-jar", "app.jar"]
 
