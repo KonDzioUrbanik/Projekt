@@ -124,6 +124,17 @@ public class GlobalExceptionHandler {
     }
     // ---------------------------------------------------------
 
+    /* ---------- 400: Password mismatch ---------- */
+    @ExceptionHandler(PasswordMismatchException.class)
+    ProblemDetail handlePasswordMismatch(PasswordMismatchException ex, HttpServletRequest req) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        pd.setTitle("Password mismatch");
+        pd.setDetail(ex.getMessage());
+        pd.setInstance(URI.create(req.getRequestURI()));
+        pd.setProperty("code", "password_mismatch");
+        return pd;
+    }
+
 
     /* ---------- 404: nie znaleziono notatki ---------- */
     @ExceptionHandler(NoteNotFoundException.class)
