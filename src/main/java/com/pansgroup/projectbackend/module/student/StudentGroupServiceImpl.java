@@ -1,23 +1,23 @@
 package com.pansgroup.projectbackend.module.student;
 
 import com.pansgroup.projectbackend.exception.StudentGroupNotFoundException;
-import com.pansgroup.projectbackend.exception.UsernameNotFoundException;
-import com.pansgroup.projectbackend.module.note.Note;
-import com.pansgroup.projectbackend.module.note.dto.NoteResponseDto;
-import com.pansgroup.projectbackend.module.schedule.ScheduleEntry;
-import com.pansgroup.projectbackend.module.schedule.dto.ScheduleEntryCreateDto;
 import com.pansgroup.projectbackend.module.student.dto.StudentGroupCreateDto;
 import com.pansgroup.projectbackend.module.student.dto.StudentGroupResponseDto;
 import com.pansgroup.projectbackend.module.user.User;
+import com.pansgroup.projectbackend.module.user.UserService;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class StudentGroupServiceImpl implements StudentGroupService{
+public class StudentGroupServiceImpl implements StudentGroupService {
     private final StudentGroupRepository studentGroupRepository;
-    public StudentGroupServiceImpl(StudentGroupRepository studentGroupRepository) {
+    private final UserService userService;
+
+    public StudentGroupServiceImpl(StudentGroupRepository studentGroupRepository, UserService userService) {
         this.studentGroupRepository = studentGroupRepository;
+        this.userService = userService;
     }
 
     //Metody pomocnicza
@@ -27,6 +27,7 @@ public class StudentGroupServiceImpl implements StudentGroupService{
                 entity.getName()
         );
     }
+
     private StudentGroup toEntity(StudentGroupCreateDto dto) {
         StudentGroup entry = new StudentGroup();
         entry.setName(dto.name().trim());
@@ -43,9 +44,24 @@ public class StudentGroupServiceImpl implements StudentGroupService{
 
     @Override
     public StudentGroupResponseDto findById(Long id) {
+        boolean isAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        if (!isAdmin) {
+            StudentGroup entity = studentGroupRepository.findById(id)
+                    .orElseThrow(() -> new StudentGroupNotFoundException(">" + id + "<"));
+            return toResponse(entity);
+        }
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userService.findUserByEmailInternal(userEmail);
+
+        if (currentUser.getStudentGroup() != null && currentUser.getStudentGroup().getId().equals(id)) {
+            throw new StudentGroupNotFoundException("Nie masz uprawnień do grupy: >" + id + "<");
+        }
+
+
         StudentGroup entity = studentGroupRepository.findById(id)
-                .orElseThrow(() -> {return new StudentGroupNotFoundException(">" + id + "<");
-                });
+                .orElseThrow(() ->
+                    new StudentGroupNotFoundException(">" + id + "<"));
         return toResponse(entity);
     }
 
