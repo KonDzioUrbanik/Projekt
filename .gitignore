@@ -31,3 +31,14 @@ build/
 
 ### VS Code ###
 .vscode/
+### Docker ###
+# Zignoruj plik ze zmiennymi środowiskowymi (hasłami)
+# To jest NAJWAŻNIEJSZA linia do dodania!
+.env
+
+# Ignoruj wszystkie inne pliki .env, np. .env.local, .env.development
+.env.*
+
+# Ignoruj lokalne logi Dockera, jeśli powstaną
+*.log
+
