@@ -1,6 +1,7 @@
 package com.pansgroup.projectbackend.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -68,7 +69,7 @@ public class GlobalExceptionHandler {
         var errors = ex.getConstraintViolations().stream()
                 .collect(Collectors.toMap(
                         v -> v.getPropertyPath().toString(),
-                        v -> v.getMessage(),
+                        ConstraintViolation::getMessage,
                         (a, b) -> a,
                         LinkedHashMap::new
                 ));

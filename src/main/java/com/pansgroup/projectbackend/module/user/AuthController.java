@@ -1,11 +1,8 @@
-// Plik: kondziourbanik/projekt/Projekt-4bcd86d02410d802b2773df99e0aba3be529dcba/src/main/java/com/pansgroup/projectbackend/controller/AuthController.java
 package com.pansgroup.projectbackend.module.user;
 
 import com.pansgroup.projectbackend.module.user.dto.LoginRequestDto;
 import com.pansgroup.projectbackend.module.user.dto.UserCreateDto;
 import com.pansgroup.projectbackend.module.user.dto.UserResponseDto;
-// USUNIĘTE: import JwtService
-// USUNIĘTE: import LoginResponseDto
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -16,13 +13,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-// USUNIĘTE: import Map;
+import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
+
 
 @RestController
 @RequestMapping("/api/auth")
@@ -60,7 +57,9 @@ public class AuthController {
                 user.getLastName(),
                 user.getEmail(),
                 user.getRole(),
-                user.getNrAlbumu()
+                user.getNrAlbumu(),
+                user.studentGroup.getId(),
+                user.studentGroup.getName()
         );
 
     }

@@ -1,5 +1,8 @@
 package com.pansgroup.projectbackend.exception;
 
+import lombok.Getter;
+
+@Getter
 public class BlankFieldException extends RuntimeException {
     private final String field;
 
@@ -8,7 +11,4 @@ public class BlankFieldException extends RuntimeException {
         this.field = field;
     }
 
-    public String getField() {
-        return field;
-    }
 }

@@ -69,10 +69,18 @@ public class UserController {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         return userService.getCurrentUser(userDetails.getUsername());
     }
-    @Operation(summary = "Zmiana roli użytkownia")
+    @Operation(summary = "Zmiana roli użytkownika")
     @PutMapping("/role/update/{email}")
     public UserResponseDto updateRoleUser(@PathVariable String email,@Valid @RequestBody UserRoleUpdateDto dto) {
         return userService.updateRoleUser(email, dto);
+    }
+    @Operation(summary = "Przypisanie użytkownika do grupy (Tylko Admin)")
+    @PutMapping("/assignGroup/{email}")
+    public UserResponseDto assignUserToGroup(
+            @PathVariable String email,
+            @Valid @RequestBody UserGroupAssignmentDto dto
+    ) {
+        return userService.assignUserToGroup(email, dto);
     }
 
 }
