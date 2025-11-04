@@ -16,13 +16,15 @@ import java.util.Locale;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final StudentGroupRepository studentGroupRepository;
 
-    StudentGroupRepository studentGroupRepository;
 
-
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository,
+                           PasswordEncoder passwordEncoder,
+                           StudentGroupRepository studentGroupRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.studentGroupRepository = studentGroupRepository; // <-- PRZYPISANIE
     }
 
     @Override
