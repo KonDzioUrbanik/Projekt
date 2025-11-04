@@ -1,20 +1,20 @@
-# Krok 1: Budowanie (używamy oficjalnego obrazu Mavena, który zawiera JDK 17)
-# Ten obraz GWARANTUJE, że komenda 'mvn' istnieje.
-FROM maven:3.8.5-openjdk-17 AS build
+# Krok 1: Budowanie (używamy Mavena z JDK 21)
+# Zmieniamy 'openjdk-17' na obraz 'temurin-21', który jest stabilny
+FROM maven:3-eclipse-temurin-21 AS build
 WORKDIR /app
 
 # Kopiowanie i budowanie (bez zmian)
 COPY pom.xml .
-# Ta komenda teraz zadziała, bo 'mvn' jest w obrazie
 RUN mvn dependency:go-offline
 COPY src ./src
+# Ta komenda teraz zadziała, bo kompilator jest w wersji 21
 RUN mvn package -DskipTests
 
 # -------------------------------------------------------------------
 
-# Krok 2: Uruchamianie (używamy lekkiego obrazu JRE Temurin)
-# Ten obraz już wiemy, że działa i się pobiera.
-FROM eclipse-temurin:17-jre
+# Krok 2: Uruchamianie (używamy JRE w wersji 21)
+# Musimy też zaktualizować środowisko uruchomieniowe do JRE 21
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # Ustaw domyślny port (bez zmian)
