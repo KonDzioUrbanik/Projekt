@@ -23,8 +23,8 @@ public class SecurityConfig {
                 "/static/**",
                 "/favcion.png",
                 "/favcion.ico",
-                "/css/**", // Dodano dla pewności
-                "/js/**"  // Dodano dla pewności
+                "/css/**",
+                "/js/**"
         );
     }
 
@@ -68,6 +68,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/schedule/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/schedule/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/schedule/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/users/role/update/**").hasRole("ADMIN")
 
                 .requestMatchers(
                         HttpMethod.GET, "/api/schedule/**",

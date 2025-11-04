@@ -69,4 +69,10 @@ public class UserController {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         return userService.getCurrentUser(userDetails.getUsername());
     }
+    @Operation(summary = "Zmiana roli użytkownia")
+    @PutMapping("/role/update/{email}")
+    public UserResponseDto updateRoleUser(@PathVariable String email,@Valid @RequestBody UserRoleUpdateDto dto) {
+        return userService.updateRoleUser(email, dto);
+    }
+
 }

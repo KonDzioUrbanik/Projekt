@@ -1,16 +1,7 @@
 package com.pansgroup.projectbackend.module.user;
 
-import com.pansgroup.projectbackend.exception.AlbumNumberAlreadyExistsException;
-import com.pansgroup.projectbackend.exception.BadCredentialsException;
-import com.pansgroup.projectbackend.exception.EmailAlreadyExistsException;
-import com.pansgroup.projectbackend.exception.PasswordMismatchException;
-import com.pansgroup.projectbackend.exception.UserNotFoundException;
-import com.pansgroup.projectbackend.exception.UsernameNotFoundException;
-import com.pansgroup.projectbackend.module.user.dto.LoginRequestDto;
-import com.pansgroup.projectbackend.module.user.dto.PasswordChangeDto;
-import com.pansgroup.projectbackend.module.user.dto.UserCreateDto;
-import com.pansgroup.projectbackend.module.user.dto.UserResponseDto;
-import com.pansgroup.projectbackend.module.user.dto.UserUpdateDto;
+import com.pansgroup.projectbackend.exception.*;
+import com.pansgroup.projectbackend.module.user.dto.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,7 +34,7 @@ public class UserServiceImpl implements UserService {
         String normalizedEmail = dto.email().trim().toLowerCase(Locale.ROOT);
         Integer indexNumber = extractIndexNumberFromEmail(normalizedEmail);
         if (indexNumber != null) {
-            if (userRepository.existsByNrAlbumu(indexNumber)){
+            if (userRepository.existsByNrAlbumu(indexNumber)) {
                 throw new AlbumNumberAlreadyExistsException(indexNumber);
             }
         }
@@ -178,6 +169,14 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto getCurrentUser(String email) {
         User user = findUserByEmailInternal(email);
         return mapToResponseDto(user);
+    }
+
+    @Override
+    public UserResponseDto updateRoleUser(String email, UserRoleUpdateDto dto) {
+        User userToUpdate = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Taki email nie istnieje: " + email));
+        userToUpdate.setRole(dto.newRole().trim().toUpperCase(Locale.ROOT));
+        return mapToResponseDto(userRepository.save(userToUpdate));
     }
 
 }
