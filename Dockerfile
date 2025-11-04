@@ -23,6 +23,6 @@ EXPOSE 8090
 # Kopiowanie pliku .jar z kroku 1 (bez zmian)
 COPY --from=build /app/target/*.jar app.jar
 
-# Komenda uruchamiająca (bez zmian)
+
 ENTRYPOINT ["java", "-jar", "app.jar"]
 
