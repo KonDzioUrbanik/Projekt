@@ -51,16 +51,7 @@ public class AuthController {
         session.setAttribute(SPRING_SECURITY_CONTEXT_KEY, sc);
 
         User user = userService.authenticate(dto);
-        return new UserResponseDto(
-                user.getId(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getEmail(),
-                user.getRole(),
-                user.getNrAlbumu(),
-                user.studentGroup.getId(),
-                user.studentGroup.getName()
-        );
+        return userService.getCurrentUser(user.getEmail());
 
     }
 
