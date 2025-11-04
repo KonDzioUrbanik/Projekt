@@ -1,6 +1,8 @@
 package com.pansgroup.projectbackend.module.user;
 
 import com.pansgroup.projectbackend.exception.*;
+import com.pansgroup.projectbackend.module.student.StudentGroup;
+import com.pansgroup.projectbackend.module.student.StudentGroupRepository;
 import com.pansgroup.projectbackend.module.user.dto.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,8 @@ import java.util.Locale;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    StudentGroupRepository studentGroupRepository;
 
 
     public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
@@ -120,13 +124,19 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserResponseDto mapToResponseDto(User u) {
+        // Dodano logikę bezpiecznego pobierania danych grupy
+        Long groupId = u.getStudentGroup() != null ? u.getStudentGroup().getId() : null;
+        String groupName = u.getStudentGroup() != null ? u.getStudentGroup().getName() : null;
+
         return new UserResponseDto(
                 u.getId(),
                 u.getFirstName(),
                 u.getLastName(),
                 u.getEmail(),
                 u.getRole(),
-                u.getNrAlbumu()
+                u.getNrAlbumu(),
+                groupId,
+                groupName
         );
     }
 
@@ -150,7 +160,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
-        // Werifikacja bieżącego hasła
+        // Weryfikacja bieżącego hasła
         if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
             throw new PasswordMismatchException("Nieprawidłowe bieżące hasło");
         }
@@ -167,7 +177,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto getCurrentUser(String email) {
-        User user = findUserByEmailInternal(email);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Taki email nie istnieje: " + email));
         return mapToResponseDto(user);
     }
 
@@ -176,6 +187,27 @@ public class UserServiceImpl implements UserService {
         User userToUpdate = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Taki email nie istnieje: " + email));
         userToUpdate.setRole(dto.newRole().trim().toUpperCase(Locale.ROOT));
+        return mapToResponseDto(userRepository.save(userToUpdate));
+    }
+
+    @Override
+    @Transactional
+    public UserResponseDto assignUserToGroup(String email, UserGroupAssignmentDto dto) {
+        String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
+
+        // 1. Znajdź użytkownika
+        User userToUpdate = userRepository.findByEmail(normalizedEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + normalizedEmail));
+
+        // 2. Znajdź encję grupy
+        // Używamy metody z studentgrouprepository, która zwróci encję Grupy
+        StudentGroup group = studentGroupRepository.findById(dto.groupId())
+                .orElseThrow(() -> new StudentGroupNotFoundException(dto.groupId()));
+
+        // 3. Przypisz grupę do użytkownika
+        userToUpdate.setStudentGroup(group);
+
+        // 4. Zapisz i zwróć DTO
         return mapToResponseDto(userRepository.save(userToUpdate));
     }
 

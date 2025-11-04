@@ -15,5 +15,6 @@ public interface UserService {
     void changePassword(Long userId, PasswordChangeDto dto);
     UserResponseDto getCurrentUser(String email);
     UserResponseDto updateRoleUser(String email, UserRoleUpdateDto dto);
+    UserResponseDto assignUserToGroup(String email, UserGroupAssignmentDto dto);
 
 }

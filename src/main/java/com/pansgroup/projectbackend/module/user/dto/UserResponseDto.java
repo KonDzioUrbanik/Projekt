@@ -20,5 +20,12 @@ public record UserResponseDto(
         String role,
 
         @Schema(description = "Numer albumu studenta", example = "12345")
-        Integer nrAlbumu
+        Integer nrAlbumu,
+
+        // NOWE POLA
+        @Schema(description = "ID grupy studenta", example = "1")
+        Long groupId,
+
+        @Schema(description = "Nazwa grupy studenta", example = "Informatyka 2A")
+        String groupName
 ) {}
