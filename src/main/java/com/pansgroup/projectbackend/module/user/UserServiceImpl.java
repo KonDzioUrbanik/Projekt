@@ -1,12 +1,16 @@
 package com.pansgroup.projectbackend.module.user;
 
 import com.pansgroup.projectbackend.exception.AlbumNumberAlreadyExistsException;
-import com.pansgroup.projectbackend.module.user.dto.LoginRequestDto;
-import com.pansgroup.projectbackend.module.user.dto.UserCreateDto;
-import com.pansgroup.projectbackend.module.user.dto.UserResponseDto;
 import com.pansgroup.projectbackend.exception.BadCredentialsException;
 import com.pansgroup.projectbackend.exception.EmailAlreadyExistsException;
+import com.pansgroup.projectbackend.exception.PasswordMismatchException;
+import com.pansgroup.projectbackend.exception.UserNotFoundException;
 import com.pansgroup.projectbackend.exception.UsernameNotFoundException;
+import com.pansgroup.projectbackend.module.user.dto.LoginRequestDto;
+import com.pansgroup.projectbackend.module.user.dto.PasswordChangeDto;
+import com.pansgroup.projectbackend.module.user.dto.UserCreateDto;
+import com.pansgroup.projectbackend.module.user.dto.UserResponseDto;
+import com.pansgroup.projectbackend.module.user.dto.UserUpdateDto;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,7 +61,7 @@ public class UserServiceImpl implements UserService {
         u.setNrAlbumu(indexNumber); // Z adresu email
 
         User saved = userRepository.save(u);
-        return toResponse(saved);
+        return mapToResponseDto(saved);
     }
 
 
@@ -94,7 +98,7 @@ public class UserServiceImpl implements UserService {
     public List<UserResponseDto> findAll() {
         return userRepository.findAll()
                 .stream()
-                .map(this::toResponse)   // bez hasła
+                .map(this::mapToResponseDto)   // bez hasła
                 .toList();
     }
 
@@ -105,17 +109,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(e)
                 .orElseThrow(() -> new UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + e));
 
-        return toDto(user);
-    }
-    private UserResponseDto toDto(User u) {
-        return new UserResponseDto(
-                u.getId(),
-                u.getFirstName(),
-                u.getLastName(),
-                u.getEmail(),
-                u.getRole(),
-                u.getNrAlbumu()
-        );
+        return mapToResponseDto(user);
     }
 
     @Override
@@ -134,8 +128,7 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
-
-    private UserResponseDto toResponse(User u) {
+    private UserResponseDto mapToResponseDto(User u) {
         return new UserResponseDto(
                 u.getId(),
                 u.getFirstName(),
@@ -144,6 +137,47 @@ public class UserServiceImpl implements UserService {
                 u.getRole(),
                 u.getNrAlbumu()
         );
+    }
+
+    @Override
+    @Transactional
+    public UserResponseDto updateUser(Long userId, UserUpdateDto dto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+
+        // Zmiana imienia i nazwiska użytkownika
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+
+        User savedUser = userRepository.save(user);
+        return mapToResponseDto(savedUser);
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(Long userId, PasswordChangeDto dto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+
+        // Werifikacja bieżącego hasła
+        if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
+            throw new PasswordMismatchException("Nieprawidłowe bieżące hasło");
+        }
+
+        // Weryfikacja nowego hasła i potwierdzenia
+        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+            throw new PasswordMismatchException("Nowe hasło i potwierdzenie hasła nie pasują do siebie");
+        }
+
+        // Zmiana hasła
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        userRepository.save(user);
+    }
+
+    @Override
+    public UserResponseDto getCurrentUser(String email) {
+        User user = findUserByEmailInternal(email);
+        return mapToResponseDto(user);
     }
 
 }
