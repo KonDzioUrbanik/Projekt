@@ -1,23 +1,33 @@
 package com.pansgroup.projectbackend.module.schedule;
 
 import com.pansgroup.projectbackend.exception.ScheduleEntryNotFoundException;
+import com.pansgroup.projectbackend.exception.UsernameNotFoundException;
 import com.pansgroup.projectbackend.module.schedule.dto.ScheduleEntryCreateDto;
 import com.pansgroup.projectbackend.module.schedule.dto.ScheduleEntryResponseDto;
 import com.pansgroup.projectbackend.module.schedule.dto.ScheduleEntryUpdateDto;
+import com.pansgroup.projectbackend.module.student.StudentGroup;
+import com.pansgroup.projectbackend.module.user.User;
+import com.pansgroup.projectbackend.module.user.UserRepository;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
 public class ScheduleServiceImpl implements ScheduleService {
 
     private final ScheduleRepository scheduleRepository;
+    private final UserRepository userRepository;
 
     // Wstrzyknięcie zależności Repozytorium
-    public ScheduleServiceImpl(ScheduleRepository scheduleRepository) {
+    public ScheduleServiceImpl(ScheduleRepository scheduleRepository, UserRepository userRepository) {
         this.scheduleRepository = scheduleRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -69,9 +79,16 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public List<ScheduleEntryResponseDto> getMySchedule(String userEmail) {
-        // Na razie: Zwraca cały plan dla wszystkich zalogowanych użytkowników.
-        // W przyszłości zostanie tu dodana logika filtrowania po grupach.
-        return findAll();
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("Nie ma takiego Użytkownika: " + userEmail ));
+        StudentGroup group = user.getStudentGroup();
+        if (group == null) {
+            return Collections.emptyList();
+        }
+        else {
+            return scheduleRepository.findByStudentGroups(group).stream().map(this::toResponse).toList();
+        }
+
     }
 
     // ---------- METODY POMOCNICZE (Konwersja) ----------

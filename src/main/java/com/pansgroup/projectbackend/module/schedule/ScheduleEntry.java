@@ -1,10 +1,12 @@
 package com.pansgroup.projectbackend.module.schedule;
 
+import com.pansgroup.projectbackend.module.student.StudentGroup;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -28,4 +30,6 @@ public class ScheduleEntry {
 
     private LocalTime endTime;
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    private List<StudentGroup> studentGroups;
 }
