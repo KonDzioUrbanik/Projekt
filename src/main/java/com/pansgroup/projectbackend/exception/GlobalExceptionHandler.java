@@ -40,6 +40,8 @@ public class GlobalExceptionHandler {
     }
 
 
+
+
     /* ---------- 400: błędy walidacji z @Valid na @RequestBody ---------- */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ProblemDetail handleValidation(MethodArgumentNotValidException ex, HttpServletRequest req) {
@@ -144,6 +146,17 @@ public class GlobalExceptionHandler {
         pd.setDetail(ex.getMessage());
         pd.setInstance(URI.create(req.getRequestURI()));
         pd.setProperty("code", "note_not_found");
+        return pd;
+    }
+
+    /* ---------- 404: nie znaleziono wpisu / GRUPY ---------- */
+    @ExceptionHandler(StudentGroupNotFoundException.class)
+    ProblemDetail handleStudentGroupNotFound(StudentGroupNotFoundException ex, HttpServletRequest req) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        pd.setTitle("Not found");
+        pd.setDetail(ex.getMessage());
+        pd.setInstance(URI.create(req.getRequestURI()));
+        pd.setProperty("code", "group_not_found"); // Unikalny kod błędu dla grup
         return pd;
     }
 

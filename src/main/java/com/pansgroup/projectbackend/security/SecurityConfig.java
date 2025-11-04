@@ -57,6 +57,9 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(
+                        // Ścieżki publiczne (bez zmian)
+                        "/favcion.ico",
+                        "/favcion.png",
                         "/",
                         "/login",
                         "/register",
@@ -65,17 +68,27 @@ public class SecurityConfig {
                         "/swagger-ui/**",
                         "/v3/api-docs/**"
                 ).permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/schedule/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/schedule/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/schedule/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/users/role/update/**").hasRole("ADMIN")
 
+                // === REGUŁY TYLKO DLA ADMINA ===
+                .requestMatchers(HttpMethod.POST, "/api/schedule/**", "/api/groups").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/schedule/**", "/api/groups/**", "/api/users/role/update/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/schedule/**", "/api/groups/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/groups").hasRole("ADMIN")
+
+                // === REGUŁY DLA WSZYSTKICH ZALOGOWANYCH ===
+                // 1. Reguły ściśle GET
+                .requestMatchers(HttpMethod.GET,
+                        "/api/schedule/**",
+                        "/api/groups/{id}"
+                ).authenticated()
+
+                // 2. Reguły dla ścieżek (każda metoda) i widoków:
                 .requestMatchers(
-                        HttpMethod.GET, "/api/schedule/**",
                         "/dashboard",
                         "/api/users/me",
                         "/api/notes/**"
                 ).authenticated()
+
                 .anyRequest().authenticated()
         );
 
