@@ -16,5 +16,6 @@ public interface UserService {
     UserResponseDto getCurrentUser(String email);
     UserResponseDto updateRoleUser(String email, UserRoleUpdateDto dto);
     UserResponseDto assignUserToGroup(String email, UserGroupAssignmentDto dto);
+    void confirmToken(String token);
 
 }

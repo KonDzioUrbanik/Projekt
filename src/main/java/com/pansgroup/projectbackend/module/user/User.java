@@ -2,6 +2,7 @@ package com.pansgroup.projectbackend.module.user;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.pansgroup.projectbackend.module.student.StudentGroup;
+import com.pansgroup.projectbackend.module.user.confirmation.ConfirmationToken;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -32,5 +33,11 @@ public class User {
 
     @ManyToOne
     StudentGroup studentGroup;
+
+    @OneToOne
+    @JoinColumn(name = "confirmation_token_id")
+    ConfirmationToken confirmationToken;
+
+    boolean isActivated;
 
 }

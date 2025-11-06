@@ -1,3 +1,4 @@
+
 package com.pansgroup.projectbackend.security;
 
 import com.pansgroup.projectbackend.module.user.User;
@@ -6,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -35,6 +37,9 @@ public class SecurityConfig {
             if (user == null) {
                 throw new UsernameNotFoundException("Nie znaleziono użytkownika: " + email);
             }
+            if (!user.isActivated()) {
+                throw new DisabledException("Konto nie zostało aktywowane :( Sprawdz e-mail");
+            }
             return org.springframework.security.core.userdetails.User
                     .withUsername(user.getEmail())
                     .password(user.getPassword())
@@ -57,7 +62,6 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                        // Ścieżki publiczne (bez zmian)
                         "/favicon.ico",
                         "/favicon.png",
                         "/",
@@ -66,10 +70,10 @@ public class SecurityConfig {
                         "/tutorial",
                         "/api/auth/**",
                         "/swagger-ui/**",
-                        "/v3/api-docs/**"
+                        "/v3/api-docs/**",
+                        "/confirm"
                 ).permitAll()
 
-                // === REGUŁY TYLKO DLA ADMINA ===
                 .requestMatchers(HttpMethod.POST, "/api/schedule/**", "/api/groups").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,
                         "/api/schedule/**",
@@ -80,14 +84,11 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/schedule/**", "/api/groups/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/groups").hasRole("ADMIN")
 
-                // === REGUŁY DLA WSZYSTKICH ZALOGOWANYCH ===
-                // 1. Reguły ściśle GET
                 .requestMatchers(HttpMethod.GET,
                         "/api/schedule/**",
                         "/api/groups/{id}"
                 ).authenticated()
 
-                // 2. Reguły dla ścieżek (każda metoda) i widoków:
                 .requestMatchers(
                         "/dashboard",
                         "/api/users/me",
