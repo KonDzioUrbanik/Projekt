@@ -3,18 +3,22 @@ package com.pansgroup.projectbackend.controller;
 
 import com.pansgroup.projectbackend.module.dashboard.DashboardService;
 import com.pansgroup.projectbackend.module.dashboard.dto.DashboardResponseDto;
+import com.pansgroup.projectbackend.module.user.UserService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.security.Principal;
 
 @Controller
 public class MainController {
     private final DashboardService dashboardService;
+    private final UserService userService;
 
-    public MainController(DashboardService dashboardService) {
+    public MainController(DashboardService dashboardService, UserService userService) {
         this.dashboardService = dashboardService;
+        this.userService = userService;
     }
 
     @GetMapping("/")
@@ -46,6 +50,10 @@ public class MainController {
 
         return "dashboard";
     }
-
+    @GetMapping("/confirm")
+    public String confirm(@RequestParam("token") String token) {
+        userService.confirmToken(token);
+        return "redirect:/login";
+    }
 
 }

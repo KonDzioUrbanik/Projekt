@@ -27,5 +27,8 @@ public record UserResponseDto(
         Long groupId,
 
         @Schema(description = "Nazwa grupy studenta", example = "Informatyka 2A")
-        String groupName
+        String groupName,
+
+        @Schema(description = "Czy konto aktywowane ? (Zweryfikowany email)", example = "No")
+        boolean isActivated
 ) {}

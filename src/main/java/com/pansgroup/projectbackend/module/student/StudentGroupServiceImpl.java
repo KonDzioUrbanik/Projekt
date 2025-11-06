@@ -46,7 +46,7 @@ public class StudentGroupServiceImpl implements StudentGroupService {
     public StudentGroupResponseDto findById(Long id) {
         boolean isAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        if (!isAdmin) {
+        if (isAdmin) {
             StudentGroup entity = studentGroupRepository.findById(id)
                     .orElseThrow(() -> new StudentGroupNotFoundException(">" + id + "<"));
             return toResponse(entity);

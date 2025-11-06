@@ -1,15 +1,21 @@
 package com.pansgroup.projectbackend.module.user;
 
 import com.pansgroup.projectbackend.exception.*;
+import com.pansgroup.projectbackend.module.email.EmailService;
 import com.pansgroup.projectbackend.module.student.StudentGroup;
 import com.pansgroup.projectbackend.module.student.StudentGroupRepository;
+import com.pansgroup.projectbackend.module.user.confirmation.ConfirmationToken;
+import com.pansgroup.projectbackend.module.user.confirmation.ConfirmationTokenRepository;
 import com.pansgroup.projectbackend.module.user.dto.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -17,21 +23,25 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final StudentGroupRepository studentGroupRepository;
+    private final EmailService emailService;
+    private final ConfirmationTokenRepository confirmationTokenRepository;
 
 
     public UserServiceImpl(UserRepository userRepository,
                            PasswordEncoder passwordEncoder,
-                           StudentGroupRepository studentGroupRepository) {
+                           StudentGroupRepository studentGroupRepository,
+                           EmailService emailService, ConfirmationTokenRepository confirmationTokenRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.studentGroupRepository = studentGroupRepository; // <-- PRZYPISANIE
+        this.studentGroupRepository = studentGroupRepository;
+        this.emailService = emailService;
+        this.confirmationTokenRepository = confirmationTokenRepository;
     }
 
     @Override
     public User findUserByEmailInternal(String email) {
         String e = email.trim().toLowerCase(Locale.ROOT);
         return userRepository.findByEmail(e)
-                // ZMIANA TYLKO TUTAJ:
                 .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + e));
     }
 
@@ -56,8 +66,18 @@ public class UserServiceImpl implements UserService {
         u.setPassword(passwordEncoder.encode(dto.password()));
         u.setRole("STUDENT"); // Automatycznie rola STUDENT
         u.setNrAlbumu(indexNumber); // Z adresu email
+        u.setActivated(false); // Poprawnie ustawione
 
         User saved = userRepository.save(u);
+        String tokenValue = UUID.randomUUID().toString();
+        ConfirmationToken confirmationToken = new ConfirmationToken();
+        confirmationToken.setToken(tokenValue);
+        // Mail jest wysyłany
+        emailService.sendConfirmationEmail(saved.getEmail(),  tokenValue);
+        confirmationToken.setExpiryDate(LocalDateTime.now().plusMinutes(10));
+        confirmationToken.setUser(saved); // POPRAWNIE: Użytkownik przypisany do tokenu
+        confirmationTokenRepository.save(confirmationToken);
+
         return mapToResponseDto(saved);
     }
 
@@ -126,10 +146,10 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserResponseDto mapToResponseDto(User u) {
-        // Dodano logikę bezpiecznego pobierania danych grupy
         Long groupId = u.getStudentGroup() != null ? u.getStudentGroup().getId() : null;
         String groupName = u.getStudentGroup() != null ? u.getStudentGroup().getName() : null;
 
+        // POPRAWKA: Usunięto 9. argument (u.isActivated), aby pasował do DTO
         return new UserResponseDto(
                 u.getId(),
                 u.getFirstName(),
@@ -138,7 +158,8 @@ public class UserServiceImpl implements UserService {
                 u.getRole(),
                 u.getNrAlbumu(),
                 groupId,
-                groupName
+                groupName,
+                u.isActivated
         );
     }
 
@@ -213,4 +234,22 @@ public class UserServiceImpl implements UserService {
         return mapToResponseDto(userRepository.save(userToUpdate));
     }
 
+    @Override
+    public void confirmToken(String token) {
+        // Wszystko tutaj jest poprawne
+        Optional<ConfirmationToken> tokenOptional = confirmationTokenRepository.findByToken(token);
+        if (!tokenOptional.isPresent()) {
+            throw new UsernameNotFoundException("Token jest błędny " + token + " bądz nie istnieje");
+        }
+        else  {
+            ConfirmationToken confirmationToken = tokenOptional.get();
+            if (confirmationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+                throw new UsernameNotFoundException("Token przeterminowany");
+            }
+            User user = confirmationToken.getUser();
+            user.setActivated(true);
+            userRepository.save(user);
+            confirmationTokenRepository.delete(confirmationToken);
+        }
+    }
 }
