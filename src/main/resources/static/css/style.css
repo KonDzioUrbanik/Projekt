@@ -1,33 +1,33 @@
 /* ZMIENNE CSS */
 
 :root {
-    /* Paleta kolorów */
-    --color-primary: #005efa;          /* Główny niebieski dla przycisków i linków */
-    --color-primary-dark: #004acb;     /* Ciemniejszy niebieski (hover) */
-    --color-secondary: #f8f9fa;        /* Jasnoszary dla tła przycisków */
-    --color-secondary-dark: #e9ecef;   /* Ciemniejszy szary (hover) */
-    --color-tertiary-text: #6c757d;    /* Szary tekst (np. samouczek) */
+    /* Paleta kolorow */
+    --color-primary: #005efa;       
+    --color-primary-dark: #004acb;    
+    --color-secondary: #f8f9fa;      
+    --color-secondary-dark: #e9ecef;  
+    --color-tertiary-text: #6c757d;   
     
-    /* Kolory tła */
-    --bg-main: #f8f9fa;                /* Główne tło strony (bardzo jasne) */
-    --bg-card: #ffffff;                /* Tło dla "karty" (białe) */
-    --bg-step: #f8f9fa;                /* Tło dla kroku w samouczku */
+    /* Tlo*/
+    --bg-main: #f8f9fa;                
+    --bg-card: #ffffff;              
+    --bg-step: #f8f9fa;            
 
-    /* Kolory tekstu */
-    --text-dark: #2d3748;              /* Główny tekst, nagłówki */
-    --text-light: #718096;             /* Drugorzędny tekst (np. "Nie masz konta?") */
-    --text-white: #ffffff;             /* Biały tekst */
-    --text-placeholder: #a0aec0;       /* Tekst w placeholderach */
+    /* Tekst */
+    --text-dark: #2d3748;         
+    --text-light: #718096;           
+    --text-white: #ffffff;         
+    --text-placeholder: #a0aec0;    
 
     /* Inne */
-    --border-color: #e9ecef;                     /* Ramka dla karty */
-    --border-color-input: #ced4da;               /* Ramka dla inputa */
-    --shadow-color: rgba(0, 0, 0, 0.08);         /* Cień pod kartą */
-    --shadow-color-btn: rgba(0, 94, 250, 0.2);   /* Cień pod przyciskiem */
+    --border-color: #e9ecef;                
+    --border-color-input: #ced4da;             
+    --shadow-color: rgba(0, 0, 0, 0.08);     
+    --shadow-color-btn: rgba(0, 94, 250, 0.2);   
 
-    /* Kolory dla nagłówka */
-    --header-bg: #212020;            /* Tło nagłówka */
-    --navbar-left-bg: #262727;     /* Tło lewego paska nawigacyjnego */
+    /* Naglowek */
+    --header-bg: #212020;            
+    --navbar-left-bg: #262727;   
 }
 
 /* CZCIONKI I STYLE GLOBALNE */
@@ -89,17 +89,6 @@ body{
     margin-bottom: 2.5rem;
 }
 
-.header-container{
-    display: flex;
-    justify-content: flex-end;
-    padding: 20px;
-    background-color: var(--header-bg);
-}
-
-.user-container{
-    
-}
-
 .auth-container .title-section,
 .tutorial-container .title-section{
     margin-bottom: 30px;
@@ -133,25 +122,6 @@ p, .subtitle{
     font-size: 1.1rem;
     color: var(--text-light);
     margin-bottom: 0;
-}
-
-/* SEKCJA MAIN */
-
-.dashboard-container{
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    min-height: 100vh;
-}
-
-.navbar-left{
-    background-color: var(--navbar-left-bg);
-    width: 12vw;
-}
-
-.navbar-middle {
-    width: 88vw;
-    padding: 50px;
 }
 
 /* PRZYCISKI */
@@ -222,14 +192,6 @@ p, .subtitle{
     color: var(--text-dark);
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
-}
-
-.btn-logout{
-    background-color: var(--color-primary);
-    color: var(--text-white);
-    border: 2px solid var(--color-primary);
-    padding: 7px 20px;
-    font-size: 0.8rem;
 }
 
 .btn-navbar-left{
