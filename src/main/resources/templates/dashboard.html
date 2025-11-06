@@ -12,17 +12,43 @@
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-         <!-- Główny arkusz stylów -->
-        <link rel="stylesheet" th:href="@{/css/style.css}">
+        <!-- Osobny arkusz stylów -->
+        <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="../static/css/dashboard.css">
     </head>
     <body>   
-        <header class="header-container">
-            <div class="user-container">
-                 <h2 th:text="${currentUser.firstName()}"></h2>
+        <header class="header">
+            <div class="header-left">
+                <div class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span class="logo-text">PANSportal</span>
+                </div>
             </div>
-            <div class="logout-container">
-                <a th:href="@{/logout}" class="btn btn-logout btn-full">
-                    <i class="fas fa-sign-out-alt"></i> Wyloguj się
+            
+            <div class="header-right">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <span class="user-name" th:text="${currentUser.firstName()} + ' ' + ${currentUser.lastName()}">test test</span>
+                        <span class="user-role">Student</span>
+                    </div>
+                </div>
+                
+                <div class="header-divider"></div>
+                
+                <div class="notifications">
+                    <button class="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </button>
+                </div>
+                
+                <div class="header-divider"></div>
+                
+                <a th:href="@{/logout}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Wyloguj</span>
                 </a>
             </div>
         </header>
