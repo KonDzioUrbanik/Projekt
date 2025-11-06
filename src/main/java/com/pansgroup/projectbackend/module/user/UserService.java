@@ -17,5 +17,7 @@ public interface UserService {
     UserResponseDto updateRoleUser(String email, UserRoleUpdateDto dto);
     UserResponseDto assignUserToGroup(String email, UserGroupAssignmentDto dto);
     void confirmToken(String token);
+    void requestPasswordReset(String email);
+    void processPasswordReset(String token, String newPassword, String confirmPassword);
 
 }
