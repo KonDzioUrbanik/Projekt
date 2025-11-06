@@ -9,6 +9,7 @@ import com.pansgroup.projectbackend.module.user.confirmation.ConfirmationTokenRe
 import com.pansgroup.projectbackend.module.user.dto.*;
 import com.pansgroup.projectbackend.module.user.passwordReset.PasswordResetToken;
 import com.pansgroup.projectbackend.module.user.passwordReset.PasswordResetTokenRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,20 +29,18 @@ public class UserServiceImpl implements UserService {
     private final EmailService emailService;
     private final ConfirmationTokenRepository confirmationTokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
-    private final PasswordResetToken passwordResetToken;
 
 
     public UserServiceImpl(UserRepository userRepository,
                            PasswordEncoder passwordEncoder,
                            StudentGroupRepository studentGroupRepository,
-                           EmailService emailService, ConfirmationTokenRepository confirmationTokenRepository, PasswordResetTokenRepository passwordResetTokenRepository, PasswordResetToken passwordResetToken) {
+                           EmailService emailService, ConfirmationTokenRepository confirmationTokenRepository, PasswordResetTokenRepository passwordResetTokenRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.studentGroupRepository = studentGroupRepository;
         this.emailService = emailService;
         this.confirmationTokenRepository = confirmationTokenRepository;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
-        this.passwordResetToken = passwordResetToken;
     }
 
     @Override
@@ -267,6 +266,7 @@ public class UserServiceImpl implements UserService {
         }
         else {
             User u = user.get();
+            PasswordResetToken passwordResetToken = new PasswordResetToken();
             passwordResetToken.setUser(u);
             passwordResetToken.setToken(UUID.randomUUID().toString());
             passwordResetToken.setExpiryDate(LocalDateTime.now().plusMinutes(10));
