@@ -12,18 +12,11 @@ public class EmailService {
     private final JavaMailSender javaMailSender;
     private final String senderEmail;
 
-// W konstruktorze EmailService
-
     public EmailService(JavaMailSender javaMailSender,
                         @Value("${spring.mail.username}") String senderEmail) {
         this.javaMailSender = javaMailSender;
         this.senderEmail = senderEmail;
 
-        // ----- DODAJ TEN BLOK DO TESTOWANIA -----
-        System.out.println("======================================================");
-        System.out.println("TESTOWY ODCZYT ZMIENNEJ: " + this.senderEmail);
-        System.out.println("======================================================");
-        // ----------------------------------------
     }
 
     // Metoda do wysyłania maila
@@ -34,7 +27,6 @@ public class EmailService {
             message.setTo(toEmail);
             message.setSubject("Potwierdzenie rejestracji w PANSportal");
 
-            // WAŻNE: Na razie localhost, docelowo zmień na "https://konradcode.pl"
             String confirmationUrl = "https://konradcode.pl/confirm?token=" + token;
 
             String text = "Dziękujemy za rejestrację!\n\n"
@@ -46,7 +38,6 @@ public class EmailService {
             javaMailSender.send(message);
 
         } catch (MailException e) {
-            // Dobrze jest logować błędy, gdyby serwer OVH odrzucił maila
             System.err.println("Błąd podczas wysyłania e-maila: " + e.getMessage());
         }
     }
