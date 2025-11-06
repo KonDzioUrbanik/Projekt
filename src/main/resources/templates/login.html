@@ -1,64 +1,65 @@
 <!DOCTYPE html>
 <html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logowanie</title>
-    <link rel="icon" th:href="@{/favcion.png}" type="image/png">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Logowanie - PANSportal</title>
+        
+        <!-- Import czcionek oraz ikon -->
+        <link rel="icon" th:href="@{/favicon.png}" type="image/png">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Czcionki i ikony -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <!-- Główny arkusz stylów -->
+        <link rel="stylesheet" th:href="@{/css/style.css}" href="../static/css/style.css">
+    </head>
+    <body>
+        <div class="main-container">
+            <div class="auth-container">
+                <div class="title-section">
+                    <h1 class="main-title">Zaloguj się</h1>
+                    <p class="subtitle">Witaj ponownie!</p>
+                </div>
 
-    <!-- Główny arkusz stylów -->
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
-<body>
-<div class="main-container">
-    <div class="auth-container">
-        <div class="title-section">
-            <h1 class="main-title">Zaloguj się</h1>
-            <p class="subtitle">Witaj ponownie!</p>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <input type="email" id="email" class="form-control" placeholder="Adres e-mail">
+                    </div>
+
+                    <div class="form-group">
+                        <input type="password" id="password" class="form-control" placeholder="Hasło">
+                    </div>
+
+                    <div class="recovery-password">
+                        <a href="#" class="forgot-password">Zapomniałeś hasła?</a>
+                    </div>
+
+                    <!-- Miejsce na komunikaty -->
+                    <div id="loginMessage" class="form-message"></div>
+
+                    <button type="submit" class="btn btn-primary btn-full" id="loginButton">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Zaloguj się</span>
+                    </button>
+
+                    <div class="auth-link">
+                        <p class="small-text">Nie masz konta?
+                            <a th:href="@{/register}" class="link-accent">Zarejestruj się</a>
+                        </p>
+                    </div>
+                </form>
+
+                <div class="auth-link-home">
+                    <a th:href="@{/}" class="back-link">
+                        <i class="fas fa-arrow-left"></i> Powrót do strony głównej
+                    </a>
+                </div>
+            </div>
         </div>
-
-        <form id="loginForm">
-            <div class="form-group">
-                <input type="email" id="email" class="form-control" placeholder="Adres e-mail" required>
-            </div>
-
-            <div class="form-group">
-                <input type="password" id="password" class="form-control" placeholder="Hasło" required>
-            </div>
-
-            <div class="recovery-password">
-                <a href="#" class="forgot-password">Zapomniałeś hasła?</a>
-            </div>
-
-            <button type="submit" class="btn btn-primary btn-full" id="loginButton">
-                <i class="fas fa-sign-in-alt"></i>
-                <span>Zaloguj się</span>
-            </button>
-
-            <p id="loginMessage" class="login-message"></p>
-
-            <div class="auth-link">
-                <p class="small-text">Nie masz konta?
-                    <a href="/register" class="link-accent">Zarejestruj się</a>
-                </p>
-            </div>
-        </form>
-
-        <div class="auth-link-home">
-            <a href="/" class="back-link">
-                <i class="fas fa-arrow-left"></i> Powrót do strony głównej
-            </a>
-        </div>
-    </div>
-</div>
-
-<!-- Osobny plik JS -->
-<script src="/js/login.js"></script>
-</body>
+        
+        <!-- Osobny plik JS -->
+        <script th:src="@{/js/login.js}" defer></script>
+    </body>
 </html>
