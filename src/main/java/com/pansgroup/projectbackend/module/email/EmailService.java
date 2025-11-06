@@ -35,7 +35,7 @@ public class EmailService {
             message.setSubject("Potwierdzenie rejestracji w PANSportal");
 
             // WAŻNE: Na razie localhost, docelowo zmień na "https://konradcode.pl"
-            String confirmationUrl = "http://localhost:8090/confirm?token=" + token;
+            String confirmationUrl = "https://konradcode.pl/confirm?token=" + token;
 
             String text = "Dziękujemy za rejestrację!\n\n"
                     + "Aby aktywować swoje konto, kliknij w poniższy link:\n"
