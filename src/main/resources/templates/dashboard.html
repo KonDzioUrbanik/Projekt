@@ -30,8 +30,8 @@
                         <i class="fas fa-user"></i>
                     </div>
                     <div class="user-details">
-                        <span class="user-name" th:text="${currentUser.firstName()} + ' ' + ${currentUser.lastName()}">test test</span>
-                        <span class="user-role">Student</span>
+                        <span class="user-name" th:text="${currentUser.firstName()} + ' ' + ${currentUser.lastName()}"></span>
+                        <span class="user-role" th:text="${currentUser.role()}"></span>
                     </div>
                 </div>
                 
