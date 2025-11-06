@@ -29,6 +29,8 @@
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 
     /* Naglowek */
+    /* --header-bg: #212020;
+    --navbar-left-bg: #212020; */
     --header-bg: #ffffff;
     --navbar-left-bg: #ffffff;
     
@@ -37,10 +39,13 @@
     --danger-color: #ef4444;
 
     /* Przyciski */
+    /* --navbar-left-btn: #212020; */
     --navbar-left-btn: #005efa;
 
     /* Hover Prxyciskow */
+    /* --navbar-left-btn-hover: #2e2d2d; */
     --navbar-left-btn-hover: #114092;
+    /* --navbar-btn-hover: #2e2d2d; */
     --navbar-btn-hover: #ebedef;
 }
 
@@ -98,6 +103,7 @@ body{
 }
 
 .logo-text{
+    /* color: var( --text-white); */
     color: var(--text-dark);
     font-size: 1.25rem;
 }
@@ -149,12 +155,14 @@ body{
     font-weight: 600;
     font-size: 0.875rem;
     color: var(--text-dark);
+    /* color: var(--text-white); */
     white-space: nowrap;
 }
 
 .user-role{
     font-size: 0.75rem;
     color: var(--text-light);
+    /* color: var(--text-white); */
 }
 
 .header-divider{
