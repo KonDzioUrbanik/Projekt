@@ -71,7 +71,8 @@ public class SecurityConfig {
                         "/api/auth/**",
                         "/swagger-ui/**",
                         "/v3/api-docs/**",
-                        "/confirm"
+                        "/confirm",
+                        "/reset-password"
                 ).permitAll()
 
                 .requestMatchers(HttpMethod.POST, "/api/schedule/**", "/api/groups").hasRole("ADMIN")

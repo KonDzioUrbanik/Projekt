@@ -55,5 +55,13 @@ public class MainController {
         userService.confirmToken(token);
         return "redirect:/login";
     }
+    @GetMapping("/reset-password")
+    public String resetPasswordView(
+            @RequestParam("token") String token,
+            Model model
+    ) {
+        model.addAttribute("token", token);
+        return "reset-password";
+    }
 
 }
