@@ -277,6 +277,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void processPasswordReset(String token, String newPassword, String confirmPassword) {
-
+        if (!newPassword.equals(confirmPassword)) {
+            throw new PasswordMismatchException("Hasła nie są takie same");
+        }
+        Optional<PasswordResetToken> tokenOptional = passwordResetTokenRepository.findByToken(token);
+        if (!tokenOptional.isEmpty()) {
+            if (tokenOptional.get().getExpiryDate().isBefore(LocalDateTime.now())) {
+                throw new UsernameNotFoundException("Token przeterminowany");
+            } else {
+                PasswordResetToken passwordResetToken = tokenOptional.get();
+                User user = passwordResetToken.getUser();
+                user.setPassword(passwordEncoder.encode(newPassword));
+                userRepository.save(user);
+                passwordResetTokenRepository.delete(passwordResetToken);
+            }
+        } else {
+            throw new UsernameNotFoundException("Token jest błędny " + token + " bądź nie istnieje");
+        }
     }
 }
