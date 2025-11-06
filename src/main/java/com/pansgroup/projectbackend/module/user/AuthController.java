@@ -3,6 +3,8 @@ package com.pansgroup.projectbackend.module.user;
 import com.pansgroup.projectbackend.module.user.dto.LoginRequestDto;
 import com.pansgroup.projectbackend.module.user.dto.UserCreateDto;
 import com.pansgroup.projectbackend.module.user.dto.UserResponseDto;
+import com.pansgroup.projectbackend.module.user.passwordReset.dto.ForgotPasswordRequestDto;
+import com.pansgroup.projectbackend.module.user.passwordReset.dto.ResetPassordRequestDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -15,11 +17,14 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
     private final UserService userService;
     private final AuthenticationManager authManager;
@@ -80,5 +85,28 @@ public class AuthController {
             session.invalidate();
         }
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequestDto dto
+    ) {
+        try {
+            userService.requestPasswordReset(dto.email());
+        } catch (Exception e) {
+            log.warn("Nieudana próba resetu hasła dla e-maila: {}", dto.email());
+        }
+        return ResponseEntity.noContent().build();
+    }
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(
+            @Valid @RequestBody ResetPassordRequestDto dto
+    ) {
+        userService.processPasswordReset(
+                dto.token(),
+                dto.newPassword(),
+                dto.confirmPassword()
+        );
+        return ResponseEntity.ok().build();
     }
 }

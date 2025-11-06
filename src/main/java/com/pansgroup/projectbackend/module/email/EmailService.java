@@ -41,4 +41,27 @@ public class EmailService {
             System.err.println("Błąd podczas wysyłania e-maila: " + e.getMessage());
         }
     }
+
+    public void sendPasswordResetEmail(String toEmail, String token) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(senderEmail);
+            message.setTo(toEmail);
+            message.setSubject("Reset Hasła w PANSportal");
+
+            String confirmationUrl = "https://konradcode.pl/reset-password?token=" + token;
+
+            String text = "Chyba ktoś tu zapomniał hasła!\n\n"
+                    + "Aby zresetować swoje hasło, kliknij w poniższy link:\n"
+                    + confirmationUrl
+                    + "\n\nJeśli to nie Ty resetujesz hasło, zignoruj tę wiadomość.";
+            message.setText(text);
+
+            javaMailSender.send(message);
+
+        } catch (MailException e) {
+            System.err.println("Błąd podczas wysyłania e-maila: " + e.getMessage());
+        }
+    }
+
 }

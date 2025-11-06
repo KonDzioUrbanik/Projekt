@@ -9,7 +9,6 @@ import com.pansgroup.projectbackend.module.user.confirmation.ConfirmationTokenRe
 import com.pansgroup.projectbackend.module.user.dto.*;
 import com.pansgroup.projectbackend.module.user.passwordReset.PasswordResetToken;
 import com.pansgroup.projectbackend.module.user.passwordReset.PasswordResetTokenRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,7 +77,7 @@ public class UserServiceImpl implements UserService {
         ConfirmationToken confirmationToken = new ConfirmationToken();
         confirmationToken.setToken(tokenValue);
         // Mail jest wysyłany
-        emailService.sendConfirmationEmail(saved.getEmail(),  tokenValue);
+        emailService.sendConfirmationEmail(saved.getEmail(), tokenValue);
         confirmationToken.setExpiryDate(LocalDateTime.now().plusMinutes(10));
         confirmationToken.setUser(saved); // POPRAWNIE: Użytkownik przypisany do tokenu
         confirmationTokenRepository.save(confirmationToken);
@@ -245,8 +244,7 @@ public class UserServiceImpl implements UserService {
         Optional<ConfirmationToken> tokenOptional = confirmationTokenRepository.findByToken(token);
         if (!tokenOptional.isPresent()) {
             throw new UsernameNotFoundException("Token jest błędny " + token + " bądz nie istnieje");
-        }
-        else  {
+        } else {
             ConfirmationToken confirmationToken = tokenOptional.get();
             if (confirmationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
                 throw new UsernameNotFoundException("Token przeterminowany");
@@ -263,20 +261,36 @@ public class UserServiceImpl implements UserService {
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty()) {
             throw new UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + email);
-        }
-        else {
+        } else {
             User u = user.get();
             PasswordResetToken passwordResetToken = new PasswordResetToken();
             passwordResetToken.setUser(u);
             passwordResetToken.setToken(UUID.randomUUID().toString());
             passwordResetToken.setExpiryDate(LocalDateTime.now().plusMinutes(10));
             passwordResetTokenRepository.save(passwordResetToken);
+            emailService.sendPasswordResetEmail(u.getEmail(), passwordResetToken.getToken());
 
         }
     }
 
     @Override
     public void processPasswordReset(String token, String newPassword, String confirmPassword) {
-
+        if (!newPassword.equals(confirmPassword)) {
+            throw new PasswordMismatchException("Hasła nie są takie same");
+        }
+        Optional<PasswordResetToken> tokenOptional = passwordResetTokenRepository.findByToken(token);
+        if (!tokenOptional.isEmpty()) {
+            if (tokenOptional.get().getExpiryDate().isBefore(LocalDateTime.now())) {
+                throw new UsernameNotFoundException("Token przeterminowany");
+            } else {
+                PasswordResetToken passwordResetToken = tokenOptional.get();
+                User user = passwordResetToken.getUser();
+                user.setPassword(passwordEncoder.encode(newPassword));
+                userRepository.save(user);
+                passwordResetTokenRepository.delete(passwordResetToken);
+            }
+        } else {
+            throw new UsernameNotFoundException("Token jest błędny " + token + " bądź nie istnieje");
+        }
     }
 }
