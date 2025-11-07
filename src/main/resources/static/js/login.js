@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Przekierowanie po 1s
                 setTimeout(() => {
                     window.location.href = "/dashboard";
-                }, 1000);
+                }, 500);
             } else {
                 // Obsługa statusów błędów
                 let errorMsg = "Nieprawidłowe dane logowania.";
