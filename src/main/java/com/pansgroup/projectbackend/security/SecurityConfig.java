@@ -74,7 +74,7 @@ public class SecurityConfig {
                         "/confirm",
                         "/reset-password",
                         "/forgot-password",
-                        "password-reset-expired"
+                        "/password-reset-expired"
                 ).permitAll()
 
                 .requestMatchers(HttpMethod.POST, "/api/schedule/**", "/api/groups").hasRole("ADMIN")
