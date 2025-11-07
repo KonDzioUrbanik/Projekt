@@ -50,10 +50,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok){
                 // Sukces! (Status 201 Created)
                 console.log('Rejestracja udana!');
-                displayError('Rejestracja udana! Przekierowywanie do logowania...', true);
+                displayError('Zarejestrowano pomyślnie!', true);
                 setTimeout(() => {
                     window.location.href = '/login';  // Przekierowujemy na stronę logowania
-                }, 2000);
+                }, 1000);
             }
             else{
                 // Błąd! (np. 400 - walidacja, 409 - email zajęty)
