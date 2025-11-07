@@ -263,7 +263,7 @@ public class UserServiceImpl implements UserService {
         if (user.isEmpty()) {
             throw new UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + email);
         } else if (!user.get().isActivated()) {
-            throw new AccountInactiveException("Konto o tym emailu" + email + "nie jest aktywne");
+            throw new AccountInactiveException("Konto o tym emailu \n" + email + " nie jest aktywne");
         } else {
             User u = user.get();
             PasswordResetToken passwordResetToken = new PasswordResetToken();
