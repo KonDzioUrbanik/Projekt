@@ -262,6 +262,8 @@ public class UserServiceImpl implements UserService {
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty()) {
             throw new UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + email);
+        } else if (!user.get().isActivated()) {
+            throw new UsernameNotFoundException("Konto o tym emailu" + email + "nie jest aktywne");
         } else {
             User u = user.get();
             PasswordResetToken passwordResetToken = new PasswordResetToken();
@@ -270,7 +272,6 @@ public class UserServiceImpl implements UserService {
             passwordResetToken.setExpiryDate(LocalDateTime.now().plusMinutes(10));
             passwordResetTokenRepository.save(passwordResetToken);
             emailService.sendPasswordResetEmail(u.getEmail(), passwordResetToken.getToken());
-
         }
     }
 
