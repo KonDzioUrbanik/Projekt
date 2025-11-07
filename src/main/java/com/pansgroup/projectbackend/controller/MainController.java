@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 
@@ -52,13 +53,25 @@ public class MainController {
         return "dashboard";
     }
     @GetMapping("/confirm")
-    public String confirm(@RequestParam("token") String token) {
+    public String confirm(@RequestParam("token") String token, RedirectAttributes redirectAttributes) {
         try {
             userService.confirmToken(token);
+            redirectAttributes.addFlashAttribute("successMessage", "Konto zostało pomyślnie aktywowane! Możesz się teraz zalogować.");
             return "redirect:/login";
-        }catch (UsernameNotFoundException e) {
-            return "password-reset-expired" + e.getMessage();
+
+        } catch (UsernameNotFoundException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/token-error";
         }
+    }
+
+
+    @GetMapping("/token-error")
+    public String tokenErrorView(Model model) {
+        if (!model.containsAttribute("errorMessage")) {
+            model.addAttribute("errorMessage", "Wystąpił nieznany błąd lub link jest nieprawidłowy.");
+        }
+        return "password-reset-expired";
     }
     @GetMapping("/reset-password")
     public String resetPasswordView(
