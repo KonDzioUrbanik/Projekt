@@ -39,8 +39,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Obsługa odpowiedzi HTTP
             if (response.ok){
-                console.log(data.message);
-                console.log(data.detail);
                 message.textContent = "Zalogowano pomyślnie!";
                 message.className = "form-message success";
 

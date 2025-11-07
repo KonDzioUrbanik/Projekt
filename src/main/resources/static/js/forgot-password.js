@@ -37,7 +37,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if(response.ok){
-                message.textContent = data.message || "Na podany adres e-mail wysłano link resetujący.";
+                console.log(data.message);
+                message.textContent = data.message; /* || "Na podany adres e-mail wysłano link resetujący."; */
                 message.className = "form-message success";
             }
             else{
@@ -45,13 +46,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 switch (response.status) {
                     case 400:
-                        errorMsg = data.message || "Nieprawidłowy adres e-mail.";
+                        errorMsg = data.message; /*|| "Nieprawidłowy adres e-mail.";*/
+                        break;
+                    case 401:
+                        errorMsg = data.message; /* || "To konto użytkownika nie jest aktywowane.";*/
                         break;
                     case 401:
                         errorMsg = data.message || "To konto użytkownika nie jest aktywowane.";
                         break;
                     case 404:
-                        errorMsg = data.message || "Nie znaleziono użytkownika o podanym adresie e-mail.";
+                        errorMsg = data.message; /* || "Nie znaleziono użytkownika o podanym adresie e-mail.";*/
                         break;
                     case 500:
                         errorMsg = "Błąd serwera. Spróbuj ponownie później.";
