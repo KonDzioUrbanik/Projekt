@@ -91,11 +91,7 @@ public class AuthController {
     public ResponseEntity<Void> forgotPassword(
             @Valid @RequestBody ForgotPasswordRequestDto dto
     ) {
-        try {
-            userService.requestPasswordReset(dto.email());
-        } catch (Exception e) {
-            log.warn("Nieudana próba resetu hasła dla e-maila: {}", dto.email());
-        }
+        userService.requestPasswordReset(dto.email());
         return ResponseEntity.noContent().build();
     }
 
