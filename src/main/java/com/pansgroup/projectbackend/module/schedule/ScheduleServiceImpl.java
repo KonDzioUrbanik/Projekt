@@ -8,14 +8,11 @@ import com.pansgroup.projectbackend.module.schedule.dto.ScheduleEntryUpdateDto;
 import com.pansgroup.projectbackend.module.student.StudentGroup;
 import com.pansgroup.projectbackend.module.user.User;
 import com.pansgroup.projectbackend.module.user.UserRepository;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @Transactional
@@ -39,7 +36,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public ScheduleEntryResponseDto update(Long id, ScheduleEntryUpdateDto dto) {
-        // Wyszukanie wpisu i rzucenie wyjątku 404 jeśli nie istnieje
+        // Wyszukanie wpisu i rzucenie wyjątku 404, jeśli nie istnieje
         ScheduleEntry entry = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleEntryNotFoundException(id));
 
@@ -57,7 +54,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public void delete(Long id) {
-        // Wyszukanie i usunięcie wpisu, rzucenie wyjątku 404 jeśli nie istnieje
+        // Wyszukanie i usunięcie wpisu, rzucenie wyjątku 404, jeśli nie istnieje
         ScheduleEntry entry = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleEntryNotFoundException(id));
         scheduleRepository.delete(entry);
@@ -80,12 +77,11 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     public List<ScheduleEntryResponseDto> getMySchedule(String userEmail) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("Nie ma takiego Użytkownika: " + userEmail ));
+                .orElseThrow(() -> new UsernameNotFoundException("Nie ma takiego Użytkownika: " + userEmail));
         StudentGroup group = user.getStudentGroup();
         if (group == null) {
             return Collections.emptyList();
-        }
-        else {
+        } else {
             return scheduleRepository.findByStudentGroups(group).stream().map(this::toResponse).toList();
         }
 

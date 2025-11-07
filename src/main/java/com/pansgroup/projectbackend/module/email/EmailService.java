@@ -25,7 +25,7 @@ public class EmailService {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(senderEmail);
             message.setTo(toEmail);
-            message.setSubject("Potwierdzenie rejestracji w PANSportal");
+            message.setSubject("Potwierdzenie rejestracji w PANS portal");
 
             String confirmationUrl = "https://konradcode.pl/confirm?token=" + token;
 
@@ -47,7 +47,7 @@ public class EmailService {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(senderEmail);
             message.setTo(toEmail);
-            message.setSubject("Reset Hasła w PANSportal");
+            message.setSubject("Reset Hasła w PANS portal");
 
             String confirmationUrl = "https://konradcode.pl/reset-password?token=" + token;
 

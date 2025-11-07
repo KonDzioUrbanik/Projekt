@@ -1,7 +1,6 @@
 package com.pansgroup.projectbackend.module.note.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record NoteCreateDto(
@@ -13,5 +12,6 @@ public record NoteCreateDto(
         @Size(min = 1, max = 4000, message = "Treść musi mieć od {min} do {max} znaków.")
         String content
 
-) {}
+) {
+}
 

@@ -20,7 +20,7 @@ public class ScheduleController {
         this.scheduleService = scheduleService;
     }
 
-    // ---------- ENDPOINTY DLA STUDENTÓW (ODCZYT) ----------
+    // ---------- ENDPOINT DLA STUDENTÓW (ODCZYT) ----------
 
     @GetMapping
     public List<ScheduleEntryResponseDto> getMySchedule(Principal principal) {
@@ -33,7 +33,7 @@ public class ScheduleController {
         return scheduleService.findById(id);
     }
 
-    // ---------- ENDPOINTY DLA ADMINISTRATORÓW (MODYFIKACJA) ----------
+    // ---------- ENDPOINT DLA ADMINISTRATORÓW (MODYFIKACJA) ----------
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED) // Zwraca 201 Created

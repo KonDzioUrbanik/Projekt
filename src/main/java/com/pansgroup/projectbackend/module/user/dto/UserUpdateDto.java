@@ -14,7 +14,7 @@ public class UserUpdateDto {
     @NotBlank(message = "{user.lastName.notBlank}")
     private String lastName;
 
-    // nie jest NotBlank, bo użytkownik nie moze zmieniać emaila i indexu, ale daje tak jakby cos kiedys trzeba bylo i wgl
+    // nie jest not blank, bo użytkownik nie może zmieniać emaila i index, ale daje tak jakby cos kiedyś trzeba było i wgl
     @Email(message = "{user.email.valid}")
     private String email;
 

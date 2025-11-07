@@ -38,7 +38,7 @@ public class SecurityConfig {
                 throw new UsernameNotFoundException("Nie znaleziono użytkownika: " + email);
             }
             if (!user.isActivated()) {
-                throw new DisabledException("Konto nie zostało aktywowane :( Sprawdz e-mail");
+                throw new DisabledException("Konto nie zostało aktywowane :( Sprawdź e-mail");
             }
             return org.springframework.security.core.userdetails.User
                     .withUsername(user.getEmail())

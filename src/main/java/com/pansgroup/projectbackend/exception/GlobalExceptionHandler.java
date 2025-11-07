@@ -47,7 +47,7 @@ public class GlobalExceptionHandler {
             p.setInstance(URI.create(req.getRequestURI()));
         }
         p.setProperty("code", code);
-        // kompatybilność z frontendem (data.detail || data.message)
+        // kompatybilność z frontend (data.detail || data.message)
         p.setProperty("message", detail);
         return p;
     }
@@ -72,7 +72,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ProblemDetail handleMethodNotSupported(HttpRequestMethodNotSupportedException ex, HttpServletRequest req) {
         return pd(HttpStatus.METHOD_NOT_ALLOWED, "Method not allowed",
-                "Metoda HTTP nie jest obsługiwana dla tego endpointu.", req, "method_not_allowed",
+                "Metoda HTTP nie jest obsługiwana dla tego endpoint.", req, "method_not_allowed",
                 Map.of("reason", ex.getMessage()));
     }
 
@@ -138,16 +138,16 @@ public class GlobalExceptionHandler {
             BadCredentialsException.class,
             UsernameNotFoundException.class,
             DisabledException.class,
-            InternalAuthenticationServiceException.class, // <-- NOWY: Błąd opakowujący
+            InternalAuthenticationServiceException.class, // <— NOWY: Błąd opakowujący
             com.pansgroup.projectbackend.exception.BadCredentialsException.class,
             com.pansgroup.projectbackend.exception.UsernameNotFoundException.class
     })
     public ProblemDetail handleAuthFailed(Exception ex, HttpServletRequest req) {
         String detail;
 
-        // NOWA LOGIKA: Sprawdzamy, czy wyjątek LUB jego przyczyna to DisabledException
+        // NOWA LOGIKA: Sprawdzamy, czy wyjątek LUB jego przyczyna to disabled exception
         if (ex instanceof DisabledException || (ex.getCause() != null && ex.getCause() instanceof DisabledException)) {
-            // Jeśli tak, pobieramy wiadomość z SecurityConfig ("Konto nie zostało aktywowane...")
+            // Jeśli tak, pobieramy wiadomość z security config ("Konto nie zostało aktywowane...")
             // Jeśli komunikat jest w wyjątku opakowującym, też go weźmiemy
             detail = ex.getMessage();
 
@@ -157,7 +157,7 @@ public class GlobalExceptionHandler {
             }
 
         } else {
-            // W przeciwnym razie, dajemy domyślny błąd
+            // W przeciwnym razie dajemy domyślny błąd
             detail = "Nieprawidłowe dane logowania.";
         }
 
@@ -172,7 +172,7 @@ public class GlobalExceptionHandler {
 
     /* ====== 403: brak uprawnień (np. filtr JWT) ====== */
     @ExceptionHandler(AccessDeniedException.class)
-    public ProblemDetail handleAccessDenied(AccessDeniedException ex, HttpServletRequest req) {
+    public ProblemDetail handleAccessDenied(HttpServletRequest req) {
         return pd(HttpStatus.FORBIDDEN, "Access denied",
                 "Brak uprawnień do wykonania tej operacji.", req, "access_denied");
     }
@@ -210,12 +210,11 @@ public class GlobalExceptionHandler {
                 ex.getMessage(), req, "email_exists");
     }
 
-    /* ====== 409: naruszenie constraintów DB ====== */
+    /* ====== 409: naruszenie constraint DB. ====== */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail handleDataIntegrity(DataIntegrityViolationException ex, HttpServletRequest req) {
-        String reason = ex.getMostSpecificCause() != null
-                ? ex.getMostSpecificCause().getMessage()
-                : ex.getMessage();
+        ex.getMostSpecificCause();
+        String reason = ex.getMostSpecificCause().getMessage();
         return pd(HttpStatus.CONFLICT, "Constraint violation",
                 "Operacja narusza ograniczenia integralności danych.", req, "db_constraint",
                 Map.of("reason", reason));
