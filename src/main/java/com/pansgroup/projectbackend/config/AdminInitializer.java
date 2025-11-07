@@ -26,7 +26,7 @@ public class AdminInitializer implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         if (!userRepository.existsByEmail(adminEmail)) {
             User adminUser = new User();
             adminUser.setFirstName("Admin");

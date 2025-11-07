@@ -4,10 +4,12 @@ import com.pansgroup.projectbackend.module.user.dto.LoginRequestDto;
 import com.pansgroup.projectbackend.module.user.dto.UserCreateDto;
 import com.pansgroup.projectbackend.module.user.dto.UserResponseDto;
 import com.pansgroup.projectbackend.module.user.passwordReset.dto.ForgotPasswordRequestDto;
-import com.pansgroup.projectbackend.module.user.passwordReset.dto.ResetPassordRequestDto;
+import com.pansgroup.projectbackend.module.user.passwordReset.dto.ResetPasswordRequestDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,8 +19,6 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
 
 @RestController
@@ -39,12 +39,12 @@ public class AuthController {
             @Valid @RequestBody LoginRequestDto dto,
             HttpServletRequest request
     ) {
-        // 1) Uwierzytelnienie (tu polecą 401 przy złych danych – obsłuży to GlobalExceptionHandler)
+        // 1) Uwierzytelnienie (tu polecą 401 przy złych danych – obsłuży to globalexceptionhandler)
         Authentication authentication = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword())
         );
 
-        // 2) Zapis kontekstu do SecurityContext oraz do sesji (logowanie stanowe)
+        // 2) Zapis kontekstu do security context oraz do sesji (logowanie stanowe)
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(authentication);
         SecurityContextHolder.setContext(context);
@@ -98,9 +98,10 @@ public class AuthController {
         }
         return ResponseEntity.noContent().build();
     }
+
     @PostMapping("/reset-password")
     public ResponseEntity<Void> resetPassword(
-            @Valid @RequestBody ResetPassordRequestDto dto
+            @Valid @RequestBody ResetPasswordRequestDto dto
     ) {
         userService.processPasswordReset(
                 dto.token(),

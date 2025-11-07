@@ -3,7 +3,7 @@ package com.pansgroup.projectbackend.module.user.passwordReset.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record ResetPassordRequestDto(
+public record ResetPasswordRequestDto(
         @NotBlank(message = "{user.password.notBlank}")
         String token,
         @Size(min = 6, message = "{user.password.size}")
