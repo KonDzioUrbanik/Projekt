@@ -1,6 +1,7 @@
 package com.pansgroup.projectbackend.controller;
 
 
+import com.pansgroup.projectbackend.exception.UsernameNotFoundException;
 import com.pansgroup.projectbackend.module.dashboard.DashboardService;
 import com.pansgroup.projectbackend.module.dashboard.dto.DashboardResponseDto;
 import com.pansgroup.projectbackend.module.user.UserService;
@@ -52,8 +53,12 @@ public class MainController {
     }
     @GetMapping("/confirm")
     public String confirm(@RequestParam("token") String token) {
-        userService.confirmToken(token);
-        return "redirect:/login";
+        try {
+            userService.confirmToken(token);
+            return "redirect:/login";
+        }catch (UsernameNotFoundException e) {
+            return "password-reset-expired" + e.getMessage();
+        }
     }
     @GetMapping("/reset-password")
     public String resetPasswordView(
