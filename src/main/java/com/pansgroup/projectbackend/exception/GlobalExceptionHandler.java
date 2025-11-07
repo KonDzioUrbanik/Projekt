@@ -130,34 +130,29 @@ public class GlobalExceptionHandler {
     }
 
     // ==================================================================
-    // TUTAJ JEST OSTATECZNA POPRAWKA
+    // POPRAWKA LOGOWANIA
     // ==================================================================
 
-    /* ====== 401: uwierzytelnianie (logowanie) ====== */
+    /* ====== 401: uwierzytelnianie (TYLKO LOGOWANIE) ====== */
+    // Ta metoda celowo nie łapie już Twoich własnych wyjątków
     @ExceptionHandler({
-            BadCredentialsException.class,
-            UsernameNotFoundException.class,
-            DisabledException.class,
-            InternalAuthenticationServiceException.class, // <— NOWY: Błąd opakowujący
-            com.pansgroup.projectbackend.exception.BadCredentialsException.class,
-            com.pansgroup.projectbackend.exception.UsernameNotFoundException.class
+            BadCredentialsException.class, // Spring Security
+            UsernameNotFoundException.class, // Spring Security
+            DisabledException.class, // Spring Security
+            InternalAuthenticationServiceException.class, // Spring Security
+            com.pansgroup.projectbackend.exception.BadCredentialsException.class // Twój własny wyjątek
     })
     public ProblemDetail handleAuthFailed(Exception ex, HttpServletRequest req) {
         String detail;
 
-        // NOWA LOGIKA: Sprawdzamy, czy wyjątek LUB jego przyczyna to disabled exception
+        // Logika dla konta nieaktywnego (z SecurityConfig)
         if (ex instanceof DisabledException || (ex.getCause() != null && ex.getCause() instanceof DisabledException)) {
-            // Jeśli tak, pobieramy wiadomość z security config ("Konto nie zostało aktywowane...")
-            // Jeśli komunikat jest w wyjątku opakowującym, też go weźmiemy
             detail = ex.getMessage();
-
-            // Poprawka, aby na pewno pobrać właściwy komunikat
             if (ex.getCause() != null && ex.getCause() instanceof DisabledException) {
                 detail = ex.getCause().getMessage();
             }
-
         } else {
-            // W przeciwnym razie dajemy domyślny błąd
+            // Domyślny błąd dla wszystkich innych błędów logowania
             detail = "Nieprawidłowe dane logowania.";
         }
 
@@ -202,6 +197,35 @@ public class GlobalExceptionHandler {
         return pd(HttpStatus.NOT_FOUND, "Not found",
                 ex.getMessage(), req, "schedule_not_found");
     }
+
+    // ==================================================================
+    // NOWE HANDLERY DLA RESETOWANIA HASŁA
+    // ==================================================================
+
+    /* ====== 404: Błąd resetu hasła - nie znaleziono użytkownika ====== */
+    @ExceptionHandler(com.pansgroup.projectbackend.exception.UsernameNotFoundException.class)
+    public ProblemDetail handleResetPasswordUserNotFound(
+            com.pansgroup.projectbackend.exception.UsernameNotFoundException ex,
+            HttpServletRequest req
+    ) {
+        // Przekazuje wiadomość z serwisu (np. "Nie znaleziono użytkownika...")
+        return pd(HttpStatus.NOT_FOUND, "User not found",
+                ex.getMessage(),
+                req, "user_not_found_reset");
+    }
+
+    /* ====== 400: Błąd resetu hasła - konto nieaktywne ====== */
+    @ExceptionHandler(AccountInactiveException.class)
+    public ProblemDetail handleResetPasswordInactive(AccountInactiveException ex, HttpServletRequest req) {
+        // Przekazuje wiadomość z serwisu (np. "Konto... nie jest aktywne")
+        return pd(HttpStatus.BAD_REQUEST, "Account inactive",
+                ex.getMessage(),
+                req, "account_inactive_reset");
+    }
+
+    // ==================================================================
+    // KONIEC NOWYCH HANDLERÓW
+    // ==================================================================
 
     /* ====== 409: konflikt/unikalność (np. email) ====== */
     @ExceptionHandler(EmailAlreadyExistsException.class)
