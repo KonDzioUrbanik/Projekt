@@ -64,4 +64,9 @@ public class MainController {
         return "reset-password";
     }
 
+    @GetMapping("/forgot-password")
+    public String forgotPasswordView() {
+        return "forgot-password";
+    }
+
 }
