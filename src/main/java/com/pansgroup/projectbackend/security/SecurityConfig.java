@@ -93,10 +93,16 @@ public class SecurityConfig {
                         "/api/groups/{id}"
                 ).authenticated()
 
+                //to dla api :D
                 .requestMatchers(
-                        "/dashboard",
                         "/api/users/me",
                         "/api/notes/**"
+                ).authenticated()
+
+                //to dla stron widokow :D
+                .requestMatchers(
+                    "/dashboard", 
+                    "/schedule" //dodalem dla planu zajec
                 ).authenticated()
 
                 .anyRequest().authenticated()

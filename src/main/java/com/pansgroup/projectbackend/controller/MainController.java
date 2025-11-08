@@ -43,15 +43,6 @@ public class MainController {
         return "tutorial";
     }
 
-    @GetMapping("/dashboard")
-    public String dashboardView(Model model, Principal principal) {
-        String userEmail = principal.getName();
-        DashboardResponseDto data = dashboardService.getDashboardData(userEmail);
-        model.addAttribute("currentUser", data.user());
-        model.addAttribute("notes", data.notes());
-
-        return "dashboard";
-    }
     @GetMapping("/confirm")
     public String confirm(@RequestParam("token") String token, RedirectAttributes redirectAttributes) {
         try {
@@ -87,4 +78,26 @@ public class MainController {
         return "forgot-password";
     }
 
+    @GetMapping("/dashboard")
+    public String dashboardView(Model model, Principal principal) {
+        String userEmail = principal.getName();
+        DashboardResponseDto data = dashboardService.getDashboardData(userEmail);
+        model.addAttribute("currentUser", data.user());
+        model.addAttribute("notes", data.notes());
+
+        return "dashboard";
+    }
+
+
+
+
+    //dodalem sobie mapping dla planu zajec zeby potestowac
+    @GetMapping("/schedule")
+    public String scheduleView(Model model, Principal principal) {
+        String userEmail = principal.getName();
+
+        model.addAttribute("userEmail", userEmail);
+
+        return "schedule";
+    }
 }

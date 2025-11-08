@@ -286,6 +286,8 @@ body{
     border: none;
     cursor: pointer;
     background-color: var(--navbar-left-btn);
+
+    border-left: 3px solid transparent;
 }
 
 .btn-navbar-left:hover{
@@ -295,8 +297,11 @@ body{
 }
 
 .btn-navbar-left.active{
-    background-color: var(--color-primary);
+    background-color: var(--navbar-left-btn-hover);
     color: var(--text-white);
+
+    border-left-color: white;
+    font-weight: 600;
 }
 
 .btn-navbar-left.active:hover{
