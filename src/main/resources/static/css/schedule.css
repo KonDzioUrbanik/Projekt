@@ -1,0 +1,238 @@
+/* WRAPPER SEKCJA PLAN ZAJEC */
+
+.schedule-wrapper{
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    min-height: 400px;
+    position: relative;
+}
+
+.schedule-grid{
+    display: grid;
+    grid-template-columns: 100px repeat(5, 1fr);
+    gap: 1px;
+    background: #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 1.5rem;
+}
+
+.time-header,
+.day-header,
+.time-slot,
+.class-cell{
+    background: white;
+    padding: 0.75rem;
+}
+
+.time-header{
+    background: #2c3e50;
+    color: white;
+    font-weight: 600;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.day-header{
+    background: #005efa;
+    color: white;
+    font-weight: 600;
+    text-align: center;
+    font-size: 1rem;
+    padding: 1rem 0.5rem;
+}
+
+.time-slot{
+    background: #f8f9fa;
+    font-weight: 500;
+    color: #495057;
+    text-align: center;
+    font-size: 0.85rem;
+    border-right: 1px solid #dee2e6;
+}
+
+.class-cell{
+    min-height: 100px;
+    position: relative;
+    transition: background 0.2s;
+}
+
+.class-cell:hover{
+    background: #f8f9fa;
+}
+
+.class-cell.empty{
+    background: #fafbfc;
+}
+
+.class-item{
+    background: #005efa;
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    color: white;
+    transition: all 0.2s;
+}
+
+.class-item:hover{
+    background: #004acb;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 94, 250, 0.2);
+}
+
+.class-item:nth-child(2n){
+    background: #10b981;
+}
+
+.class-item:nth-child(2n):hover{
+    background: #059669;
+}
+
+.class-item:nth-child(3n){
+    background: #f59e0b;
+}
+
+.class-item:nth-child(3n):hover{
+    background: #d97706;
+}
+
+.class-item:nth-child(4n){
+    background: #8b5cf6;
+}
+
+.class-item:nth-child(4n):hover{
+    background: #7c3aed;
+}
+
+.class-title{
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+}
+
+.class-time,
+.class-teacher,
+.class-room
+.class-type{
+    font-size: 0.8rem;
+    opacity: 0.9;
+    margin-bottom: 0.2rem;
+}
+
+.class-type{
+    margin-top: 0.2rem;
+    font-size: 0.7rem;
+    font-size: 600;
+}
+
+/* LOADING SPINNER */
+
+.loading{
+    display: none;
+    text-align: center;
+    padding: 3rem;
+}
+
+.loading.active{
+    display: block;
+}
+
+.spinner{
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #005efa;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin{
+    0%{
+        transform: rotate(0deg);
+    }
+    100%{ 
+        transform: rotate(360deg);
+    }
+}
+
+.loading p{
+    color: #6c757d;
+    font-size: 1rem;
+}
+
+/* EMPTY STATE - Brak danych */
+
+.empty-schedule{
+    text-align: center;
+    padding: 4rem 2rem;
+    /* background: #f8f9fa; */
+    border-radius: 12px;
+    margin: 2rem auto;
+    max-width: 500px;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100% - 4rem);
+}
+
+.empty-icon{
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.empty-schedule h3{
+    font-size: 1.5rem;
+    color: #2c3e50;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.empty-schedule p{
+    font-size: 1rem;
+    color: #1a65aa;
+    margin-bottom: 0.5rem;
+}
+
+.empty-hint{
+    font-size: 0.875rem !important;
+    color: #adb5bd !important;
+    font-style: italic;
+    margin-top: 0.75rem !important;
+}
+
+/* ERROR MESSAGE */
+
+.error-message{
+    background: #ef4444;
+    color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    text-align: center;
+    margin: 2rem auto;
+    max-width: 500px;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100% - 4rem);
+}
+
+.error-message h3{
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.error-message p{
+    font-size: 1rem;
+    opacity: 0.95;
+}
+
+/* RESPONSYWNOŚĆ */
