@@ -1,3 +1,5 @@
+//TODO: przerobic pod FullCalendar.js
+
 class ScheduleCalendar{
     constructor(){
         this.scheduleData = [];
