@@ -3,25 +3,202 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Edycja profilu użytkownika</title>
+        <title>Edycja profilu użytkownika - PANSportal</title>
 
-        <!-- import czcionek oraz ikon -->
+        <!-- Import czcionek oraz ikon -->
         <link rel="icon" th:href="@{/favicon.png}" type="image/png">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-        <!-- osobny arkusz stylow -->
-        <!-- <link rel="stylesheet" th:href="@{/css/user-profile.css}" href="../static/css/user-profile.css"> -->
+        <!-- Osobny arkusz stylów -->
+        <link rel="stylesheet" th:href="@{/css/user-profile.css}" href="../static/css/user-profile.css">
     </head>
     <body>
-        <div class="container">
-            <div class="header">
-                <h1>Edycja profilu</h1>
-                <p>Zaktualizuj swoje dane osobowe</p>
-            </div>
+        <div class="main-container">
+            <div class="profile-container">
+                <!-- Nagłówek -->
+                <div class="profile-header">
+                    <h1 class="main-title">Edycja profilu</h1>
+                    <p class="subtitle">Zaktualizuj swoje dane osobowe</p>
+                </div>
 
+                <!-- Sekcja awatara -->
+                <div class="avatar-section">
+                    <div class="avatar-container">
+                        <div class="avatar">
+                            <span>JW</span>
+                        </div>
+                        <label class="avatar-upload-btn">
+                            <i class="fas fa-camera"></i>
+                            <input type="file" accept="image/*" id="avatarUpload">
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Informacja o edycji profilu -->
+                <div class="info-box">
+                    <p>
+                        <i class="fas fa-info-circle"></i>
+                        Wypełnij poniższy formularz, aby zaktualizować swoje dane. Pola oznaczone gwiazdką (*) są obowiązkowe.
+                    </p>
+                </div>
+
+                <!-- Formularz -->
+                <form id="profileForm">
+                    <!-- Sekcja: Dane podstawowe -->
+                    <div class="section-title">
+                        <i class="fas fa-user"></i>
+                        Dane podstawowe
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="firstName">
+                                <i class="fas fa-user"></i>
+                                Imię *
+                            </label>
+                            <input type="text" id="firstName" class="form-control" placeholder="Janek" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lastName">
+                                <i class="fas fa-user"></i>
+                                Nazwisko *
+                            </label>
+                            <input type="text" id="lastName" class="form-control" placeholder="Wiśniewski" readonly>
+                        </div>
+                    </div>
+
+                    <div class="section-divider"></div>
+
+                    <!-- Sekcja: Dane kontaktowe -->
+                    <div class="section-title">
+                        <i class="fas fa-address-book"></i>
+                        Dane kontaktowe
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="email">
+                                <i class="fas fa-envelope"></i>
+                                Email *
+                            </label>
+                            <input type="email" id="email" class="form-control" placeholder="27621@student.kpu.krosno.pl" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone">
+                                <i class="fas fa-phone"></i>
+                                Telefon
+                            </label>
+                            <input type="tel" id="phone" class="form-control" placeholder="+48 123 456 789">
+                        </div>
+                    </div>
+
+                    <div class="section-divider"></div>
+
+                    <!-- Sekcja: Informacje o studencie -->
+                    <div class="section-title">
+                        <i class="fas fa-graduation-cap"></i>
+                        Informacje o studencie
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="indexNumber">
+                                <i class="fas fa-id-card"></i>
+                                Numer indeksu
+                            </label>
+                            <input type="text" id="indexNumber" class="form-control" placeholder="27621" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fieldOfStudy">
+                                <i class="fas fa-book-open"></i>
+                                Kierunek studiów
+                            </label>
+                            <select id="fieldOfStudy" class="form-control">
+                                <option value="Informatyka">Informatyka</option>
+                                <option value="Zarządzanie">Zarządzanie</option>
+                                <option value="Ratownictwo medyczne">Ratownictwo medyczne</option>
+                                <option value="Filologia angielska">Filologia angielska</option>
+                                <option value="Marketing internetowy">Marketing internetowy</option>
+                                <option value="Bezpieczeństwo wewnętrzne">Bezpieczeństwo wewnętrzne</option>
+                                <option value="Turystyka i rekreacja">Turystyka i rekreacja</option>
+                                <option value="Wychowanie fizyczne i sport">Wychowanie fizyczne i sport</option>
+                                <option value="Pedagogika">Pedagogika</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="yearOfStudy">
+                                <i class="fas fa-calendar"></i>
+                                Rok studiów
+                            </label>
+                            <select id="yearOfStudy" class="form-control">
+                                <option value="1">I rok</option>
+                                <option value="2">II rok</option>
+                                <option value="3">III rok</option>
+                                <option value="4">IV rok</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="studyMode">
+                                <i class="fas fa-clock"></i>
+                                Tryb studiów
+                            </label>
+                            <select id="studyMode" class="form-control">
+                                <option value="stacjonarne">Stacjonarne</option>
+                                <option value="niestacjonarne">Niestacjonarne</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="section-divider"></div>
+
+                    <!-- Sekcja: Dodatkowe informacje -->
+                    <div class="section-title">
+                        <i class="fas fa-align-left"></i>
+                        Dodatkowe informacje
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="bio">
+                            <i class="fas fa-pen"></i>
+                            O mnie
+                        </label>
+                        <textarea id="bio" class="form-control" placeholder="Opowiedz coś o sobie..."></textarea>
+                    </div>
+
+                    <!-- Miejsce na komunikaty -->
+                    <div id="profileMessage" class="form-message"></div>
+
+                    <!-- Przyciski akcji -->
+                    <div class="button-group">
+                        <button type="button" class="btn btn-tertiary" id="cancelButton">
+                            <i class="fas fa-times"></i>
+                            <span>Anuluj</span>
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="saveButton">
+                            <i class="fas fa-save"></i>
+                            <span>Zapisz zmiany</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Link powrotny do panelu startowego -->
+                <div class="auth-link-home" style="margin-top: 25px;">
+                    <a th:href="@{/dashboard}" class="back-link">
+                        <i class="fas fa-arrow-left"></i> Powrót do panelu
+                    </a>
+                </div>
+            </div>
         </div>
+
+        <!-- Osobny plik JS -->
+        <script th:src="@{/js/user-profile.js}" src="../static/js/user-profile.js" defer></script>
     </body>
 </html>
