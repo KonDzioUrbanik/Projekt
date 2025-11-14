@@ -13,13 +13,12 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
         <!-- import FullCalendar.js -->
-        <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css" rel="stylesheet" />
-        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.js"></script>
+        <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 
         <!-- osobne arkusze stylow -->
         <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="../static/css/dashboard.css">
         <link rel="stylesheet" th:href="@{/css/schedule.css}" href="../static/css/schedule.css">
-        
+        <link rel="stylesheet" th:href="@{/css/calendar.css}" href="../static/css/calendar.css">
         
         <style>
             /* ukrywanie sekcji */
@@ -75,6 +74,7 @@
             <aside class="navbar-left">
                 <nav class="side-nav">
                     <a href="#" data-section="welcome" class="btn-navbar-left active">Strona główna</a>
+                    <a href="#" data-section="calendar" class="btn-navbar-left">Kalendarz</a>
                     <a href="#" data-section="schedule" class="btn-navbar-left">Harmonogram zajęć</a>
                     <a href="#" data-section="attendance" class="btn-navbar-left">Obecności</a>
                     <a href="#" data-section="forum" class="btn-navbar-left">Forum</a>
@@ -102,6 +102,16 @@
                     </div>
                     
                     <!-- tu cos mozna dodac -->
+                </div>
+
+                <!-- sekcja dla kalendarza -->
+                <div id="calendar" class="content-section">
+                    <div class="calendar-wrapper">
+                        <h2 style="margin-bottom: 2rem; color: #2c3e50;">Kalendarz</h2>
+                        <div id="fullCalendar">
+                            <!-- generowanie kalendarza -->
+                        </div>
+                    </div>
                 </div>
 
                 <!-- sekcja dla harmonogramu zajec -->
@@ -144,5 +154,6 @@
         <!-- osobny plik JS -->
         <script th:src="@{/js/schedule.js}" src="../static/js/schedule.js" defer></script>
         <script th:src="@{/js/dashboard-navigation.js}" src="../static/js/dashboard-navigation.js" defer></script>
+        <script th:src="@{/js/calendar.js}" src="../static/js/calendar.js" defer></script>
     </body>
 </html>
