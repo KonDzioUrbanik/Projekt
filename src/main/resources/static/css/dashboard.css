@@ -1,6 +1,6 @@
 /* ZMIENNE CSS */
 
-:root {
+:root{
     /* Paleta kolorow */
     --color-primary: #005efa;
     --color-primary-dark: #004acb;
@@ -120,6 +120,10 @@ body{
 
 /* USER INFO */
 
+.user-menu-wrapper {
+    position: relative;
+}
+
 .user-info{
     display: flex;
     align-items: center;
@@ -134,6 +138,17 @@ body{
 
 .user-info:hover{
     background-color: var(--navbar-btn-hover);
+}
+
+.user-menu-arrow {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    transition: transform 0.3s ease;
+    margin-left: 0.25rem;
+}
+
+.user-info.active .user-menu-arrow {
+    transform: rotate(180deg);
 }
 
 .user-avatar{
@@ -174,6 +189,58 @@ body{
     width: 1px;
     height: 30px;
     background-color: var(--border-color);
+}
+
+/* USER DROPDOWN MENU */
+
+.user-dropdown-menu{
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    min-width: 220px;
+    padding: 0.5rem 0;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+}
+
+.user-dropdown-menu.active{
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.user-dropdown-item{
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: var(--text-dark);
+    text-decoration: none;
+    transition: background-color 0.2s;
+    font-size: 0.875rem;
+}
+
+.user-dropdown-item:hover {
+    background-color: var(--color-secondary);
+}
+
+.user-dropdown-item i{
+    width: 1.25rem;
+    color: var(--text-light);
+    font-size: 0.875rem;
+}
+
+.user-dropdown-divider{
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 0.5rem 0;
 }
 
 /* NOTIFICATIONS */
