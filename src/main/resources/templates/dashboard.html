@@ -41,15 +41,38 @@
             </div>
             
             <div class="header-right">
-                <a class="user-info" th:href="@{/profile}">
-                    <div class="user-avatar">
-                        <i class="fas fa-user"></i>
+                <div class="user-menu-wrapper">
+                    <div class="user-info" id="userMenuToggle">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="user-details">
+                           <span class="user-name" th:text="${currentUser.firstName} + ' ' + ${currentUser.lastName}"></span>
+                            <span class="user-role" th:text="${currentUser.role}"></span>
+                        </div>
+                        <i class="fas fa-chevron-down user-menu-arrow"></i>
                     </div>
-                    <div class="user-details">
-                       <span class="user-name" th:text="${currentUser.firstName} + ' ' + ${currentUser.lastName}"></span>
-                        <span class="user-role" th:text="${currentUser.role}"></span>
+                    
+                    <div class="user-dropdown-menu" id="userDropdownMenu">
+                        <a href="#" class="user-dropdown-item">
+                            <i class="fas fa-user"></i>
+                            <span>Profil</span>
+                        </a>
+                        <a href="#" class="user-dropdown-item">
+                            <i class="fas fa-cog"></i>
+                            <span>Ustawienia</span>
+                        </a>
+                        <a href="#" class="user-dropdown-item">
+                            <i class="fas fa-book"></i>
+                            <span>Samouczek</span>
+                        </a>
+                        <div class="user-dropdown-divider"></div>
+                        <a href="#" class="user-dropdown-item">
+                            <i class="fas fa-moon"></i>
+                            <span>Przełącz na motyw ciemny</span>
+                        </a>
                     </div>
-                </a>
+                </div>
                 
                 <div class="header-divider"></div>
                 
@@ -152,6 +175,7 @@
         </div>
 
         <!-- osobny plik JS -->
+        <script th:src="@{/js/user-menu.js}" src="../static/js/user-menu.js" defer></script>
         <script th:src="@{/js/schedule.js}" src="../static/js/schedule.js" defer></script>
         <script th:src="@{/js/dashboard-navigation.js}" src="../static/js/dashboard-navigation.js" defer></script>
         <script th:src="@{/js/calendar.js}" src="../static/js/calendar.js" defer></script>
