@@ -7,6 +7,8 @@
     --color-secondary: #f8f9fa;      
     --color-secondary-dark: #e9ecef;  
     --color-tertiary-text: #6c757d;   
+    --color-red: #ef4444;
+    --color-red-dark: #cc3737;
     
     /* Tlo*/
     --bg-main: #f8f9fa;                
@@ -110,7 +112,7 @@ p, .subtitle{
     width: 100px;
     height: 100px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--color-primary) 0%, #00a1ff 100%);
+    background: var(--color-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -125,7 +127,7 @@ p, .subtitle{
     position: absolute;
     bottom: 0;
     right: 0;
-    background: var(--color-primary);
+    background: var( --color-red);
     width: 35px;
     height: 35px;
     border-radius: 50%;
@@ -139,8 +141,9 @@ p, .subtitle{
 }
 
 .avatar-upload-btn:hover{
-    background: var(--color-primary-dark);
+    background: var(--color-red-dark);
     transform: scale(1.1);
+    
 }
 
 .avatar-upload-btn input{
