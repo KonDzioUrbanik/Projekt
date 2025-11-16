@@ -1,27 +1,33 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const navLinks = document.querySelectorAll('.btn-navbar-left');
+    const leftLinks = document.querySelectorAll('.btn-navbar-left');
+    const navLinks = document.querySelectorAll('[data-section]');
     const sections = document.querySelectorAll('.content-section');
+    
     
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             
             const sectionName = link.getAttribute('data-section');
-            
-            // usuniecie active ze wszystkich przyciskow
-            navLinks.forEach(l => l.classList.remove('active'));
-            
-            // dodanie active dla kliknietego przycisku
-            link.classList.add('active');
-            
-            // ukrycie wszystkich sekcji
+
+            // jesli link nie jest z lewego menu usuwa active z lewego menu
+            if(!link.classList.contains('btn-navbar-left')){
+                leftLinks.forEach(l => l.classList.remove('active'));
+            }
+            //jesli link jest z lewego menu ustawia active na nim
+            else{
+                leftLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+            }
+
+            // ukrywanie wszystkich sekcji i pokazanie wybranej
             sections.forEach(section => {
-                section.classList.remove('active');
+                section.classList.remove('active')
             });
-            
+
             // pokazanie wybranej sekcji
             const targetSection = document.getElementById(sectionName);
-            if (targetSection) {
+            if(targetSection){
                 targetSection.classList.add('active');
             }
             
@@ -35,10 +41,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            // zaladowanie danych dla profilu uzytkownika
+            if (sectionName === 'profile'){
+                if(!window.profileModule){
+                    window.profileModule = new ProfileModule();
+                }
+                else{
+                    window.profileModule.loadProfile();
+                }
+            }
+
             // zaladowanie innych modulow ponizej
-            
-
-
         });
     });
 });
