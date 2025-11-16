@@ -245,6 +245,18 @@ body{
     margin: 0.5rem 0;
 }
 
+/* USER INDEX NUMBER */
+
+.user-index-container{
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+    color: var(--text-white);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px var(--shadow-color-btn);
+}
+
 /* NOTIFICATIONS */
 
 .notifications{
