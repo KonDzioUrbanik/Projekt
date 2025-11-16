@@ -34,10 +34,10 @@
     <body>   
         <header class="header">
             <div class="header-left">
-                <div class="logo">
+                <a class="logo" th:href="@{/dashboard}">
                     <i class="fas fa-graduation-cap"></i>
                     <span class="logo-text">PANSportal</span>
-                </div>
+                </a>
             </div>
             
             <div class="header-right">
@@ -47,20 +47,24 @@
                             <i class="fas fa-user"></i>
                         </div>
                         <div class="user-details">
-                           <span class="user-name" th:text="${currentUser.firstName} + ' ' + ${currentUser.lastName}"></span>
+                            <span class="user-name" th:text="${currentUser.firstName} + ' ' + ${currentUser.lastName}"></span>
                             <span class="user-role" th:text="${currentUser.role}"></span>
                         </div>
                         <i class="fas fa-chevron-down user-menu-arrow"></i>
                     </div>
                     
                     <div class="user-dropdown-menu" id="userDropdownMenu">
-                        <a href="#" class="user-dropdown-item">
+                        <a href="#" data-section="profile" class="user-dropdown-item">
                             <i class="fas fa-user"></i>
                             <span>Profil</span>
                         </a>
-                        <a href="#" class="user-dropdown-item">
+                        <a href="#" class="user-dropdown-item" th:href="@{/profile}">
                             <i class="fas fa-cog"></i>
                             <span>Ustawienia</span>
+                        </a>
+                        <a href="#" class="user-dropdown-item" th:href="@{/change-password}">
+                            <i class="fas fa-lock"></i>
+                            <span>Zmiana hasła</span>
                         </a>
                         <a href="#" class="user-dropdown-item">
                             <i class="fas fa-book"></i>
@@ -171,6 +175,22 @@
                     <p>W budowie...</p>
                 </div>
 
+                <!-- sekcja dla profilu uzytkownika -->
+                <div id="profile" class="content-section">
+                    <div class="profile-wrapper">
+                        <h2 style="margin-bottom: 2rem; color: #2c3e50;">Profil</h2>
+                        <div id="posts">
+                           <p>Twoje posty</p>
+                        </div>
+                        <div id="comments">
+                            <p>Twoje komentarze</p>
+                        </div>
+                        <div id="notes">
+                            <p>Twoje notatki</p>
+                        </div>
+                    </div>
+                </div>
+
             </section>
         </div>
 
@@ -179,5 +199,6 @@
         <script th:src="@{/js/schedule.js}" src="../static/js/schedule.js" defer></script>
         <script th:src="@{/js/dashboard-navigation.js}" src="../static/js/dashboard-navigation.js" defer></script>
         <script th:src="@{/js/calendar.js}" src="../static/js/calendar.js" defer></script>
+        <script th:src="@{/js/calendar.js}" src="../static/js/profile.js" defer></script>
     </body>
 </html>
