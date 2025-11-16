@@ -25,5 +25,13 @@ document.addEventListener('DOMContentLoaded', function(){
         userDropdownMenu.addEventListener('click', function(e){
             e.stopPropagation();
         });
+
+        // zamkniecie dropdown po kliknieciu w element menu uzytkownika
+        userDropdownMenu.querySelectorAll('[data-section]').forEach(item => {
+            item.addEventListener('click', () => {
+                userDropdownMenu.classList.remove('active');
+                userMenuToggle.classList.remove('active');
+            });
+        });
     }
 });
