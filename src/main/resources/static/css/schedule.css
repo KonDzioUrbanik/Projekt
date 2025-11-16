@@ -10,8 +10,8 @@
     position: relative;
 
     /* pomniejszenie harmonogramu */
-    transform: scale(1, 0.9);
-    transform-origin: top left;
+    /* transform: scale(1, 0.9);
+    transform-origin: top left; */
 }
 
 .schedule-grid{

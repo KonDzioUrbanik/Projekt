@@ -5,39 +5,39 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Edycja profilu użytkownika - PANSportal</title>
 
-        <!-- Import czcionek oraz ikon -->
+        <!-- import czcionek oraz ikon -->
         <link rel="icon" th:href="@{/favicon.png}" type="image/png">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-        <!-- Osobny arkusz stylów -->
+        <!-- osobny arkusz stylow -->
         <link rel="stylesheet" th:href="@{/css/user-profile.css}" href="../static/css/user-profile.css">
     </head>
     <body>
         <div class="main-container">
             <div class="profile-container">
-                <!-- Nagłówek -->
+                <!-- nagłowek -->
                 <div class="profile-header">
-                    <h1 class="main-title">Edycja profilu</h1>
+                    <h1 class="main-title">Edycja profilu użytkownika</h1>
                     <p class="subtitle">Zaktualizuj swoje dane osobowe</p>
                 </div>
 
-                <!-- Sekcja awatara -->
+                <!-- sekcja awatara -->
                 <div class="avatar-section">
                     <div class="avatar-container">
                         <div class="avatar">
-                            <span>JK</span>
+                            <span>PL</span>
                         </div>
-                        <label class="avatar-upload-btn">
+                        <label class="avatar-upload-btn" title="Kliknij, aby zmienić awatar">
                             <i class="fas fa-camera"></i>
                             <input type="file" accept="image/*" id="avatarUpload">
                         </label>
                     </div>
                 </div>
 
-                <!-- Informacja o edycji profilu -->
+                <!-- informacja o edycji profilu -->
                 <div class="info-box">
                     <p>
                         <i class="fas fa-info-circle"></i>
@@ -45,9 +45,10 @@
                     </p>
                 </div>
 
-                <!-- Formularz -->
+                <!-- formularz -->
                 <form id="profileForm">
-                    <!-- Sekcja: Dane podstawowe -->
+
+                    <!-- sekcja: dane podstawowe -->
                     <div class="section-title">
                         <i class="fas fa-user"></i>
                         Dane podstawowe
@@ -59,7 +60,7 @@
                                 <i class="fas fa-user"></i>
                                 Imię *
                             </label>
-                            <input type="text" id="firstName" class="form-control" placeholder="Jan" readonly>
+                            <input type="text" id="firstName" class="form-control" th:value="${currentUser.firstName}" readonly>
                         </div>
 
                         <div class="form-group">
@@ -67,13 +68,21 @@
                                 <i class="fas fa-user"></i>
                                 Nazwisko *
                             </label>
-                            <input type="text" id="lastName" class="form-control" placeholder="Kowalski" readonly>
+                            <input type="text" id="lastName" class="form-control" th:value="${currentUser.lastName}" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="nickName">
+                                <i class="fas fa-user"></i>
+                                Pseudonim
+                            </label>
+                            <input type="text" id="nickName" class="form-control" placeholder="Pseudonim" >
                         </div>
                     </div>
 
                     <div class="section-divider"></div>
 
-                    <!-- Sekcja: Dane kontaktowe -->
+                    <!-- sekcja: dane kontaktowe -->
                     <div class="section-title">
                         <i class="fas fa-address-book"></i>
                         Dane kontaktowe
@@ -85,7 +94,7 @@
                                 <i class="fas fa-envelope"></i>
                                 Email *
                             </label>
-                            <input type="email" id="email" class="form-control" placeholder="00000@student.kpu.krosno.pl" readonly>
+                            <input type="email" id="email" class="form-control" th:value="${currentUser.email}" readonly>
                         </div>
 
                         <div class="form-group">
@@ -99,7 +108,7 @@
 
                     <div class="section-divider"></div>
 
-                    <!-- Sekcja: Informacje o studencie -->
+                    <!-- sekcja: informacje o studencie -->
                     <div class="section-title">
                         <i class="fas fa-graduation-cap"></i>
                         Informacje o studencie
@@ -111,7 +120,7 @@
                                 <i class="fas fa-id-card"></i>
                                 Numer indeksu
                             </label>
-                            <input type="text" id="indexNumber" class="form-control" placeholder="00000" readonly>
+                            <input type="text" id="indexNumber" class="form-control" th:value="${currentUser.nrAlbumu}" readonly>
                         </div>
 
                         <div class="form-group">
@@ -159,7 +168,7 @@
 
                     <div class="section-divider"></div>
 
-                    <!-- Sekcja: Dodatkowe informacje -->
+                    <!-- sekcja: dodatkowe informacje -->
                     <div class="section-title">
                         <i class="fas fa-align-left"></i>
                         Dodatkowe informacje
@@ -173,10 +182,10 @@
                         <textarea id="bio" class="form-control" placeholder="Opowiedz coś o sobie..."></textarea>
                     </div>
 
-                    <!-- Miejsce na komunikaty -->
+                    <!-- miejsce na komunikaty -->
                     <div id="profileMessage" class="form-message"></div>
 
-                    <!-- Przyciski akcji -->
+                    <!-- przyciski akcji -->
                     <div class="button-group">
                         <button type="button" class="btn btn-tertiary" id="cancelButton">
                             <i class="fas fa-times"></i>
@@ -189,7 +198,7 @@
                     </div>
                 </form>
 
-                <!-- Link powrotny do panelu startowego -->
+                <!-- link powrotny do panelu startowego -->
                 <div class="auth-link-home" style="margin-top: 25px;">
                     <a th:href="@{/dashboard}" class="back-link">
                         <i class="fas fa-arrow-left"></i> Powrót do panelu

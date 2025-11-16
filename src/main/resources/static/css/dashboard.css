@@ -96,6 +96,7 @@ body{
     font-size: 1.5rem;
     color: var(--color-primary);
     font-weight: 1000;
+    text-decoration: none;
 }
 
 .logo:hover{
@@ -110,6 +111,7 @@ body{
     /* color: var( --text-white); */
     color: var(--text-dark);
     font-size: 1.25rem;
+    text-decoration: none;
 }
 
 .header-right{

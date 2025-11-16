@@ -102,7 +102,9 @@ public class SecurityConfig {
                 //to dla stron widokow :D
                 .requestMatchers(
                     "/dashboard", 
-                    "/schedule" //dodalem dla planu zajec
+                    "/schedule", //dodalem dla planu zajec
+                    "/profile",//dodalem dla edycji profilu
+                    "/change-password" //dodalem dla zmiany hasla
                 ).authenticated()
 
                 .anyRequest().authenticated()
