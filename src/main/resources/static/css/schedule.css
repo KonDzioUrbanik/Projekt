@@ -104,14 +104,6 @@
     background: #d97706;
 }
 
-.class-item:nth-child(4n){
-    background: #8b5cf6;
-}
-
-.class-item:nth-child(4n):hover{
-    background: #7c3aed;
-}
-
 .class-title{
     font-weight: 600;
     font-size: 0.9rem;
@@ -120,17 +112,26 @@
 
 .class-time,
 .class-teacher,
-.class-room
+.class-room,
 .class-type{
     font-size: 0.8rem;
     opacity: 0.9;
     margin-bottom: 0.2rem;
 }
 
+.class-room{
+    font-weight: bold;
+}
+
 .class-type{
-    margin-top: 0.2rem;
-    font-size: 0.7rem;
-    font-size: 600;
+    margin-top: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    display: inline-block;
 }
 
 /* LOADING SPINNER */
@@ -202,13 +203,6 @@
     font-size: 1rem;
     color: #1a65aa;
     margin-bottom: 0.5rem;
-}
-
-.empty-hint{
-    font-size: 0.875rem !important;
-    color: #adb5bd !important;
-    font-style: italic;
-    margin-top: 0.75rem !important;
 }
 
 /* ERROR MESSAGE */
