@@ -116,3 +116,67 @@
     background-color: #b5c2d1 !important; 
     
 }
+
+/* Klasa dla numeru dzisiejszego dnia */
+.fc-day-today .fc-daygrid-day-number {
+    font-weight: bold;
+    background-color: var(--color-primary);
+    color:  #b5c2d1; 
+    
+}
+
+/* --- Stylizacja Zdarzeń --- */
+
+.fc-event {
+    /* Ukrywamy domyślne tło FullCalendar, bo używamy własnych stylów kółek */
+    background-color: transparent !important;
+    border: none !important;
+    color: var(--text-dark) !important;
+    padding: 0;
+    margin: 4px 0 0 10px; /* Przesunięcie wydarzeń pod numer dnia */
+    cursor: pointer;
+    text-align: left;
+}
+
+.event-item-custom {
+    display: flex;
+    align-items: flex-start;
+    padding: 2px 4px;
+    /* transition: background-color 0.2s; */
+}
+
+.fc-event-title-container {
+    padding-left: 5px;
+    font-size: 0.85rem;
+    line-height: 1.2;
+}
+.fc-event-title-container strong {
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: block;
+}
+
+
+/* Kółko koloru (event-dot) */
+.event-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-top: 5px; /* Dopasowanie do tekstu */
+    flex-shrink: 0;
+    display: inline-block;
+}
+
+/* Mapowanie kolorów z schedule.css */
+.fc-event.color-1 .event-dot {
+    background-color: #005efa; 
+}
+.fc-event.color-2 .event-dot {
+    background-color: #10b981; 
+}
+.fc-event.color-3 .event-dot {
+    background-color: #f59e0b; 
+}
+.fc-event.color-4 .event-dot {
+    background-color: #8b5cf6;
+}
