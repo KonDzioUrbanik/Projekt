@@ -25,3 +25,6 @@ class ProfileModule{
         
     }
 }
+
+// eksport klasy do obiektu window, aby dashboard-navigation.js ja widzial
+window.ProfileModule = ProfileModule;
