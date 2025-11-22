@@ -1,203 +1,220 @@
 <!DOCTYPE html>
 <html lang="pl">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Panel startowy</title>
-        
-        <!-- import czcionek oraz ikon -->
-        <link rel="icon" th:href="@{/favicon.png}" type="image/png">
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-        <!-- import FullCalendar.js -->
-        <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel startowy</title>
 
-        <!-- osobne arkusze stylow -->
-        <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="../static/css/dashboard.css">
-        <link rel="stylesheet" th:href="@{/css/schedule.css}" href="../static/css/schedule.css">
-        <link rel="stylesheet" th:href="@{/css/calendar.css}" href="../static/css/calendar.css">
-        
-        <style>
-            /* ukrywanie sekcji */
-            .content-section {
-                display: none;
-            }
+    <!-- import czcionek oraz ikon -->
+    <link rel="icon" th:href="@{/favicon.png}" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-            .content-section.active {
-                display: block;
-            }
-        </style>
-    </head>
-    <body>   
-        <header class="header">
-            <div class="header-left">
-                <a class="logo" th:href="@{/dashboard}">
-                    <i class="fas fa-graduation-cap"></i>
-                    <span class="logo-text">PANSportal</span>
-                </a>
-            </div>
-            
-            <div class="header-right">
-                <div class="user-index-container">
-                    <span class="user-index-number" th:text="${currentUser.nrAlbumu}" style="font-weight: bold;"></span>
-                </div>
-                <div class="user-menu-wrapper">
-                    <div class="user-info" id="userMenuToggle">
-                        <div class="user-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="user-details">
-                            <span class="user-name" th:text="${currentUser.firstName} + ' ' + ${currentUser.lastName}"></span>
-                            <span class="user-role" th:text="${currentUser.role}"></span>
-                        </div>
-                        <i class="fas fa-chevron-down user-menu-arrow"></i>
-                    </div>
-                    
-                    <div class="user-dropdown-menu" id="userDropdownMenu">
-                        <a href="#" data-section="profile" class="user-dropdown-item">
-                            <i class="fas fa-user"></i>
-                            <span>Profil</span>
-                        </a>
-                        <a href="#" class="user-dropdown-item" th:href="@{/profile}">
-                            <i class="fas fa-cog"></i>
-                            <span>Ustawienia</span>
-                        </a>
-                        <a href="#" class="user-dropdown-item" th:href="@{/change-password}">
-                            <i class="fas fa-lock"></i>
-                            <span>Zmiana hasła</span>
-                        </a>
-                        <a href="#" class="user-dropdown-item">
-                            <i class="fas fa-book"></i>
-                            <span>Samouczek</span>
-                        </a>
-                        <div class="user-dropdown-divider"></div>
-                        <a href="#" class="user-dropdown-item">
-                            <i class="fas fa-moon"></i>
-                            <span>Przełącz na motyw ciemny</span>
-                        </a>
-                    </div>
-                </div>
-                
-                <div class="header-divider"></div>
-                
-                <div class="notifications">
-                    <button class="notification-btn">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge" th:text="@{0}">0</span>
-                    </button>
-                </div>
-                
-                <div class="header-divider"></div>
-                
-                <a th:href="@{/logout}" class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Wyloguj</span>
-                </a>
+    <!-- import FullCalendar.js -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 
-            </div>
-        </header>
+    <!-- osobne arkusze stylow -->
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="../static/css/dashboard.css">
+    <link rel="stylesheet" th:href="@{/css/schedule.css}" href="../static/css/schedule.css">
+    <link rel="stylesheet" th:href="@{/css/calendar.css}" href="../static/css/calendar.css">
 
-        <div class="dashboard-container">
-            <aside class="navbar-left">
-                <nav class="side-nav">
-                    <a href="#" data-section="welcome" class="btn-navbar-left active">Strona główna</a>
-                    <a href="#" data-section="calendar" class="btn-navbar-left">Kalendarz</a>
-                    <a href="#" data-section="schedule" class="btn-navbar-left">Harmonogram zajęć</a>
-                    <a href="#" data-section="attendance" class="btn-navbar-left">Obecności</a>
-                    <a href="#" data-section="forum" class="btn-navbar-left">Forum</a>
-                    <a href="#" data-section="notes" class="btn-navbar-left">Notatki</a>
-                </nav>
-            </aside>
+    <style>
+        /* ukrywanie sekcji */
+        .content-section {
+            display: none;
+        }
 
-            <section class="navbar-middle">
+        .content-section.active {
+            display: block;
+        }
+    </style>
+</head>
 
-                <!-- sekcja glowna -->
-                <div id="welcome" class="welcome content-section active">
-                    <div class="welcome-message">
-                        <h1>Witamy w panelu startowym!</h1>
-                        <p>Cześć, <strong th:text="${currentUser.firstName}">Użytkowniku</strong>!</p>
-                    </div>
-                    
-                    <div class="home-content">
-                        <div class="left-section">
-                           <p>Blok 1</p>
-                        </div>
-
-                        <div class="right-section">
-                            <p>Blok 2</p>
-                        </div>
-                    </div>
-                    
-                    <!-- tu cos mozna dodac -->
-                </div>
-
-                <!-- sekcja dla kalendarza -->
-                <div id="calendar" class="content-section">
-                    <div class="calendar-wrapper">
-                        <h2 style="margin-bottom: 2rem; color: #2c3e50;">Kalendarz</h2>
-                        <div id="fullCalendar">
-                            <!-- generowanie kalendarza -->
-                            <p>W budowie...</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- sekcja dla harmonogramu zajec -->
-                <div id="schedule" class="content-section">
-                    <div class="schedule-wrapper">
-                        <h2 style="margin-bottom: 2rem; color: #2c3e50;">Harmonogram Zajęć</h2>
-                        
-                        <div class="schedule-grid" id="scheduleGrid">
-                            <!-- generowanie harmonogramu zajec -->
-                        </div>
-                        
-                        <div class="loading" id="loading">
-                            <div class="spinner"></div>
-                            <p>Ładowanie harmonogramanu zajęć...</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- sekcja dla obecnosci -->
-                <div id="attendance" class="content-section">
-                    <h1>Obecności</h1>
-                    <p>W budowie...</p>
-                </div>
-
-                <!-- sekcja dla forum -->
-                <div id="forum" class="content-section">
-                    <h1>Forum</h1>
-                    <p>W budowie...</p>
-                </div>
-
-                <!-- sekcja dla notatek -->
-                <div id="notes" class="content-section">
-                    <h1>Notatki</h1>
-                    <p>W budowie...</p>
-                </div>
-
-                <!-- sekcja dla profilu uzytkownika -->
-                <div id="profile" class="content-section">
-                    <div class="profile-wrapper">
-                        <h2 style="margin-bottom: 2rem; color: #2c3e50;">Profil</h2>
-                        <div id="posts">
-                           <p>Twoje posty</p>
-                        </div>
-                        <div id="comments">
-                            <p>Twoje komentarze</p>
-                        </div>
-                        <div id="notes">
-                            <p>Twoje notatki</p>
-                        </div>
-                    </div>
-                </div>
-
-            </section>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <a class="logo" th:href="@{/dashboard}">
+                <i class="fas fa-graduation-cap"></i>
+                <span class="logo-text">PANSportal</span>
+            </a>
         </div>
 
+        <div class="header-right">
+            <div class="user-index-container">
+                <span class="user-index-number" th:text="${currentUser.nrAlbumu}" style="font-weight: bold;"></span>
+            </div>
+            <div class="user-menu-wrapper">
+                <div class="user-info" id="userMenuToggle">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <span class="user-name"
+                            th:text="${currentUser.firstName} + ' ' + ${currentUser.lastName}"></span>
+                        <span class="user-role" th:text="${currentUser.role}"></span>
+                    </div>
+                    <i class="fas fa-chevron-down user-menu-arrow"></i>
+                </div>
+
+                <div class="user-dropdown-menu" id="userDropdownMenu">
+                    <a href="#" data-section="profile" class="user-dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>Profil</span>
+                    </a>
+                    <a href="#" class="user-dropdown-item" th:href="@{/profile}">
+                        <i class="fas fa-cog"></i>
+                        <span>Ustawienia</span>
+                    </a>
+                    <a href="#" class="user-dropdown-item" th:href="@{/change-password}">
+                        <i class="fas fa-lock"></i>
+                        <span>Zmiana hasła</span>
+                    </a>
+                    <a href="#" class="user-dropdown-item">
+                        <i class="fas fa-book"></i>
+                        <span>Samouczek</span>
+                    </a>
+                    <div class="user-dropdown-divider"></div>
+                    <a href="#" class="user-dropdown-item">
+                        <i class="fas fa-moon"></i>
+                        <span>Przełącz na motyw ciemny</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="header-divider"></div>
+
+            <div class="notifications">
+                <button class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" th:text="@{0}">0</span>
+                </button>
+            </div>
+
+            <div class="header-divider"></div>
+
+            <a th:href="@{/logout}" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Wyloguj</span>
+            </a>
+
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <aside class="navbar-left">
+            <nav class="side-nav">
+                <a href="#" data-section="welcome" class="btn-navbar-left active">Strona główna</a>
+                <a href="#" data-section="calendar" class="btn-navbar-left">Kalendarz</a>
+                <a href="#" data-section="schedule" class="btn-navbar-left">Harmonogram zajęć</a>
+                <a href="#" data-section="attendance" class="btn-navbar-left">Obecności</a>
+                <a href="#" data-section="forum" class="btn-navbar-left">Forum</a>
+                <a href="#" data-section="notes" class="btn-navbar-left">Notatki</a>
+            </nav>
+        </aside>
+
+        <section class="navbar-middle">
+
+            <!-- sekcja glowna -->
+            <div id="welcome" class="welcome content-section active">
+                <div class="welcome-message">
+                    <h1>Witamy w panelu startowym!</h1>
+                    <p>Cześć, <strong th:text="${currentUser.firstName}">Użytkowniku</strong>!</p>
+                </div>
+
+                <div class="home-content">
+                    <div class="left-section">
+                        <p>Blok 1</p>
+                    </div>
+
+                    <div class="right-section">
+                        <p>Blok 2</p>
+                    </div>
+                </div>
+
+                <!-- tu cos mozna dodac -->
+            </div>
+
+            <!-- sekcja dla kalendarza -->
+            <div id="calendar" class="content-section">
+                <div class="calendar-wrapper">
+                    <div class="calendar-header-custom">
+                        <div class="month-selector">
+                            <h2 id="currentMonth"></h2>
+                            <button id="prevMonthBtn" class="month-nav-btn">
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <button id="nextMonthBtn" class="month-nav-btn">
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                        <button id="todayBtn" class="today-btn">Dzisiaj</button>
+                    </div>
+                    <div id="calendarGrid">
+                        <!-- generowanie kartki kalendarza -->
+                    </div>
+
+                    <div class="loading" id="loadingCalendar">
+                        <div class="spinner"></div>
+                        <p>Ładowanie kalendarza...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- sekcja dla harmonogramu zajec -->
+            <div id="schedule" class="content-section">
+                <div class="schedule-wrapper">
+                    <h2 style="margin-bottom: 2rem; color: #2c3e50;">Harmonogram Zajęć</h2>
+
+                    <div class="schedule-grid" id="scheduleGrid">
+                        <!-- generowanie harmonogramu zajec -->
+                    </div>
+
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <p>Ładowanie harmonogramanu zajęć...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- sekcja dla obecnosci -->
+            <div id="attendance" class="content-section">
+                <h1>Obecności</h1>
+                <p>W budowie...</p>
+            </div>
+
+            <!-- sekcja dla forum -->
+            <div id="forum" class="content-section">
+                <h1>Forum</h1>
+                <p>W budowie...</p>
+            </div>
+
+            <!-- sekcja dla notatek -->
+            <div id="notes" class="content-section">
+                <h1>Notatki</h1>
+                <p>W budowie...</p>
+            </div>
+
+            <!-- sekcja dla profilu uzytkownika -->
+            <div id="profile" class="content-section">
+                <div class="profile-wrapper">
+                    <h2 style="margin-bottom: 2rem; color: #2c3e50;">Profil</h2>
+                    <div id="posts">
+                        <p>Twoje posty</p>
+                    </div>
+                    <div id="comments">
+                        <p>Twoje komentarze</p>
+                    </div>
+                    <div id="notes">
+                        <p>Twoje notatki</p>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </div>
         <!-- osobny plik JS -->
         <script th:src="@{/js/user-menu.js}" src="../static/js/user-menu.js" defer></script>
         <script th:src="@{/js/schedule.js}" src="../static/js/schedule.js" defer></script>

@@ -2,20 +2,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const leftLinks = document.querySelectorAll('.btn-navbar-left');
     const navLinks = document.querySelectorAll('[data-section]');
     const sections = document.querySelectorAll('.content-section');
-    
-    
+
+
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            
+
             const sectionName = link.getAttribute('data-section');
 
             // jesli link nie jest z lewego menu usuwa active z lewego menu
-            if(!link.classList.contains('btn-navbar-left')){
+            if (!link.classList.contains('btn-navbar-left')) {
                 leftLinks.forEach(l => l.classList.remove('active'));
             }
             //jesli link jest z lewego menu ustawia active na nim
-            else{
+            else {
                 leftLinks.forEach(l => l.classList.remove('active'));
                 link.classList.add('active');
             }
@@ -27,26 +27,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // pokazanie wybranej sekcji
             const targetSection = document.getElementById(sectionName);
-            if(targetSection){
+            if (targetSection) {
                 targetSection.classList.add('active');
             }
-            
+
+            // Logika dla kalendarza
+            //window.fullCalendarManager = null;
+            if (sectionName === 'calendar') {
+                if (typeof FullCalendarInitializer !== 'undefined') {
+                    if (!window.fullCalendarManager) {
+                        window.fullCalendarManager = new FullCalendarInitializer();
+                    }
+                    // PEŁNE PRZEŁADOWANIE KALENDARZA ZA KAŻDYM RAZEM
+                    //Dodać ładowanie eventów i zajęć
+                    window.fullCalendarManager.renderCalendar();
+                } else {
+                    console.error('Klasa FullCalendarInitializer nie jest zdefiniowana.');
+                }
+            }
+
             // zaladowanie danych dla harmonogramu zajec
-            if(sectionName === 'schedule'){
-                if(!window.scheduleCalendar){
+            if (sectionName === 'schedule') {
+                if (!window.scheduleCalendar) {
                     window.scheduleCalendar = new ScheduleCalendar();
-                } 
-                else{
+                }
+                else {
                     window.scheduleCalendar.loadSchedule();
                 }
             }
 
             // zaladowanie danych dla profilu uzytkownika
-            if (sectionName === 'profile'){
-                if(!window.profileModule){
+            if (sectionName === 'profile') {
+                if (!window.profileModule) {
                     window.profileModule = new ProfileModule();
                 }
-                else{
+                else {
                     window.profileModule.loadProfile();
                 }
             }

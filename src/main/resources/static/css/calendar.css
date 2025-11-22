@@ -1,0 +1,182 @@
+
+.calendar-wrapper {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    min-height: 400px;
+    position: relative;
+}
+
+/* --- Nagłówek i Przyciski --- */
+
+.calendar-header-custom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.month-selector {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.month-selector h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-dark);
+}
+
+.month-nav-btn, .today-btn {
+    /* Stylizacja przycisków na wzór ogólnego dashboardu */
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.today-btn {
+    background-color: white;
+}
+
+/* --- FullCalendar Style (Widok Month) --- */
+
+/* Ukrywamy domyślne elementy FullCalendar, jeśli są widoczne */
+.fc-header-toolbar.fc-toolbar,
+.fc .fc-toolbar-chunk:first-child {
+    display: none;
+}
+
+/* Styling nagłówków dni (na wzór day-header z schedule.css) */
+.fc .fc-col-header-cell {
+    background-color: var(--color-primary); /* #005efa */
+    color: white;
+    font-weight: 600;
+    text-align: center;
+    font-size: 1rem;
+    padding: 0.75rem 0.5rem; /* Zmniejszony padding */
+    border: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    text-transform: uppercase;
+}
+.fc-theme-standard th {
+    border: none;
+}
+
+/* Stylizacja komórek dni */
+.fc-daygrid-body {
+    border-radius: 8px; /* Zaokrąglenie siatki */
+}
+
+.fc-daygrid-day {
+    border: 1px solid var(--border-color); /* Dodanie wyraźnych linii */
+    min-height: 100px;
+}
+
+/* Stylizacja numeru dnia (jak kółko na wzorcu) */
+.fc-daygrid-day-number {
+    background-color: #b5c2d1; 
+    border-radius: 50%;
+    color: var(--color-primary);
+    font-weight: 700;
+    font-size: 1rem;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 8px; 
+    float: left;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Dni spoza aktualnego miesiąca */
+.fc-day-other {
+    background-color: #f4f6f8;
+    opacity: 0.9;
+}
+.fc-day-other .fc-daygrid-day-number {
+    opacity: 0.6;
+}
+
+/* Klasa FullCalendar oznaczająca dzień dzisiejszy */
+.fc-day-today {
+    /* Ustawia kolor tła dla dzisiejszego dnia */
+    background-color: #b5c2d1 !important; 
+    
+}
+
+/* Klasa dla numeru dzisiejszego dnia */
+.fc-day-today .fc-daygrid-day-number {
+    font-weight: bold;
+    background-color: var(--color-primary);
+    color:  #b5c2d1; 
+    
+}
+
+/* --- Stylizacja Zdarzeń --- */
+
+.fc-event {
+    /* Ukrywamy domyślne tło FullCalendar, bo używamy własnych stylów kółek */
+    background-color: transparent !important;
+    border: none !important;
+    color: var(--text-dark) !important;
+    padding: 0;
+    margin: 4px 0 0 10px; /* Przesunięcie wydarzeń pod numer dnia */
+    cursor: pointer;
+    text-align: left;
+}
+
+.event-item-custom {
+    display: flex;
+    align-items: flex-start;
+    padding: 2px 4px;
+    /* transition: background-color 0.2s; */
+}
+
+.fc-event-title-container {
+    padding-left: 5px;
+    font-size: 0.85rem;
+    line-height: 1.2;
+}
+.fc-event-title-container strong {
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: block;
+}
+
+
+/* Kółko koloru (event-dot) */
+.event-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-top: 5px; /* Dopasowanie do tekstu */
+    flex-shrink: 0;
+    display: inline-block;
+}
+
+/* Mapowanie kolorów z schedule.css */
+.fc-event.color-1 .event-dot {
+    background-color: #005efa; 
+}
+.fc-event.color-2 .event-dot {
+    background-color: #10b981; 
+}
+.fc-event.color-3 .event-dot {
+    background-color: #f59e0b; 
+}
+.fc-event.color-4 .event-dot {
+    background-color: #8b5cf6;
+}
