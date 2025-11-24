@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/main-layout}">
+    <head>
+        <title>Zarządzanie użytkownikami</title>
+        <th:block layout:fragment="page-styles">
+            <link rel="stylesheet" th:href="@{/css/users.css}" href="../../static/css/users.css">
+        </th:block>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            
+            <div class="admin-header">
+                <div>
+                    <h1 style="color: #2c3e50; margin-bottom: 0.5rem;">Użytkownicy</h1>
+                    <p style="color: #64748b;">Lista wszystkich zarejestrowanych osób w systemie</p>
+                </div>
+            </div>
+
+            <div class="users-table-wrapper">
+                <button class="btn btn-primary">
+                    Dodaj użytkownika
+                </button>
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Imię i Nazwisko</th>
+                            <th>Email</th>
+                            <th>NrAlbumu</th>
+                            <th>Rola</th>
+                            <th>Grupa</th>
+                            <th>Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="user : ${users}">
+                            <td th:text="${user.id}">1</td>
+                            
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 32px; height: 32px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #64748b;">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <span th:text="${user.firstName} + ' ' + ${user.lastName}">Jan Kowalski</span>
+                                </div>
+                            </td>
+                            
+                            <td th:text="${user.email}">00000@student.kpu.krosno.pl</td>
+                            
+                            <td th:text="${user.nrAlbumu != null} ? ${user.nrAlbumu} : '-'">00000</td>
+                            
+                            <td>
+                                <span class="badge" th:classappend="${user.role == 'ADMIN'} ? 'badge-admin' : (${user.role == 'STAROSTA'} ? 'badge-starosta' : 'badge-student')" th:text="${user.role}">
+                                    STUDENT
+                                </span>
+                            </td>
+                            
+                            <td th:text="${user.groupName != null} ? ${user.groupName} : 'Brak'">Informatyka 1</td>
+                            
+                            <td>
+                                <button class="action-btn btn-edit" title="Edytuj">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn btn-delete" title="Usuń" th:unless="${user.email == #authentication.name}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div th:if="${users.empty}" style="text-align: center; padding: 2rem; color: #666;">
+                    Brak użytkowników do wyświetlenia.
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
