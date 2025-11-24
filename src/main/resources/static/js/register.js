@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     registerForm.addEventListener('submit', async (event) => {
         event.preventDefault();
+
+        // wyczyszczenie poprzednich komunikatow
         errorMessageContainer.innerHTML = '';
         errorMessageContainer.className = "form-message";
 
@@ -48,7 +50,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try{
             registerButton.disabled = true; // zablokawanie przycisku
-            registerButton.textContent = 'Rejestrowanie...';
 
             const response = await fetch('/api/auth/register', {
                 method: 'POST',
@@ -59,13 +60,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(data)
             });
 
-
+            // obsluga odpowiedzi HTTP
             if(response.ok){
-                console.log('Rejestracja udana!');
                 displayError('Zarejestrowano pomyślnie!', true);
+                
+                 // przekierowanie na strone logowania po 500ms
                 setTimeout(() => {
-                    window.location.href = '/login';  // przekierowanie na strone logowania
-                }, 1000);
+                    window.location.href = '/login';
+                }, 500);
             }
             else{
                 const errorData = await response.json();
@@ -91,15 +93,13 @@ document.addEventListener('DOMContentLoaded', () => {
             displayError('Błąd połączenia z serwerem. Spróbuj ponownie później.');
 
             registerButton.disabled = false; // odblokowanie przycisku
-            registerButton.textContent = 'Utwóz konto';
         }
     });
 
     // funkcja pomocnicza do wyswietlania bledow/sukcesu
     function displayError(message, isSuccess = false){
         errorMessageContainer.innerHTML = message; // uzycie innerHTML, aby renderowac liste <ul>
-        registerButton.textContent = 'Utwóz konto';
-        
+
         if(isSuccess){
             errorMessageContainer.className = "form-message success";
         } 
