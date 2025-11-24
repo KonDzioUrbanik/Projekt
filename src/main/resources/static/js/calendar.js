@@ -24,6 +24,7 @@ class FullCalendarInitializer {
         }
 
         this.loadingEl.classList.add('active');
+        this.calendarEl.style.display = 'none';
         
         // Zniszczenie istniejącej instancji przed utworzeniem nowej
         if (this.calendarInstance) {
@@ -76,7 +77,15 @@ class FullCalendarInitializer {
         } finally {
             // 2. UKRYJ EKRAN ŁADOWANIA I POKAŻ KALENDARZ
             this.loadingEl.classList.remove('active');
+            
+            // Pokazujemy kalendarz tylko jeśli nie wystąpił błąd krytyczny
+            // (FullCalendar wstrzykuje swoje elementy do środka calendarEl)
             this.calendarEl.style.display = 'block';
+            
+            // Ważne dla FullCalendar: czasem po zmianie display:none -> block trzeba przeliczyć rozmiar
+            if (this.calendarInstance) {
+                this.calendarInstance.updateSize();
+            }
         }
     }
 

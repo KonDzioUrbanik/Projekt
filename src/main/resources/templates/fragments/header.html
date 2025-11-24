@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+    <body>
+        <header th:fragment="header" class="header">
+            <div class="header-left">
+                <a class="logo" th:href="@{/dashboard}">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span class="logo-text">PANSportal</span>
+                </a>
+            </div>
+
+            <div class="header-right">
+                <div class="user-index-container">
+                    <span class="user-index-number" th:text="${currentUser.nrAlbumu}" style="font-weight: bold;"></span>
+                </div>
+                <div class="user-menu-wrapper">
+                    <div class="user-info" id="userMenuToggle">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="user-details">
+                            <span class="user-name"
+                                th:text="${currentUser.firstName} + ' ' + ${currentUser.lastName}"></span>
+                            <span class="user-role" th:text="${currentUser.role}"></span>
+                        </div>
+                        <i class="fas fa-chevron-down user-menu-arrow"></i>
+                    </div>
+
+                    <div class="user-dropdown-menu" id="userDropdownMenu">
+                        <a th:href="@{/profile}" class="user-dropdown-item">
+                            <i class="fas fa-user"></i>
+                            <span>Profil</span>
+                        </a>
+                        <a th:href="@{/settings}" class="user-dropdown-item">
+                            <i class="fas fa-cog"></i>
+                            <span>Ustawienia</span>
+                        </a>
+                        <a th:href="@{/change-password}" class="user-dropdown-item">
+                            <i class="fas fa-lock"></i>
+                            <span>Zmiana hasła</span>
+                        </a>
+                        <a href="#" class="user-dropdown-item">
+                            <i class="fas fa-book"></i>
+                            <span>Samouczek</span>
+                        </a>
+                        <div class="user-dropdown-divider"></div>
+                        <a href="#" class="user-dropdown-item">
+                            <i class="fas fa-moon"></i>
+                            <span>Przełącz na motyw ciemny</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="header-divider"></div>
+
+                <div class="notifications">
+                    <button class="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" th:text="0">0</span>
+                    </button>
+                </div>
+
+                <div class="header-divider"></div>
+
+                <a th:href="@{/logout}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Wyloguj</span>
+                </a>
+            </div>
+        </header>
+    </body>
+</html>

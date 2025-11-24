@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/main-layout}">
+    <head>
+        <title>Kalendarz</title>
+        <th:block layout:fragment="page-styles">
+            <link rel="stylesheet" th:href="@{/css/calendar.css}">
+        </th:block>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="calendar-wrapper">
+                <div class="calendar-header-custom">
+                    <div class="month-selector">
+                        <h2 id="currentMonth"></h2>
+                        <button id="prevMonthBtn" class="month-nav-btn">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <button id="nextMonthBtn" class="month-nav-btn">
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    <button id="todayBtn" class="today-btn">Dzisiaj</button>
+                </div>
+                
+                <div id="calendarGrid">
+                    </div>
+
+                <div class="loading" id="loadingCalendar">
+                    <div class="spinner"></div>
+                    <p>Ładowanie kalendarza...</p>
+                </div>
+            </div>
+        </div>
+        <th:block layout:fragment="page-scripts">
+            <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+            <script th:src="@{/js/calendar.js}"></script>
+            <script>
+                // inicjalizacja kalendarza po załadowaniu DOM
+                document.addEventListener('DOMContentLoaded', () => {
+                    // sprawdzenie czy klasa FullCalendarInitializer istnieje
+                    if(typeof FullCalendarInitializer !== 'undefined'){
+                        const manager = new FullCalendarInitializer();
+                        manager.renderCalendar();
+                    }
+                });
+            </script>
+        </th:block>
+    </body>
+</html>

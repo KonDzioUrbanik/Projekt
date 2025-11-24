@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/main-layout}">
+    <head>
+        <title>Twój Profil</title>
+        <th:block layout:fragment="page-styles">
+            <style>
+                .profile-wrapper { padding: 20px; }
+                .profile-section { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+            </style>
+        </th:block>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="profile-wrapper">
+                <h2 style="margin-bottom: 2rem; color: #2c3e50;">Twój Profil</h2>
+                
+                <div id="posts" class="profile-section">
+                    <h3>Twoje posty</h3>
+                    <p style="color: #666;">Brak postów do wyświetlenia.</p>
+                </div>
+                
+                <div id="comments" class="profile-section">
+                    <h3>Twoje komentarze</h3>
+                    <p style="color: #666;">Brak komentarzy.</p>
+                </div>
+                
+                <div id="notes" class="profile-section">
+                    <h3>Twoje notatki</h3>
+                    <p style="color: #666;">Brak notatek.</p>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
