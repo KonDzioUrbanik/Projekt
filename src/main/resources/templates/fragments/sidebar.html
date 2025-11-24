@@ -28,6 +28,12 @@
                 Notatki
             </a>
 
+            <div sec:authorize="hasRole('ADMIN')" style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 10px;">
+                <p style="padding-left: 20px; font-size: 0.8rem; color: #e0e0e0; text-transform: uppercase;">Admin</p>
+                <a th:href="@{/admin/users}"  class="btn-navbar-left" th:classappend="${activePage == 'users'} ? 'active'">
+                    Użytkownicy
+                </a>
+            </div>
         </nav>
     </body>
 </html>

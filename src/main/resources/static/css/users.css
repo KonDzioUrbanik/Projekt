@@ -1,0 +1,115 @@
+.admin-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.users-table-wrapper{
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    overflow-x: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.users-table{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.users-table th,
+.users-table td{
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.users-table th{
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.users-table tr:hover{
+    background-color: #fcfcfc;
+}
+
+.badge{
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.badge-admin{
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-student{
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-starosta{
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.action-btn{
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    margin-right: 5px;
+    transition: background 0.2s;
+}
+
+.btn{
+    padding: 7px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.btn-primary{
+    align-self: flex-end;
+    background-color: var(--color-primary);
+    color: var(--text-white);
+    border: 2px solid var(--color-primary);
+}
+
+ .btn-primary:hover{
+    background-color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 3px 6px var(--shadow-color-btn);
+}
+
+.btn-edit{
+    background: #e0f2fe;
+    color: #0284c7;
+}
+
+.btn-edit:hover{
+    background: #bae6fd;
+}
+
+.btn-delete{
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.btn-delete:hover{
+    background: #fecaca;
+}

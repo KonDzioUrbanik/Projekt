@@ -12,8 +12,8 @@
             </div>
 
             <div class="header-right">
-                <div class="user-index-container">
-                    <span class="user-index-number" th:text="${currentUser.nrAlbumu}" style="font-weight: bold;"></span>
+                <div class="user-index-container" th:if="${currentUser != null}">
+                    <span class="user-index-number" th:text="${currentUser?.nrAlbumu}" style="font-weight: bold;"></span>
                 </div>
                 <div class="user-menu-wrapper">
                     <div class="user-info" id="userMenuToggle">
@@ -21,9 +21,8 @@
                             <i class="fas fa-user"></i>
                         </div>
                         <div class="user-details">
-                            <span class="user-name"
-                                th:text="${currentUser.firstName} + ' ' + ${currentUser.lastName}"></span>
-                            <span class="user-role" th:text="${currentUser.role}"></span>
+                            <span class="user-name" th:text="${currentUser?.firstName} + ' ' + ${currentUser?.lastName}"></span>
+                            <span class="user-role" th:text="${currentUser?.role}"></span>
                         </div>
                         <i class="fas fa-chevron-down user-menu-arrow"></i>
                     </div>
