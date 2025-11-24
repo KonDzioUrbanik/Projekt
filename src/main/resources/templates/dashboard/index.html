@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/main-layout}">
+    <head>
+        <title>Strona główna</title>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div id="welcome" class="welcome content-section active">
+                <div class="welcome-message">
+                    <h1>Witamy w panelu startowym!</h1>
+                    <p>Cześć, <strong th:text="${currentUser.firstName}">Użytkowniku</strong>!</p>
+                </div>
+
+                <div class="home-content">
+                    <div class="left-section">
+                        <p>Blok 1 (np. Najbliższe zajęcia)</p>
+                    </div>
+
+                    <div class="right-section">
+                        <p>Blok 2 (np. Ogłoszenia)</p>
+                    </div>
+                </div>
+
+                <!-- tu cos mozna dodac -->
+            </div>
+        </div>
+    </body>
+</html>

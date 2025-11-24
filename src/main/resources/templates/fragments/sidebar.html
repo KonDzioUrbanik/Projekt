@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+    <body>
+        <nav class="side-nav" th:fragment="sidebar">
+           <a th:href="@{/dashboard}" class="btn-navbar-left" th:classappend="${activePage == 'home'} ? 'active'">
+                Strona główna
+            </a>
+            
+            <a th:href="@{/dashboard/calendar}" class="btn-navbar-left" th:classappend="${activePage == 'calendar'} ? 'active'">
+                Kalendarz
+            </a>
+            
+            <a th:href="@{/dashboard/schedule}" class="btn-navbar-left" th:classappend="${activePage == 'schedule'} ? 'active'">
+                Harmonogram zajęć
+            </a>
+
+            <a th:href="@{/dashboard/attendance}" class="btn-navbar-left" th:classappend="${activePage == 'attendance'} ? 'active'">
+                Obecności
+            </a>
+
+            <a th:href="@{/dashboard/forum}" class="btn-navbar-left" th:classappend="${activePage == 'forum'} ? 'active'">
+                Forum
+            </a>
+
+            <a th:href="@{/dashboard/notes}" class="btn-navbar-left" th:classappend="${activePage == 'notes'} ? 'active'">
+                Notatki
+            </a>
+
+        </nav>
+    </body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/main-layout}">
+    <head>
+        <title>Harmonogram Zajęć</title>
+        <th:block layout:fragment="page-styles">
+            <link rel="stylesheet" th:href="@{/css/schedule.css}">
+        </th:block>
+    </head>
+    <body>
+
+        <div layout:fragment="content">
+            <div class="schedule-wrapper">
+                <h2 style="margin-bottom: 2rem; color: #2c3e50;">Harmonogram Zajęć</h2>
+
+                <div class="schedule-grid" id="scheduleGrid">
+                    </div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Ładowanie harmonogramu zajęć...</p>
+                </div>
+            </div>
+        </div>
+
+        <th:block layout:fragment="page-scripts">
+            <script th:src="@{/js/schedule.js}"></script>
+            <script>
+                // inicjalizacja harmonogramu po załadowaniu strony
+                document.addEventListener('DOMContentLoaded', () => {
+                    // sprawdzenie czy klasa ScheduleCalendar istnieje
+                    if(typeof ScheduleCalendar !== 'undefined'){
+                        const schedule = new ScheduleCalendar();
+                        schedule.loadSchedule(); 
+                    }
+                });
+            </script>
+        </th:block>
+
+    </body>
+</html>
