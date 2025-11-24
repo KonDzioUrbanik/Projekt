@@ -1,28 +1,35 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("loginForm");
-    const message = document.getElementById("loginMessage");
-    const button = document.getElementById("loginButton");
 
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
+    const loginForm = document.getElementById("loginForm");
+    const errorMessageContainer = document.getElementById("loginMessage"); 
+    const loginButton = document.getElementById("loginButton");
 
-        const email = document.getElementById("email").value.trim();
+    loginForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        // wyczyszczenie poprzednich komunikatow
+        errorMessageContainer.innerHTML = '';
+        errorMessageContainer.className = "form-message";
+
+        let email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value.trim();
 
-        // Walidacja pól
-        if (!email || !password) {
-            message.textContent = "Uzupełnij wszystkie pola.";
-            message.className = "form-message error";
+        // walidacja pol
+        if(!email || !password){
+            displayError("Uzupełnij wszystkie pola.");
             return;
         }
 
-        // Blokuj przycisk i pokaż loader
-        button.disabled = true;
-        button.querySelector("span").textContent = "Logowanie...";
-        message.textContent = "";
-        message.className = "form-message";
+        // obsluga logowania za pomoca samego numeru albumu
+        const onlyDigitsRegex = /^\d+$/;
+        if (onlyDigitsRegex.test(email)) {
+            email += "@student.kpu.krosno.pl";
+        }
 
-        try {
+        // zablokowanie przycisku
+        loginButton.disabled = true;
+
+        try{
             const response = await fetch("/api/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -30,27 +37,28 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             let data = null;
-            try {
+            try{
                 data = await response.json();
-            } catch {
-                // jeśli backend zwróci pustą odpowiedź
+            } 
+            catch{
                 data = {};
             }
 
-            // Obsługa odpowiedzi HTTP
-            if (response.ok){
-                message.textContent = "Zalogowano pomyślnie!";
-                message.className = "form-message success";
+            // obsluga odpowiedzi HTTP
+            if(response.ok){
+                // SUKCES 
+                displayError("Zalogowano pomyślnie!", true);
 
-                // Przekierowanie po 1s
+                // przekierowanie na strone dashboard po 500ms
                 setTimeout(() => {
                     window.location.href = "/dashboard";
                 }, 500);
-            } else {
-                // Obsługa statusów błędów
+            } 
+            else{
+                // BŁĘDY
                 let errorMsg = "Nieprawidłowe dane logowania.";
 
-                switch (response.status) {
+                switch (response.status){
                     case 400:
                         errorMsg = data.message || "Nieprawidłowe dane formularza.";
                         break;
@@ -70,17 +78,27 @@ document.addEventListener("DOMContentLoaded", () => {
                         errorMsg = data.message || "Wystąpił nieoczekiwany błąd.";
                 }
 
-                message.textContent = errorMsg;
-                message.className = "form-message error";
+                displayError(errorMsg);
             }
-        } catch (err) {
-            console.error("Błąd połączenia:", err);
-            message.textContent = "Nie można połączyć się z serwerem.";
-            message.className = "form-message error";
-        } finally {
-            // Odblokowanie przycisku
-            button.disabled = false;
-            button.querySelector("span").textContent = "Zaloguj się";
+        } 
+        catch(error){
+            console.error("Błąd połączenia:", error);
+            displayError("Nie można połączyć się z serwerem.");
+        } 
+        finally{
+            // odblokowanie przycisku
+            loginButton.disabled = false;
         }
     });
+
+    function displayError(message, isSuccess = false){
+        errorMessageContainer.innerHTML = message; 
+        
+        if(isSuccess){
+            errorMessageContainer.className = "form-message success";
+        } 
+        else{
+            errorMessageContainer.className = "form-message error";
+        }
+    }
 });

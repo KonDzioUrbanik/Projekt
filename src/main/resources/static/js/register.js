@@ -6,24 +6,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     registerForm.addEventListener('submit', async (event) => {
         event.preventDefault();
+
+        // wyczyszczenie poprzednich komunikatow
         errorMessageContainer.innerHTML = '';
         errorMessageContainer.className = "form-message";
 
         const firstName = document.getElementById('imie').value;
         const lastName = document.getElementById('nazwisko').value;
-        const email = document.getElementById('email').value;
+        const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
         const passwordConfirm = document.getElementById('password-confirm').value;
         // const role = document.getElementById('role').value;
         // const nrAlbumu = document.getElementById('nrAlbumu').value;
 
-        if (password !== passwordConfirm) {
+        // sprawdzenie czy hasla sa identyczne
+        if (password !== passwordConfirm){
             displayError('Hasła nie są identyczne.');
-            return; // Przerywamy wysyłkę
+            return;
         }
 
+        // sprawdzenie czy pola nie sa puste
         if (!firstName || !lastName || !email || !password /*|| !role || !nrAlbumu*/){
             displayError('Wszystkie pola są wymagane.');
+            return;
+        }
+
+        // sprawdzenie formatu email
+        const studentEmailRegex = /^\d+@student\.kpu\.krosno\.pl$/;
+
+        if(!studentEmailRegex.test(email)){
+            displayError('Nieprawidłowy e-mail. \nAdres e-mail musi składać się z numeru albumu (same cyfry) oraz domeny @student.kpu.krosno.pl');
             return;
         }
 
@@ -36,7 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // nrAlbumu: parseInt(nrAlbumu, 10)
         };
 
-        try {
+        try{
+            registerButton.disabled = true; // zablokawanie przycisku
+
             const response = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: {
@@ -46,46 +60,46 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(data)
             });
 
-
-            if (response.ok){
-                // Sukces! (Status 201 Created)
-                console.log('Rejestracja udana!');
+            // obsluga odpowiedzi HTTP
+            if(response.ok){
                 displayError('Zarejestrowano pomyślnie!', true);
+                
+                 // przekierowanie na strone logowania po 500ms
                 setTimeout(() => {
-                    window.location.href = '/login';  // Przekierowujemy na stronę logowania
-                }, 1000);
+                    window.location.href = '/login';
+                }, 500);
             }
             else{
-                // Błąd! (np. 400 - walidacja, 409 - email zajęty)
-                // Próbujemy odczytać szczegóły błędu z ProblemDetail
                 const errorData = await response.json();
                 console.error('Błąd rejestracji:', errorData);
 
-                // Wyświetlamy błąd użytkownikowi
+                // wyswietlenie bledu uzytkownikowi
                 let errorMsg = errorData.detail || 'Wystąpił błąd. Spróbuj ponownie.';
 
-                // Jeśli to błąd walidacji, pokażemy listę błędów
-                if (errorData.errors) {
+                if (errorData.errors){
                     errorMsg += '<ul>';
-                    for (const field in errorData.errors) {
+                    for(const field in errorData.errors){
                         errorMsg += `<li>${field}: ${errorData.errors[field]}</li>`;
                     }
                     errorMsg += '</ul>';
                 }
                 displayError(errorMsg);
+
+                registerButton.disabled = false; // odblokowanie przycisku
             }
-        } catch (error) {
-            // Błąd sieciowy (np. brak połączenia z serwerem)
+        } 
+        catch (error){
             console.error('Błąd sieci:', error);
             displayError('Błąd połączenia z serwerem. Spróbuj ponownie później.');
-            registerButton.disabled = false;
-            registerButton.querySelector("span").textContent = "Utwórz konto";
+
+            registerButton.disabled = false; // odblokowanie przycisku
         }
     });
 
-    // Funkcja pomocnicza do wyświetlania błędów/sukcesu
+    // funkcja pomocnicza do wyswietlania bledow/sukcesu
     function displayError(message, isSuccess = false){
-        errorMessageContainer.innerHTML = message; // Użycie innerHTML, aby renderować listę <ul>
+        errorMessageContainer.innerHTML = message; // uzycie innerHTML, aby renderowac liste <ul>
+
         if(isSuccess){
             errorMessageContainer.className = "form-message success";
         } 
