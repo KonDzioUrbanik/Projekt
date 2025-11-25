@@ -405,3 +405,39 @@ p, .subtitle{
 .tutorial-actions{
     margin-bottom: 20px;
 }
+
+/* RESPONSYWNOSC */
+
+@media (max-width: 768px){
+    .main-container{
+        padding: 15px;
+    }
+
+    /* Auth Container (Logowanie/Rejestracja) */
+    .auth-container{
+        padding: 2rem 1.5rem;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .main-title{
+        font-size: 1.8rem;
+    }
+
+    /* Landing Page */
+    .start-nav{
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .start-nav .btn{
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .logo-circle{
+        width: 60px;
+        height: 60px;
+        font-size: 1.8rem;
+    }
+}

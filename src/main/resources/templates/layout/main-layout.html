@@ -35,6 +35,24 @@
 
         <script th:src="@{/js/user-menu.js}"></script>
 
+        <script>
+            document.addEventListener("DOMContentLoaded", function(){
+                // znalezienie kontener menu i aktywny link
+                const navContainer = document.querySelector('.side-nav');
+                const activeLink = document.querySelector('.side-nav .active');
+
+                // jesli oba elementy istnieja
+                if (navContainer && activeLink){
+                    // przewiniecie tak, aby aktywny element byl widoczny
+                    activeLink.scrollIntoView({
+                        behavior: 'auto', // 'auto' oznacza natychmiastowy skok bez animacji
+                        block: 'nearest', // nie przewijanie strony w pionie
+                        inline: 'center'  // wycentrowanie przycisku w poziomie
+                    });
+                }
+            });
+        </script>
+
         <th:block layout:fragment="page-scripts"></th:block>
     </body>
 </html>
