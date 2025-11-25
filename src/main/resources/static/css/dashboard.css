@@ -472,9 +472,38 @@ body{
     color: var(--text-dark);
 }
 
+.admin-section{
+    margin-top: 20px;
+    border-top: 1px solid #ddd;
+    padding-top: 10px;
+}
+
 /* RESPONSYWNOSC */
 
 @media (max-width: 992px){
+    .admin-section{
+        display: contents !important;
+        border: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .admin-section p{  
+        display: none !important; 
+    }
+
+    .admin-section .btn-navbar-left{
+        background-color: #fff; 
+        border: 2px solid #005efa;
+        color: #005efa;
+        margin: 0;
+    }
+
+    .admin-section .btn-navbar-left.active{
+        background-color: #005efa;
+        color: white;
+    }
+    
     /* Zmiana ukladu glownego kontenera */
     .dashboard-container{
         flex-direction: column;
@@ -651,9 +680,7 @@ body{
     
     .welcome-message h1{
         font-size: 1.5rem;
-    }
-
-    
+    } 
 
     @media (max-width: 380px){
         .logo-text{
