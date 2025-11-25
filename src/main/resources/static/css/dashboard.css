@@ -496,23 +496,19 @@ body{
         z-index: 90;
     }
 
-    .side-nav{
+    .side-nav {
         display: flex;
         flex-direction: row;
+        align-items: center;
         overflow-x: auto;
         white-space: nowrap;
         gap: 10px;
-        padding-bottom: 5px;
+        padding: 5px 0;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
     }
     
-    .side-nav::-webkit-scrollbar{
-        display: none;
-    }
-
-    /* Ukrycie napisu "Admin" na mobile */
-    .side-nav p{
+    .side-nav::-webkit-scrollbar{ 
         display: none;
     }
     
@@ -524,6 +520,7 @@ body{
         background: var(--color-secondary);
         color: var(--text-dark);
         font-size: 0.85rem;
+        font-weight: 600;
         border: 1px solid var(--border-color);
         border-left: 1px solid var(--border-color);
         justify-content: center;
@@ -544,6 +541,39 @@ body{
     
     .btn-navbar-left.active:hover{
         background-color: var(--color-primary-dark);
+        color: white;
+    }
+
+     /* Ukrycie napisu "Admin" na mobile */
+    .side-nav p{
+        display: none;
+    }
+
+    .side-nav div[sec\:authorize]{
+        display: contents !important;
+        border: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .side-nav div[sec\:authorize] p{
+        display: none !important;
+    }
+
+    .side-nav div[sec\:authorize] .btn-navbar-left{
+        margin-bottom: 0;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        
+        background-color: #fff; 
+        border: 2px solid #005efa;
+        color: #005efa;
+    }
+    
+    .side-nav div[sec\:authorize] .btn-navbar-left.active{
+        background-color: #005efa;
         color: white;
     }
 
@@ -622,6 +652,8 @@ body{
     .welcome-message h1{
         font-size: 1.5rem;
     }
+
+    
 
     @media (max-width: 380px){
         .logo-text{

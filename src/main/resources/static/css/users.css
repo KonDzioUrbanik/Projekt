@@ -83,7 +83,7 @@
 }
 
 .btn-primary{
-    align-self: flex-end;
+    align-self: flex-start;
     background-color: var(--color-primary);
     color: var(--text-white);
     border: 2px solid var(--color-primary);
@@ -92,7 +92,7 @@
  .btn-primary:hover{
     background-color: var(--color-primary-dark);
     border-color: var(--color-primary-dark);
-    transform: translateY(-2px);
+    /* transform: translateY(-2px); */
     box-shadow: 0 3px 6px var(--shadow-color-btn);
 }
 
@@ -120,24 +120,67 @@
     .admin-header{
         flex-direction: column;
         align-items: flex-start;
-        gap: 15px;
+        gap: 10px;
+        margin-bottom: 1.5rem;
     }
     
-    .admin-header button{
+    .admin-header h1{
+        font-size: 1.5rem;
+    }
+
+    .users-table-wrapper .btn-primary {
+        width: auto;
+        display: inline-flex;
+        margin-bottom: 15px;
+    }
+
+    /* Kontener tabeli */
+    .users-table-wrapper{
+        padding: 10px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        display: block;
+    }
+
+    /* Sama tabela */
+    .users-table{
+        min-width: 800px;
         width: 100%;
     }
 
-    /* Przewijanie tabeli */
-    .users-table-wrapper{
-        padding: 1rem;
-        overflow-x: auto;
+    /* Zmniejszenie odstepow w komorkach tabeli na mobile */
+    .users-table th, 
+    .users-table td {
+        padding: 12px 10px;
+        font-size: 0.9rem;
+        white-space: nowrap;
     }
 
-    .users-table{
-        min-width: 800px;
+    .users-table th:first-child,
+    .users-table td:first-child{
+        width: 40px;
+        text-align: center;
+    }
+
+    /* Zmniejszenie avataru w tabeli */
+    .users-table td .fas.fa-user{
+        font-size: 0.7rem;
+    }
+    .users-table td div[style*="width: 32px"]{
+        width: 28px !important;
+        height: 28px !important;
+    }
+
+    /* Przyciski akcji (Edytuj/Usuń) */
+    .action-btn{
+        padding: 6px 10px;
+        margin: 0 2px;
     }
     
-    .action-btn{
-        padding: 5px 8px;
+    /* Badge (Rola) */
+    .badge{
+        font-size: 0.7rem;
+        padding: 3px 6px;
+        white-space: nowrap;
     }
 }
