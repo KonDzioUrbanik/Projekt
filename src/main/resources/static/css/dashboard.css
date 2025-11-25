@@ -473,3 +473,167 @@ body{
 }
 
 /* RESPONSYWNOSC */
+
+@media (max-width: 992px){
+    /* Zmiana ukladu glownego kontenera */
+    .dashboard-container{
+        flex-direction: column;
+        height: auto;
+        overflow: visible;
+    }
+
+    /* Sidebar zmienia sie w pasek nawigacji na gorze (pod headerem) */
+    .navbar-left{
+        width: 100%;
+        height: auto;
+        padding: 10px 15px;
+        background: #fff;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        box-shadow: none;
+        position: sticky;
+        top: 0;
+        z-index: 90;
+    }
+
+    .side-nav{
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        white-space: nowrap;
+        gap: 10px;
+        padding-bottom: 5px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    
+    .side-nav::-webkit-scrollbar{
+        display: none;
+    }
+
+    /* Ukrycie napisu "Admin" na mobile */
+    .side-nav p{
+        display: none;
+    }
+    
+    /* Styl linkow w menu poziomym */
+    .btn-navbar-left{
+        margin-bottom: 0;
+        padding: 8px 16px;
+        border-radius: 20px;
+        background: var(--color-secondary);
+        color: var(--text-dark);
+        font-size: 0.85rem;
+        border: 1px solid var(--border-color);
+        border-left: 1px solid var(--border-color);
+        justify-content: center;
+    }
+
+    /* Aktywny przycisk na mobile */
+    .btn-navbar-left.active{
+        background: var(--color-primary);
+        color: white;
+        border-color: var(--color-primary);
+    }
+
+    .btn-navbar-left:hover{
+        background-color: var(--color-secondary-dark);
+        color: var(--text-dark);
+        transform: none;
+    }
+    
+    .btn-navbar-left.active:hover{
+        background-color: var(--color-primary-dark);
+        color: white;
+    }
+
+    /* Tresc glowna */
+    .navbar-middle{
+        width: 100%;
+        padding: 15px;
+        overflow-y: visible;
+        height: auto;
+    }
+
+    /* Zmniejszenie paddingu samego paska */
+    .header{
+        padding: 0 10px;
+        justify-content: space-between;
+    }
+
+    /* Zmniejszenie odstepu miedzy elementami po prawej */
+    .header-right{
+        gap: 0.5rem;
+    }
+
+    /* Ukrycie numeru indeksu na telefonach */
+    .user-index-container{
+        display: none;
+    }
+
+    /* Przycisk Wyloguj - ukrycie tekst "Wyloguj", zostawienie ikony */
+    .logout-btn span{
+        display: none;
+    }
+
+    /* Zmienienie przycisku wyloguj na samą ikoną */
+    .logout-btn{
+        padding: 0.5rem;
+        width: 36px;
+        height: 36px;
+        justify-content: center;
+    }
+
+    .header-divider{
+        display: none;
+    }
+
+    /* Ukrycie imienia i roli na telefonie */
+    .user-details{
+        display: none;
+    }
+    
+    .logo{
+        font-size: 1.2rem;
+    }
+    .logo i{
+        font-size: 1.4rem;
+    }
+    .logo-text{
+        font-size: 1.1rem;
+    }
+    
+    /* Home Content - kafelki jeden pod drugim */
+    .home-content{
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .left-section, .right-section{
+        width: 100%;
+        height: auto;
+        min-height: 200px;
+    }
+    
+    .welcome{
+        padding: 20px;
+    }
+    
+    .welcome-message h1{
+        font-size: 1.5rem;
+    }
+
+    @media (max-width: 380px){
+        .logo-text{
+            display: none;
+        }
+
+        .logo{
+            font-size: 2rem;
+        }
+
+        .logo i{
+            font-size: 2rem;
+        }
+    }
+}

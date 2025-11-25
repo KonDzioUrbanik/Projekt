@@ -223,3 +223,50 @@
     text-align: center;
     margin: 2rem auto;
 }
+
+/*  RESPONSYWNOSC */
+
+@media (max-width: 768px){
+    .calendar-wrapper{
+        padding: 1rem;
+    }
+
+    .calendar-header-custom{
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+
+    .month-selector{
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .month-selector h2{
+        font-size: 1.4rem;
+    }
+
+    .today-btn{
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Zmniejszenie wysokosci komorek kalendarza na mobile */
+    .fc-daygrid-day{
+        min-height: 60px;
+    }
+    
+    /* Ukrycie pelych nazw dni, FullCalendar robi to sam, ale można wymusic mniejszy font */
+    .fc-col-header-cell{
+        font-size: 0.8rem;
+        padding: 5px;
+    }
+    
+    /* Mniejsze kolka z numerem dnia */
+    .fc-daygrid-day-number{
+        width: 24px;
+        height: 24px;
+        font-size: 0.8rem;
+        margin: 4px;
+    }
+}

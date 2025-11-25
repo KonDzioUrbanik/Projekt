@@ -416,3 +416,30 @@ select.form-control {
 
 /* RESPONSYWNOŚĆ */
 
+@media (max-width: 768px){
+    .profile-container{
+        padding: 1.5rem;
+        margin: 1rem auto; 
+        width: 95%;
+    }
+
+    /* Zmiana siatki formularza na jedna kolumne */
+    .form-grid{
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .profile-header{
+        text-align: center;
+    }
+
+    .button-group{
+        flex-direction: column-reverse;
+        gap: 10px;
+    }
+
+    .btn{
+        width: 100%;
+        justify-content: center;
+    }
+}

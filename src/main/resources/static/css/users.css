@@ -113,3 +113,31 @@
 .btn-delete:hover{
     background: #fecaca;
 }
+
+/* RESPONSYWNOSC */
+
+@media (max-width: 992px){
+    .admin-header{
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .admin-header button{
+        width: 100%;
+    }
+
+    /* Przewijanie tabeli */
+    .users-table-wrapper{
+        padding: 1rem;
+        overflow-x: auto;
+    }
+
+    .users-table{
+        min-width: 800px;
+    }
+    
+    .action-btn{
+        padding: 5px 8px;
+    }
+}
