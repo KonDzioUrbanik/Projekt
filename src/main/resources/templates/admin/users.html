@@ -34,8 +34,9 @@
                     </thead>
                     <tbody>
                         <tr th:each="user : ${users}">
+
                             <td th:text="${user.id}">1</td>
-                            
+
                             <td>
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <div style="width: 32px; height: 32px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #64748b;">
@@ -44,26 +45,37 @@
                                     <span th:text="${user.firstName} + ' ' + ${user.lastName}">Jan Kowalski</span>
                                 </div>
                             </td>
-                            
-                            <td th:text="${user.email}">00000@student.kpu.krosno.pl</td>
-                            
+
+                            <td th:text="${user.email}">email@example.com</td>
+
                             <td th:text="${user.nrAlbumu != null} ? ${user.nrAlbumu} : '-'">00000</td>
-                            
+
                             <td>
-                                <span class="badge" th:classappend="${user.role == 'ADMIN'} ? 'badge-admin' : (${user.role == 'STAROSTA'} ? 'badge-starosta' : 'badge-student')" th:text="${user.role}">
-                                    STUDENT
-                                </span>
+                                <span class="badge" th:classappend="${user.role == 'ADMIN'} ? 'badge-admin' : (${user.role == 'STAROSTA'} ? 'badge-starosta' : 'badge-student')" th:text="${user.role}">STUDENT</span>
                             </td>
-                            
+
                             <td th:text="${user.groupName != null} ? ${user.groupName} : 'Brak'">Informatyka 1</td>
                             
                             <td>
-                                <button class="action-btn btn-edit" title="Edytuj">
+                                <button class="action-btn btn-edit" title="Edytuj"
+                                        th:if="${user.role != 'ADMIN'}" 
+                                        th:data-email="${user.email}"
+                                        th:data-firstname="${user.firstName}"
+                                        th:data-lastname="${user.lastName}"
+                                        th:data-role="${user.role}"
+                                        th:data-group="${user.groupName != null ? user.groupName : ''}"
+                                        onclick="openEditModal(this)">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="action-btn btn-delete" title="Usuń" th:unless="${user.email == #authentication.name}">
+
+                                <button class="action-btn btn-delete" title="Usuń" 
+                                        th:if="${user.role != 'ADMIN'}">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
+                                
+                                <span th:if="${user.role == 'ADMIN'}" style="color: #ccc; font-size: 0.9rem; margin-left: 5px;">
+                                    <i class="fas fa-lock" title="Konto chronione"></i>
+                                </span>
                             </td>
                         </tr>
                     </tbody>
@@ -73,6 +85,88 @@
                     Brak użytkowników do wyświetlenia.
                 </div>
             </div>
-        </div>
+
+            <div id="editUserModal" class="modal-overlay">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Edycja użytkownika</h3>
+                        <button class="close-btn" onclick="closeEditModal()">&times;</button>
+                    </div>
+                    
+                    <form id="editUserForm">
+                        <input type="hidden" id="editEmail">
+
+                        <div class="modal-body">
+                            <div class="user-summary">
+                                <div class="avatar-small">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div>
+                                    <h4 id="editUserName">Jan Kowalski</h4>
+                                    <span id="editUserEmailDisplay" style="color: #666; font-size: 0.9rem;">jan@pans.pl</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="editRole">Rola</label>
+                                <select id="editRole" class="form-control">
+                                    <option value="STUDENT">Student</option>
+                                    <option value="STAROSTA">Starosta</option>
+                                    <option value="ADMIN" disabled>Administrator</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="editGroup">Przypisz do grupy</label>
+                                <select id="editGroup" class="form-control">
+                                    <option value="">Brak grupy</option>
+                                    <option value="1">Informatyka - Rok I (Stacjonarne)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-tertiary" onclick="closeEditModal()">Anuluj</button>
+                            <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div> 
+
+        <th:block layout:fragment="page-scripts">
+            <script>
+                function openEditModal(btn){
+                    const modal = document.getElementById('editUserModal');
+                    
+                    const email = btn.getAttribute('data-email');
+                    const firstName = btn.getAttribute('data-firstname');
+                    const lastName = btn.getAttribute('data-lastname');
+                    const role = btn.getAttribute('data-role');
+                    
+                    document.getElementById('editEmail').value = email;
+                    document.getElementById('editUserName').innerText = firstName + ' ' + lastName;
+                    document.getElementById('editUserEmailDisplay').innerText = email;
+                    document.getElementById('editRole').value = role;
+                    
+                    modal.classList.add('active');
+                }
+
+                function closeEditModal(){
+                    document.getElementById('editUserModal').classList.remove('active');
+                }
+
+                document.getElementById('editUserForm').addEventListener('submit', function(e){
+                    e.preventDefault();
+                    const email = document.getElementById('editEmail').value;
+                    const newRole = document.getElementById('editRole').value;
+                    
+                    alert("Zapisano");
+
+                    closeEditModal();
+                });
+            </script>
+        </th:block>
+
     </body>
 </html>
