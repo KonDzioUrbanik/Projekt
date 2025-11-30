@@ -3,7 +3,7 @@
     <head>
         <title>Kalendarz</title>
         <th:block layout:fragment="page-styles">
-            <link rel="stylesheet" th:href="@{/css/calendar.css}" href="../../static/css/calendar.css">
+            <link rel="stylesheet" th:href="@{/css/dashboard/calendar.css}" href="../../static/css/dashboard/calendar.css">
         </th:block>
     </head>
     <body>
@@ -33,7 +33,7 @@
         </div>
         <th:block layout:fragment="page-scripts">
             <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
-            <script th:src="@{/js/calendar.js}"></script>
+            <script th:src="@{/js/dashboard/calendar.js}"></script>
             <script>
                 // inicjalizacja kalendarza po załadowaniu DOM
                 document.addEventListener('DOMContentLoaded', () => {

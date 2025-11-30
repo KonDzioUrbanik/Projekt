@@ -16,7 +16,7 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
         <!-- osobne arkusze stylow -->
-        <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="../../static/css/dashboard.css">
+        <link rel="stylesheet" th:href="@{/css/dashboard/dashboard.css}" href="../../static/css/dashboard/dashboard.css">
 
         <th:block layout:fragment="page-styles"></th:block>
     </head>
@@ -33,7 +33,7 @@
             </section>
         </div>
 
-        <script th:src="@{/js/user-menu.js}"></script>
+        <script th:src="@{/js/common/user-menu.js}" src="../../static/js/common/user-menu.js"></script>
 
         <script>
             document.addEventListener("DOMContentLoaded", function(){

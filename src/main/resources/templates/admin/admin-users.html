@@ -3,7 +3,7 @@
     <head>
         <title>Zarządzanie użytkownikami</title>
         <th:block layout:fragment="page-styles">
-            <link rel="stylesheet" th:href="@{/css/users.css}" href="../../static/css/users.css">
+            <link rel="stylesheet" th:href="@{/css/admin/admin-users.css}" href="../../static/css/admin/admin-users.css">
         </th:block>
     </head>
     <body>
@@ -46,7 +46,7 @@
                                 </div>
                             </td>
 
-                            <td th:text="${user.email}">email@example.com</td>
+                            <td th:text="${user.email}">00000@student.kpu.krosno.pl</td>
 
                             <td th:text="${user.nrAlbumu != null} ? ${user.nrAlbumu} : '-'">00000</td>
 
@@ -135,37 +135,7 @@
         </div> 
 
         <th:block layout:fragment="page-scripts">
-            <script>
-                function openEditModal(btn){
-                    const modal = document.getElementById('editUserModal');
-                    
-                    const email = btn.getAttribute('data-email');
-                    const firstName = btn.getAttribute('data-firstname');
-                    const lastName = btn.getAttribute('data-lastname');
-                    const role = btn.getAttribute('data-role');
-                    
-                    document.getElementById('editEmail').value = email;
-                    document.getElementById('editUserName').innerText = firstName + ' ' + lastName;
-                    document.getElementById('editUserEmailDisplay').innerText = email;
-                    document.getElementById('editRole').value = role;
-                    
-                    modal.classList.add('active');
-                }
-
-                function closeEditModal(){
-                    document.getElementById('editUserModal').classList.remove('active');
-                }
-
-                document.getElementById('editUserForm').addEventListener('submit', function(e){
-                    e.preventDefault();
-                    const email = document.getElementById('editEmail').value;
-                    const newRole = document.getElementById('editRole').value;
-                    
-                    alert("Zapisano");
-
-                    closeEditModal();
-                });
-            </script>
+            <script th:src="@{/js/admin/admin-users.js}"></script>
         </th:block>
 
     </body>
