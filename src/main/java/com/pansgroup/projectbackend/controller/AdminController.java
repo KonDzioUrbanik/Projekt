@@ -44,6 +44,6 @@ public class AdminController{
         model.addAttribute("activePage", "users");
 
         // Zwrocenie widoku HTML
-        return "admin/users";
+        return "admin/admin-users";
     }
 }

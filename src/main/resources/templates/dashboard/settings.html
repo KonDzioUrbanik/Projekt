@@ -13,7 +13,7 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
         <!-- osobny arkusz stylow -->
-        <link rel="stylesheet" th:href="@{/css/user-profile.css}" href="../static/css/user-profile.css">
+        <link rel="stylesheet" th:href="@{/css/dashboard/user-profile.css}" href="../static/css/dashboard/user-profile.css">
     </head>
     <body>
         <div class="main-container">
@@ -41,7 +41,7 @@
                 <div class="info-box">
                     <p>
                         <i class="fas fa-info-circle"></i>
-                        Wypełnij poniższy formularz, aby zaktualizować swoje dane. Pola oznaczone gwiazdką (*) są obowiązkowe.
+                        Wypełnij poniższy formularz, aby zaktualizować swoje dane.
                     </p>
                 </div>
 
@@ -58,7 +58,7 @@
                         <div class="form-group">
                             <label for="firstName">
                                 <i class="fas fa-user"></i>
-                                Imię *
+                                Imię
                             </label>
                             <input type="text" id="firstName" class="form-control" th:value="${currentUser.firstName}" required>
                         </div>
@@ -66,7 +66,7 @@
                         <div class="form-group">
                             <label for="lastName">
                                 <i class="fas fa-user"></i>
-                                Nazwisko *
+                                Nazwisko
                             </label>
                             <input type="text" id="lastName" class="form-control" th:value="${currentUser.lastName}" required>
                         </div>
@@ -208,6 +208,6 @@
         </div>
 
         <!-- osobny plik JS -->
-        <script th:src="@{/js/user-profile.js}" src="../static/js/settings.js" defer></script>
+        <script th:src="@{/js/dashboard/settings.js}" src="../static/js/dashboard/settings.js" defer></script>
     </body>
 </html>
