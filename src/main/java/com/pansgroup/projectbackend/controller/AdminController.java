@@ -46,4 +46,48 @@ public class AdminController{
         // Zwrocenie widoku HTML
         return "admin/admin-users";
     }
+
+    // Endpoint: /admin/announcement
+    @GetMapping("/announcement")
+    public String announcementView(Model model){
+
+        // Ustawienie aktywnej strony dla sidebara
+        model.addAttribute("activePage", "announcement");
+        
+        // Zwrocenie widoku HTML
+        return "admin/announcement";
+    }
+
+    // Endpoint: /admin/post-control
+    @GetMapping("/post-control")
+    public String postControlView(Model model){      
+
+        // Ustawienie aktywnej strony dla sidebara
+        model.addAttribute("activePage", "post-control");
+
+        // Zwrocenie widoku HTML
+        return "admin/post-control";
+    }
+
+    // Endpoint: /admin/university-calendar
+    @GetMapping("/university-calendar")
+    public String universityCalendarView(Model model){
+        
+        // Ustawienie aktywnej strony dla sidebara
+        model.addAttribute("activePage", "university-calendar");
+
+        // Zwrocenie widoku HTML
+        return "admin/university-calendar";
+    }
+
+     // Endpoint: /admin/alerts
+    @GetMapping("/alerts")
+    public String alertsView(Model model){
+
+        // Ustawienie aktywnej strony dla sidebara
+        model.addAttribute("activePage", "alerts");
+
+        // Zwrocenie widoku HTML
+        return "admin/alerts";
+    }
 }
