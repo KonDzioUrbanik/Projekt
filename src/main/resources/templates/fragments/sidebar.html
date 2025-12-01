@@ -4,7 +4,7 @@
 
     <body>
         <nav class="side-nav" th:fragment="sidebar">
-           <a th:href="@{/dashboard}" class="btn-navbar-left" th:classappend="${activePage == 'home'} ? 'active'">
+            <a th:href="@{/dashboard}" class="btn-navbar-left" th:classappend="${activePage == 'home'} ? 'active'">
                 Strona główna
             </a>
             
@@ -31,7 +31,19 @@
             <div sec:authorize="hasRole('ADMIN')" class="admin-section">
                 <p style="padding-left: 20px; font-size: 0.8rem; color: #e0e0e0; text-transform: uppercase;">Admin</p>
                 <a th:href="@{/admin/users}"  class="btn-navbar-left" th:classappend="${activePage == 'users'} ? 'active'">
-                    Użytkownicy
+                    Lista użytkowników
+                </a>
+                <a th:href="@{/admin/announcement}"  class="btn-navbar-left" th:classappend="${activePage == 'announcement'} ? 'active'">
+                    Ogłoszenia  
+                </a>
+                <a th:href="@{/admin/post-control}"  class="btn-navbar-left" th:classappend="${activePage == 'post-control'} ? 'active'">
+                    Kontrola postów
+                </a>
+                <a th:href="@{/admin/university-calendar}"  class="btn-navbar-left" th:classappend="${activePage == 'university-calendar'} ? 'active'">
+                    Kalendarz akademicki
+                </a>
+                <a th:href="@{/admin/alerts}"  class="btn-navbar-left" th:classappend="${activePage == 'alerts'} ? 'active'">
+                    Alerty
                 </a>
             </div>
         </nav>
