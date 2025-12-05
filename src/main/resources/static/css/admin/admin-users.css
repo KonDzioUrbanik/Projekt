@@ -15,6 +15,136 @@
     flex-direction: column;
 }
 
+.table-controls{
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.filters-section{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.search-box{
+    position: relative;
+    flex: 1;
+    min-width: 250px;
+}
+
+.search-box i{
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.search-box input{
+    width: 100%;
+    padding: 10px 12px 10px 38px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+
+.search-box input:focus{
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filter-group{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-group label{
+    font-size: 0.9rem;
+    color: #475569;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.filter-group label i{
+    margin-right: 4px;
+    color: #64748b;
+}
+
+.filter-select{
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 140px;
+}
+
+.filter-select:focus{
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.btn-secondary{
+    background-color: #e2e8f0;
+    color: #475569;
+    padding: 8px 16px;
+    border: 2px solid #cbd5e1;
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+    gap: 6px;
+}
+
+.btn-secondary:hover{
+    background-color: #cbd5e1;
+    border-color: #94a3b8;
+}
+
+.results-info{
+    padding: 8px 12px;
+    background: #eff6ff;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    color: #1e40af;
+    font-weight: 600;
+    border: 1px solid #bfdbfe;
+}
+
+.results-info #resultsCount{
+    font-size: 1.1rem;
+    color: var(--color-primary);
+}
+
+.user-row-hidden{
+    display: none !important;
+}
+
+.no-results-message{
+    text-align: center;
+    padding: 3rem;
+    color: #64748b;
+    font-size: 1.1rem;
+}
+
+.no-results-message i{
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+    color: #cbd5e1;
+}
+
 .users-table{
     width: 100%;
     border-collapse: collapse;
@@ -257,6 +387,34 @@
         width: auto;
         display: inline-flex;
         margin-bottom: 15px;
+    }
+    
+    .filters-section{
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+    
+    .search-box{
+        min-width: 100%;
+    }
+    
+    .filter-group{
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+    }
+    
+    .filter-select{
+        min-width: 100%;
+    }
+    
+    .btn-secondary{
+        justify-content: center;
+    }
+    
+    .results-info{
+        text-align: center;
     }
 
     /* Kontener tabeli */

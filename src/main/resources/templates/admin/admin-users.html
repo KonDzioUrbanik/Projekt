@@ -17,9 +17,46 @@
             </div>
 
             <div class="users-table-wrapper">
-                <button class="btn btn-primary">
-                    Dodaj użytkownika
-                </button>
+                <div class="table-controls">
+                    <button class="btn btn-primary">
+                        Dodaj użytkownika
+                    </button>
+                    
+                    <div class="filters-section">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchInput" placeholder="Szukaj po imieniu, nazwisku lub emailu...">
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="roleFilter"><i class="fas fa-user-tag"></i> Rola:</label>
+                            <select id="roleFilter" class="filter-select">
+                                <option value="">Wszystkie</option>
+                                <option value="ADMIN">Admin</option>
+                                <option value="STAROSTA">Starosta</option>
+                                <option value="STUDENT">Student</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="groupFilter"><i class="fas fa-users"></i> Grupa:</label>
+                            <select id="groupFilter" class="filter-select">
+                                <option value="">Wszystkie</option>
+                                <option value="Brak">Brak grupy</option>
+                                <!-- grupy będą dodawane dynamicznie przez javascript -->
+                            </select>
+                        </div>
+                        
+                        <button id="resetFilters" class="btn btn-secondary" title="Resetuj filtry">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                    </div>
+                    
+                    <div class="results-info">
+                        <span id="resultsCount">0</span> <span id="resultsText">użytkowników</span>
+                    </div>
+                </div>
+                
                 <table class="users-table">
                     <thead>
                         <tr>
