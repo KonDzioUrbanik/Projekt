@@ -21,5 +21,12 @@ public class UserUpdateDto {
     @Min(value = 1, message = "{user.nrAlbumu.min}")
     @Max(value = 999999, message = "{user.nrAlbumu.max}")
     private Integer nrAlbumu;
+
+    private String nickName;
+    private String phoneNumber;
+    private String fieldOfStudy;
+    private String yearOfStudy;
+    private String studyMode;
+    private String bio;
 }
 

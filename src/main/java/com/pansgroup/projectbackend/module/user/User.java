@@ -38,4 +38,13 @@ public class User {
 
     boolean isActivated;
 
+    private String nickName;
+    private String phoneNumber;
+    private String fieldOfStudy;
+    private Integer YearOfStudy;
+    private String studyMode;
+
+    @Column(length = 500)
+    private String bio;
+
 }

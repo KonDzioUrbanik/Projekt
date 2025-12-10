@@ -164,7 +164,13 @@ public class UserServiceImpl implements UserService {
                 u.getNrAlbumu(),
                 groupId,
                 groupName,
-                u.isActivated
+                u.isActivated,
+                u.getNickName(),
+                u.getPhoneNumber(),
+                u.getFieldOfStudy(),
+                u.getYearOfStudy(),
+                u.getStudyMode(),
+                u.getBio()
         );
     }
 
@@ -177,6 +183,13 @@ public class UserServiceImpl implements UserService {
         // Zmiana imienia i nazwiska użytkownika
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
+
+        user.setNickName(dto.getNickName());
+        user.setPhoneNumber(dto.getPhoneNumber());
+        user.setFieldOfStudy(dto.getFieldOfStudy());
+        user.setYearOfStudy(Integer.valueOf(dto.getYearOfStudy()));
+        user.setStudyMode(dto.getStudyMode());
+        user.setBio(dto.getBio());
 
         User savedUser = userRepository.save(user);
         return mapToResponseDto(savedUser);
