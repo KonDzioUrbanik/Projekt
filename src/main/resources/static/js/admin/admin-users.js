@@ -98,10 +98,105 @@ resetFiltersBtn.addEventListener('click', resetFilters);
 document.addEventListener('DOMContentLoaded', () => {
     populateGroupFilter();
     updateResultsCounter(tableRows.length);
+    initSorting();
 });
 
-// modal edycji użytkownika
+// sortowanie tabeli
+let currentSortColumn = null;
+let currentSortOrder = 'asc';
+let originalOrder = [];
 
+function initSorting(){
+    const sortableHeaders = document.querySelectorAll('.sortable');
+    
+    // zapisanie oryginalnej kolejności wierszy
+    originalOrder = Array.from(tableRows);
+    
+    sortableHeaders.forEach(header => {
+        header.addEventListener('click', () => {
+            const column = parseInt(header.getAttribute('data-column'));
+            const type = header.getAttribute('data-type');
+            sortTable(column, type, header);
+        });
+    });
+}
+
+function sortTable(columnIndex, dataType, headerElement){
+    const tbody = document.querySelector('.users-table tbody');
+    const rowsArray = Array.from(tableRows);
+    
+    // określenie kierunku sortowania (asc -> desc -> domyślna wartość)
+    if(currentSortColumn === columnIndex){
+        if(currentSortOrder === 'asc'){
+            currentSortOrder = 'desc';
+        } 
+        else if(currentSortOrder === 'desc'){
+            currentSortOrder = null; // reset do domyślnej kolejności
+            currentSortColumn = null;
+        }
+    } 
+    else{
+        currentSortOrder = 'asc';
+        currentSortColumn = columnIndex;
+    }
+    
+    // resetowanie ikon we wszystkich nagłówkach
+    document.querySelectorAll('.sortable .sort-icon').forEach(icon => {
+        icon.className = 'fas fa-sort sort-icon';
+    });
+    
+    // jeśli reset do domyślnej kolejności
+    if(currentSortOrder === null){
+        originalOrder.forEach(row => tbody.appendChild(row));
+        return;
+    }
+    
+    // ustawienie odpowiedniej ikony
+    const icon = headerElement.querySelector('.sort-icon');
+    icon.className = currentSortOrder === 'asc' ? 'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
+    
+    // sortowanie wierszy
+    rowsArray.sort((a, b) => {
+        let aValue, bValue;
+        
+        if(columnIndex === 1){ // Imię i Nazwisko
+            aValue = a.querySelector('td:nth-child(2) span').textContent.trim().toLowerCase();
+            bValue = b.querySelector('td:nth-child(2) span').textContent.trim().toLowerCase();
+        }
+        else if(columnIndex === 4){ // Rola
+            aValue = a.querySelector('.badge').textContent.trim();
+            bValue = b.querySelector('.badge').textContent.trim();
+        }
+        else{
+            aValue = a.querySelector(`td:nth-child(${columnIndex + 1})`).textContent.trim();
+            bValue = b.querySelector(`td:nth-child(${columnIndex + 1})`).textContent.trim();
+        }
+        
+        // obsługa wartości "Brak" i "-"
+        if(aValue === 'Brak' || aValue === '-') aValue = '';
+        if(bValue === 'Brak' || bValue === '-') bValue = '';
+        
+        // sortowanie według typu
+        if(dataType === 'number'){
+            aValue = aValue === '' ? -Infinity : parseFloat(aValue);
+            bValue = bValue === '' ? -Infinity : parseFloat(bValue);
+            return currentSortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+        } 
+        else{
+            if(currentSortOrder === 'asc'){
+                return aValue.localeCompare(bValue, 'pl');
+            } 
+            else{
+                return bValue.localeCompare(aValue, 'pl');
+            }
+        }
+    });
+    
+    // ponowne dodanie posortowanych wierszy do tabeli
+    rowsArray.forEach(row => tbody.appendChild(row));
+}
+
+// modal edycji użytkownika
 function openEditModal(btn){
     const modal = document.getElementById("editUserModal");
 

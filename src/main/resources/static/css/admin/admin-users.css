@@ -15,6 +15,34 @@
     flex-direction: column;
 }
 
+/* sortowanie tabeli */
+.sortable{
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s;
+    position: relative;
+}
+
+.sortable:hover{
+    background-color: #f1f5f9;
+}
+
+.sort-icon{
+    margin-left: 6px;
+    font-size: 0.75rem;
+    color: #94a3b8;
+    transition: color 0.2s;
+}
+
+.sortable:hover .sort-icon{
+    color: #64748b;
+}
+
+.sortable .fa-sort-up,
+.sortable .fa-sort-down{
+    color: var(--color-primary);
+}
+
 .table-controls{
     display: flex;
     flex-direction: column;
