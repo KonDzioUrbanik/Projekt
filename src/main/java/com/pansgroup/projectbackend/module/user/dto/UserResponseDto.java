@@ -30,5 +30,12 @@ public record UserResponseDto(
         String groupName,
 
         @Schema(description = "Czy konto aktywowane ? (Zweryfikowany email)", example = "No")
-        boolean isActivated
+        boolean isActivated,
+
+        String nickName,
+        String phoneNumber,
+        String fieldOfStudy,
+        Integer yearOfStudy,
+        String studyMode,
+        String bio
 ) {}
