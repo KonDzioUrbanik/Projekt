@@ -289,6 +289,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
+    public void deleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+
+        // Nie pozwalaj usuwać użytkowników z rolą ADMIN
+        if ("ADMIN".equals(user.getRole())) {
+            throw new IllegalStateException("Nie można usunąć konta administratora");
+        }
+
+        userRepository.delete(user);
+    }
+
+    @Override
     public void processPasswordReset(String token, String newPassword, String confirmPassword) {
         if (!newPassword.equals(confirmPassword)) {
             throw new PasswordMismatchException("Hasła nie są takie same");
