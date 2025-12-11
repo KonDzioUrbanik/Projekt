@@ -1,5 +1,6 @@
 package com.pansgroup.projectbackend.module.schedule.dto;
 
+import com.pansgroup.projectbackend.module.schedule.ClassType;
 import com.pansgroup.projectbackend.module.schedule.DayOfWeek;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -27,6 +28,12 @@ public record ScheduleEntryUpdateDto(
         LocalTime startTime,
 
         @NotNull(message = "Godzina zakończenia jest wymagana.")
-        LocalTime endTime
+        LocalTime endTime,
+
+        @NotNull(message = "Typ zajęć jest wymagany.")
+        ClassType classType,
+
+        @Size(max = 2000, message = "Plan zajęć może mieć maksymalnie {max} znaków.")
+        String yearPlan
 ) {
 }

@@ -47,6 +47,8 @@ public class ScheduleServiceImpl implements ScheduleService {
         entry.setDayOfWeek(dto.dayOfWeek());
         entry.setStartTime(dto.startTime());
         entry.setEndTime(dto.endTime());
+        entry.setClassType(dto.classType());
+        entry.setYearPlan(dto.yearPlan() != null ? dto.yearPlan().trim() : null);
 
         ScheduleEntry updated = scheduleRepository.save(entry);
         return toResponse(updated);
@@ -97,7 +99,9 @@ public class ScheduleServiceImpl implements ScheduleService {
                 entry.getTeacher(),
                 entry.getDayOfWeek(),
                 entry.getStartTime(),
-                entry.getEndTime()
+                entry.getEndTime(),
+                entry.getClassType(),
+                entry.getYearPlan()
         );
     }
 
@@ -109,6 +113,8 @@ public class ScheduleServiceImpl implements ScheduleService {
         entry.setDayOfWeek(dto.dayOfWeek());
         entry.setStartTime(dto.startTime());
         entry.setEndTime(dto.endTime());
+        entry.setClassType(dto.classType());
+        entry.setYearPlan(dto.yearPlan() != null ? dto.yearPlan().trim() : null);
         return entry;
     }
 }

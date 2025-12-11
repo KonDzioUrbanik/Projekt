@@ -83,4 +83,11 @@ public class UserController {
         return userService.assignUserToGroup(email, dto);
     }
 
+    @Operation(summary = "Usuń użytkownika (Tylko Admin)")
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
+        userService.deleteUser(userId);
+        return ResponseEntity.noContent().build();
+    }
+
 }
