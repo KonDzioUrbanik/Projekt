@@ -30,6 +30,12 @@ public class ScheduleEntry {
 
     private LocalTime endTime;
 
+    @Enumerated(EnumType.STRING)
+    private ClassType classType;
+
+    @Column(length = 2000)
+    private String yearPlan; //np. INFORMATYKA ROK III itp.
+
     @ManyToMany(fetch = FetchType.LAZY)
     private List<StudentGroup> studentGroups;
 }

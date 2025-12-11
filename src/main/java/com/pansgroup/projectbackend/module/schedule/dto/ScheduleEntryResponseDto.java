@@ -1,5 +1,6 @@
 package com.pansgroup.projectbackend.module.schedule.dto;
 
+import com.pansgroup.projectbackend.module.schedule.ClassType;
 import com.pansgroup.projectbackend.module.schedule.DayOfWeek;
 
 import java.time.LocalTime;
@@ -11,6 +12,8 @@ public record ScheduleEntryResponseDto(
         String teacher,
         DayOfWeek dayOfWeek,
         LocalTime startTime,
-        LocalTime endTime
+        LocalTime endTime,
+        ClassType classType,
+        String yearPlan
 ) {
 }
