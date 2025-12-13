@@ -16,56 +16,60 @@
 
 .schedule-grid{
     display: grid;
-    grid-template-columns: 100px repeat(5, 1fr);
-    gap: 1px;
-    background: #dee2e6;
+    grid-template-columns: 120px repeat(5, 1fr);
+    gap: 0;
+    background: #e5e7eb;
     border-radius: 8px;
     overflow: hidden;
     margin-top: 1.5rem;
 }
 
-.time-header,
-.day-header,
-.time-slot,
-.class-cell{
-    background: white;
-    padding: 0.75rem;
-}
-
 .time-header{
-    background: #2c3e50;
+    background: #1f2937;
     color: white;
-    font-weight: 600;
+    font-weight: 700;
     text-align: center;
     font-size: 0.9rem;
+    padding: 1.25rem 0.5rem;
+    border-bottom: 2px solid #e5e7eb;
 }
 
 .day-header{
     background: #005efa;
     color: white;
-    font-weight: 600;
+    font-weight: 700;
     text-align: center;
     font-size: 1rem;
-    padding: 1rem 0.5rem;
+    padding: 1.25rem 0.5rem;
+    border-bottom: 2px solid #e5e7eb;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .time-slot{
-    background: #f8f9fa;
-    font-weight: 500;
-    color: #495057;
+    background: #f3f4f6;
+    font-weight: 600;
+    color: #374151;
     text-align: center;
-    font-size: 0.85rem;
-    border-right: 1px solid #dee2e6;
+    font-size: 0.8rem;
+    padding: 0.75rem 0.5rem;
+    border-right: 2px solid #e5e7eb;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .class-cell{
-    min-height: 100px;
-    position: relative;
+    background: white;
+    padding: 0.5rem;
+    min-height: 80px;
+    border-top: 1px solid #e5e7eb;
+    border-left: 1px solid #e5e7eb;
     transition: background 0.2s;
 }
 
 .class-cell:hover{
-    background: #ecedee;
+    background: #f9fafb;
 }
 
 .class-cell.empty{
@@ -79,29 +83,43 @@
     margin-bottom: 0.5rem;
     color: white;
     transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .class-item:hover{
-    background: #004acb;
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 94, 250, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     cursor: pointer;
+    filter: brightness(0.9);
 }
 
-.class-item:nth-child(2n){
-    background: #10b981;
+.class-item:last-child{
+    margin-bottom: 0;
 }
 
-.class-item:nth-child(2n):hover{
-    background: #059669;
+/* Kolory dla rożnych typow zajec */
+.class-type-wyklad{
+    background: #005efa;
 }
 
-.class-item:nth-child(3n){
+.class-type-cwiczenia{
+    background: #035038;
+}
+
+.class-type-laboratorium{
     background: #f59e0b;
 }
 
-.class-item:nth-child(3n):hover{
-    background: #d97706;
+.class-type-projekt{
+    background: #8b5cf6;
+}
+
+.class-type-seminarium{
+    background: #ec4899;
+}
+
+.class-type-konsultacje{
+    background: #6b7280;
 }
 
 .class-title{
@@ -113,10 +131,20 @@
 .class-time,
 .class-teacher,
 .class-room,
-.class-type{
+.class-type,
+.class-year-plan{
     font-size: 0.8rem;
     opacity: 0.9;
     margin-bottom: 0.2rem;
+}
+
+.class-time i,
+.class-teacher i,
+.class-room i,
+.class-type i,
+.class-year-plan i{
+    margin-right: 0.3rem;
+    opacity: 0.8;
 }
 
 .class-room{
@@ -132,6 +160,13 @@
     padding: 0.2rem 0.4rem;
     border-radius: 3px;
     display: inline-block;
+}
+
+.class-year-plan{
+    margin-top: 0.3rem;
+    font-size: 0.75rem;
+    font-style: italic;
+    opacity: 0.85;
 }
 
 /* LOADING SPINNER */
