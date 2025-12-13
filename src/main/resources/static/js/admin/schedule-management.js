@@ -19,9 +19,9 @@ class ScheduleManagement{
 
         this.classTypeNames = {
             'WYKLAD': 'Wykład',
-            'CWICZENIA': 'Ćwiczenia',
+            'CWICZENIA': 'Ćwiczenia laboratoryjne',
             'LABORATORIUM': 'Laboratorium',
-            'PROJEKT': 'Projekt',
+            'PROJEKT': 'Projekt zespołowy',
             'SEMINARIUM': 'Seminarium',
             'KONSULTACJE': 'Konsultacje'
         };
@@ -48,7 +48,7 @@ class ScheduleManagement{
         // klikniecie poza modalem
         document.getElementById('scheduleModal').addEventListener('click', (e) => {
             if(e.target.id === 'scheduleModal'){
-                this.closeModal(); // (opcjonalnie mozna usunac)
+                //this.closeModal(); // (opcjonalnie mozna usunac)
             }
         });
 
@@ -248,11 +248,14 @@ class ScheduleManagement{
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
+            // zapisanie stanu przed zamknieciem modala
+            const wasEditing = this.isEditing;
+            
             this.closeModal();
             this.loadSchedule();
             
             this.showNotification(
-                this.isEditing ? 'Zajęcia zostały zaktualizowane' : 'Zajęcia zostały dodane',
+                wasEditing ? 'Zajęcia zostały zaktualizowane' : 'Zajęcia zostały dodane',
                 'success'
             );
         } 
