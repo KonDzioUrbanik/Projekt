@@ -78,6 +78,7 @@ public class SecurityConfig {
                         "/token-error"
                 ).permitAll()
 
+                // API endpoints tylko dla ADMIN
                 .requestMatchers(HttpMethod.POST, "/api/schedule/**", "/api/groups").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,
                         "/api/schedule/**",
@@ -86,10 +87,14 @@ public class SecurityConfig {
                         "/api/users/assign-group/**"
                 ).hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/schedule/**", "/api/groups/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.GET, "/api/groups").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/groups", "/api/schedule/all").hasRole("ADMIN")
+                
+                // Widoki admin tylko dla ADMIN
+                .requestMatchers("/admin/**").hasRole("ADMIN")
 
                 .requestMatchers(HttpMethod.GET,
-                        "/api/schedule/**",
+                        "/api/schedule",
+                        "/api/schedule/{id}",
                         "/api/groups/{id}"
                 ).authenticated()
 

@@ -28,6 +28,11 @@ public class ScheduleController {
         return scheduleService.getMySchedule(userEmail);
     }
 
+    @GetMapping("/all")
+    public List<ScheduleEntryResponseDto> getAllSchedules() {
+        return scheduleService.findAll();
+    }
+
     @GetMapping("/{id}")
     public ScheduleEntryResponseDto getById(@PathVariable Long id) {
         return scheduleService.findById(id);
