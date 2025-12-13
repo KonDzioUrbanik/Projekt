@@ -120,6 +120,7 @@ public class UserServiceImpl implements UserService {
     public List<UserResponseDto> findAll() {
         return userRepository.findAll()
                 .stream()
+                .sorted((u1, u2) -> Long.compare(u1.getId(), u2.getId())) // sortowanie po id rosnaco
                 .map(this::mapToResponseDto)   // bez hasła
                 .toList();
     }
@@ -240,13 +241,17 @@ public class UserServiceImpl implements UserService {
         User userToUpdate = userRepository.findByEmail(normalizedEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + normalizedEmail));
 
-        // 2. Znajdź encję grupy
-        // Używamy metody z studentgrouprepository, która zwróci encję Grupy
-        StudentGroup group = studentGroupRepository.findById(dto.groupId())
-                .orElseThrow(() -> new StudentGroupNotFoundException(dto.groupId()));
-
-        // 3. Przypisz grupę do użytkownika
-        userToUpdate.setStudentGroup(group);
+        // 2. Znajdź encję grupy lub usuń przypisanie (jeśli groupId == null)
+        if (dto.groupId() == null) {
+            // usuniecie przypisania do grupy
+            userToUpdate.setStudentGroup(null);
+        } else {
+            // uzycie metody z studentgrouprepository, ktora zwroci encje Grupy
+            StudentGroup group = studentGroupRepository.findById(dto.groupId())
+                    .orElseThrow(() -> new StudentGroupNotFoundException(dto.groupId()));
+            // 3. Przypisz grupę do użytkownika
+            userToUpdate.setStudentGroup(group);
+        }
 
         // 4. Zapisz i zwróć DTO
         return mapToResponseDto(userRepository.save(userToUpdate));
