@@ -4,111 +4,25 @@ class ScheduleCalendar{
         this.apiEndpoint = '/api/schedule';
         
         this.dayNames = {
-            'MONDAY': 'Poniedziałek',
-            'TUESDAY': 'Wtorek',
-            'WEDNESDAY': 'Środa',
-            'THURSDAY': 'Czwartek',
-            'FRIDAY': 'Piątek'
+            'Monday': 'Poniedziałek',
+            'Tuesday': 'Wtorek',
+            'Wednesday': 'Środa',
+            'Thursday': 'Czwartek',
+            'Friday': 'Piątek',
+            'Saturday': 'Sobota',
+            'Sunday': 'Niedziela'
+        };
+        
+        this.classTypeNames = {
+            'WYKLAD': 'Wykład',
+            'CWICZENIA': 'Ćwiczenia laboratoryjne',
+            'LABORATORIUM': 'Laboratorium',
+            'PROJEKT': 'Projekt zespołowy',
+            'SEMINARIUM': 'Seminarium',
+            'KONSULTACJE': 'Konsultacje'
         };
         
         this.loadSchedule();
-    }
-
-    // tymczasowe dane do testow
-    // mozna jeszcze dodac typ zajec (wyklad, cwiczenia laboratoryjne, cwiczenia projektowe)
-    getMockData(){
-        return [
-            {
-                id: 1,
-                title: "Programowanie w Javie",
-                room: "A-101",
-                teacher: "Dr Jan Kowalski",
-                dayOfWeek: "MONDAY",
-                startTime: { hour: 8, minute: 0, second: 0, nano: 0 },
-                endTime: { hour: 9, minute: 30, second: 0, nano: 0 }
-            },
-            {
-                id: 2,
-                title: "Bazy danych",
-                room: "B-205",
-                teacher: "Prof. Anna Nowak",
-                dayOfWeek: "MONDAY",
-                startTime: { hour: 10, minute: 0, second: 0, nano: 0 },
-                endTime: { hour: 11, minute: 30, second: 0, nano: 0 }
-            },
-            {
-                id: 3,
-                title: "Algorytmy i struktury danych",
-                room: "C-301",
-                teacher: "Dr Piotr Wiśniewski",
-                dayOfWeek: "TUESDAY",
-                startTime: { hour: 8, minute: 0, second: 0, nano: 0 },
-                endTime: { hour: 9, minute: 30, second: 0, nano: 0 }
-            },
-            {
-                id: 4,
-                title: "Inżynieria oprogramowania",
-                room: "A-102",
-                teacher: "Mgr Katarzyna Lewandowska",
-                dayOfWeek: "TUESDAY",
-                startTime: { hour: 12, minute: 0, second: 0, nano: 0 },
-                endTime: { hour: 13, minute: 30, second: 0, nano: 0 }
-            },
-            {
-                id: 5,
-                title: "Systemy operacyjne",
-                room: "D-401",
-                teacher: "Dr Tomasz Zieliński",
-                dayOfWeek: "WEDNESDAY",
-                startTime: { hour: 9, minute: 45, second: 0, nano: 0 },
-                endTime: { hour: 11, minute: 15, second: 0, nano: 0 }
-            },
-            {
-                id: 6,
-                title: "Sieci komputerowe",
-                room: "E-501",
-                teacher: "Prof. Marek Kamiński",
-                dayOfWeek: "WEDNESDAY",
-                startTime: { hour: 13, minute: 15, second: 0, nano: 0 },
-                endTime: { hour: 14, minute: 45, second: 0, nano: 0 }
-            },
-            {
-                id: 7,
-                title: "Matematyka dyskretna",
-                room: "F-102",
-                teacher: "Dr Ewa Mazur",
-                dayOfWeek: "THURSDAY",
-                startTime: { hour: 8, minute: 0, second: 0, nano: 0 },
-                endTime: { hour: 9, minute: 30, second: 0, nano: 0 }
-            },
-            {
-                id: 8,
-                title: "Programowanie obiektowe",
-                room: "A-101",
-                teacher: "Dr Jan Kowalski",
-                dayOfWeek: "THURSDAY",
-                startTime: { hour: 10, minute: 0, second: 0, nano: 0 },
-                endTime: { hour: 11, minute: 30, second: 0, nano: 0 }
-            },
-            {
-                id: 9,
-                title: "Laboratorium Java",
-                room: "LAB-2",
-                teacher: "Mgr Paweł Dąbrowski",
-                dayOfWeek: "FRIDAY",
-                startTime: { hour: 12, minute: 0, second: 0, nano: 0 },
-                endTime: { hour: 14, minute: 30, second: 0, nano: 0 }
-            },
-            {
-                id: 10,
-                title: "Projekt zespołowy",
-                room: "C-303",
-                teacher: "Dr Anna Nowak",
-                dayOfWeek: "FRIDAY",
-                startTime: { hour: 15, minute: 0, second: 0, nano: 0 },
-                endTime: { hour: 16, minute: 30, second: 0, nano: 0 }
-            }
-        ];
     }
     
     // zaladowanie harmonogramu zajec z API
@@ -119,38 +33,25 @@ class ScheduleCalendar{
         loading.classList.add('active');
         grid.style.display = 'none';
         
-        // odkomentuj dla api
-        // try{
-        //     const response = await fetch(this.apiEndpoint);
-        //     this.scheduleData = await response.json();
-        //     this.renderSchedule();
-        // } 
-        // catch (error){
-        //     console.error('Błąd:', error);
-        //     grid.innerHTML = '<div class="error-message"><h3>Błąd ładowania harmonogramu zajęć</h3></div>';
-        // } 
-        // finally{
-        //     loading.classList.remove('active');
-        //     grid.style.display = 'grid';
-        // }
-
-
-        // tymczasowe dane do testow
-        try{            
-            // opoznienie do symulacji ladowania
-            await new Promise(resolve => setTimeout(resolve, 500));
+        try{
+            const response = await fetch(this.apiEndpoint);
             
-            // zaladowanie przykladowych danych
-            this.scheduleData = this.getMockData();
+            if(!response.ok){
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             
-            console.log('Załadowano mockowe dane:', this.scheduleData);
-            
+            this.scheduleData = await response.json();
+            console.log('Załadowano harmonogram:', this.scheduleData);
             this.renderSchedule();
-            
         } 
         catch(error){
-            console.error('Błąd:', error);
-            grid.innerHTML = '<div class="error-message"><h3>Błąd ładowania harmonogramu zajęć</h3></div>';
+            console.error('Błąd ładowania harmonogramu:', error);
+            grid.innerHTML = `
+                <div class="error-message">
+                    <h3>Błąd ładowania harmonogramu zajęć</h3>
+                    <p>${error.message}</p>
+                </div>
+            `;
             grid.style.display = 'block';
         } 
         finally{
@@ -168,12 +69,17 @@ class ScheduleCalendar{
         if(!this.scheduleData || this.scheduleData.length === 0){
             grid.innerHTML = `
                 <div class="empty-schedule">
-                    <div class="empty-icon"></div>
                     <h3>Brak harmonogramu zajęć</h3>
                     <p>Nie znaleziono żadnych zajęć w systemie.</p>
+                    <p style="font-size: 0.9rem; color: #6c757d; margin-top: 1rem;">
+                        Możliwe przyczyny:<br>
+                        • Nie jesteś przypisany do żadnej grupy studenckiej.<br>
+                        • Administrator jeszcze nie dodał zajęć dla Twojej grupy.<br>
+                        • Skontaktuj się z administratorem systemu.
+                    </p>
                 </div>
             `;
-            grid.style.display = 'block';
+            grid.style.display = 'flex';
             return;
         }
         
@@ -181,42 +87,43 @@ class ScheduleCalendar{
         grid.innerHTML += '<div class="time-header">Godziny</div>';
         
         // naglowki dni
-        Object.values(this.dayNames).forEach(dayName => {
-            grid.innerHTML += `<div class="day-header">${dayName}</div>`;
+        const workDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        workDays.forEach(dayKey => {
+            grid.innerHTML += `<div class="day-header">${this.dayNames[dayKey]}</div>`;
         });
         
         // grupowanie zajec wedlug dni
         const grouped = this.groupByDay();
         
-        // znalezienie unikalnych godzin
-        const timeSlots = this.getTimeSlots();
+        // pobranie posortowanych przedzialow czasowych
+        const timeSlots = this.getTimeSlotsObjects();
         
-        // dla kazdej godziny
-        timeSlots.forEach(slot => {
-            // Kolumna z godziną
-            grid.innerHTML += `<div class="time-slot">${slot}</div>`;
+        // dla kazdego przedzialu czasowego
+        timeSlots.forEach(slotObj => {
+            // kolumna z godzina
+            grid.innerHTML += `<div class="time-slot">${slotObj.label}</div>`;
             
             // dla kazdego dnia
-            Object.keys(this.dayNames).forEach(dayKey => {
-                const classes = this.getClassesFor(dayKey, slot, grouped);
+            workDays.forEach(dayKey => {
+                const classes = this.getClassesForTimeSlot(dayKey, slotObj, grouped);
                 const cell = document.createElement('div');
                 cell.className = 'class-cell';
                 
                 if(classes.length > 0){
                     classes.forEach(c => {
-                        cell.innerHTML += `
-                            <div class="class-item">
-                                <div class="class-title">${c.title}</div>
-                                <div class="class-time">${this.formatTime(c.startTime)} - ${this.formatTime(c.endTime)}</div>
-                                ${c.teacher ? `<div class="class-teacher">${c.teacher}</div>` : ''}
-                                ${c.room ? `<div class="class-room">${c.room}</div>` : ''}
-                                <div class="class-type">np. Wykład, Ćwiczenia projektowe, Ćwiczenia laboratoryjne</div>
-
-                            </div>
-                            
+                        const classTypeName = c.classType ? this.classTypeNames[c.classType] || c.classType : '';
+                        const classItem = document.createElement('div');
+                        const typeClass = c.classType ? `class-type-${c.classType.toLowerCase()}` : '';
+                        classItem.className = `class-item ${typeClass}`;
+                        classItem.innerHTML = `
+                            <div class="class-title">${c.title}</div>
+                            <div class="class-time">${this.formatTime(c.startTime)} - ${this.formatTime(c.endTime)}</div>
+                            ${c.teacher ? `<div class="class-teacher">${c.teacher}</div>` : ''}
+                            ${c.room ? `<div class="class-room">${c.room}</div>` : ''}
+                            ${classTypeName ? `<div class="class-type">${classTypeName}</div>` : ''}
+                            ${c.yearPlan ? `<div class="class-year-plan">${c.yearPlan}</div>` : ''}
                         `;
-                        /* cos takiego chyba
-                        ${c.type ? `<div class="class-type">${c.type}</div>` : ''} */
+                        cell.appendChild(classItem);
                     });
                 } 
                 else{
@@ -239,34 +146,69 @@ class ScheduleCalendar{
         return grouped;
     }
     
-    // pobranie wszystkich unikalnych godzin
-    getTimeSlots(){
-        const slots = new Set();
-        this.scheduleData.forEach(item => {
-            slots.add(`${this.formatTime(item.startTime)} - ${this.formatTime(item.endTime)}`);
-        });
-
-        return Array.from(slots).sort();
+    // konwersja czasu do liczby (godzina + minuty/60) dla sortowania
+    timeToNumber(timeObj){
+        if(typeof timeObj === 'string'){
+            const parts = timeObj.split(':');
+            return parseInt(parts[0]) + parseInt(parts[1]) / 60;
+        }
+        if(typeof timeObj === 'object' && timeObj.hour !== undefined){
+            return timeObj.hour + timeObj.minute / 60;
+        }
+        return 0;
     }
     
-    // znalezienie zajec dla dnia i godziny
-    getClassesFor(day, slot, grouped){
+    // pobranie wszystkich unikalnych przedzialow czasowych jako obiektow z numerycznym sortowaniem
+    getTimeSlotsObjects(){
+        const slotsMap = new Map();
+        
+        this.scheduleData.forEach(item => {
+            const label = `${this.formatTime(item.startTime)} - ${this.formatTime(item.endTime)}`;
+            const startTimeNum = this.timeToNumber(item.startTime);
+            
+            if(!slotsMap.has(label)){
+                slotsMap.set(label, {
+                    label: label,
+                    startTime: startTimeNum,
+                    startTimeFormatted: this.formatTime(item.startTime),
+                    endTimeFormatted: this.formatTime(item.endTime)
+                });
+            }
+        });
+        
+        // sortowanie po numerycznym czasie rozpoczecia
+        return Array.from(slotsMap.values()).sort((a, b) => a.startTime - b.startTime);
+    }
+    
+    // znalezienie zajec dla danego przedzialu czasowego
+    getClassesForTimeSlot(day, slotObj, grouped){
         if(!grouped[day]) return [];
-
+        
         return grouped[day].filter(item => {
-            const itemSlot = `${this.formatTime(item.startTime)} - ${this.formatTime(item.endTime)}`;
-            return itemSlot === slot;
+            const itemStart = this.formatTime(item.startTime);
+            const itemEnd = this.formatTime(item.endTime);
+            return itemStart === slotObj.startTimeFormatted && itemEnd === slotObj.endTimeFormatted;
         });
     }
     
     // formatowanie czasu
     formatTime(timeObj) {
         if (!timeObj) return '';
-
-        const h = String(timeObj.hour).padStart(2, '0');
-        const m = String(timeObj.minute).padStart(2, '0');
-
-        return `${h}:${m}`;
+        
+        // obsluga formatu string (HH:MM:SS lub HH:MM)
+        if(typeof timeObj === 'string'){
+            const parts = timeObj.split(':');
+            return `${parts[0]}:${parts[1]}`;
+        }
+        
+        // obsluga formatu obiektowego {hour, minute, second}
+        if(typeof timeObj === 'object' && timeObj.hour !== undefined){
+            const h = String(timeObj.hour).padStart(2, '0');
+            const m = String(timeObj.minute).padStart(2, '0');
+            return `${h}:${m}`;
+        }
+        
+        return '';
     }
 }
 
