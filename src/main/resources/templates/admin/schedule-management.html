@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/main-layout}">
+    <head>
+        <title>Zarządzanie harmonogramem zajęć</title>
+        <th:block layout:fragment="page-styles">
+            <link rel="stylesheet" th:href="@{/css/admin/schedule-management.css}" href="../../static/css/admin/schedule-management.css">
+        </th:block>
+    </head>
+    <body>
+
+        <div layout:fragment="content">
+            <div class="schedule-management-wrapper">
+                <div class="header-section">
+                    <h2><i class="fas fa-calendar-alt"></i> Zarządzanie Harmonogramem Zajęć</h2>
+                    <button class="btn-add" id="addScheduleBtn">
+                        <i class="fas fa-plus"></i> Dodaj zajęcia
+                    </button>
+                </div>
+
+                <!-- filtry -->
+                <div class="filters-section">
+                    <div class="filter-group">
+                        <label for="dayFilter"><i class="fas fa-calendar-day"></i> Dzień:</label>
+                        <select id="dayFilter">
+                            <option value="">Wszystkie dni</option>
+                            <option value="Monday">Poniedziałek</option>
+                            <option value="Tuesday">Wtorek</option>
+                            <option value="Wednesday">Środa</option>
+                            <option value="Thursday">Czwartek</option>
+                            <option value="Friday">Piątek</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="typeFilter"><i class="fas fa-graduation-cap"></i> Typ:</label>
+                        <select id="typeFilter">
+                            <option value="">Wszystkie typy</option>
+                            <option value="WYKLAD">Wykład</option>
+                            <option value="CWICZENIA">Ćwiczenia laboratoryjne</option>
+                            <option value="LABORATORIUM">Laboratorium</option>
+                            <option value="PROJEKT">Projekt zespołowy</option>
+                            <option value="SEMINARIUM">Seminarium</option>
+                            <option value="KONSULTACJE">Konsultacje</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-reset" id="resetFilters">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+
+                <!-- tabela zajec -->
+                <div class="table-container">
+                    <table id="scheduleTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Przedmiot</th>
+                                <th>Dzień</th>
+                                <th>Godziny</th>
+                                <th>Sala</th>
+                                <th>Prowadzący</th>
+                                <th>Typ</th>
+                                <th>Plan roku</th>
+                                <th>Akcje</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scheduleTableBody">
+                            <!-- wypelniane dynamicznie przez javascript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- loading spinner -->
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Ładowanie...</p>
+                </div>
+            </div>
+
+            <!-- modal dodawania/edycji -->
+            <div class="modal" id="scheduleModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="modalTitle"><i class="fas fa-plus"></i> Dodaj zajęcia</h3>
+                        <button class="close-btn" id="closeModal">&times;</button>
+                    </div>
+                    <form id="scheduleForm">
+                        <input type="hidden" id="scheduleId">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="title"><i class="fas fa-book"></i> Nazwa przedmiotu *</label>
+                                <input type="text" id="title" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="room"><i class="fas fa-map-marker-alt"></i> Sala *</label>
+                                <input type="text" id="room" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="teacher"><i class="fas fa-user"></i> Prowadzący *</label>
+                                <input type="text" id="teacher" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="classType"><i class="fas fa-graduation-cap"></i> Typ zajęć *</label>
+                                <select id="classType" required>
+                                    <option value="">Wybierz typ</option>
+                                    <option value="WYKLAD">Wykład</option>
+                                    <option value="CWICZENIA">Ćwiczenia laboratoryjne</option>
+                                    <option value="LABORATORIUM">Laboratorium</option>
+                                    <option value="PROJEKT">Projekt zespołowy</option>
+                                    <option value="SEMINARIUM">Seminarium</option>
+                                    <option value="KONSULTACJE">Konsultacje</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="dayOfWeek"><i class="fas fa-calendar-day"></i> Dzień tygodnia *</label>
+                                <select id="dayOfWeek" required>
+                                    <option value="">Wybierz dzień</option>
+                                    <option value="Monday">Poniedziałek</option>
+                                    <option value="Tuesday">Wtorek</option>
+                                    <option value="Wednesday">Środa</option>
+                                    <option value="Thursday">Czwartek</option>
+                                    <option value="Friday">Piątek</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="startTime"><i class="fas fa-clock"></i> Godzina rozpoczęcia *</label>
+                                <input type="time" id="startTime" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="endTime"><i class="fas fa-clock"></i> Godzina zakończenia *</label>
+                                <input type="time" id="endTime" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="yearPlan"><i class="fas fa-info-circle"></i> Plan roku</label>
+                            <input type="text" id="yearPlan" placeholder="np. INFORMATYKA 3">
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn-cancel" id="cancelBtn">Anuluj</button>
+                            <button type="submit" class="btn-save"><i class="fas fa-save"></i> Zapisz</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <th:block layout:fragment="page-scripts">
+            <script th:src="@{/js/admin/schedule-management.js}"></script>
+        </th:block>
+
+    </body>
+</html>
