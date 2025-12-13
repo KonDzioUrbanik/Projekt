@@ -72,6 +72,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     public List<ScheduleEntryResponseDto> findAll() {
         return scheduleRepository.findAll().stream()
+                .sorted((s1, s2) -> Long.compare(s1.getId(), s2.getId())) // sortowanie po id rosnaco
                 .map(this::toResponse)
                 .toList();
     }
@@ -84,7 +85,11 @@ public class ScheduleServiceImpl implements ScheduleService {
         if (group == null) {
             return Collections.emptyList();
         } else {
-            return scheduleRepository.findByStudentGroups(group).stream().map(this::toResponse).toList();
+            // wyszukanie zajec po yearPlan (nazwie grupy) z ignorowaniem wielkosci liter
+            return scheduleRepository.findByYearPlanIgnoreCase(group.getName())
+                    .stream()
+                    .map(this::toResponse)
+                    .toList();
         }
 
     }
