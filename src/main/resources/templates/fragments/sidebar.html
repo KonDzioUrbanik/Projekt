@@ -39,6 +39,12 @@
                 <a th:href="@{/admin/post-control}"  class="btn-navbar-left" th:classappend="${activePage == 'post-control'} ? 'active'">
                     Kontrola postów
                 </a>
+                <a th:href="@{/admin/schedule-management}"  class="btn-navbar-left" th:classappend="${activePage == 'schedule-management'} ? 'active'">
+                    Zarządzanie harmonogramem zajęć
+                </a>
+                <a th:href="@{/admin/groups-management}"  class="btn-navbar-left" th:classappend="${activePage == 'groups-management'} ? 'active'">
+                    Zarządzanie grupami studenckimi
+                </a>
                 <a th:href="@{/admin/university-calendar}"  class="btn-navbar-left" th:classappend="${activePage == 'university-calendar'} ? 'active'">
                     Kalendarz akademicki
                 </a>

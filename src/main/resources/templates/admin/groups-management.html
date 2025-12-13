@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/main-layout}">
+    <head>
+        <title>Zarządzanie Grupami</title>
+        <th:block layout:fragment="page-styles">
+            <link rel="stylesheet" th:href="@{/css/admin/groups-management.css}" href="../../static/css/admin/groups-management.css">
+        </th:block>
+    </head>
+    <body>
+
+        <div layout:fragment="content">
+            <div class="groups-management-wrapper">
+                <div class="header-section">
+                    <h2><i class="fas fa-users"></i> Zarządzanie grupami studenckimi</h2>
+                    <button class="btn-add" id="addGroupBtn">
+                        <i class="fas fa-plus"></i> Dodaj grupę
+                    </button>
+                </div>
+
+                <!-- lista grup -->
+                <div class="groups-list" id="groupsList">
+                    <!-- wypelniane dynamicznie przez javascript -->
+                </div>
+
+                <!-- loading spinner -->
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Ładowanie...</p>
+                </div>
+            </div>
+
+            <!-- modal dodawania/edycji -->
+            <div class="modal" id="groupModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="modalTitle"><i class="fas fa-plus"></i> Dodaj grupę</h3>
+                        <button class="close-btn" id="closeModal">&times;</button>
+                    </div>
+                    <form id="groupForm">
+                        <input type="hidden" id="groupId">
+                        
+                        <div class="form-group">
+                            <label for="groupName"><i class="fas fa-tag"></i> Nazwa grupy *</label>
+                            <input type="text" id="groupName" required placeholder="np. Informatyka 3">
+                            <small>Wprowadź nazwę grupy studenckiej (np. Informatyka 3, Zarządzanie 2)</small>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn-cancel" id="cancelBtn">Anuluj</button>
+                            <button type="submit" class="btn-save"><i class="fas fa-save"></i> Zapisz</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <th:block layout:fragment="page-scripts">
+            <script th:src="@{/js/admin/groups-management.js}"></script>
+        </th:block>
+
+    </body>
+</html>

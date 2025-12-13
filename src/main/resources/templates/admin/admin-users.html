@@ -53,7 +53,7 @@
                             <select id="groupFilter" class="filter-select">
                                 <option value="">Wszystkie</option>
                                 <option value="Brak">Brak grupy</option>
-                                <!-- grupy będą dodawane dynamicznie przez javascript -->
+                                <!-- wypelniane dynamicznie przez javascript -->
                             </select>
                         </div>
                         
@@ -101,19 +101,19 @@
                                     <div style="width: 32px; height: 32px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #64748b;">
                                         <i class="fas fa-user"></i>
                                     </div>
-                                    <span th:text="${user.firstName} + ' ' + ${user.lastName}">Jan Kowalski</span>
+                                    <span th:text="${user.firstName} + ' ' + ${user.lastName}"> </span>
                                 </div>
                             </td>
 
-                            <td th:text="${user.email}">00000@student.kpu.krosno.pl</td>
+                            <td th:text="${user.email}"> </td>
 
-                            <td th:text="${user.nrAlbumu != null} ? ${user.nrAlbumu} : '-'">00000</td>
+                            <td th:text="${user.nrAlbumu != null} ? ${user.nrAlbumu} : '-'"> </td>
 
                             <td>
-                                <span class="badge" th:classappend="${user.role == 'ADMIN'} ? 'badge-admin' : (${user.role == 'STAROSTA'} ? 'badge-starosta' : 'badge-student')" th:text="${user.role}">STUDENT</span>
+                                <span class="badge" th:classappend="${user.role == 'ADMIN'} ? 'badge-admin' : (${user.role == 'STAROSTA'} ? 'badge-starosta' : 'badge-student')" th:text="${user.role}"> </span>
                             </td>
 
-                            <td th:text="${user.groupName != null} ? ${user.groupName} : 'Brak'">Informatyka 1</td>
+                            <td th:text="${user.groupName != null} ? ${user.groupName} : 'Brak'"> </td>
                             
                             <td>
                                 <button class="action-btn btn-edit" title="Edytuj"
@@ -161,8 +161,8 @@
                                     <i class="fas fa-user"></i>
                                 </div>
                                 <div>
-                                    <h4 id="editUserName">Jan Kowalski</h4>
-                                    <span id="editUserEmailDisplay" style="color: #666; font-size: 0.9rem;">jan@pans.pl</span>
+                                    <h4 id="editUserName"> </h4>
+                                    <span id="editUserEmailDisplay" style="color: #666; font-size: 0.9rem;"> </span>
                                 </div>
                             </div>
 
@@ -179,7 +179,7 @@
                                 <label for="editGroup">Przypisz do grupy</label>
                                 <select id="editGroup" class="form-control">
                                     <option value="">Brak grupy</option>
-                                    <option value="1">Informatyka - Rok I (Stacjonarne)</option>
+                                    <!-- grupy będą ładowane dynamicznie przez JavaScript -->
                                 </select>
                             </div>
                         </div>

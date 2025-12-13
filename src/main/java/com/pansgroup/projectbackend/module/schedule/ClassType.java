@@ -2,9 +2,9 @@ package com.pansgroup.projectbackend.module.schedule;
 
 public enum ClassType {
     WYKLAD("Wykład"),
-    CWICZENIA("Ćwiczenia"),
+    CWICZENIA("Ćwiczenia laboratoryjne"),
     LABORATORIUM("Laboratorium"),
-    PROJEKT("Projekt"),
+    PROJEKT("Projekt zespołowy"),
     SEMINARIUM("Seminarium"),
     KONSULTACJE("Konsultacje");
 

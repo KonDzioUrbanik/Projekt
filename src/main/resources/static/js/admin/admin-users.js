@@ -12,7 +12,9 @@ const resultsText = document.getElementById('resultsText');
 function populateGroupFilter(){
     const groups = new Set();
     
-    tableRows.forEach(row => {
+    // pobranie aktualnych wierszy (wszystkie, nie tylko tableRows)
+    const currentRows = document.querySelectorAll('.users-table tbody tr');
+    currentRows.forEach(row => {
         const groupCell = row.querySelector('td:nth-child(6)');
         if(groupCell){
             const groupText = groupCell.textContent.trim();
@@ -25,6 +27,9 @@ function populateGroupFilter(){
     
     // sortowanie alfabetyczne
     const sortedGroups = Array.from(groups).sort();
+    
+    // wyczyszenie i odbudowanie opcji
+    groupFilter.innerHTML = '<option value="">Wszystkie grupy</option>';
     
     // dodanie opcji do selecta
     sortedGroups.forEach(group => {
@@ -99,6 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
     populateGroupFilter();
     updateResultsCounter(tableRows.length);
     initSorting();
+    loadGroups();
 });
 
 // sortowanie tabeli
@@ -204,11 +210,23 @@ function openEditModal(btn){
     const firstName = btn.getAttribute("data-firstname");
     const lastName = btn.getAttribute("data-lastname");
     const role = btn.getAttribute("data-role");
+    const group = btn.getAttribute("data-group");
 
     document.getElementById("editEmail").value = email;
     document.getElementById("editUserName").innerText = firstName + " " + lastName;
     document.getElementById("editUserEmailDisplay").innerText = email;
     document.getElementById("editRole").value = role;
+    
+    // ustawienie grupy - znalezienie ID grupy po nazwie
+    const groupSelect = document.getElementById("editGroup");
+    groupSelect.value = ""; // domyslnie brak grupy
+    
+    if (group && group !== 'Brak'){
+        const matchingGroup = allGroups.find(g => g.name === group);
+        if(matchingGroup){
+            groupSelect.value = matchingGroup.id;
+        }
+    }
 
     modal.classList.add("active");
 }
@@ -217,13 +235,80 @@ function closeEditModal(){
     document.getElementById("editUserModal").classList.remove("active");
 }
 
-document.getElementById("editUserForm").addEventListener("submit", function (e){
+// ladowanie grup z API
+let allGroups = [];
+
+async function loadGroups(){
+    try{
+        const response = await fetch('/api/groups');
+        if(!response.ok){
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        allGroups = await response.json();
+        populateGroupSelect();
+    } 
+    catch (error){
+        console.error('Błąd ładowania grup:', error);
+    }
+}
+
+function populateGroupSelect(){
+    const groupSelect = document.getElementById('editGroup');
+    // zachowanie opcji "Brak grupy"
+    groupSelect.innerHTML = '<option value="">Brak grupy</option>';
+    
+    allGroups.forEach(group => {
+        const option = document.createElement('option');
+        option.value = group.id;
+        option.textContent = group.name;
+        groupSelect.appendChild(option);
+    });
+}
+
+// zapisywanie zmian uzytkownika
+document.getElementById("editUserForm").addEventListener("submit", async function (e){
     e.preventDefault();
     
     const email = document.getElementById("editEmail").value;
     const newRole = document.getElementById("editRole").value;
+    const groupId = document.getElementById("editGroup").value;
 
-    alert("Zapisano");
+    try {
+        // zmiana roli
+        const roleResponse = await fetch(`/api/users/role/update/${email}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                newRole: newRole 
+            })
+        });
 
-    closeEditModal();
+        if(!roleResponse.ok){
+            throw new Error('Błąd podczas zmiany roli');
+        }
+
+        // przypisanie do grupy (zawsze wywolaj, nawet jesli groupId jest puste - wtedy wysle null)
+        const groupResponse = await fetch(`/api/users/assignGroup/${email}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ groupId: groupId ? parseInt(groupId) : null })
+        });
+
+        if(!groupResponse.ok){
+            throw new Error('Błąd podczas przypisywania do grupy');
+        }
+
+        alert("Zmiany zostały zapisane pomyślnie!");
+        closeEditModal();
+        location.reload(); // przeladowanie strony aby zachowac kolejnosc z backendu
+    } 
+    catch (error){
+        console.error('Błąd:', error);
+        alert("Wystąpił błąd podczas zapisywania zmian: " + error.message);
+    }
 });
+
