@@ -57,23 +57,23 @@
 }
 
 .sortable:hover{
-    background-color: #f1f5f9;
+    background-color: #0047b3;
 }
 
 .sort-icon{
     margin-left: 6px;
     font-size: 0.75rem;
-    color: #94a3b8;
+    color: rgba(255, 255, 255, 0.7);
     transition: color 0.2s;
 }
 
 .sortable:hover .sort-icon{
-    color: #64748b;
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .sortable .fa-sort-up,
 .sortable .fa-sort-down{
-    color: var(--color-primary);
+    color: white;
 }
 
 .table-controls{
@@ -131,19 +131,19 @@
 
 .filter-group label{
     font-size: 0.9rem;
-    color: #475569;
+    color: #495057;
     font-weight: 500;
     white-space: nowrap;
 }
 
 .filter-group label i{
-    margin-right: 4px;
-    color: #64748b;
+    margin-right: 0.3rem;
+    color: #005efa;
 }
 
-.filter-select{
+.filter-group select{
     padding: 8px 12px;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #ced4da;
     border-radius: 6px;
     font-size: 0.9rem;
     background: white;
@@ -152,25 +152,27 @@
     min-width: 140px;
 }
 
-.filter-select:focus{
+.filter-group select:focus{
     outline: none;
-    border-color: var(--color-primary);
+    border-color: #005efa;
+    box-shadow: 0 0 0 3px rgba(0, 94, 250, 0.1);
 }
 
-.btn-secondary{
-    background-color: #e2e8f0;
-    color: #475569;
-    padding: 8px 16px;
-    border: 2px solid #cbd5e1;
-    display: flex;
-    align-items: center;
-    margin-top: 20px;
-    gap: 6px;
+.btn-reset{
+    background: #6c757d;
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    align-self: flex-end;
+    height: fit-content;
 }
 
-.btn-secondary:hover{
-    background-color: #cbd5e1;
-    border-color: #94a3b8;
+.btn-reset:hover{
+    background: #5a6268;
 }
 
 .results-info{
@@ -206,6 +208,24 @@
     color: #cbd5e1;
 }
 
+/* EMPTY STATE */
+.empty-state{
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+}
+
+.empty-state i{
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    color: #cbd5e0;
+}
+
+.empty-state h3{
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
 .users-table{
     width: 100%;
     border-collapse: collapse;
@@ -216,17 +236,17 @@
 .users-table td{
     padding: 1rem;
     text-align: left;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .users-table th{
-    background-color: #f8f9fa;
+    background-color: #005efa;
     font-weight: 600;
-    color: #2c3e50;
+    color: white;
 }
 
 .users-table tr:hover{
-    background-color: #fcfcfc;
+    background-color: #f8f9fa;
 }
 
 .badge{
@@ -278,6 +298,14 @@
     background-color: var(--color-primary);
     color: var(--text-white);
     border: 2px solid var(--color-primary);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
  .btn-primary:hover{

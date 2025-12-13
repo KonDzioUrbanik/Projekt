@@ -29,7 +29,7 @@
 }
 
 .btn-add {
-    background: #10b981;
+    background-color: var(--color-primary);
     color: white;
     padding: 0.75rem 1.5rem;
     border: none;
@@ -43,9 +43,10 @@
 }
 
 .btn-add:hover {
-    background: #059669;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+    background-color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+    /* transform: translateY(-2px); */
+    box-shadow: 0 3px 6px var(--shadow-color-btn);
 }
 
 /* LISTA GRUP */
@@ -335,17 +336,24 @@
 }
 
 .btn-save {
-    background: #10b981;
+    background-color: var(--color-primary);
     color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
 .btn-save:hover {
-    background: #059669;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+    background-color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+    /* transform: translateY(-2px); */
+    box-shadow: 0 3px 6px var(--shadow-color-btn);
 }
 
 /* RESPONSYWNOSC */

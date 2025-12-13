@@ -72,17 +72,43 @@ function filterUsers(){
 function updateResultsCounter(count){
     resultsCount.textContent = count;
     
+    // pokazanie/ukrycie komunikatu o braku wyników w tbody tabeli
+    const tableBody = document.querySelector('.users-table tbody');
+    const existingEmptyRow = tableBody.querySelector('.empty-state-row');
+    
     if(count === 0){
         resultsText.textContent = 'użytkowników';
-    } 
-    else if(count === 1){
-        resultsText.textContent = 'użytkownik';
-    } 
-    else if(count % 10 >= 2 && count % 10 <= 4 && (count < 10 || count > 20)){
-        resultsText.textContent = 'użytkowników';
+        
+        // dodanie wiersza z komunikatem jeśli nie istnieje
+        if(!existingEmptyRow){
+            const emptyRow = document.createElement('tr');
+            emptyRow.className = 'empty-state-row';
+            emptyRow.innerHTML = `
+                <td colspan="7" style="text-align: center; padding: 2rem;">
+                    <div class="empty-state">
+                        <h3>Brak wyników</h3>
+                        <p>Nie znaleziono żadnych użytkowników.</p>
+                    </div>
+                </td>
+            `;
+            tableBody.appendChild(emptyRow);
+        }
     } 
     else{
-        resultsText.textContent = 'użytkowników';
+        // usunięcie wiersza z komunikatem jeśli istnieje
+        if(existingEmptyRow){
+            existingEmptyRow.remove();
+        }
+        
+        if(count === 1){
+            resultsText.textContent = 'użytkownik';
+        } 
+        else if(count % 10 >= 2 && count % 10 <= 4 && (count < 10 || count > 20)){
+            resultsText.textContent = 'użytkowników';
+        } 
+        else{
+            resultsText.textContent = 'użytkowników';
+        }
     }
 }
 

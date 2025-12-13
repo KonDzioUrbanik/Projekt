@@ -9,7 +9,7 @@
     <body>
         <div layout:fragment="content">
             
-            <nav class="breadcrumb">
+            <!-- <nav class="breadcrumb">
                 <a href="/dashboard" class="breadcrumb-item">
                     <i class="fas fa-home"></i> Strona główna
                 </a>
@@ -17,7 +17,7 @@
                 <span class="breadcrumb-item active">Panel administratora</span>
                 <span class="breadcrumb-separator">/</span>
                 <span class="breadcrumb-item active">Lista użytkowników</span>
-            </nav>
+            </nav> -->
             
             <div class="admin-header">
                 <div>
@@ -40,7 +40,7 @@
                         
                         <div class="filter-group">
                             <label for="roleFilter"><i class="fas fa-user-tag"></i> Rola:</label>
-                            <select id="roleFilter" class="filter-select">
+                            <select id="roleFilter">
                                 <option value="">Wszystkie</option>
                                 <option value="ADMIN">Admin</option>
                                 <option value="STAROSTA">Starosta</option>
@@ -50,14 +50,14 @@
                         
                         <div class="filter-group">
                             <label for="groupFilter"><i class="fas fa-users"></i> Grupa:</label>
-                            <select id="groupFilter" class="filter-select">
+                            <select id="groupFilter">
                                 <option value="">Wszystkie</option>
                                 <option value="Brak">Brak grupy</option>
                                 <!-- wypelniane dynamicznie przez javascript -->
                             </select>
                         </div>
-                        
-                        <button id="resetFilters" class="btn btn-secondary" title="Resetuj filtry">
+
+                        <button class="btn-reset" id="resetFilters">
                             <i class="fas fa-redo"></i> Reset
                         </button>
                     </div>
@@ -138,11 +138,17 @@
                             </td>
                         </tr>
                     </tbody>
+                        <tr th:if="${users.empty}">
+                            <td colspan="7" style="text-align: center; padding: 2rem;">
+                                <div class="empty-state">
+                                    <i class="fas fa-users"></i>
+                                    <h3>Brak użytkowników</h3>
+                                    <p>Nie znaleziono żadnych użytkowników.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
-                
-                <div th:if="${users.empty}" style="text-align: center; padding: 2rem; color: #666;">
-                    Brak użytkowników do wyświetlenia.
-                </div>
             </div>
 
             <div id="editUserModal" class="modal-overlay">
