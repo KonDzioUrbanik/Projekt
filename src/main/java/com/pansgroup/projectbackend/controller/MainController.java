@@ -157,4 +157,20 @@ public class MainController {
 
         return "dashboard/notes";
     }
+
+    //zarzadzanie harmonogramem zajec 
+    @GetMapping("/admin/schedule-management")
+    public String scheduleManagementView(Model model){
+        model.addAttribute("activePage", "schedule-management");
+
+        return "admin/schedule-management";
+    }
+
+    //zarzadzanie grupami studentow
+    @GetMapping("/admin/groups-management")
+    public String groupsManagementView(Model model){
+        model.addAttribute("activePage", "groups-management");
+
+        return "admin/groups-management";
+    }
 }
