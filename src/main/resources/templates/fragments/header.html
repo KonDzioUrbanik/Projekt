@@ -13,7 +13,7 @@
 
             <div class="header-right">
                 <div class="user-index-container" th:if="${currentUser != null}">
-                    <span class="user-index-number" th:text="${currentUser?.nrAlbumu}" style="font-weight: bold;"></span>
+                    <span class="user-index-number user-index-bold" th:text="${currentUser?.nrAlbumu}"></span>
                 </div>
                 <div class="user-menu-wrapper">
                     <div class="user-info" id="userMenuToggle">
