@@ -76,6 +76,17 @@ body{
     margin-bottom: 2rem;
 }
 
+.admin-section-label {
+    padding-left: 20px;
+    font-size: 0.8rem;
+    color: #e0e0e0;
+    text-transform: uppercase;
+}
+
+.user-index-bold {
+    font-weight: bold;
+}
+
 /* HEADER */
 
 .header{
