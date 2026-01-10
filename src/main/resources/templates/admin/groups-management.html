@@ -17,6 +17,57 @@
                     </button>
                 </div>
 
+                <!-- sekcja filtrowania i statystyk -->
+                <div class="filters-section">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Szukaj po nazwie grupy...">
+                    </div>
+                    
+                    <div class="filter-box">
+                        <label for="yearFilter"> Rok:</label>
+                        <select id="yearFilter">
+                            <option value="">Wszystkie</option>
+                            <option value="I">I</option>
+                            <option value="II">II</option>
+                            <option value="III">III</option>
+                            <option value="IV">IV</option>
+                            <option value="V">V</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-box">
+                        <label for="fieldFilter"> Kierunek:</label>
+                        <select id="fieldFilter">
+                            <option value="">Wszystkie</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-box">
+                        <label for="modeFilter"> Tryb:</label>
+                        <select id="modeFilter">
+                            <option value="">Wszystkie</option>
+                            <option value="stacjonarne">Stacjonarne</option>
+                            <option value="niestacjonarne">Niestacjonarne</option>
+                        </select>
+                    </div>
+                    
+                    <div class="stats-box">
+                        <span class="stat-label">Liczba grup:</span>
+                        <span class="stat-value" id="groupsCount">0</span>
+                    </div>
+                    
+                    <div class="sort-box">
+                        <label for="sortSelect"><i class="fas fa-sort"></i> Sortuj:</label>
+                        <select id="sortSelect">
+                            <option value="id-asc" selected>ID (rosnąco)</option>
+                            <option value="id-desc">ID (malejąco)</option>
+                            <option value="name-asc">Nazwa (A-Z)</option>
+                            <option value="name-desc">Nazwa (Z-A)</option>
+                        </select>
+                    </div>
+                </div>
+
                 <!-- lista grup -->
                 <div class="groups-list" id="groupsList">
                     <!-- wypelniane dynamicznie przez javascript -->
@@ -40,9 +91,9 @@
                         <input type="hidden" id="groupId">
                         
                         <div class="form-group">
-                            <label for="groupName"><i class="fas fa-tag"></i> Nazwa grupy *</label>
-                            <input type="text" id="groupName" required placeholder="np. Informatyka 3">
-                            <small>Wprowadź nazwę grupy studenckiej (np. Informatyka 3, Zarządzanie 2)</small>
+                            <label for="groupName"></i> Nazwa grupy</label>
+                            <input type="text" id="groupName" required placeholder="np. Informatyka III stacjonarne">
+                            <small>Wprowadź nazwę grupy studenckiej (np. Informatyka III stacjonarne, Zarządzanie II niestacjonarne)</small>
                         </div>
 
                         <div class="form-actions">
