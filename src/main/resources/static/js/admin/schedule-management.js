@@ -6,6 +6,7 @@ class ScheduleManagement{
         this.filteredData = [];
         this.isEditing = false;
         this.currentEditId = null;
+        this.allGroups = []; // przechowywanie wszystkich kierunków
 
         this.dayNames = {
             'Monday': 'Poniedziałek',
@@ -27,6 +28,7 @@ class ScheduleManagement{
         };
 
         this.initializeEventListeners();
+        this.loadGroups();
         this.loadSchedule();
     }
 
@@ -108,6 +110,37 @@ class ScheduleManagement{
         }
     }
 
+    async loadGroups(){
+        try{
+            const response = await fetch('/api/groups');
+            if(!response.ok){
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            this.allGroups = await response.json();
+            this.populateGroupsSelect();
+        } 
+        catch (error){
+            console.error('Błąd ładowania kierunków:', error);
+        }
+    }
+
+    populateGroupsSelect(){
+        const groupsSelect = document.getElementById('studentGroups');
+        groupsSelect.innerHTML = '';
+        
+        // Sortowanie alfabetyczne
+        const sortedGroups = [...this.allGroups].sort((a, b) => 
+            a.name.localeCompare(b.name, 'pl')
+        );
+        
+        sortedGroups.forEach(group => {
+            const option = document.createElement('option');
+            option.value = group.id;
+            option.textContent = group.name;
+            groupsSelect.appendChild(option);
+        });
+    }
+
     renderTable(){
         const tableBody = document.getElementById('scheduleTableBody');
 
@@ -134,7 +167,9 @@ class ScheduleManagement{
                 <td>${item.room}</td>
                 <td>${item.teacher}</td>
                 <td><span class="class-type-badge ${item.classType}">${this.classTypeNames[item.classType]}</span></td>
-                <td>${item.yearPlan || '-'}</td>
+                <td>${item.studentGroups && item.studentGroups.length > 0 
+                    ? item.studentGroups.map(g => g.name).join(', ') 
+                    : '-'}</td>
                 <td>
                     <div class="action-buttons">
                         <button class="btn-edit" onclick="scheduleManagement.editSchedule(${item.id})">
@@ -190,7 +225,15 @@ class ScheduleManagement{
             document.getElementById('dayOfWeek').value = data.dayOfWeek;
             document.getElementById('startTime').value = this.formatTimeForInput(data.startTime);
             document.getElementById('endTime').value = this.formatTimeForInput(data.endTime);
-            document.getElementById('yearPlan').value = data.yearPlan || '';
+            
+            // Zaznacz przypisane kierunki
+            const groupsSelect = document.getElementById('studentGroups');
+            if(data.studentGroups && data.studentGroups.length > 0){
+                const groupIds = data.studentGroups.map(g => g.id.toString());
+                Array.from(groupsSelect.options).forEach(option => {
+                    option.selected = groupIds.includes(option.value);
+                });
+            }
         } 
         else{
             // tryb dodawania
@@ -210,6 +253,10 @@ class ScheduleManagement{
     }
 
     async saveSchedule(){
+        // Pobierz wybrane kierunki
+        const groupsSelect = document.getElementById('studentGroups');
+        const selectedGroupIds = Array.from(groupsSelect.selectedOptions).map(opt => parseInt(opt.value));
+        
         const formData = {
             title: document.getElementById('title').value,
             room: document.getElementById('room').value,
@@ -218,7 +265,7 @@ class ScheduleManagement{
             dayOfWeek: document.getElementById('dayOfWeek').value,
             startTime: document.getElementById('startTime').value + ':00',  // Format HH:MM:SS
             endTime: document.getElementById('endTime').value + ':00',      // Format HH:MM:SS
-            yearPlan: document.getElementById('yearPlan').value || null
+            studentGroupIds: selectedGroupIds
         };
 
         try{

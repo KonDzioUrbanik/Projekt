@@ -283,7 +283,10 @@ function populateGroupSelect(){
     // zachowanie opcji "Brak kierunku"
     groupSelect.innerHTML = '<option value="">Brak kierunku</option>';
     
-    allGroups.forEach(group => {
+    // sortowanie alfabetyczne kierunków po nazwie
+    const sortedGroups = [...allGroups].sort((a, b) => a.name.localeCompare(b.name));
+    
+    sortedGroups.forEach(group => {
         const option = document.createElement('option');
         option.value = group.id;
         option.textContent = group.name;

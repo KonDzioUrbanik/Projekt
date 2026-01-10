@@ -281,7 +281,7 @@ class GroupsManagement{
         else{
             this.isEditing = false;
             this.currentEditId = null;
-            modalTitle.innerHTML = '<i class="fas fa-plus"></i> Dodaj grupę';
+            modalTitle.innerHTML = '<i class="fas fa-plus"></i> Dodaj kierunek';
         }
 
         modal.classList.add('active');

@@ -2,8 +2,10 @@ package com.pansgroup.projectbackend.module.schedule.dto;
 
 import com.pansgroup.projectbackend.module.schedule.ClassType;
 import com.pansgroup.projectbackend.module.schedule.DayOfWeek;
+import com.pansgroup.projectbackend.module.student.dto.StudentGroupResponseDto;
 
 import java.time.LocalTime;
+import java.util.List;
 
 public record ScheduleEntryResponseDto(
         Long id,
@@ -14,6 +16,6 @@ public record ScheduleEntryResponseDto(
         LocalTime startTime,
         LocalTime endTime,
         ClassType classType,
-        String yearPlan
+        List<StudentGroupResponseDto> studentGroups
 ) {
 }

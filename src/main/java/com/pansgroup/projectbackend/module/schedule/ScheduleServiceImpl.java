@@ -1,16 +1,20 @@
 package com.pansgroup.projectbackend.module.schedule;
 
 import com.pansgroup.projectbackend.exception.ScheduleEntryNotFoundException;
+import com.pansgroup.projectbackend.exception.StudentGroupNotFoundException;
 import com.pansgroup.projectbackend.exception.UsernameNotFoundException;
 import com.pansgroup.projectbackend.module.schedule.dto.ScheduleEntryCreateDto;
 import com.pansgroup.projectbackend.module.schedule.dto.ScheduleEntryResponseDto;
 import com.pansgroup.projectbackend.module.schedule.dto.ScheduleEntryUpdateDto;
 import com.pansgroup.projectbackend.module.student.StudentGroup;
+import com.pansgroup.projectbackend.module.student.StudentGroupRepository;
+import com.pansgroup.projectbackend.module.student.dto.StudentGroupResponseDto;
 import com.pansgroup.projectbackend.module.user.User;
 import com.pansgroup.projectbackend.module.user.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -20,16 +24,32 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     private final ScheduleRepository scheduleRepository;
     private final UserRepository userRepository;
+    private final StudentGroupRepository studentGroupRepository;
 
     // Wstrzyknięcie zależności Repozytorium
-    public ScheduleServiceImpl(ScheduleRepository scheduleRepository, UserRepository userRepository) {
+    public ScheduleServiceImpl(ScheduleRepository scheduleRepository, 
+                               UserRepository userRepository,
+                               StudentGroupRepository studentGroupRepository) {
         this.scheduleRepository = scheduleRepository;
         this.userRepository = userRepository;
+        this.studentGroupRepository = studentGroupRepository;
     }
 
     @Override
     public ScheduleEntryResponseDto create(ScheduleEntryCreateDto dto) {
         ScheduleEntry entry = toEntity(dto);
+        
+        // Przypisanie kierunków jeśli podano
+        if(dto.studentGroupIds() != null && !dto.studentGroupIds().isEmpty()){
+            List<StudentGroup> groups = new ArrayList<>();
+            for(Long groupId : dto.studentGroupIds()){
+                StudentGroup group = studentGroupRepository.findById(groupId)
+                        .orElseThrow(() -> new StudentGroupNotFoundException(groupId));
+                groups.add(group);
+            }
+            entry.setStudentGroups(groups);
+        }
+        
         ScheduleEntry saved = scheduleRepository.save(entry);
         return toResponse(saved);
     }
@@ -48,7 +68,19 @@ public class ScheduleServiceImpl implements ScheduleService {
         entry.setStartTime(dto.startTime());
         entry.setEndTime(dto.endTime());
         entry.setClassType(dto.classType());
-        entry.setYearPlan(dto.yearPlan() != null ? dto.yearPlan().trim() : null);
+        
+        // Aktualizacja przypisanych kierunków
+        if(dto.studentGroupIds() != null){
+            List<StudentGroup> groups = new ArrayList<>();
+            for(Long groupId : dto.studentGroupIds()){
+                StudentGroup group = studentGroupRepository.findById(groupId)
+                        .orElseThrow(() -> new StudentGroupNotFoundException(groupId));
+                groups.add(group);
+            }
+            entry.setStudentGroups(groups);
+        } else {
+            entry.setStudentGroups(new ArrayList<>());
+        }
 
         ScheduleEntry updated = scheduleRepository.save(entry);
         return toResponse(updated);
@@ -85,18 +117,23 @@ public class ScheduleServiceImpl implements ScheduleService {
         if (group == null) {
             return Collections.emptyList();
         } else {
-            // wyszukanie zajec po yearPlan (nazwie grupy) z ignorowaniem wielkosci liter
-            return scheduleRepository.findByYearPlanIgnoreCase(group.getName())
+            // Wyszukanie zajęć po relacji z grupą studencką
+            return scheduleRepository.findByStudentGroups(group)
                     .stream()
                     .map(this::toResponse)
                     .toList();
         }
-
     }
 
     // ---------- METODY POMOCNICZE (Konwersja) ----------
 
     private ScheduleEntryResponseDto toResponse(ScheduleEntry entry) {
+        List<StudentGroupResponseDto> groupDtos = entry.getStudentGroups() != null 
+            ? entry.getStudentGroups().stream()
+                .map(g -> new StudentGroupResponseDto(g.getId(), g.getName()))
+                .toList()
+            : Collections.emptyList();
+            
         return new ScheduleEntryResponseDto(
                 entry.getId(),
                 entry.getTitle(),
@@ -106,7 +143,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 entry.getStartTime(),
                 entry.getEndTime(),
                 entry.getClassType(),
-                entry.getYearPlan()
+                groupDtos
         );
     }
 
@@ -119,7 +156,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         entry.setStartTime(dto.startTime());
         entry.setEndTime(dto.endTime());
         entry.setClassType(dto.classType());
-        entry.setYearPlan(dto.yearPlan() != null ? dto.yearPlan().trim() : null);
+        // studentGroups są ustawiane w metodzie create
         return entry;
     }
 }

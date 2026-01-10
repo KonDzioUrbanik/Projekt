@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalTime;
+import java.util.List;
 
 public record ScheduleEntryCreateDto(
         @NotBlank(message = "Tytuł jest wymagany.")
@@ -33,7 +34,6 @@ public record ScheduleEntryCreateDto(
         @NotNull(message = "Typ zajęć jest wymagany.")
         ClassType classType,
 
-        @Size(max = 2000, message = "Plan zajęć może mieć maksymalnie {max} znaków.")
-        String yearPlan
+        List<Long> studentGroupIds
 ) {
 }
