@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html layout:decorate="~{layout/main-layout}">
     <head>
-        <title>Zarządzanie Grupami</title>
+        <title>Zarządzanie Kierunkami</title>
         <th:block layout:fragment="page-styles">
             <link rel="stylesheet" th:href="@{/css/admin/groups-management.css}" href="../../static/css/admin/groups-management.css">
         </th:block>
@@ -11,9 +11,9 @@
         <div layout:fragment="content">
             <div class="groups-management-wrapper">
                 <div class="header-section">
-                    <h2>Zarządzanie grupami studenckimi</h2>
+                    <h2>Zarządzanie kierunkami studiów</h2>
                     <button class="btn-add" id="addGroupBtn">
-                        Dodaj grupę
+                        Dodaj kierunek
                     </button>
                 </div>
 
@@ -21,11 +21,11 @@
                 <div class="filters-section">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
-                        <input type="text" id="searchInput" placeholder="Szukaj po nazwie grupy...">
+                        <input type="text" id="searchInput" placeholder="Szukaj po nazwie kierunku...">
                     </div>
                     
                     <div class="filter-box">
-                        <label for="yearFilter"> Rok:</label>
+                        <label for="yearFilter"><i class="fas fa-calendar"></i> Rok:</label>
                         <select id="yearFilter">
                             <option value="">Wszystkie</option>
                             <option value="I">I</option>
@@ -37,14 +37,14 @@
                     </div>
 
                     <div class="filter-box">
-                        <label for="fieldFilter"> Kierunek:</label>
+                        <label for="fieldFilter"><i class="fas fa-graduation-cap"></i> Kierunek:</label>
                         <select id="fieldFilter">
                             <option value="">Wszystkie</option>
                         </select>
                     </div>
 
                     <div class="filter-box">
-                        <label for="modeFilter"> Tryb:</label>
+                        <label for="modeFilter"><i class="fas fa-user-clock"></i> Tryb:</label>
                         <select id="modeFilter">
                             <option value="">Wszystkie</option>
                             <option value="stacjonarne">Stacjonarne</option>
@@ -53,7 +53,7 @@
                     </div>
                     
                     <div class="stats-box">
-                        <span class="stat-label">Liczba grup:</span>
+                        <span class="stat-label">Liczba kierunków:</span>
                         <span class="stat-value" id="groupsCount">0</span>
                     </div>
                     
@@ -84,16 +84,16 @@
             <div class="modal" id="groupModal">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h3 id="modalTitle"><i class="fas fa-plus"></i> Dodaj grupę</h3>
+                        <h3 id="modalTitle"><i class="fas fa-plus"></i> Dodaj kierunek</h3>
                         <button class="close-btn" id="closeModal">&times;</button>
                     </div>
                     <form id="groupForm">
                         <input type="hidden" id="groupId">
                         
                         <div class="form-group">
-                            <label for="groupName"></i> Nazwa grupy</label>
+                            <label for="groupName"></i> Nazwa kierunku</label>
                             <input type="text" id="groupName" required placeholder="np. Informatyka III stacjonarne">
-                            <small>Wprowadź nazwę grupy studenckiej (np. Informatyka III stacjonarne, Zarządzanie II niestacjonarne)</small>
+                            <small>Wprowadź nazwę kierunku studiów (np. Informatyka III stacjonarne, Zarządzanie II niestacjonarne)</small>
                         </div>
 
                         <div class="form-actions">

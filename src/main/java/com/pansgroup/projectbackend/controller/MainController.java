@@ -158,7 +158,7 @@ public class MainController {
         return "dashboard/notes";
     }
 
-    //zarzadzanie harmonogramem zajec 
+    //zarządzanie harmonogramem zajęć 
     @GetMapping("/admin/schedule-management")
     public String scheduleManagementView(Model model){
         model.addAttribute("activePage", "schedule-management");
@@ -166,7 +166,7 @@ public class MainController {
         return "admin/schedule-management";
     }
 
-    //zarzadzanie grupami studentow
+    // zarządzanie kierunkami studiów
     @GetMapping("/admin/groups-management")
     public String groupsManagementView(Model model){
         model.addAttribute("activePage", "groups-management");

@@ -38,7 +38,7 @@ public class StarostaController {
     public String starostaIndex(Model model, Principal principal) {
         UserResponseDto currentUser = userService.getCurrentUser(principal.getName());
 
-        // Pobranie użytkowników z tej samej grupy
+        // Pobranie użytkowników z tego samego kierunku
         List<UserResponseDto> groupMembers = userService.findAll().stream()
                 .filter(user -> currentUser.groupId() != null &&
                                currentUser.groupId().equals(user.groupId()))
@@ -50,12 +50,12 @@ public class StarostaController {
         return "starosta/index";
     }
 
-    // Zarządzanie grupą
+    // Zarządzanie kierunkiem
     @GetMapping("/group-management")
     public String groupManagement(Model model, Principal principal) {
         UserResponseDto currentUser = userService.getCurrentUser(principal.getName());
 
-        // Pobranie użytkowników z tej samej grupy
+        // Pobranie użytkowników z tego samego kierunku
         List<UserResponseDto> groupMembers = userService.findAll().stream()
                 .filter(user -> currentUser.groupId() != null &&
                                currentUser.groupId().equals(user.groupId()))

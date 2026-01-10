@@ -218,14 +218,14 @@ class GroupsManagement{
             if(this.searchQuery){
                 groupsList.innerHTML = `
                     <div class="empty-state" style="grid-column: 1 / -1;">
-                        <h3>Nie znaleziono grup</h3>
-                        <p>Brak grup pasujących do frazy: "<strong>${this.searchQuery}</strong>"</p>
+                        <h3>Nie znaleziono kierunków</h3>
+                        <p>Brak kierunków pasujących do frazy: "<strong>${this.searchQuery}</strong>"</p>
                     </div>
                 `;
             } else {
                 groupsList.innerHTML = `
                     <div class="empty-state" style="grid-column: 1 / -1;">
-                        <h3>Brak dodanych grup studenckich</h3>
+                        <h3>Brak dodanych kierunków</h3>
                     </div>
                 `;
             }
@@ -274,7 +274,7 @@ class GroupsManagement{
         if(data){
             this.isEditing = true;
             this.currentEditId = data.id;
-            modalTitle.innerHTML = '<i class="fas fa-edit"></i> Edytuj grupę';
+            modalTitle.innerHTML = '<i class="fas fa-edit"></i> Edytuj kierunek';
             document.getElementById('groupId').value = data.id;
             document.getElementById('groupName').value = data.name;
         } 
@@ -298,7 +298,7 @@ class GroupsManagement{
         const groupName = document.getElementById('groupName').value.trim();
 
         if(!groupName){
-            alert('Wprowadź nazwę grupy');
+            alert('Wprowadź nazwę kierunku');
             return;
         }
 
@@ -335,7 +335,7 @@ class GroupsManagement{
             this.loadGroups();
             
             this.showNotification(
-                wasEditing ? 'Grupa została zaktualizowana' : 'Grupa została dodana',
+                wasEditing ? 'Kierunek został zaktualizowany' : 'Kierunek został dodany',
                 'success'
             );
         } 
@@ -354,7 +354,7 @@ class GroupsManagement{
 
     async deleteGroup(id){
         const group = this.groups.find(g => g.id === id);
-        if(!confirm(`Czy na pewno chcesz usunąć grupę "${group.name}"?\n\nUwaga: Studenci przypisani do tej grupy zostaną z niej usunięci.`)){
+        if(!confirm(`Czy na pewno chcesz usunąć kierunek "${group.name}"?\n\nUwaga: Studenci przypisani do tego kierunku zostaną z niego usunięci.`)){
             return;
         }
 
@@ -368,7 +368,7 @@ class GroupsManagement{
             }
 
             this.loadGroups();
-            this.showNotification('Grupa została usunięta', 'success');
+            this.showNotification('Kierunek został usunięty', 'success');
         } 
         catch (error){
             console.error('Błąd usuwania:', error);

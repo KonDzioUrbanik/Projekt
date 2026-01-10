@@ -75,7 +75,7 @@ class ScheduleCalendar{
                         Możliwe przyczyny:<br>
                         • Nie jesteś przypisany do żadnej grupy studenckiej.<br>
                         • Administrator jeszcze nie dodał zajęć dla Twojej grupy.<br>
-                        • Skontaktuj się z administratorem systemu.
+                        <br>Skontaktuj się z administratorem systemu.
                     </p>
                 </div>
             `;

@@ -74,7 +74,7 @@ public class UserController {
     public UserResponseDto updateRoleUser(@PathVariable String email,@Valid @RequestBody UserRoleUpdateDto dto) {
         return userService.updateRoleUser(email, dto);
     }
-    @Operation(summary = "Przypisanie użytkownika do grupy (Tylko Admin)")
+    @Operation(summary = "Przypisanie użytkownika do kierunku (Tylko Admin)")
     @PutMapping("/assignGroup/{email}")
     public UserResponseDto assignUserToGroup(
             @PathVariable String email,

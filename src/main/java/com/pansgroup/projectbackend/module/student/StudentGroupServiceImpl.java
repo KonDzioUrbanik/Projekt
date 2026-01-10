@@ -55,7 +55,7 @@ public class StudentGroupServiceImpl implements StudentGroupService {
         User currentUser = userService.findUserByEmailInternal(userEmail);
 
         if (currentUser.getStudentGroup() != null && currentUser.getStudentGroup().getId().equals(id)) {
-            throw new StudentGroupNotFoundException("Nie masz uprawnień do grupy: >" + id + "<");
+            throw new StudentGroupNotFoundException("Nie masz uprawnień do kierunku: >" + id + "<");
         }
 
 

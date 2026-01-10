@@ -8,7 +8,7 @@ const tableRows = document.querySelectorAll('.users-table tbody tr');
 const resultsCount = document.getElementById('resultsCount');
 const resultsText = document.getElementById('resultsText');
 
-// funkcja do wypełnienia filtra grup unikalnymi wartościami z tabeli
+// funkcja do wypełnienia filtra kierunków unikalnymi wartościami z tabeli
 function populateGroupFilter(){
     const groups = new Set();
     
@@ -243,9 +243,9 @@ function openEditModal(btn){
     document.getElementById("editUserEmailDisplay").innerText = email;
     document.getElementById("editRole").value = role;
     
-    // ustawienie grupy - znalezienie ID grupy po nazwie
+    // ustawienie kierunku - znalezienie ID kierunku po nazwie
     const groupSelect = document.getElementById("editGroup");
-    groupSelect.value = ""; // domyslnie brak grupy
+    groupSelect.value = ""; // domyślnie brak kierunku
     
     if (group && group !== 'Brak'){
         const matchingGroup = allGroups.find(g => g.name === group);
@@ -274,14 +274,14 @@ async function loadGroups(){
         populateGroupSelect();
     } 
     catch (error){
-        console.error('Błąd ładowania grup:', error);
+        console.error('Błąd ładowania kierunków:', error);
     }
 }
 
 function populateGroupSelect(){
     const groupSelect = document.getElementById('editGroup');
-    // zachowanie opcji "Brak grupy"
-    groupSelect.innerHTML = '<option value="">Brak grupy</option>';
+    // zachowanie opcji "Brak kierunku"
+    groupSelect.innerHTML = '<option value="">Brak kierunku</option>';
     
     allGroups.forEach(group => {
         const option = document.createElement('option');
@@ -315,7 +315,7 @@ document.getElementById("editUserForm").addEventListener("submit", async functio
             throw new Error('Błąd podczas zmiany roli');
         }
 
-        // przypisanie do grupy (zawsze wywolaj, nawet jesli groupId jest puste - wtedy wysle null)
+        // przypisanie do kierunku (zawsze wywołaj, nawet jeśli groupId jest puste - wtedy wyśle null)
         const groupResponse = await fetch(`/api/users/assignGroup/${email}`, {
             method: 'PUT',
             headers: {
@@ -325,7 +325,7 @@ document.getElementById("editUserForm").addEventListener("submit", async functio
         });
 
         if(!groupResponse.ok){
-            throw new Error('Błąd podczas przypisywania do grupy');
+            throw new Error('Błąd podczas przypisywania do kierunku');
         }
 
         alert("Zmiany zostały zapisane pomyślnie!");

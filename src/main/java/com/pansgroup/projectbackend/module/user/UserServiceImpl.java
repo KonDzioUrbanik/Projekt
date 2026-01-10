@@ -241,15 +241,15 @@ public class UserServiceImpl implements UserService {
         User userToUpdate = userRepository.findByEmail(normalizedEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + normalizedEmail));
 
-        // 2. Znajdź encję grupy lub usuń przypisanie (jeśli groupId == null)
+        // 2. Znajdź encję kierunku lub usuń przypisanie (jeśli groupId == null)
         if (dto.groupId() == null) {
-            // usuniecie przypisania do grupy
+            // usunięcie przypisania do kierunku
             userToUpdate.setStudentGroup(null);
         } else {
-            // uzycie metody z studentgrouprepository, ktora zwroci encje Grupy
+            // użycie metody z studentGroupRepository, która zwróci encję kierunku
             StudentGroup group = studentGroupRepository.findById(dto.groupId())
                     .orElseThrow(() -> new StudentGroupNotFoundException(dto.groupId()));
-            // 3. Przypisz grupę do użytkownika
+            // 3. Przypisz kierunek do użytkownika
             userToUpdate.setStudentGroup(group);
         }
 
