@@ -29,7 +29,7 @@
             </a>
 
             <div sec:authorize="hasRole('ADMIN')" class="admin-section">
-                <p style="padding-left: 20px; font-size: 0.8rem; color: #e0e0e0; text-transform: uppercase;">Admin</p>
+                <p class="admin-section-label">Admin</p>
                 <a th:href="@{/admin/users}"  class="btn-navbar-left" th:classappend="${activePage == 'users'} ? 'active'">
                     Lista użytkowników
                 </a>

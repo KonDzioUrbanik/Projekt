@@ -34,7 +34,9 @@
 
 /* CZCIONKI I STYLE GLOBALNE */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+.auth-link-home-spaced {
+    margin-top: 25px;
+}
 
 *{
     margin: 0;
