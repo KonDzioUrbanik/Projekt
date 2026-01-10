@@ -2,8 +2,14 @@ class GroupsManagement{
     constructor(){
         this.apiEndpoint = '/api/groups';
         this.groups = [];
+        this.filteredGroups = [];
         this.isEditing = false;
         this.currentEditId = null;
+        this.currentSort = 'id-asc';
+        this.searchQuery = '';
+        this.yearFilter = '';
+        this.fieldFilter = '';
+        this.modeFilter = '';
 
         this.initializeEventListeners();
         this.loadGroups();
@@ -32,6 +38,32 @@ class GroupsManagement{
             e.preventDefault();
             this.saveGroup();
         });
+
+        // Event listenery dla filtrowania i sortowania
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            this.searchQuery = e.target.value.toLowerCase();
+            this.applyFiltersAndSort();
+        });
+
+        document.getElementById('yearFilter').addEventListener('change', (e) => {
+            this.yearFilter = e.target.value;
+            this.applyFiltersAndSort();
+        });
+
+        document.getElementById('fieldFilter').addEventListener('change', (e) => {
+            this.fieldFilter = e.target.value;
+            this.applyFiltersAndSort();
+        });
+
+        document.getElementById('modeFilter').addEventListener('change', (e) => {
+            this.modeFilter = e.target.value;
+            this.applyFiltersAndSort();
+        });
+
+        document.getElementById('sortSelect').addEventListener('change', (e) => {
+            this.currentSort = e.target.value;
+            this.applyFiltersAndSort();
+        });
     }
 
     async loadGroups(){
@@ -48,8 +80,8 @@ class GroupsManagement{
             }
 
             this.groups = await response.json();
-            console.log('Załadowano grupy:', this.groups);
-            this.renderGroups();
+            this.populateFilterOptions();
+            this.applyFiltersAndSort();
         } 
         catch (error){
             console.error('Błąd ładowania grup:', error);
@@ -66,27 +98,156 @@ class GroupsManagement{
         }
     }
 
+    parseGroupInfo(groupName){
+        const info = {
+            year: null,
+            field: null,
+            mode: null
+        };
+
+        // Wyciągnięcie roku studiów (cyfry rzymskie: I, II, III, IV, V)
+        const yearMatch = groupName.match(/\b([IV]{1,3}|V)\b/);
+        if(yearMatch){
+            info.year = yearMatch[1];
+        }
+
+        // Wyciągnięcie trybu studiów - najpierw sprawdzamy "niestacjonarne"
+        const lowerName = groupName.toLowerCase();
+        if(lowerName.includes('niestacjonarne')){
+            info.mode = 'niestacjonarne';
+        } else if(lowerName.includes('stacjonarne')){
+            info.mode = 'stacjonarne';
+        }
+
+        // Wyciągnięcie kierunku
+        info.field = this.extractFieldName(groupName);
+
+        return info;
+    }
+
+    extractFieldName(groupName){
+        // Usuń wszystkie znane elementy, zostaw tylko nazwę kierunku
+        let field = groupName;
+        
+        // Usuń cyfry rzymskie (rok studiów)
+        field = field.replace(/\b([IV]{1,3}|V)\b/g, '');
+        
+        // Usuń rok kalendarzowy (4 cyfry)
+        field = field.replace(/\b20\d{2}\b/g, '');
+        
+        // Usuń wszystkie warianty trybu studiów
+        field = field.replace(/\b(nie)?stacjonarn(e|y|a|ym|ego|ych)?\b/gi, '');
+        
+        // Usuń znaki interpunkcyjne
+        field = field.replace(/[,\-\(\)]/g, ' ');
+        
+        // Usuń wielokrotne spacje i trim
+        field = field.replace(/\s+/g, ' ').trim();
+        
+        // Normalizacja - zamień na pierwszą literę wielką, reszta mała
+        if(field){
+            field = field.charAt(0).toUpperCase() + field.slice(1).toLowerCase();
+        }
+        
+        return field || null;
+    }
+
+    populateFilterOptions(){
+        const fields = new Set();
+
+        this.groups.forEach(group => {
+            const info = this.parseGroupInfo(group.name);
+            if(info.field) fields.add(info.field);
+        });
+
+        // Wypełnienie selecta dla kierunku
+        const fieldFilter = document.getElementById('fieldFilter');
+        const currentFieldValue = fieldFilter.value;
+        fieldFilter.innerHTML = '<option value="">Wszystkie</option>';
+        Array.from(fields).sort().forEach(field => {
+            const option = document.createElement('option');
+            option.value = field;
+            option.textContent = field;
+            fieldFilter.appendChild(option);
+        });
+        if(currentFieldValue) fieldFilter.value = currentFieldValue;
+    }
+
+    applyFiltersAndSort(){
+        // Filtrowanie
+        this.filteredGroups = this.groups.filter(group => {
+            const matchesSearch = group.name.toLowerCase().includes(this.searchQuery);
+            
+            const info = this.parseGroupInfo(group.name);
+            const matchesYear = !this.yearFilter || info.year === this.yearFilter;
+            const matchesField = !this.fieldFilter || info.field === this.fieldFilter;
+            const matchesMode = !this.modeFilter || info.mode === this.modeFilter;
+            
+            return matchesSearch && matchesYear && matchesField && matchesMode;
+        });
+
+        // Sortowanie
+        this.filteredGroups.sort((a, b) => {
+            switch(this.currentSort){
+                case 'id-asc':
+                    return a.id - b.id;
+                case 'id-desc':
+                    return b.id - a.id;
+                case 'name-asc':
+                    return a.name.localeCompare(b.name);
+                case 'name-desc':
+                    return b.name.localeCompare(a.name);
+                default:
+                    return 0;
+            }
+        });
+
+        this.updateStats();
+        this.renderGroups();
+    }
+
+    updateStats(){
+        const groupsCount = document.getElementById('groupsCount');
+        groupsCount.textContent = this.filteredGroups.length;
+    }
+
     renderGroups(){
         const groupsList = document.getElementById('groupsList');
 
-        if(this.groups.length === 0){
-            groupsList.innerHTML = `
-                <div class="empty-state" style="grid-column: 1 / -1;">
-                    <i class="fas fa-users"></i>
-                    <h3>Brak dodanych grup studenckich</h3>
-                </div>
-            `;
+        if(this.filteredGroups.length === 0){
+            if(this.searchQuery){
+                groupsList.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <h3>Nie znaleziono kierunków</h3>
+                        <p>Brak kierunków pasujących do frazy: "<strong>${this.searchQuery}</strong>"</p>
+                    </div>
+                `;
+            } else {
+                groupsList.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <h3>Brak dodanych kierunków</h3>
+                    </div>
+                `;
+            }
             return;
         }
 
-        groupsList.innerHTML = this.groups.map(group => `
+        groupsList.innerHTML = this.filteredGroups.map(group => {
+            // Wyróżnienie wyszukiwanej frazy
+            let displayName = group.name;
+            if(this.searchQuery){
+                const regex = new RegExp(`(${this.searchQuery})`, 'gi');
+                displayName = group.name.replace(regex, '<mark>$1</mark>');
+            }
+
+            return `
             <div class="group-card">
                 <div class="group-card-header">
                     <div class="group-icon">
                         <i class="fas fa-users"></i>
                     </div>
                     <div class="group-info">
-                        <h3>${group.name}</h3>
+                        <h4>${displayName}</h4>
                         <span class="group-id">ID: ${group.id}</span>
                     </div>
                 </div>
@@ -99,7 +260,8 @@ class GroupsManagement{
                     </button>
                 </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
     }
 
     openModal(data = null){
@@ -112,14 +274,14 @@ class GroupsManagement{
         if(data){
             this.isEditing = true;
             this.currentEditId = data.id;
-            modalTitle.innerHTML = '<i class="fas fa-edit"></i> Edytuj grupę';
+            modalTitle.innerHTML = '<i class="fas fa-edit"></i> Edytuj kierunek';
             document.getElementById('groupId').value = data.id;
             document.getElementById('groupName').value = data.name;
         } 
         else{
             this.isEditing = false;
             this.currentEditId = null;
-            modalTitle.innerHTML = '<i class="fas fa-plus"></i> Dodaj grupę';
+            modalTitle.innerHTML = '<i class="fas fa-plus"></i> Dodaj kierunek';
         }
 
         modal.classList.add('active');
@@ -136,7 +298,7 @@ class GroupsManagement{
         const groupName = document.getElementById('groupName').value.trim();
 
         if(!groupName){
-            alert('Wprowadź nazwę grupy');
+            alert('Wprowadź nazwę kierunku');
             return;
         }
 
@@ -167,11 +329,13 @@ class GroupsManagement{
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
+            const wasEditing = this.isEditing;
+            
             this.closeModal();
             this.loadGroups();
             
             this.showNotification(
-                this.isEditing ? 'Grupa została zaktualizowana' : 'Grupa została dodana',
+                wasEditing ? 'Kierunek został zaktualizowany' : 'Kierunek został dodany',
                 'success'
             );
         } 
@@ -190,7 +354,7 @@ class GroupsManagement{
 
     async deleteGroup(id){
         const group = this.groups.find(g => g.id === id);
-        if(!confirm(`Czy na pewno chcesz usunąć grupę "${group.name}"?\n\nUwaga: Studenci przypisani do tej grupy zostaną z niej usunięci.`)){
+        if(!confirm(`Czy na pewno chcesz usunąć kierunek "${group.name}"?\n\nUwaga: Studenci przypisani do tego kierunku zostaną z niego usunięci.`)){
             return;
         }
 
@@ -204,7 +368,7 @@ class GroupsManagement{
             }
 
             this.loadGroups();
-            this.showNotification('Grupa została usunięta', 'success');
+            this.showNotification('Kierunek został usunięty', 'success');
         } 
         catch (error){
             console.error('Błąd usuwania:', error);

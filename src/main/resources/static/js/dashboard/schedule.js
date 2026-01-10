@@ -73,9 +73,9 @@ class ScheduleCalendar{
                     <p>Nie znaleziono żadnych zajęć w systemie.</p>
                     <p style="font-size: 0.9rem; color: #6c757d; margin-top: 1rem;">
                         Możliwe przyczyny:<br>
-                        • Nie jesteś przypisany do żadnej grupy studenckiej.<br>
-                        • Administrator jeszcze nie dodał zajęć dla Twojej grupy.<br>
-                        • Skontaktuj się z administratorem systemu.
+                        • Nie jesteś przypisany do żadnego kierunku.<br>
+                        • Administrator jeszcze nie dodał zajęć dla Twojego kierunku.<br>
+                        <br>Skontaktuj się z administratorem systemu.
                     </p>
                 </div>
             `;
