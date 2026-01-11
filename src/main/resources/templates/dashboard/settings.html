@@ -59,7 +59,7 @@
                                 <i class="fas fa-user"></i>
                                 Imię
                             </label>
-                            <input type="text" id="firstName" class="form-control" th:value="${currentUser.firstName}" required>
+                            <input type="text" id="firstName" class="form-control" th:value="${currentUser.firstName}" readonly>
                         </div>
 
                         <div class="form-group">
@@ -67,7 +67,7 @@
                                 <i class="fas fa-user"></i>
                                 Nazwisko
                             </label>
-                            <input type="text" id="lastName" class="form-control" th:value="${currentUser.lastName}" required>
+                            <input type="text" id="lastName" class="form-control" th:value="${currentUser.lastName}" readonly>
                         </div>
 
                         <div class="form-group">
@@ -75,7 +75,7 @@
                                 <i class="fas fa-user"></i>
                                 Pseudonim
                             </label>
-                            <input type="text" id="nickName" class="form-control" placeholder="Pseudonim" title="Wkrótce dostępne" disabled>
+                            <input type="text" id="nickName" class="form-control" th:value="${currentUser.nickName}" placeholder="Pseudonim">
                         </div>
                     </div>
 
@@ -101,7 +101,21 @@
                                 <i class="fas fa-phone"></i>
                                 Telefon
                             </label>
-                            <input type="tel" id="phone" class="form-control" placeholder="+48 123 456 789" title="Wkrótce dostępne" disabled>
+                            <div style="display: flex; gap: 10px;">
+                                <select id="phonePrefix" class="form-control" style="flex: 0 0 100px;">
+                                    <option value="+48">+48</option>
+                                    <option value="+1">+1</option>
+                                    <option value="+44">+44</option>
+                                    <option value="+49">+49</option>
+                                    <option value="+33">+33</option>
+                                    <option value="+39">+39</option>
+                                    <option value="+34">+34</option>
+                                    <option value="+7">+7</option>
+                                    <option value="+380">+380</option>
+                                </select>
+                                <input type="text" id="phone" class="form-control" placeholder="123456789" pattern="[0-9]*" inputmode="numeric" maxlength="9" style="flex: 1;">
+                            </div>
+                            <small class="form-text">Podaj 9 cyfr numeru telefonu</small>
                         </div>
                     </div>
 
@@ -127,16 +141,17 @@
                                 <i class="fas fa-book-open"></i>
                                 Kierunek studiów
                             </label>
-                            <select id="fieldOfStudy" class="form-control" title="Wkrótce dostępne">
-                                <option value="Informatyka" disabled>Informatyka</option>
-                                <option value="Zarządzanie" disabled>Zarządzanie</option>
-                                <option value="Ratownictwo medyczne" disabled>Ratownictwo medyczne</option>
-                                <option value="Filologia angielska" disabled>Filologia angielska</option>
-                                <option value="Marketing internetowy" disabled>Marketing internetowy</option>
-                                <option value="Bezpieczeństwo wewnętrzne" disabled>Bezpieczeństwo wewnętrzne</option>
-                                <option value="Turystyka i rekreacja" disabled>Turystyka i rekreacja</option>
-                                <option value="Wychowanie fizyczne i sport" disabled>Wychowanie fizyczne i sport</option>
-                                <option value="Pedagogika" disabled>Pedagogika</option>
+                            <select id="fieldOfStudy" class="form-control">
+                                <option value="">Wybierz kierunek</option>
+                                <option value="Bezpieczeństwo wewnętrzne">Bezpieczeństwo wewnętrzne</option>
+                                <option value="Filologia angielska">Filologia angielska</option>
+                                <option value="Informatyka">Informatyka</option>
+                                <option value="Marketing internetowy">Marketing internetowy</option>
+                                <option value="Pedagogika">Pedagogika</option>
+                                <option value="Ratownictwo medyczne">Ratownictwo medyczne</option>
+                                <option value="Turystyka i rekreacja">Turystyka i rekreacja</option>
+                                <option value="Wychowanie fizyczne i sport">Wychowanie fizyczne i sport</option>
+                                <option value="Zarządzanie">Zarządzanie</option>
                             </select>
                         </div>
 
@@ -145,11 +160,13 @@
                                 <i class="fas fa-calendar"></i>
                                 Rok studiów
                             </label>
-                            <select id="yearOfStudy" class="form-control" title="Wkrótce dostępne">
-                                <option value="1" disabled>I rok</option>
-                                <option value="2" disabled>II rok</option>
-                                <option value="3" disabled>III rok</option>
-                                <option value="4" disabled>IV rok</option>
+                            <select id="yearOfStudy" class="form-control">
+                                <option value="">Wybierz rok</option>
+                                <option value="1">I rok</option>
+                                <option value="2">II rok</option>
+                                <option value="3">III rok</option>
+                                <option value="4">IV rok</option>
+                                <option value="5">V rok</option>
                             </select>
                         </div>
 
@@ -158,9 +175,10 @@
                                 <i class="fas fa-clock"></i>
                                 Tryb studiów
                             </label>
-                            <select id="studyMode" class="form-control" title="Wkrótce dostępne">
-                                <option value="stacjonarne" disabled>Stacjonarne</option>
-                                <option value="niestacjonarne" disabled>Niestacjonarne</option>
+                            <select id="studyMode" class="form-control">
+                                <option value="">Wybierz tryb</option>
+                                <option value="Stacjonarne">Stacjonarne</option>
+                                <option value="Niestacjonarne">Niestacjonarne</option>
                             </select>
                         </div>
                     </div>
@@ -178,7 +196,8 @@
                             <i class="fas fa-pen"></i>
                             O mnie
                         </label>
-                        <textarea id="bio" class="form-control" placeholder="Opowiedz coś o sobie..." title="Wkrótce dostępne" disabled></textarea>
+                        <textarea id="bio" class="form-control" th:text="${currentUser.bio}" placeholder="Opowiedz coś o sobie..." rows="4" maxlength="500"></textarea>
+                        <small class="form-text">Maksymalnie 500 znaków</small>
                     </div>
 
                     <!-- miejsce na komunikaty -->
