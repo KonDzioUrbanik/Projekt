@@ -4,9 +4,20 @@
     border-radius: 12px;
     padding: 2rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
     min-height: 400px;
     position: relative;
+    
+    /* Zapobieganie wypływaniu treści poza wrapper */
+    overflow: hidden; 
+    
+    /* Flexbox dla lepszego skalowania */
+    display: flex;
+    flex-direction: column;
+}
+
+#calendarGrid {
+    flex-grow: 1; /* Kalendarz zajmie całą dostępną przestrzeń */
+    width: 100%;  /* Upewnij się, że bierze 100% szerokości rodzica */
 }
 
 /* --- Nagłówek i Przyciski --- */

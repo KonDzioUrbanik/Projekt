@@ -12,7 +12,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleBtn.addEventListener('click', () => {
             sidebar.classList.toggle('collapsed');
+            
+            // Zapisz stan
             localStorage.setItem(STORAGE_KEY, sidebar.classList.contains('collapsed') ? 'collapsed' : 'expanded');
+
+            setTimeout(() => {
+                // Sprawdzamy, czy FullCalendar jest aktywny na stronie
+                if (window.fullCalendarInstance) {
+                    window.fullCalendarInstance.updateSize();
+                    console.log('Kalendarz przeskalowany po zmianie sidebara');
+                }
+                
+                if (window.scheduleCalendar && window.scheduleCalendar.calendar) {
+                    window.scheduleCalendar.calendar.updateSize();
+                }
+            }, 350);
         });
     }
 

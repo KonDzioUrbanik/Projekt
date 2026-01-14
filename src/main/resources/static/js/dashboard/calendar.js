@@ -43,6 +43,8 @@ class FullCalendarInitializer {
                 locale: 'pl',
                 firstDay: 1, 
                 height: 'auto',
+                handleWindowResize: true,
+                windowResizeDelay: 100,
 
                 headerToolbar: {
                     left: 'prev',
