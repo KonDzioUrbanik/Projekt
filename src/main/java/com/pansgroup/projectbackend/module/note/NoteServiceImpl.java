@@ -81,6 +81,16 @@ public class NoteServiceImpl implements NoteService {
                 .map(this::toResponse)
                 .toList();
     }
+    
+    @Override
+    public List<NoteResponseDto> findByUserEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Użytkownik o e-mailu: " + email + " nie istnieje"));
+        
+        return noteRepository.findByAuthor_Id(user.getId()).stream()
+                .map(this::toResponse)
+                .toList();
+    }
 
     private NoteResponseDto toResponse(Note n) {
         User u = n.getAuthor();

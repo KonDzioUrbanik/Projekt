@@ -43,6 +43,12 @@ public class NoteController {
     public List<NoteResponseDto> all() {
         return noteService.findAll();
     }
+    
+    @GetMapping("/my-notes")
+    public List<NoteResponseDto> myNotes(Principal principal) {
+        String email = principal.getName();
+        return noteService.findByUserEmail(email);
+    }
 
     @GetMapping("/by-user/{userId}")
     public List<NoteResponseDto> byUser(@PathVariable Long userId) {
