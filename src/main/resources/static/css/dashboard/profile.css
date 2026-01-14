@@ -212,6 +212,25 @@
     opacity: 0.5;
 }
 
+/* Centrowanie komunikatu o braku danych wewnątrz Grida */
+.notes-preview-list .empty-state-small,
+.content-placeholder .empty-state-small {
+    /* Kluczowe: Rozciągnij element od pierwszej do ostatniej linii siatki */
+    grid-column: 1 / -1;
+    
+    /* Upewnij się, że zajmuje 100% szerokości */
+    width: 100%;
+    
+    /* Centrowanie zawartości flexboxem (dla pewności) */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    /* Opcjonalnie: minimalna wysokość, żeby wyglądało to estetycznie */
+    min-height: 120px;
+}
+
 /* SPINNER */
 .spinner {
     border: 3px solid #f3f3f3;

@@ -398,7 +398,7 @@ body{
 .btn-navbar-left:hover{
     background-color: var(--navbar-left-btn-hover);
     color: var(--text-white);
-    /* transform: translateX(4px); */
+    /* transform: translateX(4px);*/
 }
 
 .btn-navbar-left.active{
@@ -558,38 +558,6 @@ body{
     
     .side-nav::-webkit-scrollbar{ 
         display: none;
-    }
-    
-    /* Styl linkow w menu poziomym */
-    .btn-navbar-left{
-        margin-bottom: 0;
-        padding: 8px 16px;
-        border-radius: 20px;
-        background: var(--color-secondary);
-        color: var(--text-dark);
-        font-size: 0.85rem;
-        font-weight: 600;
-        border: 1px solid var(--border-color);
-        border-left: 1px solid var(--border-color);
-        justify-content: center;
-    }
-
-    /* Aktywny przycisk na mobile */
-    .btn-navbar-left.active{
-        background: var(--color-primary);
-        color: white;
-        border-color: var(--color-primary);
-    }
-
-    .btn-navbar-left:hover{
-        background-color: var(--color-secondary-dark);
-        color: var(--text-dark);
-        transform: none;
-    }
-    
-    .btn-navbar-left.active:hover{
-        background-color: var(--color-primary-dark);
-        color: white;
     }
 
      /* Ukrycie napisu "Admin" na mobile */
