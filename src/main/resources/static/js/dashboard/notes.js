@@ -1,4 +1,4 @@
-// MODUŁ NOTATKI
+/* MODUŁ NOTATKI */
 
 const AppState = {
     notes: [],
@@ -94,7 +94,7 @@ function setupEventListeners() {
     if (DOM.btnCancelForm) DOM.btnCancelForm.addEventListener('click', closeFormModal);
     if (DOM.btnSubmitForm) DOM.btnSubmitForm.addEventListener('click', handleFormSubmit);
 
-    // Liczniki (zabezpieczenie)
+    // Liczniki
     if (DOM.formNoteTitle) {
         DOM.formNoteTitle.addEventListener('input', () => updateCharCounter(DOM.formNoteTitle, DOM.titleCharCount, 150));
     }
@@ -117,6 +117,23 @@ function setupEventListeners() {
             openEditModal();
         }
     });
+
+    // Obsługa przycisku "Wstecz" w przeglądarce
+    window.addEventListener('popstate', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const noteIdParam = urlParams.get('id');
+        
+        if (noteIdParam) {
+            const targetNote = AppState.notes.find(n => n.id == noteIdParam);
+            if (targetNote) selectNote(targetNote.id);
+        } else {
+            // Jeśli wróciliśmy do czystego /dashboard/notes (bez ID), zamykamy podgląd
+            AppState.selectedNote = null;
+            if (DOM.emptyState) DOM.emptyState.style.display = 'flex';
+            if (DOM.noteView) DOM.noteView.style.display = 'none';
+            renderNotesList();
+        }
+    });
 }
 
 // LOGIKA: CZAS I LICZNIKI
@@ -128,20 +145,16 @@ function formatRelativeTime(dateString) {
     const diffInSeconds = Math.floor((now - date) / 1000);
 
     if (diffInSeconds < 60) return 'przed chwilą';
-    
     const diffInMinutes = Math.floor(diffInSeconds / 60);
     if (diffInMinutes < 60) return `${diffInMinutes} min temu`;
-
     const diffInHours = Math.floor(diffInMinutes / 60);
     if (diffInHours < 24) {
         if (diffInHours === 1) return 'godzinę temu';
         if (diffInHours > 1 && diffInHours < 5) return `${diffInHours} godz. temu`;
         return `${diffInHours} godz. temu`;
     }
-
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays === 1) return 'wczoraj';
-
     return date.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' });
 }
 
@@ -149,13 +162,12 @@ function updateCharCounter(inputElement, counterElement, limit) {
     if (!inputElement || !counterElement) return;
     const length = inputElement.value.length;
     counterElement.textContent = `${length}/${limit}`;
-
     counterElement.classList.remove('warning', 'danger');
     if (length >= limit) counterElement.classList.add('danger');
     else if (length >= limit * 0.9) counterElement.classList.add('warning');
 }
 
-// ZAPYTANIA API: ŁADOWANIE, TWORZENIE, EDYCJA, USUWANIE
+// ZAPYTANIA API
 
 async function loadNotes() {
     DOM.notesList.innerHTML = '<div class="loading-spinner" style="margin: 20px auto;"></div>';
@@ -163,7 +175,6 @@ async function loadNotes() {
     try {
         const response = await fetch('/api/notes/my-notes');
         
-        // Sprawdzenie przekierowania na login (gdy sesja wygasła)
         if (response.redirected && response.url.includes('/login')) {
             window.location.href = '/login';
             return;
@@ -178,13 +189,33 @@ async function loadNotes() {
         // Zabezpieczenie przed nullem
         AppState.notes = Array.isArray(data) ? data : [];
 
+        // Najpierw renderujemy domyślną listę
         applyCurrentFilter(); 
         renderNotesList();
 
+        // Link z profilu
+        const urlParams = new URLSearchParams(window.location.search);
+        const noteIdParam = urlParams.get('id');
+
+        if (noteIdParam) {
+            // Używamy '==' żeby porównać string z URL z liczbą ID z API
+            const targetNote = AppState.notes.find(n => n.id == noteIdParam);
+            
+            if (targetNote) {
+                // Wybierz notatkę i wyświetl
+                selectNote(targetNote.id);
+                
+                // Poczekaj chwilę aż DOM się odświeży i przewiń listę
+                setTimeout(() => {
+                    const activeCard = document.querySelector(`.note-card[data-note-id="${targetNote.id}"]`);
+                    if (activeCard) {
+                        activeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 100);
+            }
+        }
     } catch (error) {
         console.error('Błąd ładowania:', error);
-        
-        // Wyświetlenie błędu użytkownikowi
         showToast('Nie udało się połączyć z serwerem', 'error');
         
         DOM.notesList.innerHTML = `
@@ -202,16 +233,8 @@ async function handleFormSubmit(e) {
     const title = DOM.formNoteTitle.value.trim();
     const content = DOM.formNoteContent.value.trim();
 
-    // WALIDACJA FRONTENDOWA
-    if (!title) {
-        showFormError('Wpisz tytuł notatki');
-        return;
-    }
-    
-    if (!content) {
-        showFormError('Wpisz treść notatki');
-        return;
-    }
+    if (!title) { showFormError('Wpisz tytuł notatki'); return; }
+    if (!content) { showFormError('Wpisz treść notatki'); return; }
 
     DOM.btnSubmitForm.disabled = true;
     DOM.submitBtnText.textContent = 'Zapisywanie...';
@@ -220,15 +243,11 @@ async function handleFormSubmit(e) {
         const noteData = { title, content };
         let resultNote;
 
-        // funkcja do obsługi odpowiedzi HTTP (Login Redirect + Błędy)
         const handleResponse = async (response) => {
-            // Sprawdzenie sesji (przekierowanie na login)
             if (response.redirected && response.url.includes('/login')) {
                 window.location.href = '/login';
                 throw new Error('Sesja wygasła. Przekierowywanie...');
             }
-
-            // Obsługa błędów API
             if (!response.ok) {
                 const errorBody = await response.json().catch(() => ({}));
                 const errorMessage = errorBody.message || `Błąd serwera: ${response.status}`;
@@ -238,16 +257,13 @@ async function handleFormSubmit(e) {
         };
 
         if (AppState.isEditMode) {
-            // EDYCJA
             const response = await fetch(`/api/notes/${AppState.editingNoteId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(noteData)
             });
-
             resultNote = await handleResponse(response);
 
-            // Aktualizacja stanu
             const idx = AppState.notes.findIndex(n => n.id === resultNote.id);
             if (idx !== -1) AppState.notes[idx] = resultNote;
             
@@ -255,20 +271,20 @@ async function handleFormSubmit(e) {
                 renderNoteView(resultNote);
             }
             showToast('Notatka zaktualizowana', 'success');
-
         } else {
-            // TWORZENIE
             const response = await fetch('/api/notes', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(noteData)
             });
-
             resultNote = await handleResponse(response);
 
-            // Dodanie do stanu
             AppState.notes.unshift(resultNote);
             selectNote(resultNote.id);
+            
+            // Aktualizacja URL po utworzeniu nowej notatki
+            updateUrl(resultNote.id);
+            
             showToast('Notatka utworzona', 'success');
         }
 
@@ -278,15 +294,12 @@ async function handleFormSubmit(e) {
 
     } catch (error) {
         console.error(error);
-        // Wyświetlamy konkretny komunikat błędu zamiast ogólnego
         showFormError(error.message || 'Wystąpił nieoczekiwany błąd.');
     } finally {
         DOM.btnSubmitForm.disabled = false;
         DOM.submitBtnText.textContent = 'Zapisz';
     }
 }
-
-// Usuwanie notatki
 
 async function handleDeleteConfirm() {
     if (!AppState.selectedNote) return;
@@ -295,20 +308,18 @@ async function handleDeleteConfirm() {
     DOM.btnConfirmDelete.textContent = 'Usuwanie...';
 
     try {
-        const response = await fetch(`/api/notes/${AppState.selectedNote.id}`, { 
-            method: 'DELETE' 
-        });
+        const response = await fetch(`/api/notes/${AppState.selectedNote.id}`, { method: 'DELETE' });
 
-        if (!response.ok) {
-            throw new Error(`Błąd HTTP: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`Błąd HTTP: ${response.status}`);
 
-        // Usuń z lokalnego stanu dopiero gdy API potwierdzi sukces
         AppState.notes = AppState.notes.filter(n => n.id !== AppState.selectedNote.id);
         AppState.selectedNote = null;
         
         DOM.emptyState.style.display = 'flex';
         DOM.noteView.style.display = 'none';
+        
+        // Wyczyść URL po usunięciu notatki
+        updateUrl(null);
         
         applyCurrentFilter();
         renderNotesList();
@@ -344,7 +355,14 @@ function renderNotesList() {
         const isActive = AppState.selectedNote && AppState.selectedNote.id === note.id;
         const el = document.createElement('div');
         el.className = `note-card ${isActive ? 'active' : ''}`;
-        el.onclick = () => selectNote(note.id);
+        
+        el.setAttribute('data-note-id', note.id);
+        
+        el.onclick = () => {
+            selectNote(note.id);
+            // Zaktualizuj URL przy kliknięciu w notatkę
+            updateUrl(note.id);
+        };
         
         const date = formatRelativeTime(note.updatedAt || note.createdAt);
         const preview = note.content ? (note.content.substring(0, 60) + (note.content.length > 60 ? '...' : '')) : '';
@@ -366,7 +384,8 @@ function selectNote(id) {
 
     AppState.selectedNote = note;
     renderNoteView(note);
-    renderNotesList();
+    // Odśwież listę, żeby zaktualizować klasę .active
+    renderNotesList(); 
 }
 
 function renderNoteView(note) {
@@ -412,6 +431,15 @@ function handleFilterChange(filter) {
     AppState.currentFilter = filter;
     applyCurrentFilter();
     renderNotesList();
+}
+
+// Funkcja pomocnicza do aktualizacji URL bez przeładowania
+function updateUrl(noteId) {
+    const newUrl = noteId 
+        ? `${window.location.pathname}?id=${noteId}` 
+        : window.location.pathname;
+        
+    window.history.pushState({path: newUrl}, '', newUrl);
 }
 
 // OBSŁUGA MODALI
