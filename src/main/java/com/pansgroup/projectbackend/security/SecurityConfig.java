@@ -58,7 +58,20 @@ public class SecurityConfig {
 
         http.csrf(AbstractHttpConfigurer::disable);
         http.httpBasic(AbstractHttpConfigurer::disable);
-        http.formLogin(AbstractHttpConfigurer::disable);
+
+        // Dzięki temu Spring wie, że jak ktoś nie ma dostępu, to trzeba go rzucić na "/login"
+        http.formLogin(form -> form
+                .loginPage("/login") // Adres widoku logowania
+                .loginProcessingUrl("/login") // Adres POST formularza
+                .defaultSuccessUrl("/dashboard", true) // Gdzie przekierować po sukcesie
+                .permitAll() // Strona logowania dostępna dla każdego
+        );
+
+        http.logout(logout -> logout
+            .logoutUrl("/logout")
+            .logoutSuccessUrl("/login?logout")
+            .permitAll()
+        );
 
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(
@@ -98,13 +111,13 @@ public class SecurityConfig {
                         "/api/groups/{id}"
                 ).authenticated()
 
-                //to dla api :D
+                //to dla api
                 .requestMatchers(
                         "/api/users/me",
                         "/api/notes/**"
                 ).authenticated()
 
-                //to dla stron widokow :D
+                //to dla stron widokow
                 .requestMatchers(
                     "/dashboard", 
                     "/schedule", //dodalem dla planu zajec

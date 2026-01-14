@@ -163,6 +163,12 @@ async function loadNotes() {
     try {
         const response = await fetch('/api/notes/my-notes');
         
+        // Sprawdzenie przekierowania na login (gdy sesja wygasła)
+        if (response.redirected && response.url.includes('/login')) {
+            window.location.href = '/login';
+            return;
+        }
+        
         if (!response.ok) {
             throw new Error(`Błąd HTTP: ${response.status}`);
         }
@@ -214,10 +220,16 @@ async function handleFormSubmit(e) {
         const noteData = { title, content };
         let resultNote;
 
-        // Pomocnicza funkcja do obsługi błędów HTTP
+        // funkcja do obsługi odpowiedzi HTTP (Login Redirect + Błędy)
         const handleResponse = async (response) => {
+            // Sprawdzenie sesji (przekierowanie na login)
+            if (response.redirected && response.url.includes('/login')) {
+                window.location.href = '/login';
+                throw new Error('Sesja wygasła. Przekierowywanie...');
+            }
+
+            // Obsługa błędów API
             if (!response.ok) {
-                // Próbujemy pobrać treść błędu z serwera (np. message z Spring Boot)
                 const errorBody = await response.json().catch(() => ({}));
                 const errorMessage = errorBody.message || `Błąd serwera: ${response.status}`;
                 throw new Error(errorMessage);
