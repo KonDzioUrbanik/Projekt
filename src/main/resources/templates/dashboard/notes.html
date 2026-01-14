@@ -1,14 +1,130 @@
 <!DOCTYPE html>
-<html layout:decorate="~{layout/main-layout}">
+<html layout:decorate="~{layout/main-layout}"
+      xmlns:th="http://www.thymeleaf.org">
     <head>
         <title>Notatki</title>
     </head>
     <body>
+        <th:block layout:fragment="page-styles">
+            <link rel="stylesheet" th:href="@{/css/dashboard/notes.css}">
+        </th:block>
+
         <div layout:fragment="content">
-            <h1 class="page-title">Notatki</h1>
-            <div class="content-box">
-                <p>W budowie...</p>
+            <div id="toastContainer" class="toast-container"></div>
+
+            <div class="notes-container">
+                <aside class="notes-sidebar">
+                    <div class="notes-sidebar-header">
+                        <h2 class="notes-sidebar-title">Moje notatki</h2>
+                        <button class="btn-new-note" id="btnNewNote">
+                            <i class="fas fa-plus"></i> Nowa notatka
+                        </button>
+                    </div>
+                    <div class="notes-search">
+                        <div class="search-wrapper">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchInput" placeholder="Szukaj..." autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="notes-filters">
+                        <button class="filter-chip active" data-filter="all">Wszystkie</button>
+                        <button class="filter-chip" data-filter="recent">Ostatnie</button>
+                        <button class="filter-chip" data-filter="edited">Edytowane</button>
+                    </div>
+                    <div class="notes-list" id="notesList">
+                        <div class="notes-loading">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </aside>
+
+                <main class="notes-main">
+                    <div class="notes-empty-state" id="emptyState">
+                        <div class="empty-icon-bg">
+                            <i class="fas fa-pencil-alt"></i>
+                        </div>
+                        <h3>Wybierz lub utwórz notatkę</h3>
+                        <p>Kliknij na notatkę z listy lub utwórz nową</p>
+                    </div>
+
+                    <div class="note-view" id="noteView" style="display: none;">
+                        <div class="note-header">
+                            <div class="note-title-wrapper">
+                                <h1 id="noteTitle">Tytuł notatki</h1>
+                                <div class="note-meta">
+                                    <span id="noteCreatedAt">Data</span>
+                                    <span id="noteEditedMeta" class="badge-edited" style="display:none;">Edytowano</span>
+                                </div>
+                            </div>
+                            <div class="note-actions">
+                                <button class="btn-icon" id="btnEdit" title="Edytuj (Ctrl+E)">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button class="btn-icon btn-icon-danger" id="btnDelete" title="Usuń">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="note-body">
+                            <div class="note-content-text" id="noteContent"></div>
+                        </div>
+                        <div class="note-footer-info">
+                            Autor: <span id="noteAuthor">Autor</span>
+                        </div>
+                    </div>
+                </main>
+            </div>
+
+            <div class="modal-overlay" id="noteFormOverlay">
+                <div class="modal-card">
+                    <div class="modal-header">
+                        <h3 id="formTitle">Nowa notatka</h3>
+                        <button class="btn-close" id="btnCloseModal"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="noteForm">
+                            <div class="form-section-title">
+                                <input type="text" id="formNoteTitle" class="form-input-title" placeholder="Wprowadź tytuł..." required maxlength="150">
+                                <div class="char-counter" id="titleCharCount">0/150</div>
+                            </div>
+                            <div class="form-section-content">
+                                <textarea id="formNoteContent" class="form-textarea" placeholder="Zacznij pisać treść notatki..." required maxlength="4000"></textarea>
+                                <div class="char-counter" id="contentCharCount">0/4000</div>
+                            </div>
+                            <div id="formError" class="form-error-msg" style="display: none;"></div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn-text" id="btnCancelForm">Anuluj</button>
+                        <button class="btn-primary" id="btnSubmitForm">
+                            <span id="submitBtnText">Zapisz</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-overlay" id="deleteConfirmOverlay">
+                <div class="modal-card modal-sm modal-center-content">
+                    <div class="modal-body-centered">
+                        <div class="modal-icon-wrapper danger">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                        <h3>Usunąć notatkę?</h3>
+                        <p class="text-muted">
+                            Czy na pewno chcesz usunąć tę notatkę?<br>
+                            <strong>Tej operacji nie można cofnąć.</strong>
+                        </p>
+                    </div>
+                    <div class="modal-footer-centered">
+                        <button class="btn-text-gray" id="btnCancelDelete">Anuluj</button>
+                        <button class="btn-danger-block" id="btnConfirmDelete">Usuń notatkę</button>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <th:block layout:fragment="page-scripts">
+            <script th:src="@{/js/dashboard/notes.js}"></script>
+        </th:block>
     </body>
 </html>

@@ -1,0 +1,699 @@
+/* ZMIENNE I MOTYW */
+:root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-light: #eff6ff;
+    
+    --danger: #ef4444;
+    --danger-hover: #dc2626;
+    --danger-light: #fef2f2;
+
+    --text-main: #1e293b;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+
+    --bg-app: #f1f5f9;
+    --bg-white: #ffffff;
+    --bg-sidebar: #f8fafc;
+    
+    --border: #e2e8f0;
+    --border-focus: #bfdbfe;
+
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+    --radius-md: 8px;
+    --radius-lg: 12px;
+}
+
+/* UKŁAD */
+
+.notes-container {
+    display: flex;
+    height: calc(100vh - 120px);
+    min-height: 600px;
+    background: var(--bg-white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+
+/* PASEK BOCZNY */
+
+.notes-sidebar {
+    width: 320px;
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.notes-sidebar-header {
+    padding: 20px;
+    background: var(--bg-sidebar);
+}
+
+.notes-sidebar-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 15px;
+}
+
+.btn-new-note {
+    width: 100%;
+    padding: 10px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-new-note:hover {
+    background: var(--primary-hover);
+}
+
+/* Szukanie */
+.notes-search {
+    padding: 0 20px 15px 20px;
+}
+
+.search-wrapper {
+    position: relative;
+}
+
+.search-wrapper i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.search-wrapper input {
+    width: 100%;
+    padding: 10px 10px 10px 36px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-white);
+    color: var(--text-main);
+    font-size: 0.9rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-wrapper input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+/* Filtry */
+.notes-filters {
+    padding: 0 20px 15px 20px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border);
+}
+
+.notes-filters::-webkit-scrollbar { display: none; }
+
+.filter-chip {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.filter-chip:hover {
+    background: var(--bg-white);
+    border-color: var(--text-secondary);
+}
+
+.filter-chip.active {
+    background: var(--text-main);
+    color: white;
+    border-color: var(--text-main);
+}
+
+/* Lista */
+.notes-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.notes-list::-webkit-scrollbar,
+.note-body::-webkit-scrollbar {
+    width: 10px;
+}
+.note-body::-webkit-scrollbar-track {
+    background: transparent;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+.notes-list::-webkit-scrollbar-thumb,
+.note-body::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 5px;
+    border: 3px solid var(--bg-white); /* Tworzy efekt marginesu wokół paska */
+}
+.note-body::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Karta notatki */
+.note-card {
+    padding: 15px;
+    margin-bottom: 8px;
+    background: var(--bg-white);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.note-card:hover {
+    background: white;
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
+}
+
+.note-card.active {
+    background: white;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary);
+}
+
+.note-card h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin: 0 0 6px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.note-card p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 0 0 8px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+}
+
+.note-card-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* GŁÓWNA ZAWARTOŚĆ */
+
+.notes-main {
+    flex: 1;
+    background: var(--bg-white);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden; /* Zapobiega wychodzeniu treści poza główny kontener */
+    min-width: 0; /* Kluczowe dla flexboxa, aby text-overflow działał w dzieciach */
+}
+
+.notes-empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    color: var(--text-secondary);
+}
+
+.empty-icon-bg {
+    width: 80px;
+    height: 80px;
+    background: var(--bg-app);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.empty-icon-bg i {
+    font-size: 32px;
+    color: var(--text-muted);
+}
+
+.notes-empty-state h3 {
+    color: var(--text-main);
+    margin-bottom: 10px;
+}
+
+.note-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
+.note-header {
+    padding: 30px 40px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start; /* Ważne: przyciski zostają na górze przy wieloliniowym tytule */
+    gap: 20px;
+    flex-shrink: 0; /* Nagłówek nie kurczy się przy scrollowaniu treści */
+}
+
+.note-title-wrapper {
+    flex: 1; /* Zajmuje całą dostępną przestrzeń minus przyciski */
+    min-width: 0; /* ✨ MAGIA: Pozwala kontenerowi flex kurczyć się, gdy tekst jest za długi */
+    margin-right: 10px; /* Dodatkowy odstęp od przycisków */
+}
+
+.note-title-wrapper h1 {
+    font-size: 1.75rem;
+    color: var(--text-main);
+    margin: 0 0 10px 0;
+    line-height: 1.3;
+    
+    /* ŁAMANIE DŁUGICH CIĄGÓW ZNAKÓW  */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+}
+
+.note-meta {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.badge-edited {
+    background: var(--bg-app);
+    color: var(--text-secondary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.note-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0; /* Zapobiega zgniataniu przycisków przez długi tytuł */
+    margin-top: 5px; /* Wyrównanie optyczne do pierwszej linii tytułu */
+}
+
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border);
+    background: white;
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon:hover {
+    border-color: var(--text-secondary);
+    color: var(--text-main);
+}
+
+.btn-icon-danger:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+    background: var(--danger-light);
+}
+
+.note-body {
+    flex: 1; /* Wypełnia resztę wysokości kontenera */
+    padding: 30px 40px; /* Margines wewnętrzny dla tekstu */
+    
+    /* Pasek przewijania tylko w tej sekcji */
+    overflow-y: auto; 
+    overflow-x: hidden;
+    
+    /* Stabilizuje pasek przewijania */
+    scrollbar-gutter: stable;
+}
+
+.note-content-text {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: var(--text-main);
+    white-space: pre-wrap; /* Zachowuje entery i spacje */
+    
+    /* ŁAMANIE DŁUGIEJ TREŚCI */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    
+    width: 100%;
+}
+
+.note-footer-info {
+    padding: 15px 40px;
+    border-top: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    background: #fafafa;
+    flex-shrink: 0; /* Stopka zawsze widoczna, nie znika */
+}
+
+/* MODALE I FORMULARZ */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-card {
+    background: white;
+    width: 100%;
+    max-width: 650px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-sm { max-width: 400px; }
+
+.modal-header {
+    padding: 20px 25px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 { margin: 0; font-size: 1.25rem; }
+
+.btn-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.modal-body {
+    padding: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-footer {
+    padding: 20px 25px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background: #fafafa;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+/*  STYLE MODALA USUWANIA  */
+
+.modal-center-content {
+    text-align: center;
+    overflow: hidden;
+}
+
+.modal-body-centered {
+    padding: 30px 25px 10px 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.modal-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
+.modal-icon-wrapper.danger {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.modal-body-centered h3 {
+    margin: 0 0 10px 0;
+    color: var(--text-main);
+    font-size: 1.25rem;
+}
+
+.modal-body-centered p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.modal-footer-centered {
+    padding: 20px 25px 25px 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: white;
+    border-top: none;
+}
+
+@media (min-width: 480px) {
+    .modal-footer-centered {
+        flex-direction: row;
+        justify-content: center;
+    }
+}
+
+.btn-danger-block {
+    background: var(--danger);
+    color: white;
+    padding: 12px 24px;
+    border-radius: var(--radius-md);
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    flex: 1;
+    transition: background 0.2s;
+}
+
+.btn-danger-block:hover {
+    background: var(--danger-hover);
+}
+
+.btn-text-gray {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 12px 24px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    flex: 1;
+    transition: background 0.2s;
+}
+
+.btn-text-gray:hover {
+    background: var(--bg-app);
+}
+
+/* SEKCJE FORMULARZA */
+
+.form-section-title {
+    padding: 25px 25px 10px 25px;
+    border-bottom: 1px dashed var(--border);
+    background: #fff;
+}
+
+.form-section-content {
+    padding: 15px 25px 25px 25px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-input-title {
+    width: 100%;
+    font-size: 1.5rem;
+    font-weight: 700;
+    border: none;
+    outline: none;
+    padding: 5px 0;
+    color: var(--text-main);
+    background: transparent;
+}
+.form-input-title::placeholder { color: var(--text-muted); }
+
+.form-textarea {
+    width: 100%;
+    min-height: 250px;
+    flex-grow: 1;
+    border: none;
+    outline: none;
+    resize: none;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-main);
+    font-family: inherit;
+    background: transparent;
+    margin-top: 10px;
+}
+
+.char-counter {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 4px;
+    transition: color 0.2s;
+}
+
+.char-counter.warning { color: #f59e0b; }
+.char-counter.danger { color: var(--danger); font-weight: 600; }
+
+.form-error-msg {
+    margin: 0 25px 15px 25px;
+    color: var(--danger);
+    font-size: 0.9rem;
+    padding: 10px;
+    background: var(--danger-light);
+    border-radius: var(--radius-md);
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-primary:hover { background: var(--primary-hover); }
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-danger:hover { background: var(--danger-hover); }
+
+.btn-text {
+    background: transparent;
+    color: var(--text-secondary);
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+}
+.btn-text:hover { color: var(--text-main); }
+
+/* POWIADOMIENIA (TOAST) */
+
+.toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.toast {
+    background: white;
+    padding: 16px 20px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    border-left: 4px solid var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 300px;
+    animation: slideInRight 0.3s ease;
+    font-size: 0.95rem;
+    color: var(--text-main);
+}
+.toast.success { border-color: #10b981; }
+.toast.error { border-color: var(--danger); }
+.toast i { font-size: 1.2rem; }
+.toast.success i { color: #10b981; }
+.toast.error i { color: var(--danger); }
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+@keyframes fadeOut {
+    to { opacity: 0; transform: translateY(10px); }
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+@media (max-width: 768px) {
+    .notes-container { flex-direction: column; height: auto; }
+    .notes-sidebar { width: 100%; height: 300px; border-right: none; border-bottom: 1px solid var(--border); }
+    .note-header { padding: 20px; flex-direction: column; gap: 15px; }
+    .note-actions { width: 100%; justify-content: flex-end; }
+    .note-body { padding: 20px; }
+}
