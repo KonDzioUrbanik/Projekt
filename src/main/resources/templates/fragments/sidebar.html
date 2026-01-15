@@ -2,56 +2,78 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
-    <body>
-        <nav class="side-nav" th:fragment="sidebar">
+<body>
+    <nav class="side-nav navbar-left" th:fragment="sidebar" id="sidebar">
+        
+        <div class="sidebar-header-actions">
+            <button id="sidebarToggle" class="btn-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <div class="sidebar-menu">
             <a th:href="@{/dashboard}" class="btn-navbar-left" th:classappend="${activePage == 'home'} ? 'active'">
-                Strona główna
+                <i class="fas fa-home"></i>
+                <span class="link-text">Strona główna</span>
             </a>
             
             <a th:href="@{/dashboard/calendar}" class="btn-navbar-left" th:classappend="${activePage == 'calendar'} ? 'active'">
-                Kalendarz
+                <i class="fas fa-calendar-alt"></i>
+                <span class="link-text">Kalendarz</span>
             </a>
             
             <a th:href="@{/dashboard/schedule}" class="btn-navbar-left" th:classappend="${activePage == 'schedule'} ? 'active'">
-                Harmonogram zajęć
+                <i class="fas fa-clock"></i>
+                <span class="link-text">Harmonogram zajęć</span>
             </a>
 
             <a th:href="@{/dashboard/attendance}" class="btn-navbar-left" th:classappend="${activePage == 'attendance'} ? 'active'">
-                Obecności
+                <i class="fas fa-check-circle"></i>
+                <span class="link-text">Obecności</span>
             </a>
 
             <a th:href="@{/dashboard/forum}" class="btn-navbar-left" th:classappend="${activePage == 'forum'} ? 'active'">
-                Forum
+                <i class="fas fa-comments"></i>
+                <span class="link-text">Forum</span>
             </a>
 
             <a th:href="@{/dashboard/notes}" class="btn-navbar-left" th:classappend="${activePage == 'notes'} ? 'active'">
-                Notatki
+                <i class="fas fa-sticky-note"></i>
+                <span class="link-text">Notatki</span>
             </a>
 
             <div sec:authorize="hasRole('ADMIN')" class="admin-section">
                 <p class="admin-section-label">Admin</p>
-                <a th:href="@{/admin/users}"  class="btn-navbar-left" th:classappend="${activePage == 'users'} ? 'active'">
-                    Lista użytkowników
+                <div class="admin-divider"></div> <a th:href="@{/admin/users}" class="btn-navbar-left" th:classappend="${activePage == 'users'} ? 'active'">
+                    <i class="fas fa-users-cog"></i>
+                    <span class="link-text">Użytkownicy</span>
                 </a>
-                <a th:href="@{/admin/announcement}"  class="btn-navbar-left" th:classappend="${activePage == 'announcement'} ? 'active'">
-                    Ogłoszenia  
+                <a th:href="@{/admin/announcement}" class="btn-navbar-left" th:classappend="${activePage == 'announcement'} ? 'active'">
+                    <i class="fas fa-bullhorn"></i>
+                    <span class="link-text">Ogłoszenia</span>
                 </a>
-                <a th:href="@{/admin/post-control}"  class="btn-navbar-left" th:classappend="${activePage == 'post-control'} ? 'active'">
-                    Kontrola postów
+                <a th:href="@{/admin/post-control}" class="btn-navbar-left" th:classappend="${activePage == 'post-control'} ? 'active'">
+                    <i class="fas fa-shield-alt"></i>
+                    <span class="link-text">Moderacja</span>
                 </a>
-                <a th:href="@{/admin/schedule-management}"  class="btn-navbar-left" th:classappend="${activePage == 'schedule-management'} ? 'active'">
-                    Zarządzanie harmonogramem zajęć
+                <a th:href="@{/admin/schedule-management}" class="btn-navbar-left" th:classappend="${activePage == 'schedule-management'} ? 'active'">
+                    <i class="fas fa-calendar-plus"></i>
+                    <span class="link-text">Zarządzanie planem</span>
                 </a>
-                <a th:href="@{/admin/groups-management}"  class="btn-navbar-left" th:classappend="${activePage == 'groups-management'} ? 'active'">
-                    Zarządzanie kierunkami studiów
+                <a th:href="@{/admin/groups-management}" class="btn-navbar-left" th:classappend="${activePage == 'groups-management'} ? 'active'">
+                    <i class="fas fa-layer-group"></i>
+                    <span class="link-text">Kierunki</span>
                 </a>
-                <a th:href="@{/admin/university-calendar}"  class="btn-navbar-left" th:classappend="${activePage == 'university-calendar'} ? 'active'">
-                    Kalendarz akademicki
+                <a th:href="@{/admin/university-calendar}" class="btn-navbar-left" th:classappend="${activePage == 'university-calendar'} ? 'active'">
+                    <i class="fas fa-university"></i>
+                    <span class="link-text">Rok akademicki</span>
                 </a>
-                <a th:href="@{/admin/alerts}"  class="btn-navbar-left" th:classappend="${activePage == 'alerts'} ? 'active'">
-                    Alerty
+                <a th:href="@{/admin/alerts}" class="btn-navbar-left" th:classappend="${activePage == 'alerts'} ? 'active'">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span class="link-text">Alerty</span>
                 </a>
             </div>
-        </nav>
-    </body>
+        </div>
+    </nav>
+</body>
 </html>

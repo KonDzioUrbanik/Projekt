@@ -1,52 +1,76 @@
 <!DOCTYPE html>
-<html layout:decorate="~{layout/main-layout}">
-    <head>
-        <title>Twój Profil</title>
-        <th:block layout:fragment="page-styles">
-            <style>
-                .profile-wrapper{ 
-                    padding: 20px;
-                }
-
-                .profile-section{ 
-                    background: white; 
-                    padding: 20px; 
-                    margin-bottom: 20px; 
-                    border-radius: 8px; 
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
-                }
-
-                .profile-wrapper h2 {
-                    margin-bottom: 2rem;
-                    color: #2c3e50;
-                }
-
-                .profile-section p {
-                    color: #666;
-                }
-            </style>
-        </th:block>
-    </head>
-    <body>
-        <div layout:fragment="content">
-            <div class="profile-wrapper">
-                <h2>Twój Profil</h2>
-                
-                <div id="posts" class="profile-section">
-                    <h3>Twoje posty</h3>
-                    <p>Brak postów do wyświetlenia.</p>
+<html layout:decorate="~{layout/main-layout}"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Twój Profil</title>
+    <th:block layout:fragment="page-styles">
+        <link rel="stylesheet" th:href="@{/css/dashboard/profile.css}">
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="profile-container">
+            
+            <div class="profile-header card">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
                 </div>
-                
-                <div id="comments" class="profile-section">
-                    <h3>Twoje komentarze</h3>
-                    <p>Brak komentarzy.</p>
+                <div class="profile-info">
+                    <h2 th:text="${currentUser.firstName + ' ' + currentUser.lastName}"></h2>
+                    <p class="role-badge" th:text="${currentUser.role}"></p>
+                    <p class="email-text" th:text="${currentUser.email}"></p>
                 </div>
-                
-                <div id="notes" class="profile-section">
-                    <h3>Twoje notatki</h3>
-                    <p>Brak notatek.</p>
+                <div class="profile-actions">
+                    <a href="/change-password" class="btn-outline">
+                        <i class="fas fa-key"></i> Zmień hasło
+                    </a>
                 </div>
             </div>
+
+            <div class="profile-grid">
+                
+                <div class="profile-section card span-2">
+                    <div class="section-header">
+                        <h3><i class="fas fa-sticky-note"></i> Ostatnie notatki</h3>
+                        <a href="/dashboard/notes" class="btn-link">Zobacz wszystkie</a>
+                    </div>
+                    <div id="notes-container" class="notes-preview-list">
+                        <div class="loading-state">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-section card">
+                    <div class="section-header">
+                        <h3><i class="fas fa-comments"></i> Twoje posty</h3>
+                    </div>
+                    <div id="posts-container" class="content-placeholder">
+                        <div class="empty-state-small">
+                            <i class="fas fa-comment-slash"></i>
+                            <p>Brak postów</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-section card">
+                    <div class="section-header">
+                        <h3><i class="fas fa-reply"></i> Komentarze</h3>
+                    </div>
+                    <div id="comments-container" class="content-placeholder">
+                        <div class="empty-state-small">
+                            <i class="fas fa-comment-dots"></i>
+                            <p>Brak komentarzy</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
-    </body>
+    </div>
+
+    <th:block layout:fragment="page-scripts">
+        <script th:src="@{/js/dashboard/profile.js}"></script>
+    </th:block>
+</body>
 </html>

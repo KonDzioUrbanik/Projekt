@@ -1,56 +1,39 @@
 <!DOCTYPE html>
 <html lang="pl"
-    xmlns:th="http://www.thymeleaf.org"
-    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-        <!-- import czcionek oraz ikon -->
+        <title>Panel Studenta</title>
+
         <link rel="icon" th:href="@{/favicon.png}" type="image/png">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-        <!-- osobne arkusze stylow -->
-        <link rel="stylesheet" th:href="@{/css/dashboard/dashboard.css}" href="../../static/css/dashboard/dashboard.css">
+        <link rel="stylesheet" th:href="@{/css/dashboard/dashboard.css}">
+        <link rel="stylesheet" th:href="@{/css/dashboard/sidebar.css}">
 
         <th:block layout:fragment="page-styles"></th:block>
     </head>
+    
     <body>
         <div th:replace="~{fragments/header :: header}"></div>
 
         <div class="dashboard-container">
-            <aside class="navbar-left">
-                <div th:replace="~{fragments/sidebar :: sidebar}"></div>
-            </aside>
+            <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
             <section class="navbar-middle">
                 <div layout:fragment="content"></div>
             </section>
         </div>
 
-        <script th:src="@{/js/common/user-menu.js}" src="../../static/js/common/user-menu.js"></script>
-
-        <script>
-            document.addEventListener("DOMContentLoaded", function(){
-                // znalezienie kontener menu i aktywny link
-                const navContainer = document.querySelector('.side-nav');
-                const activeLink = document.querySelector('.side-nav .active');
-
-                // jesli oba elementy istnieja
-                if (navContainer && activeLink){
-                    // przewiniecie tak, aby aktywny element byl widoczny
-                    activeLink.scrollIntoView({
-                        behavior: 'auto', // 'auto' oznacza natychmiastowy skok bez animacji
-                        block: 'nearest', // nie przewijanie strony w pionie
-                        inline: 'center'  // wycentrowanie przycisku w poziomie
-                    });
-                }
-            });
-        </script>
+        <script th:src="@{/js/common/user-menu.js}"></script> 
+        <script th:src="@{/js/dashboard/sidebar.js}" defer></script>
 
         <th:block layout:fragment="page-scripts"></th:block>
     </body>
