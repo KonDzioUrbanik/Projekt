@@ -1,44 +1,75 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>PANSportal</title>
 
-        <!-- Import czcionek oraz ikon -->
         <link rel="icon" th:href="@{/favicon.png}" type="image/png">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-        <!-- Główny arkusz stylów -->
-        <link rel="stylesheet" th:href="@{/css/common/style.css}" href="../static/css/common/style.css">
+        <link rel="stylesheet" th:href="@{/css/common/style.css}">
     </head>
     <body>
-        <!-- Główny kontener -->
-        <div class="main-container">
-            <header class="main-header">
+        
+        <nav class="landing-nav">
+            <a href="/" class="nav-logo">
                 <div class="logo-circle">
                     <i class="fas fa-university"></i>
                 </div>
-                
-                <h1>Witamy w PANSportal</h1>
-                <p>Twoje miejsce do zarządzania studiami.</p>
-            </header>
+                <span>PANSportal</span>
+            </a>
+            
+            <div class="nav-actions">
+                <a th:href="@{/login}" class="btn btn-outline">Logowanie</a>
+                <a th:href="@{/register}" class="btn btn-primary">Rejestracja</a>
+            </div>
+        </nav>
 
-            <!-- Nawigacja startowa -->
-            <nav class="start-nav">
+        <header class="hero-section">
+            <span class="hero-badge">Nowy Rok Akademicki 2025/26</span>
+            
+           <h1 class="hero-title">
+               Witamy w PANSportal
+            </h1>
+            
+            <p class="hero-subtitle">
+                Twoje miejsce do zarządzania studiami.
+            </p>
+
+            <div class="hero-buttons">
                 <a th:href="@{/login}" class="btn btn-primary">
-                    <i class="fas fa-sign-in-alt"></i> Zaloguj się
+                    <i class="fas fa-sign-in-alt"></i> Przejdź do panelu
                 </a>
-                <a th:href="@{/register}" class="btn btn-primary">
-                    <i class="fas fa-user-plus"></i> Stwórz konto
-                </a>
-                <a th:href="@{/tutorial}" class="btn btn-tertiary">
-                    <i class="fas fa-graduation-cap"></i> Zobacz samouczek
-                </a>
-            </nav>
-        </div>
+            </div>
+        </header>
+
+        <section class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="far fa-calendar-alt"></i></div>
+                <h3 class="feature-title">Organizacja czasu</h3>
+                <p class="feature-desc">Twój harmonogram zajęć i kalendarz roku akademickiego zawsze pod ręką.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-graduation-cap"></i></div>
+                <h3 class="feature-title">Postępy w nauce</h3>
+                <p class="feature-desc">Monitoruj swoje oceny, zaliczenia i obecności na bieżąco.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-comments"></i></div>
+                <h3 class="feature-title">Społeczność</h3>
+                <p class="feature-desc">Forum grupy i szybka wymiana informacji ze studentami oraz wykładowcami.</p>
+            </div>
+        </section>
+
+        <footer class="landing-footer">
+            <p>&copy; 2026 PANSportal. Wszelkie prawa zastrzeżone.</p>
+        </footer>
 
     </body>
 </html>
