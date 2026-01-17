@@ -6,23 +6,139 @@
     <body>
         <div layout:fragment="content">
             <div id="welcome" class="welcome content-section active">
-                <div class="welcome-message">
-                    <h1>Witamy w panelu startowym!</h1>
-                    <p>Cześć, <strong th:text="${currentUser.firstName}">Użytkowniku</strong>!</p>
+                <!-- Nagłówek powitalny -->
+                <div class="welcome-banner">
+                    <div class="banner-content">
+                        <div class="welcome-text">
+                            <h1>
+                                <span class="greeting" id="greetingText">Dzień dobry</span>, 
+                                <span class="username" th:text="${currentUser.firstName}">Użytkowniku</span>!
+                            </h1>
+                            <p class="welcome-subtitle" style="color: white;">Miło Cię widzieć. Oto Twój dzisiejszy przegląd.</p>
+                        </div>
+                        <div class="date-card">
+                            <div class="date-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div class="date-info">
+                                <span class="date-label">Dzisiaj</span>
+                                <span class="date-value" id="currentDate">Ładowanie...</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="home-content">
-                    <div class="left-section">
-                        <p>Blok 1 (np. Najbliższe zajęcia)</p>
+                <!-- Główna treść dashboardu -->
+                <div class="dashboard-grid">
+                    
+                    <!-- Sekcja: Najbliższe zajęcia -->
+                    <div class="dashboard-card primary-card">
+                        <div class="card-header">
+                            <div class="header-left">
+                                <div class="icon-badge">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="header-text">
+                                    <h2>Najbliższe zajęcia</h2>
+                                    <p>Twój harmonogram na dzisiaj.</p>
+                                </div>
+                            </div>
+                            <a href="/dashboard/schedule" class="view-link">
+                                <span>Pełny harmonogram</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+
+                        <div class="card-body">
+                            <!-- Loader -->
+                            <div id="classesLoader" class="loader-container">
+                                <div class="loader-spinner"></div>
+                                <p>Ładowanie zajęć...</p>
+                            </div>
+
+                            <!-- Komunikat o błędzie -->
+                            <div id="classesError" class="error-state" style="display: none;">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <h3>Nie udało się załadować zajęć</h3>
+                                <p>Spróbuj odświeżyć stronę</p>
+                            </div>
+
+                            <!-- Aktualne zajęcia (teraz) -->
+                            <div id="currentClasses" class="classes-section" style="display: none;">
+                                <div class="section-divider current-section">
+                                    <span class="divider-text live-lesson">
+                                        <i class="fas fa-circle" style="color: var(--color-success); font-size: 0.5rem; margin-right: 0.5rem;"></i>
+                                        Trwają teraz</span>
+                                    </span>
+                                </div>
+                                <div id="currentClassesList" class="classes-grid">
+                                    <!-- Aktualne zajęcia zostaną załadowane przez JavaScript -->
+                                </div>
+                            </div>
+
+                            <!-- Zajęcia dzisiaj -->
+                            <div id="todayClasses" class="classes-section" style="display: none;">
+                                <div class="section-divider">
+                                    <span class="divider-text">Dzisiaj</span>
+                                </div>
+                                <div id="todayClassesList" class="classes-grid">
+                                    <!-- Zajęcia zostaną załadowane przez JavaScript -->
+                                </div>
+                            </div>
+
+                            <!-- Zajęcia jutro -->
+                            <div id="tomorrowClasses" class="classes-section" style="display: none;">
+                                <div class="section-divider">
+                                    <span class="divider-text">Jutro</span>
+                                </div>
+                                <div id="tomorrowClassesList" class="classes-grid">
+                                    <!-- Zajęcia zostaną załadowane przez JavaScript -->
+                                </div>
+                            </div>
+
+                            <!-- Komunikat gdy brak zajęć -->
+                            <div id="noClasses" class="empty-state" style="display: none;">
+                                <div class="empty-icon">
+                                    <i class="fas fa-bed"></i>
+                                </div>
+                                <h3>Brak zajęć w najbliższym czasie</h3>
+                                <p>Świetna okazja na odpoczynek!</p>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="right-section">
-                        <p>Blok 2 (np. Ogłoszenia)</p>
+                    <!-- Sekcja: Ogłoszenia -->
+                    <div class="dashboard-card secondary-card">
+                        <div class="card-header">
+                            <div class="header-left">
+                                <div class="icon-badge secondary">
+                                    <i class="fas fa-bullhorn"></i>
+                                </div>
+                                <div class="header-text">
+                                    <h2>Ogłoszenia</h2>
+                                    <p>Aktualności i informacje</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="coming-soon">
+                                <div class="coming-icon">
+                                    <i class="fas fa-rocket"></i>
+                                </div>
+                                <h3>Już wkrótce!</h3>
+                                <p>Moduł ogłoszeń będzie dostępny w przyszłości.</p>
+                            </div>
+                        </div>
                     </div>
+
                 </div>
-
-                <!-- tu cos mozna dodac -->
             </div>
         </div>
+
+        <!-- JavaScript dla strony głównej -->
+        <th:block layout:fragment="page-scripts">
+            <script th:src="@{/js/dashboard/dashboard.js}"></script>
+        </th:block>
     </body>
 </html>
