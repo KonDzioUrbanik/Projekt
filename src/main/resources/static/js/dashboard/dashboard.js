@@ -37,6 +37,11 @@ class DashboardHome {
         this.setGreeting();
         this.displayCurrentDate();
         this.loadUpcomingClasses();
+        
+        // Inicjalizacja panelu admina (jeśli istnieje)
+        if (document.querySelector('.admin-dashboard')) {
+            this.initAdminPanel();
+        }
     }
     
     // Ustawienie powitania w zależności od pory dnia
@@ -356,6 +361,240 @@ class DashboardHome {
             }
         } else {
             return `${prefix} ${mins}min`;
+        }
+    }
+
+    // PANEL ADMINISTRATORA
+
+    // Inicjalizacja panelu administratora
+    initAdminPanel() {
+        this.loadAdminStats();
+        this.loadRecentActivity();
+        this.loadAdminClasses();
+    }
+
+    // Załadowanie statystyk dla administratora
+    async loadAdminStats() {
+        try {
+            // W przyszłości będą pobierane dane z API
+            // const response = await fetch('/api/admin/stats');
+            // const stats = await response.json();
+            
+            // Mock data - przykładowe statystyki
+            const stats = {
+                totalUsers: 245,
+                totalStudents: 228,
+                totalClassesToday: 32,
+                totalGroups: 8
+            };
+            
+            // Aktualizacja wartości statystyk
+            this.updateStatValue('totalUsers', stats.totalUsers);
+            this.updateStatValue('totalStudents', stats.totalStudents);
+            this.updateStatValue('totalClassesToday', stats.totalClassesToday);
+            this.updateStatValue('totalGroups', stats.totalGroups);
+            
+        } catch (error) {
+            console.error('Błąd podczas ładowania statystyk:', error);
+        }
+    }
+
+    // Pomocnicza metoda do aktualizacji wartości statystyk
+    updateStatValue(elementId, value) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            // Animacja liczenia
+            this.animateValue(element, 0, value, 1000);
+        }
+    }
+
+    // Animacja liczenia wartości
+    animateValue(element, start, end, duration) {
+        const range = end - start;
+        const increment = range / (duration / 16); // 60 FPS
+        let current = start;
+        
+        const timer = setInterval(() => {
+            current += increment;
+            if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                element.textContent = end;
+                clearInterval(timer);
+            } else {
+                element.textContent = Math.floor(current);
+            }
+        }, 16);
+    }
+
+    // Załadowanie ostatniej aktywności w systemie
+    async loadRecentActivity() {
+        const activityList = document.getElementById('activityList');
+        if (!activityList) return;
+        
+        try {
+            // W przyszłości będziemy pobierać dane z API
+            // const response = await fetch('/api/admin/activity');
+            // const activities = await response.json();
+            
+            // Mock data - przykładowa aktywność
+            const activities = [
+                {
+                    icon: 'fa-user-plus',
+                    title: 'Nowy użytkownik zarejestrowany',
+                    description: 'Jan Kowalski dołączył do systemu',
+                    time: '5 minut temu',
+                    type: 'info'
+                },
+                {
+                    icon: 'fa-edit',
+                    title: 'Aktualizacja harmonogramu',
+                    description: 'Zmieniono godziny zajęć z Algorytmiki',
+                    time: '23 minuty temu',
+                    type: 'warning'
+                },
+                {
+                    icon: 'fa-bullhorn',
+                    title: 'Nowe ogłoszenie',
+                    description: 'Opublikowano informację o egzaminach',
+                    time: '1 godzinę temu',
+                    type: 'success'
+                },
+                {
+                    icon: 'fa-comment',
+                    title: 'Nowy post na forum',
+                    description: 'Pytanie dotyczące projektu zespołowego',
+                    time: '2 godziny temu',
+                    type: 'info'
+                },
+                {
+                    icon: 'fa-calendar-check',
+                    title: 'Zajęcia zakończone',
+                    description: 'Wykład z Baz Danych został przeprowadzony',
+                    time: '3 godziny temu',
+                    type: 'success'
+                }
+            ];
+            
+            // Renderowanie aktywności
+            activityList.innerHTML = activities.map(activity => `
+                <div class="activity-item">
+                    <div class="activity-item-icon">
+                        <i class="fas ${activity.icon}"></i>
+                    </div>
+                    <div class="activity-item-content">
+                        <h4>${activity.title}</h4>
+                        <p>${activity.description}</p>
+                        <span class="activity-item-time">
+                            <i class="fas fa-clock"></i> ${activity.time}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+            
+        } catch (error) {
+            console.error('Błąd podczas ładowania aktywności:', error);
+            activityList.innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Nie udało się załadować aktywności</h3>
+                    <p>Spróbuj odświeżyć stronę</p>
+                </div>
+            `;
+        }
+    }
+
+    // Załadowanie zajęć dla widoku administratora
+    async loadAdminClasses() {
+        const classList = document.getElementById('adminClassesList');
+        if (!classList) return;
+        
+        try {
+            // W przyszłości będziemy pobierać dane z API
+            // const response = await fetch('/api/admin/classes/today');
+            // const classes = await response.json();
+            
+            // Mock data - przykładowe zajęcia na dzisiaj
+            const classes = [
+                {
+                    subject: 'Bazy Danych',
+                    type: 'Wykład',
+                    lecturer: 'dr inż. Anna Nowak',
+                    room: 'Sala A101',
+                    group: 'INF-3A',
+                    time: '08:00 - 09:30'
+                },
+                {
+                    subject: 'Algorytmika',
+                    type: 'Ćwiczenia',
+                    lecturer: 'mgr Piotr Wiśniewski',
+                    room: 'Lab 204',
+                    group: 'INF-3B',
+                    time: '10:00 - 11:30'
+                },
+                {
+                    subject: 'Inżynieria Oprogramowania',
+                    type: 'Laboratorium',
+                    lecturer: 'dr Katarzyna Lewandowska',
+                    room: 'Lab 301',
+                    group: 'INF-3A',
+                    time: '12:00 - 13:30'
+                },
+                {
+                    subject: 'Sieci Komputerowe',
+                    type: 'Wykład',
+                    lecturer: 'prof. dr hab. Jan Kowalski',
+                    room: 'Aula Magna',
+                    group: 'INF-3A, INF-3B',
+                    time: '14:00 - 15:30'
+                },
+                {
+                    subject: 'Projekt Zespołowy',
+                    type: 'Projekt',
+                    lecturer: 'dr inż. Marek Dąbrowski',
+                    room: 'Sala B202',
+                    group: 'INF-3A',
+                    time: '16:00 - 17:30'
+                }
+            ];
+            
+            // Renderowanie listy zajęć
+            classList.innerHTML = classes.map(classItem => `
+                <div class="admin-class-item">
+                    <div class="admin-class-info">
+                        <h4>${classItem.subject}</h4>
+                        <div class="admin-class-details">
+                            <span>
+                                <i class="fas fa-graduation-cap"></i>
+                                ${classItem.type}
+                            </span>
+                            <span>
+                                <i class="fas fa-chalkboard-teacher"></i>
+                                ${classItem.lecturer}
+                            </span>
+                            <span>
+                                <i class="fas fa-door-open"></i>
+                                ${classItem.room}
+                            </span>
+                            <span>
+                                <i class="fas fa-users"></i>
+                                ${classItem.group}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="admin-class-time">
+                        ${classItem.time}
+                    </div>
+                </div>
+            `).join('');
+            
+        } catch (error) {
+            console.error('Błąd podczas ładowania zajęć:', error);
+            classList.innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Nie udało się załadować zajęć</h3>
+                    <p>Spróbuj odświeżyć stronę</p>
+                </div>
+            `;
         }
     }
 }

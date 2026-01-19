@@ -28,110 +28,312 @@
                     </div>
                 </div>
 
-                <!-- Główna treść dashboardu -->
-                <div class="dashboard-grid">
+                <!-- Panel Administratora -->
+                <div sec:authorize="hasRole('ADMIN')" class="admin-dashboard">
                     
-                    <!-- Sekcja: Najbliższe zajęcia -->
-                    <div class="dashboard-card primary-card">
-                        <div class="card-header">
-                            <div class="header-left">
-                                <div class="icon-badge">
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                                <div class="header-text">
-                                    <h2>Najbliższe zajęcia</h2>
-                                    <p>Twój harmonogram na dzisiaj.</p>
-                                </div>
+                    <!-- Statystyki ogólne -->
+                    <div class="admin-stats-grid">
+                        <div class="stat-card stat-primary">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
                             </div>
-                            <a href="/dashboard/schedule" class="view-link">
-                                <span>Pełny harmonogram</span>
-                                <i class="fas fa-arrow-right"></i>
-                            </a>
+                            <div class="stat-content">
+                                <span class="stat-label">Użytkownicy</span>
+                                <span class="stat-value" id="totalUsers">-</span>
+                                <span class="stat-change positive">
+                                    <i class="fas fa-arrow-up"></i> 12 w tym miesiącu
+                                </span>
+                            </div>
                         </div>
 
-                        <div class="card-body">
-                            <!-- Loader -->
-                            <div id="classesLoader" class="loader-container">
-                                <div class="loader-spinner"></div>
-                                <p>Ładowanie zajęć...</p>
+                        <div class="stat-card stat-success">
+                            <div class="stat-icon">
+                                <i class="fas fa-user-graduate"></i>
                             </div>
-
-                            <!-- Komunikat o błędzie -->
-                            <div id="classesError" class="error-state" style="display: none;">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                <h3>Nie udało się załadować zajęć</h3>
-                                <p>Spróbuj odświeżyć stronę</p>
+                            <div class="stat-content">
+                                <span class="stat-label">Studenci</span>
+                                <span class="stat-value" id="totalStudents">-</span>
+                                <span class="stat-change">
+                                    <i class="fas fa-check-circle"></i> Aktywni
+                                </span>
                             </div>
+                        </div>
 
-                            <!-- Aktualne zajęcia (teraz) -->
-                            <div id="currentClasses" class="classes-section" style="display: none;">
-                                <div class="section-divider current-section">
-                                    <span class="divider-text live-lesson">
-                                        <i class="fas fa-circle" style="color: var(--color-success); font-size: 0.5rem; margin-right: 0.5rem;"></i>
-                                        Trwają teraz</span>
-                                    </span>
-                                </div>
-                                <div id="currentClassesList" class="classes-grid">
-                                    <!-- Aktualne zajęcia zostaną załadowane przez JavaScript -->
-                                </div>
+                        <div class="stat-card stat-info">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar-week"></i>
                             </div>
-
-                            <!-- Zajęcia dzisiaj -->
-                            <div id="todayClasses" class="classes-section" style="display: none;">
-                                <div class="section-divider">
-                                    <span class="divider-text">Dzisiaj</span>
-                                </div>
-                                <div id="todayClassesList" class="classes-grid">
-                                    <!-- Zajęcia zostaną załadowane przez JavaScript -->
-                                </div>
+                            <div class="stat-content">
+                                <span class="stat-label">Zajęcia dziś</span>
+                                <span class="stat-value" id="totalClassesToday">-</span>
+                                <span class="stat-change">
+                                    <i class="fas fa-clock"></i> Harmonogram
+                                </span>
                             </div>
+                        </div>
 
-                            <!-- Zajęcia jutro -->
-                            <div id="tomorrowClasses" class="classes-section" style="display: none;">
-                                <div class="section-divider">
-                                    <span class="divider-text">Jutro</span>
-                                </div>
-                                <div id="tomorrowClassesList" class="classes-grid">
-                                    <!-- Zajęcia zostaną załadowane przez JavaScript -->
-                                </div>
+                        <div class="stat-card stat-warning">
+                            <div class="stat-icon">
+                                <i class="fas fa-layer-group"></i>
                             </div>
-
-                            <!-- Komunikat gdy brak zajęć -->
-                            <div id="noClasses" class="empty-state" style="display: none;">
-                                <div class="empty-icon">
-                                    <i class="fas fa-bed"></i>
-                                </div>
-                                <h3>Brak zajęć w najbliższym czasie</h3>
-                                <p>Świetna okazja na odpoczynek!</p>
+                            <div class="stat-content">
+                                <span class="stat-label">Kierunki</span>
+                                <span class="stat-value" id="totalGroups">-</span>
+                                <span class="stat-change">
+                                    <i class="fas fa-university"></i> Aktywne
+                                </span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Sekcja: Ogłoszenia -->
-                    <div class="dashboard-card secondary-card">
-                        <div class="card-header">
-                            <div class="header-left">
-                                <div class="icon-badge secondary">
-                                    <i class="fas fa-bullhorn"></i>
+                    <!-- Główna treść panelu -->
+                    <div class="admin-content-grid">
+                        
+                        <!-- Szybkie akcje -->
+                        <div class="admin-card quick-actions-card">
+                            <div class="admin-card-header">
+                                <div class="header-left">
+                                    <div class="icon-badge">
+                                        <i class="fas fa-bolt"></i>
+                                    </div>
+                                    <div class="header-text">
+                                        <h2>Szybkie akcje</h2>
+                                        <p>Najczęściej wykonywane operacje</p>
+                                    </div>
                                 </div>
-                                <div class="header-text">
-                                    <h2>Ogłoszenia</h2>
-                                    <p>Aktualności i informacje</p>
+                            </div>
+                            <div class="admin-card-body">
+                                <div class="quick-actions-grid">
+                                    <a href="/admin/users" class="quick-action-btn">
+                                        <div class="action-icon primary">
+                                            <i class="fas fa-user-plus"></i>
+                                        </div>
+                                        <span class="action-label">Dodaj użytkownika</span>
+                                    </a>
+                                    <a href="/admin/schedule-management" class="quick-action-btn">
+                                        <div class="action-icon success">
+                                            <i class="fas fa-calendar-plus"></i>
+                                        </div>
+                                        <span class="action-label">Dodaj zajęcia</span>
+                                    </a>
+                                    <a href="/admin/announcement" class="quick-action-btn">
+                                        <div class="action-icon info">
+                                            <i class="fas fa-bullhorn"></i>
+                                        </div>
+                                        <span class="action-label">Nowe ogłoszenie</span>
+                                    </a>
+                                    <a href="/admin/groups-management" class="quick-action-btn">
+                                        <div class="action-icon warning">
+                                            <i class="fas fa-layer-group"></i>
+                                        </div>
+                                        <span class="action-label">Zarządzaj kierunkami</span>
+                                    </a>
+                                    <a href="/admin/post-control" class="quick-action-btn">
+                                        <div class="action-icon danger">
+                                            <i class="fas fa-shield-alt"></i>
+                                        </div>
+                                        <span class="action-label">Moderacja postów</span>
+                                    </a>
+                                    <a href="/admin/university-calendar" class="quick-action-btn">
+                                        <div class="action-icon secondary">
+                                            <i class="fas fa-university"></i>
+                                        </div>
+                                        <span class="action-label">Rok akademicki</span>
+                                    </a>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="card-body">
-                            <div class="coming-soon">
-                                <div class="coming-icon">
-                                    <i class="fas fa-rocket"></i>
+                        <!-- Ostatnia aktywność -->
+                        <div class="admin-card activity-card">
+                            <div class="admin-card-header">
+                                <div class="header-left">
+                                    <div class="icon-badge">
+                                        <i class="fas fa-history"></i>
+                                    </div>
+                                    <div class="header-text">
+                                        <h2>Ostatnia aktywność</h2>
+                                        <p>Najnowsze zmiany w systemie</p>
+                                    </div>
                                 </div>
-                                <h3>Już wkrótce!</h3>
-                                <p>Moduł ogłoszeń będzie dostępny w przyszłości.</p>
+                                <a href="/admin/alerts" class="view-link-admin">
+                                    <span>Zobacz wszystkie</span>
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                            <div class="admin-card-body">
+                                <div id="activityList" class="activity-list">
+                                    <div class="activity-loader">
+                                        <div class="loader-spinner"></div>
+                                        <p>Ładowanie aktywności...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Nadchodzące zajęcia (widok admina) -->
+                        <div class="admin-card upcoming-classes-card">
+                            <div class="admin-card-header">
+                                <div class="header-left">
+                                    <div class="icon-badge">
+                                        <i class="fas fa-chalkboard-teacher"></i>
+                                    </div>
+                                    <div class="header-text">
+                                        <h2>Dzisiejsze zajęcia</h2>
+                                        <p>Wszystkie zajęcia na uczelni</p>
+                                    </div>
+                                </div>
+                                <a href="/admin/schedule-management" class="view-link-admin">
+                                    <span>Zarządzaj harmonogramem</span>
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                            <div class="admin-card-body">
+                                <div id="adminClassesList" class="admin-classes-preview">
+                                    <div class="activity-loader">
+                                        <div class="loader-spinner"></div>
+                                        <p>Ładowanie zajęć...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Alerty i powiadomienia -->
+                        <div class="admin-card alerts-card">
+                            <div class="admin-card-header">
+                                <div class="header-left">
+                                    <div class="icon-badge danger">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <div class="header-text">
+                                        <h2>Alerty systemowe</h2>
+                                        <p>Wymagają uwagi administratora</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="admin-card-body">
+                                <div id="alertsList" class="alerts-list">
+                                    <div class="alert-item info">
+                                        <div class="alert-icon">
+                                            <i class="fas fa-info-circle"></i>
+                                        </div>
+                                        <div class="alert-content">
+                                            <h4>System działa prawidłowo</h4>
+                                            <p>Wszystkie moduły są aktywne</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Główna treść dashboardu (dla studentów) -->
+                <div sec:authorize="hasRole('STUDENT')" class="student-dashboard">
+                    <div class="dashboard-grid">
+                        
+                        <!-- Sekcja: Najbliższe zajęcia -->
+                        <div class="dashboard-card primary-card">
+                            <div class="card-header">
+                                <div class="header-left">
+                                    <div class="icon-badge">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div class="header-text">
+                                        <h2>Najbliższe zajęcia</h2>
+                                        <p>Twój harmonogram na dzisiaj.</p>
+                                    </div>
+                                </div>
+                                <a href="/dashboard/schedule" class="view-link">
+                                    <span>Pełny harmonogram</span>
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+
+                            <div class="card-body">
+                                <!-- Loader -->
+                                <div id="classesLoader" class="loader-container">
+                                    <div class="loader-spinner"></div>
+                                    <p>Ładowanie zajęć...</p>
+                                </div>
+
+                                <!-- Komunikat o błędzie -->
+                                <div id="classesError" class="error-state" style="display: none;">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <h3>Nie udało się załadować zajęć</h3>
+                                    <p>Spróbuj odświeżyć stronę</p>
+                                </div>
+
+                                <!-- Aktualne zajęcia (teraz) -->
+                                <div id="currentClasses" class="classes-section" style="display: none;">
+                                    <div class="section-divider current-section">
+                                        <span class="divider-text live-lesson">
+                                            <i class="fas fa-circle" style="color: var(--color-success); font-size: 0.5rem; margin-right: 0.5rem;"></i>
+                                            Trwają teraz</span>
+                                        </span>
+                                    </div>
+                                    <div id="currentClassesList" class="classes-grid">
+                                        <!-- Aktualne zajęcia zostaną załadowane przez JavaScript -->
+                                    </div>
+                                </div>
+
+                                <!-- Zajęcia dzisiaj -->
+                                <div id="todayClasses" class="classes-section" style="display: none;">
+                                    <div class="section-divider">
+                                        <span class="divider-text">Dzisiaj</span>
+                                    </div>
+                                    <div id="todayClassesList" class="classes-grid">
+                                        <!-- Zajęcia zostaną załadowane przez JavaScript -->
+                                    </div>
+                                </div>
+
+                                <!-- Zajęcia jutro -->
+                                <div id="tomorrowClasses" class="classes-section" style="display: none;">
+                                    <div class="section-divider">
+                                        <span class="divider-text">Jutro</span>
+                                    </div>
+                                    <div id="tomorrowClassesList" class="classes-grid">
+                                        <!-- Zajęcia zostaną załadowane przez JavaScript -->
+                                    </div>
+                                </div>
+
+                                <!-- Komunikat gdy brak zajęć -->
+                                <div id="noClasses" class="empty-state" style="display: none;">
+                                    <div class="empty-icon">
+                                        <i class="fas fa-bed"></i>
+                                    </div>
+                                    <h3>Brak zajęć w najbliższym czasie</h3>
+                                    <p>Świetna okazja na odpoczynek!</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sekcja: Ogłoszenia -->
+                        <div class="dashboard-card secondary-card">
+                            <div class="card-header">
+                                <div class="header-left">
+                                    <div class="icon-badge secondary">
+                                        <i class="fas fa-bullhorn"></i>
+                                    </div>
+                                    <div class="header-text">
+                                        <h2>Ogłoszenia</h2>
+                                        <p>Aktualności i informacje</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="coming-soon">
+                                    <div class="coming-icon">
+                                        <i class="fas fa-rocket"></i>
+                                    </div>
+                                    <h3>Już wkrótce!</h3>
+                                    <p>Moduł ogłoszeń będzie dostępny w przyszłości.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
