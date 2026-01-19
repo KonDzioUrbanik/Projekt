@@ -199,7 +199,14 @@ class DashboardHome {
     
     // Konwersja czasu do minut dla sortowania
     timeToMinutes(timeObj) {
-        return timeObj.hour * 60 + timeObj.minute;
+        if (!timeObj) {
+            return 0;
+        }
+        
+        const hour = timeObj.hour !== undefined ? timeObj.hour : 0;
+        const minute = timeObj.minute !== undefined ? timeObj.minute : 0;
+        
+        return hour * 60 + minute;
     }
     
     // Renderowanie listy zajęć w kontenerze
@@ -321,8 +328,18 @@ class DashboardHome {
     
     // Formatowanie czasu
     formatTime(timeObj) {
-        const hour = String(timeObj.hour).padStart(2, '0');
-        const minute = String(timeObj.minute).padStart(2, '0');
+        if (!timeObj) {
+            return '--:--';
+        }
+        
+        if (typeof timeObj === 'string') {
+            return timeObj;
+        }
+        
+        // Obsługa obiektu LocalTime z backendu
+        const hour = timeObj.hour !== undefined ? String(timeObj.hour).padStart(2, '0') : '00';
+        const minute = timeObj.minute !== undefined ? String(timeObj.minute).padStart(2, '0') : '00';
+        
         return `${hour}:${minute}`;
     }
     

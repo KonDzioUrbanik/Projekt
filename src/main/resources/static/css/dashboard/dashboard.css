@@ -756,6 +756,7 @@ body {
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 1.75rem;
+    align-items: start;
 }
 
 /* Karty dashboardu */
