@@ -89,7 +89,6 @@ class ScheduleManagement{
 
             this.scheduleData = await response.json();
             this.filteredData = [...this.scheduleData];
-            console.log('Załadowano zajęcia:', this.scheduleData);
             this.renderTable();
         } 
         catch (error){

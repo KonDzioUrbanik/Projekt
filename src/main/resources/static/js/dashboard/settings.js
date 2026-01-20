@@ -136,8 +136,6 @@ document.addEventListener('DOMContentLoaded', function(){
         if(yearOfStudy && yearOfStudy.length > 0) {
             profileData.yearOfStudy = yearOfStudy;
         }
-
-        console.log('Wysyłane dane:', profileData);
         
         try{
             // wylaczenie przycisku i pokazanie spinnera
@@ -156,7 +154,6 @@ document.addEventListener('DOMContentLoaded', function(){
 
             if(response.ok){
                 const updatedUser = await response.json();
-                console.log('Odpowiedź serwera:', updatedUser);
                 showMessage('Profil zaktualizowany pomyślnie!', 'success');
                 
                 // Oznacz pola jako ustawione

@@ -37,7 +37,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if(response.ok){
-                console.log(data.message);
                 message.textContent = data.message; /* || "Na podany adres e-mail wysłano link resetujący."; */
                 message.className = "form-message success";
             }

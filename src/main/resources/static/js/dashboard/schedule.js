@@ -41,7 +41,6 @@ class ScheduleCalendar{
             }
             
             this.scheduleData = await response.json();
-            console.log('Załadowano harmonogram:', this.scheduleData);
             this.renderSchedule();
         } 
         catch(error){
