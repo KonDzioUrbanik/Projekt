@@ -1,5 +1,6 @@
 // Moduł strony głównej dashboardu
 class DashboardHome {
+
     // Stałe konfiguracyjne
     static CONFIG = {
         ANIMATION_DURATION: 1000,
@@ -160,7 +161,7 @@ class DashboardHome {
             return nowMinutes >= startMinutes && nowMinutes < endMinutes;
         });
         
-        // Zajęcia dzisiejsze (bez aktualnych)
+        // Zajęcia dzisiejsze (nadchodzące - jeszcze się nie rozpoczęły)
         const todayUpcomingClasses = todayClasses.filter(classItem => {
             const startMinutes = this.timeToMinutes(classItem.startTime);
             return nowMinutes < startMinutes;
@@ -171,6 +172,12 @@ class DashboardHome {
         const todayContainer = document.getElementById('todayClasses');
         const tomorrowContainer = document.getElementById('tomorrowClasses');
         const noClassesDiv = document.getElementById('noClasses');
+        
+        // Ukryj wszystkie kontenery na początku
+        currentContainer.style.display = 'none';
+        todayContainer.style.display = 'none';
+        tomorrowContainer.style.display = 'none';
+        noClassesDiv.style.display = 'none';
         
         // Wyświetlenie aktualnych zajęć
         if (currentClasses.length > 0) {
@@ -184,15 +191,17 @@ class DashboardHome {
             this.renderClasses('todayClassesList', todayUpcomingClasses, now);
         }
         
-        // Wyświetlenie zajęć jutro
-        if (tomorrowClasses.length > 0) {
+        // Wyświetlenie zajęć jutro - tylko jeśli nie ma już dzisiejszych zajęć
+        // lub jeśli jest bardzo późno (po 22:00) i dzisiejsze zajęcia się skończyły
+        const showTomorrow = todayUpcomingClasses.length === 0 && currentClasses.length === 0;
+        if (showTomorrow && tomorrowClasses.length > 0) {
             tomorrowContainer.style.display = 'block';
             const tomorrowDate = new Date(now.getTime() + DashboardHome.CONFIG.MILLIS_PER_DAY);
             this.renderClasses('tomorrowClassesList', tomorrowClasses, tomorrowDate);
         }
         
         // Pokaż komunikat jeśli brak zajęć
-        if (currentClasses.length === 0 && todayUpcomingClasses.length === 0 && tomorrowClasses.length === 0) {
+        if (currentClasses.length === 0 && todayUpcomingClasses.length === 0 && (!showTomorrow || tomorrowClasses.length === 0)) {
             noClassesDiv.style.display = 'flex';
         }
     }
@@ -219,6 +228,15 @@ class DashboardHome {
             return 0;
         }
         
+        // Obsługa formatu string "HH:MM:SS"
+        if (typeof timeObj === 'string') {
+            const parts = timeObj.split(':');
+            const hour = parseInt(parts[0], 10) || 0;
+            const minute = parseInt(parts[1], 10) || 0;
+            return hour * 60 + minute;
+        }
+        
+        // Obsługa formatu obiektu {hour, minute}
         const hour = timeObj.hour !== undefined ? timeObj.hour : 0;
         const minute = timeObj.minute !== undefined ? timeObj.minute : 0;
         
@@ -639,4 +657,19 @@ class DashboardHome {
 // Inicjalizacja po załadowaniu DOM
 document.addEventListener('DOMContentLoaded', () => {
     new DashboardHome();
+
+    const days = [
+        "Niedziela",
+        "Poniedziałek",
+        "Wtorek",
+        "Środa",
+        "Czwartek",
+        "Piątek",
+        "Sobota"
+    ];
+
+    const element = document.getElementById("dayName");
+    if(element){
+        element.textContent = days[new Date().getDay()];
+    }
 });
