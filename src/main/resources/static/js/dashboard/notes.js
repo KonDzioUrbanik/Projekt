@@ -1,5 +1,22 @@
 /* MODUŁ NOTATKI */
 
+const CONFIG = {
+    API: {
+        BASE: '/api/notes',
+        MY_NOTES: '/api/notes/my-notes',
+        NOTE_BY_ID: (id) => `/api/notes/${id}`
+    },
+    LIMITS: {
+        TITLE_MAX: 150,
+        CONTENT_MAX: 4000
+    },
+    TIMING: {
+        DEBOUNCE_DELAY: 300,
+        TOAST_DURATION: 3000,
+        MODAL_TRANSITION: 100
+    }
+};
+
 const AppState = {
     notes: [],
     filteredNotes: [],
@@ -68,7 +85,7 @@ function setupEventListeners() {
             AppState.searchQuery = e.target.value.trim();
             applyCurrentFilter();
             renderNotesList();
-        }, 300));
+        }, CONFIG.TIMING.DEBOUNCE_DELAY));
     }
 
     // Filtry
@@ -173,7 +190,7 @@ async function loadNotes() {
     DOM.notesList.innerHTML = '<div class="loading-spinner" style="margin: 20px auto;"></div>';
     
     try {
-        const response = await fetch('/api/notes/my-notes');
+        const response = await fetch(CONFIG.API.MY_NOTES);
         
         if (response.redirected && response.url.includes('/login')) {
             window.location.href = '/login';
@@ -257,7 +274,7 @@ async function handleFormSubmit(e) {
         };
 
         if (AppState.isEditMode) {
-            const response = await fetch(`/api/notes/${AppState.editingNoteId}`, {
+            const response = await fetch(CONFIG.API.NOTE_BY_ID(AppState.editingNoteId), {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(noteData)
@@ -272,7 +289,7 @@ async function handleFormSubmit(e) {
             }
             showToast('Notatka zaktualizowana', 'success');
         } else {
-            const response = await fetch('/api/notes', {
+            const response = await fetch(CONFIG.API.BASE, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(noteData)
@@ -308,7 +325,7 @@ async function handleDeleteConfirm() {
     DOM.btnConfirmDelete.textContent = 'Usuwanie...';
 
     try {
-        const response = await fetch(`/api/notes/${AppState.selectedNote.id}`, { method: 'DELETE' });
+        const response = await fetch(CONFIG.API.NOTE_BY_ID(AppState.selectedNote.id), { method: 'DELETE' });
 
         if (!response.ok) throw new Error(`Błąd HTTP: ${response.status}`);
 
