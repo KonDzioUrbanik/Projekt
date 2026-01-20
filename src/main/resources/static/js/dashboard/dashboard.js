@@ -1,5 +1,23 @@
 // Moduł strony głównej dashboardu
 class DashboardHome {
+    // Stałe konfiguracyjne
+    static CONFIG = {
+        ANIMATION_DURATION: 1000,
+        ANIMATION_FPS: 60,
+        MILLIS_PER_DAY: 24 * 60 * 60 * 1000,
+        GREETING_TIMES: {
+            NIGHT_END: 6,
+            MORNING_END: 12,
+            AFTERNOON_END: 18,
+            EVENING_END: 22
+        },
+        ROLES: {
+            STUDENT: 'STUDENT',
+            STAROSTA: 'STAROSTA',
+            ADMIN: 'ADMIN'
+        }
+    };
+
     constructor() {
         // Endpoint API dla harmonogramu zajęć
         this.apiEndpoint = '/api/schedule';
@@ -39,7 +57,8 @@ class DashboardHome {
         this.loadUpcomingClasses();
         
         // Inicjalizacja panelu admina (jeśli istnieje)
-        if (document.querySelector('.admin-dashboard')) {
+        const adminDashboard = document.querySelector('.admin-dashboard');
+        if (adminDashboard) {
             this.initAdminPanel();
         }
     }
@@ -50,15 +69,16 @@ class DashboardHome {
         if (!greetingElement) return;
         
         const hour = new Date().getHours();
-        let greeting;
+        const { NIGHT_END, MORNING_END, AFTERNOON_END, EVENING_END } = DashboardHome.CONFIG.GREETING_TIMES;
         
-        if (hour < 6) {
+        let greeting;
+        if (hour < NIGHT_END) {
             greeting = 'Dobranoc';
-        } else if (hour < 12) {
+        } else if (hour < MORNING_END) {
             greeting = 'Dzień dobry';
-        } else if (hour < 18) {
+        } else if (hour < AFTERNOON_END) {
             greeting = 'Dzień dobry';
-        } else if (hour < 22) {
+        } else if (hour < EVENING_END) {
             greeting = 'Dobry wieczór';
         } else {
             greeting = 'Dobranoc';
@@ -100,8 +120,6 @@ class DashboardHome {
             
             this.scheduleData = await response.json();
             
-            console.log('Załadowano harmonogram:', this.scheduleData);
-            
             // Przefiltruj i wyświetl zajęcia
             this.displayUpcomingClasses();
             
@@ -127,11 +145,12 @@ class DashboardHome {
     displayUpcomingClasses() {
         const now = new Date();
         const today = this.getDayOfWeek(now);
-        const tomorrow = this.getDayOfWeek(new Date(now.getTime() + 24 * 60 * 60 * 1000));
+        const tomorrowDate = new Date(now.getTime() + DashboardHome.CONFIG.MILLIS_PER_DAY);
+        const tomorrow = this.getDayOfWeek(tomorrowDate);
         
         // Filtrowanie zajęć na dzisiaj i jutro
         const todayClasses = this.getClassesForDay(today, now);
-        const tomorrowClasses = this.getClassesForDay(tomorrow, new Date(now.getTime() + 24 * 60 * 60 * 1000));
+        const tomorrowClasses = this.getClassesForDay(tomorrow, tomorrowDate);
         
         // Filtrowanie aktualnych zajęć (trwających teraz)
         const nowMinutes = now.getHours() * 60 + now.getMinutes();
@@ -146,10 +165,6 @@ class DashboardHome {
             const startMinutes = this.timeToMinutes(classItem.startTime);
             return nowMinutes < startMinutes;
         });
-        
-        console.log('Zajęcia aktualne:', currentClasses);
-        console.log('Zajęcia dzisiaj:', todayUpcomingClasses);
-        console.log('Zajęcia jutro:', tomorrowClasses);
         
         // Pokaż/ukryj kontenery
         const currentContainer = document.getElementById('currentClasses');
@@ -172,7 +187,8 @@ class DashboardHome {
         // Wyświetlenie zajęć jutro
         if (tomorrowClasses.length > 0) {
             tomorrowContainer.style.display = 'block';
-            this.renderClasses('tomorrowClassesList', tomorrowClasses, new Date(now.getTime() + 24 * 60 * 60 * 1000));
+            const tomorrowDate = new Date(now.getTime() + DashboardHome.CONFIG.MILLIS_PER_DAY);
+            this.renderClasses('tomorrowClassesList', tomorrowClasses, tomorrowDate);
         }
         
         // Pokaż komunikat jeśli brak zajęć
@@ -207,6 +223,28 @@ class DashboardHome {
         const minute = timeObj.minute !== undefined ? timeObj.minute : 0;
         
         return hour * 60 + minute;
+    }
+    
+    // Walidacja danych zajęć
+    validateClassItem(classItem) {
+        if (!classItem) return false;
+        
+        const requiredFields = ['title', 'dayOfWeek', 'startTime', 'endTime', 'classType'];
+        return requiredFields.every(field => classItem[field] !== undefined && classItem[field] !== null);
+    }
+    
+    // Pomocnicza metoda do wyświetlania błędów
+    displayError(containerId, message) {
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = `
+                <div class="error-state" role="alert">
+                    <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                    <h3>Wystąpił błąd</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
     }
     
     // Renderowanie listy zajęć w kontenerze
@@ -393,42 +431,81 @@ class DashboardHome {
     // Załadowanie statystyk dla administratora
     async loadAdminStats() {
         try {
-            // W przyszłości będą pobierane dane z API
-            // const response = await fetch('/api/admin/stats');
-            // const stats = await response.json();
+            // Pobieranie prawdziwych danych z API
+            const [usersResponse, groupsResponse, scheduleResponse] = await Promise.all([
+                fetch('/api/users').catch(() => null),
+                fetch('/api/groups').catch(() => null),
+                fetch('/api/schedule/all').catch(() => null)
+            ]);
             
-            // Mock data - przykładowe statystyki
-            const stats = {
-                totalUsers: 245,
-                totalStudents: 228,
-                totalClassesToday: 32,
-                totalGroups: 8
-            };
+            let totalUsers = '-';
+            let totalStudents = '-';
+            let totalGroups = '-';
+            let totalClassesToday = '-';
+            
+            // Liczba użytkowników i studentów
+            if (usersResponse && usersResponse.ok) {
+                const users = await usersResponse.json();
+                totalUsers = users.length;
+                
+                // Liczba AKTYWNYCH studentów (z aktywowanym kontem i rolą STUDENT lub STAROSTA)
+                const { STUDENT, STAROSTA } = DashboardHome.CONFIG.ROLES;
+                const activeStudents = users.filter(user => 
+                    user.isActivated === true && 
+                    user.role && (user.role === STUDENT || user.role === STAROSTA)
+                );
+                totalStudents = activeStudents.length;
+            }
+            
+            // Liczba kierunków
+            if (groupsResponse && groupsResponse.ok) {
+                const groups = await groupsResponse.json();
+                totalGroups = groups.length;
+            }
+            
+            // Liczba zajęć dzisiaj
+            if (scheduleResponse && scheduleResponse.ok) {
+                const allSchedule = await scheduleResponse.json();
+                const today = this.getDayOfWeek(new Date());
+                const todayClasses = allSchedule.filter(c => c.dayOfWeek === today);
+                totalClassesToday = todayClasses.length;
+            }
             
             // Aktualizacja wartości statystyk
-            this.updateStatValue('totalUsers', stats.totalUsers);
-            this.updateStatValue('totalStudents', stats.totalStudents);
-            this.updateStatValue('totalClassesToday', stats.totalClassesToday);
-            this.updateStatValue('totalGroups', stats.totalGroups);
+            this.updateStatValue('totalUsers', totalUsers);
+            this.updateStatValue('totalStudents', totalStudents);
+            this.updateStatValue('totalClassesToday', totalClassesToday);
+            this.updateStatValue('totalGroups', totalGroups);
             
         } catch (error) {
             console.error('Błąd podczas ładowania statystyk:', error);
+            // W przypadku błędu ustaw wartości domyślne
+            this.updateStatValue('totalUsers', '-', false);
+            this.updateStatValue('totalStudents', '-', false);
+            this.updateStatValue('totalClassesToday', '-', false);
+            this.updateStatValue('totalGroups', '-', false);
         }
     }
 
     // Pomocnicza metoda do aktualizacji wartości statystyk
-    updateStatValue(elementId, value) {
+    updateStatValue(elementId, value, animate = true) {
         const element = document.getElementById(elementId);
         if (element) {
-            // Animacja liczenia
-            this.animateValue(element, 0, value, 1000);
+            if (typeof value === 'number' && animate) {
+                // Animacja liczenia dla wartości numerycznych
+                this.animateValue(element, 0, value, DashboardHome.CONFIG.ANIMATION_DURATION);
+            } else {
+                // Bezpośrednie ustawienie dla "-" lub innych wartości
+                element.textContent = value;
+            }
         }
     }
 
     // Animacja liczenia wartości
     animateValue(element, start, end, duration) {
+        const frameTime = 1000 / DashboardHome.CONFIG.ANIMATION_FPS;
         const range = end - start;
-        const increment = range / (duration / 16); // 60 FPS
+        const increment = range / (duration / frameTime);
         let current = start;
         
         const timer = setInterval(() => {
@@ -439,7 +516,7 @@ class DashboardHome {
             } else {
                 element.textContent = Math.floor(current);
             }
-        }, 16);
+        }, frameTime);
     }
 
     // Załadowanie ostatniej aktywności w systemie
@@ -448,66 +525,19 @@ class DashboardHome {
         if (!activityList) return;
         
         try {
-            // W przyszłości będziemy pobierać dane z API
-            // const response = await fetch('/api/admin/activity');
-            // const activities = await response.json();
+            // Endpoint dla aktywności 
             
-            // Mock data - przykładowa aktywność
-            const activities = [
-                {
-                    icon: 'fa-user-plus',
-                    title: 'Nowy użytkownik zarejestrowany',
-                    description: 'Jan Kowalski dołączył do systemu',
-                    time: '5 minut temu',
-                    type: 'info'
-                },
-                {
-                    icon: 'fa-edit',
-                    title: 'Aktualizacja harmonogramu',
-                    description: 'Zmieniono godziny zajęć z Algorytmiki',
-                    time: '23 minuty temu',
-                    type: 'warning'
-                },
-                {
-                    icon: 'fa-bullhorn',
-                    title: 'Nowe ogłoszenie',
-                    description: 'Opublikowano informację o egzaminach',
-                    time: '1 godzinę temu',
-                    type: 'success'
-                },
-                {
-                    icon: 'fa-comment',
-                    title: 'Nowy post na forum',
-                    description: 'Pytanie dotyczące projektu zespołowego',
-                    time: '2 godziny temu',
-                    type: 'info'
-                },
-                {
-                    icon: 'fa-calendar-check',
-                    title: 'Zajęcia zakończone',
-                    description: 'Wykład z Baz Danych został przeprowadzony',
-                    time: '3 godziny temu',
-                    type: 'success'
-                }
-            ];
-            
-            // Renderowanie aktywności
-            activityList.innerHTML = activities.map(activity => `
-                <div class="activity-item">
-                    <div class="activity-item-icon">
-                        <i class="fas ${activity.icon}"></i>
+            activityList.innerHTML = `
+                <div class="coming-soon" style="padding: 2rem 1rem;">
+                    <div class="coming-icon">
+                        <i class="fas fa-clock"></i>
                     </div>
-                    <div class="activity-item-content">
-                        <h4>${activity.title}</h4>
-                        <p>${activity.description}</p>
-                        <span class="activity-item-time">
-                            <i class="fas fa-clock"></i> ${activity.time}
-                        </span>
-                    </div>
+                    <h3>Funkcja w budowie</h3>
+                    <p>Historia aktywności będzie dostępna wkrótce.</p>
                 </div>
-            `).join('');
-            
-        } catch (error) {
+            `;      
+        } 
+        catch (error){
             console.error('Błąd podczas ładowania aktywności:', error);
             activityList.innerHTML = `
                 <div class="error-state">
@@ -525,83 +555,73 @@ class DashboardHome {
         if (!classList) return;
         
         try {
-            // W przyszłości będziemy pobierać dane z API
-            // const response = await fetch('/api/admin/classes/today');
-            // const classes = await response.json();
+            // Pobieranie wszystkich zajęć z API
+            const response = await fetch('/api/schedule/all');
             
-            // Mock data - przykładowe zajęcia na dzisiaj
-            const classes = [
-                {
-                    subject: 'Bazy Danych',
-                    type: 'Wykład',
-                    lecturer: 'dr inż. Anna Nowak',
-                    room: 'Sala A101',
-                    group: 'INF-3A',
-                    time: '08:00 - 09:30'
-                },
-                {
-                    subject: 'Algorytmika',
-                    type: 'Ćwiczenia',
-                    lecturer: 'mgr Piotr Wiśniewski',
-                    room: 'Lab 204',
-                    group: 'INF-3B',
-                    time: '10:00 - 11:30'
-                },
-                {
-                    subject: 'Inżynieria Oprogramowania',
-                    type: 'Laboratorium',
-                    lecturer: 'dr Katarzyna Lewandowska',
-                    room: 'Lab 301',
-                    group: 'INF-3A',
-                    time: '12:00 - 13:30'
-                },
-                {
-                    subject: 'Sieci Komputerowe',
-                    type: 'Wykład',
-                    lecturer: 'prof. dr hab. Jan Kowalski',
-                    room: 'Aula Magna',
-                    group: 'INF-3A, INF-3B',
-                    time: '14:00 - 15:30'
-                },
-                {
-                    subject: 'Projekt Zespołowy',
-                    type: 'Projekt',
-                    lecturer: 'dr inż. Marek Dąbrowski',
-                    room: 'Sala B202',
-                    group: 'INF-3A',
-                    time: '16:00 - 17:30'
-                }
-            ];
+            if (!response.ok) {
+                throw new Error('Nie udało się pobrać harmonogramu');
+            }
+            
+            const allSchedule = await response.json();
+            
+            // Filtrowanie zajęć na dzisiaj
+            const today = this.getDayOfWeek(new Date());
+            const todayClasses = allSchedule.filter(c => c.dayOfWeek === today);
+            
+            // Sortowanie po czasie rozpoczęcia
+            todayClasses.sort((a, b) => {
+                return this.timeToMinutes(a.startTime) - this.timeToMinutes(b.startTime);
+            });
+            
+            if (todayClasses.length === 0) {
+                classList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-calendar-times"></i>
+                        </div>
+                        <h3>Brak zajęć dzisiaj</h3>
+                        <p>Nie zaplanowano żadnych zajęć na dzisiejszy dzień</p>
+                    </div>
+                `;
+                return;
+            }
             
             // Renderowanie listy zajęć
-            classList.innerHTML = classes.map(classItem => `
-                <div class="admin-class-item">
-                    <div class="admin-class-info">
-                        <h4>${classItem.subject}</h4>
-                        <div class="admin-class-details">
-                            <span>
-                                <i class="fas fa-graduation-cap"></i>
-                                ${classItem.type}
-                            </span>
-                            <span>
-                                <i class="fas fa-chalkboard-teacher"></i>
-                                ${classItem.lecturer}
-                            </span>
-                            <span>
-                                <i class="fas fa-door-open"></i>
-                                ${classItem.room}
-                            </span>
-                            <span>
-                                <i class="fas fa-users"></i>
-                                ${classItem.group}
-                            </span>
+            classList.innerHTML = todayClasses.map(classItem => {
+                const classTypeName = this.classTypeNames[classItem.classType] || classItem.classType;
+                const groupNames = classItem.studentGroups 
+                    ? classItem.studentGroups.map(g => g.groupName).join(', ') 
+                    : 'Brak grupy';
+                
+                return `
+                    <div class="admin-class-item">
+                        <div class="admin-class-info">
+                            <h4>${classItem.title}</h4>
+                            <div class="admin-class-details">
+                                <span>
+                                    <i class="fas fa-graduation-cap"></i>
+                                    ${classTypeName}
+                                </span>
+                                <span>
+                                    <i class="fas fa-chalkboard-teacher"></i>
+                                    ${classItem.teacher || 'Brak wykładowcy'}
+                                </span>
+                                <span>
+                                    <i class="fas fa-door-open"></i>
+                                    ${classItem.room || 'Brak sali'}
+                                </span>
+                                <span>
+                                    <i class="fas fa-users"></i>
+                                    ${groupNames}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="admin-class-time">
+                            ${this.formatTime(classItem.startTime)} - ${this.formatTime(classItem.endTime)}
                         </div>
                     </div>
-                    <div class="admin-class-time">
-                        ${classItem.time}
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
             
         } catch (error) {
             console.error('Błąd podczas ładowania zajęć:', error);
@@ -609,7 +629,7 @@ class DashboardHome {
                 <div class="error-state">
                     <i class="fas fa-exclamation-triangle"></i>
                     <h3>Nie udało się załadować zajęć</h3>
-                    <p>Spróbuj odświeżyć stronę</p>
+                    <p>${error.message}</p>
                 </div>
             `;
         }

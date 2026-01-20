@@ -945,6 +945,18 @@ body {
     border-left: 4px solid red;
 }
 
+/* Wskaźnik "na żywo" dla aktualnych zajęć */
+.live-indicator {
+    color: var(--color-success);
+    font-size: 0.5rem;
+    margin-right: 0.5rem;
+}
+
+/* Panel admina - coming soon z dostosowanym paddingiem */
+.admin-coming-soon {
+    padding: 2rem 1rem;
+}
+
 .classes-grid {
     display: grid;
     gap: 1rem;
@@ -1268,6 +1280,7 @@ body {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-sm);
+    /* cursor: help; */
 }
 
 .stat-card:hover {
