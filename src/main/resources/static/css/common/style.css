@@ -388,3 +388,103 @@ body {
     .auth-container { padding: 24px; box-shadow: none; border: none; background: transparent; }
     .main-container { align-items: flex-start; padding-top: 40px; }
 }
+
+/* UTILITY CLASSES - reusable across all modules */
+
+/* Empty State Components */
+.empty-state-inline {
+    text-align: center;
+    padding: 30px;
+    color: var(--text-secondary);
+}
+
+.empty-state-inline i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+.empty-state-inline p {
+    margin: 0;
+    color: var(--text-secondary);
+}
+
+/* Error State Components */
+.error-state-inline {
+    text-align: center;
+    padding: 30px;
+    color: var(--error-text);
+}
+
+.error-state-inline i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.error-state-inline p {
+    margin: 10px 0 0 0;
+}
+
+/* Loading Components */
+.loading-spinner-inline {
+    margin: 20px auto;
+    display: inline-block;
+}
+
+/* Link Buttons */
+.btn-link {
+    margin-top: 5px;
+    display: inline-block;
+    color: var(--primary);
+    text-decoration: underline;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: inherit;
+    padding: 0;
+}
+
+.btn-link:hover {
+    color: var(--primary-hover);
+}
+
+/* Text Utilities */
+.text-muted-inline {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-top: 1rem;
+}
+
+/* Network Error Retry */
+.network-error {
+    text-align: center;
+    padding: 30px;
+    color: var(--error-text);
+}
+
+.network-error i {
+    margin-bottom: 10px;
+    font-size: 1.5rem;
+}
+
+.network-error p {
+    margin: 5px 0;
+}
+
+.network-error .btn-text {
+    margin-top: 10px;
+    text-decoration: underline;
+}
+
+/* Search No Results */
+.no-results {
+    text-align: center;
+    padding: 30px;
+    color: var(--text-secondary);
+}
+
+.no-results i {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}

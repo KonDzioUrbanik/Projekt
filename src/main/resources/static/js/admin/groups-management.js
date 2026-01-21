@@ -1,11 +1,24 @@
 class GroupsManagement{
+    static CONFIG = {
+        API_ENDPOINT: '/api/groups',
+        SORT_OPTIONS: {
+            ID_ASC: 'id-asc',
+            ID_DESC: 'id-desc',
+            NAME_ASC: 'name-asc',
+            NAME_DESC: 'name-desc'
+        },
+        FILTERS: {
+            ALL: ''
+        },
+        DEFAULT_SORT: 'id-asc'
+    };
+
     constructor(){
-        this.apiEndpoint = '/api/groups';
         this.groups = [];
         this.filteredGroups = [];
         this.isEditing = false;
         this.currentEditId = null;
-        this.currentSort = 'id-asc';
+        this.currentSort = GroupsManagement.CONFIG.DEFAULT_SORT;
         this.searchQuery = '';
         this.yearFilter = '';
         this.fieldFilter = '';
@@ -73,7 +86,7 @@ class GroupsManagement{
         loading.classList.add('active');
 
         try{
-            const response = await fetch(this.apiEndpoint);
+            const response = await fetch(GroupsManagement.CONFIG.API_ENDPOINT);
 
             if(!response.ok){
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -307,7 +320,7 @@ class GroupsManagement{
         try{
             let response;
             if(this.isEditing){
-                response = await fetch(`${this.apiEndpoint}/${this.currentEditId}`, {
+                response = await fetch(`${GroupsManagement.CONFIG.API_ENDPOINT}/${this.currentEditId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -316,7 +329,7 @@ class GroupsManagement{
                 });
             } 
             else{
-                response = await fetch(this.apiEndpoint, {
+                response = await fetch(GroupsManagement.CONFIG.API_ENDPOINT, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -359,7 +372,7 @@ class GroupsManagement{
         }
 
         try{
-            const response = await fetch(`${this.apiEndpoint}/${id}`, {
+            const response = await fetch(`${GroupsManagement.CONFIG.API_ENDPOINT}/${id}`, {
                 method: 'DELETE'
             });
 

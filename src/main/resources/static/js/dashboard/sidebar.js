@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Sprawdzamy, czy FullCalendar jest aktywny na stronie
                 if (window.fullCalendarInstance) {
                     window.fullCalendarInstance.updateSize();
-                    console.log('Kalendarz przeskalowany po zmianie sidebara');
                 }
                 
                 if (window.scheduleCalendar && window.scheduleCalendar.calendar) {

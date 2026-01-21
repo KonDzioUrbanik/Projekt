@@ -1,9 +1,7 @@
 class ScheduleCalendar{
-    constructor(){
-        this.scheduleData = [];
-        this.apiEndpoint = '/api/schedule';
-        
-        this.dayNames = {
+    static CONFIG = {
+        API_ENDPOINT: '/api/schedule',
+        DAY_NAMES: {
             'Monday': 'Poniedziałek',
             'Tuesday': 'Wtorek',
             'Wednesday': 'Środa',
@@ -11,16 +9,24 @@ class ScheduleCalendar{
             'Friday': 'Piątek',
             'Saturday': 'Sobota',
             'Sunday': 'Niedziela'
-        };
-        
-        this.classTypeNames = {
+        },
+        CLASS_TYPES: {
             'WYKLAD': 'Wykład',
             'CWICZENIA': 'Ćwiczenia laboratoryjne',
             'LABORATORIUM': 'Laboratorium',
             'PROJEKT': 'Projekt zespołowy',
             'SEMINARIUM': 'Seminarium',
             'KONSULTACJE': 'Konsultacje'
-        };
+        },
+        WORK_DAYS: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+    };
+    
+    constructor(){
+        this.scheduleData = [];
+        this.apiEndpoint = ScheduleCalendar.CONFIG.API_ENDPOINT;
+        
+        this.dayNames = ScheduleCalendar.CONFIG.DAY_NAMES;
+        this.classTypeNames = ScheduleCalendar.CONFIG.CLASS_TYPES;
         
         this.loadSchedule();
     }
@@ -41,7 +47,6 @@ class ScheduleCalendar{
             }
             
             this.scheduleData = await response.json();
-            console.log('Załadowano harmonogram:', this.scheduleData);
             this.renderSchedule();
         } 
         catch(error){
@@ -87,7 +92,7 @@ class ScheduleCalendar{
         grid.innerHTML += '<div class="time-header">Godziny</div>';
         
         // naglowki dni
-        const workDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        const workDays = ScheduleCalendar.CONFIG.WORK_DAYS;
         workDays.forEach(dayKey => {
             grid.innerHTML += `<div class="day-header">${this.dayNames[dayKey]}</div>`;
         });

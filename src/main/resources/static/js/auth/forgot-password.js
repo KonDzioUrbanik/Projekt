@@ -10,19 +10,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Walidacja pola
         if (!email){
-            message.textContent = "Podaj adres e-mail.";
-            message.className = "form-message error";
+            displayMessage(message, "Podaj adres e-mail.");
             return;
         }
 
         // Blokowanie przycisku i pokazanie loadera
-        button.disabled = true;
-        button.querySelector("span").textContent = "Wysyłanie...";
+        disableButton(button, "Wysyłanie...");
         message.textContent = "";
         message.className = "form-message";
 
         try{
-            const response = await fetch("/api/auth/forgot-password", {
+            const response = await fetch(AUTH_CONFIG.API.FORGOT_PASSWORD, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email }),
@@ -37,44 +35,20 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if(response.ok){
-                console.log(data.message);
-                message.textContent = data.message; /* || "Na podany adres e-mail wysłano link resetujący."; */
-                message.className = "form-message success";
+                displayMessage(message, data.message || "Na podany adres e-mail wysłano link resetujący.", true);
             }
             else{
-                let errorMsg = "Nie udało się wysłać linku resetującego.";
-
-                switch (response.status) {
-                    case 400:
-                        errorMsg = data.message; /*|| "Nieprawidłowy adres e-mail.";*/
-                        break;
-                    case 401:
-                        errorMsg = data.message; /* || "To konto użytkownika nie jest aktywowane.";*/
-                        break;
-                    case 401:
-                        errorMsg = data.message || "To konto użytkownika nie jest aktywowane.";
-                        break;
-                    case 404:
-                        errorMsg = data.message; /* || "Nie znaleziono użytkownika o podanym adresie e-mail.";*/
-                        break;
-                    case 500:
-                        errorMsg = "Błąd serwera. Spróbuj ponownie później.";
-                        break;
-                }
-
-                message.textContent = errorMsg;
-                message.className = "form-message error";
+                const errorMsg = getErrorMessage(response, data);
+                displayMessage(message, errorMsg);
             }
 
         } 
         catch (err){
             console.error("Błąd połączenia:", err);
-            message.textContent = "Nie można połączyć się z serwerem.";
-            message.className = "form-message error";
+            displayMessage(message, "Nie można połączyć się z serwerem.");
         } 
         finally{
-            button.disabled = false;
-            button.querySelector("span").textContent = "Wyślij link resetujący";
+            enableButton(button, "Wyślij link resetujący");
         }
     });
 });

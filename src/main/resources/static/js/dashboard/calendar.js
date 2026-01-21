@@ -1,5 +1,20 @@
 
 class FullCalendarInitializer {
+    static CONFIG = {
+        TIMING: {
+            LOADING_DELAY: 500,
+            RESIZE_DELAY: 100
+        },
+        LOCALE: 'pl',
+        ERROR_MESSAGES: {
+            INIT_ERROR: 'Błąd ładowania kalendarza',
+            NO_ELEMENTS: 'Brak wymaganych elementów DOM.'
+        },
+        CALENDAR_OPTIONS: {
+            FIRST_DAY: 1
+        }
+    };
+
     constructor() {
         this.calendarEl = document.getElementById('calendarGrid');
         this.currentMonthNameEl = document.getElementById('currentMonth');
@@ -19,7 +34,7 @@ class FullCalendarInitializer {
      */
     async renderCalendar(eventsData = []) {
         if (!this.calendarEl || !this.currentMonthNameEl || !this.loadingEl) {
-            console.error("Brak wymaganych elementów DOM.");
+            console.error(FullCalendarInitializer.CONFIG.ERROR_MESSAGES.NO_ELEMENTS);
             return;
         }
 
@@ -33,18 +48,18 @@ class FullCalendarInitializer {
         }
 
         //Symulacja danych
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, FullCalendarInitializer.CONFIG.TIMING.LOADING_DELAY));
 
         try {
             // Inicjalizacja FullCalendar
             this.calendarInstance = new FullCalendar.Calendar(this.calendarEl, {
                 initialView: 'dayGridMonth',
                 initialDate: new Date(),
-                locale: 'pl',
-                firstDay: 1, 
+                locale: FullCalendarInitializer.CONFIG.LOCALE,
+                firstDay: FullCalendarInitializer.CONFIG.CALENDAR_OPTIONS.FIRST_DAY, 
                 height: 'auto',
                 handleWindowResize: true,
-                windowResizeDelay: 100,
+                windowResizeDelay: FullCalendarInitializer.CONFIG.TIMING.RESIZE_DELAY,
 
                 headerToolbar: {
                     left: 'prev',
@@ -73,7 +88,7 @@ class FullCalendarInitializer {
             console.error('Błąd inicjalizacji/ładowania kalendarza:', error);
             // Wyświetlenie komunikatu o błędzie, jeśli błąd dotyczy ładowania danych
             if (this.calendarEl) {
-                this.calendarEl.innerHTML = '<div class="error-message"><h3>Błąd ładowania kalendarza</h3></div>';
+                this.calendarEl.innerHTML = `<div class="error-message"><h3>${FullCalendarInitializer.CONFIG.ERROR_MESSAGES.INIT_ERROR}</h3></div>`;
                 this.calendarEl.style.display = 'block';
             }
         } finally {
@@ -115,7 +130,7 @@ class FullCalendarInitializer {
     updateMonthTitle(info) {
         const monthName = FullCalendar.formatDate(info.view.currentStart, {
             month: 'long',
-            locale: 'pl'
+            locale: FullCalendarInitializer.CONFIG.LOCALE
         });
         this.currentMonthNameEl.innerHTML = `<h2></h2> ${monthName.charAt(0).toUpperCase() + monthName.slice(1)}`;
     }

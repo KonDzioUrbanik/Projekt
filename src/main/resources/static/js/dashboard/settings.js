@@ -1,3 +1,9 @@
+const CONFIG = {
+    API: {
+        USER_ME: '/api/users/me'
+    }
+};
+
 document.addEventListener('DOMContentLoaded', function(){
     const profileForm = document.getElementById('profileForm');
     const messageDiv = document.getElementById('profileMessage');
@@ -9,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function(){
     // inicjalizacja
     async function initialize(){
         try{
-            const response = await fetch('/api/users/me', {
+            const response = await fetch(CONFIG.API.USER_ME, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json'
@@ -136,15 +142,13 @@ document.addEventListener('DOMContentLoaded', function(){
         if(yearOfStudy && yearOfStudy.length > 0) {
             profileData.yearOfStudy = yearOfStudy;
         }
-
-        console.log('Wysyłane dane:', profileData);
         
         try{
             // wylaczenie przycisku i pokazanie spinnera
             saveButton.disabled = true;
             saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Zapisywanie...</span>';
             
-            const response = await fetch('/api/users/me', {
+            const response = await fetch(CONFIG.API.USER_ME, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -156,7 +160,6 @@ document.addEventListener('DOMContentLoaded', function(){
 
             if(response.ok){
                 const updatedUser = await response.json();
-                console.log('Odpowiedź serwera:', updatedUser);
                 showMessage('Profil zaktualizowany pomyślnie!', 'success');
                 
                 // Oznacz pola jako ustawione

@@ -1,5 +1,23 @@
 // filtrowanie i wyszukiwanie użytkowników
 
+const CONFIG = {
+    SELECTORS: {
+        FULL_NAME_CELL: 'td:nth-child(2)',
+        EMAIL_CELL: 'td:nth-child(3)',
+        ROLE_BADGE: '.badge',
+        GROUP_CELL: 'td:nth-child(6)',
+        NAME_SPAN: 'td:nth-child(2) span'
+    },
+    COLUMNS: {
+        ID: 0,
+        FULL_NAME: 1,
+        EMAIL: 2,
+        ROLE: 4,
+        GROUP: 5
+    },
+    EMPTY_VALUES: ['Brak', '-', '']
+};
+
 const searchInput = document.getElementById('searchInput');
 const roleFilter = document.getElementById('roleFilter');
 const groupFilter = document.getElementById('groupFilter');
@@ -15,11 +33,11 @@ function populateGroupFilter(){
     // pobranie aktualnych wierszy (wszystkie, nie tylko tableRows)
     const currentRows = document.querySelectorAll('.users-table tbody tr');
     currentRows.forEach(row => {
-        const groupCell = row.querySelector('td:nth-child(6)');
+        const groupCell = row.querySelector(CONFIG.SELECTORS.GROUP_CELL);
         if(groupCell){
             const groupText = groupCell.textContent.trim();
 
-            if(groupText && groupText !== 'Brak'){
+            if(groupText && !CONFIG.EMPTY_VALUES.includes(groupText)){
                 groups.add(groupText);
             }
         }
@@ -48,10 +66,10 @@ function filterUsers(){
     let visibleCount = 0;
     
     tableRows.forEach(row => {
-        const fullName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-        const email = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-        const role = row.querySelector('.badge').textContent.trim();
-        const group = row.querySelector('td:nth-child(6)').textContent.trim();
+        const fullName = row.querySelector(CONFIG.SELECTORS.FULL_NAME_CELL).textContent.toLowerCase();
+        const email = row.querySelector(CONFIG.SELECTORS.EMAIL_CELL).textContent.toLowerCase();
+        const role = row.querySelector(CONFIG.SELECTORS.ROLE_BADGE).textContent.trim();
+        const group = row.querySelector(CONFIG.SELECTORS.GROUP_CELL).textContent.trim();
         
         const matchesSearch = fullName.includes(searchTerm) || email.includes(searchTerm);
         const matchesRole = !selectedRole || role === selectedRole;
@@ -191,22 +209,22 @@ function sortTable(columnIndex, dataType, headerElement){
     rowsArray.sort((a, b) => {
         let aValue, bValue;
         
-        if(columnIndex === 1){ // Imię i Nazwisko
-            aValue = a.querySelector('td:nth-child(2) span').textContent.trim().toLowerCase();
-            bValue = b.querySelector('td:nth-child(2) span').textContent.trim().toLowerCase();
+        if(columnIndex === CONFIG.COLUMNS.FULL_NAME){ // Imię i Nazwisko
+            aValue = a.querySelector(CONFIG.SELECTORS.NAME_SPAN).textContent.trim().toLowerCase();
+            bValue = b.querySelector(CONFIG.SELECTORS.NAME_SPAN).textContent.trim().toLowerCase();
         }
-        else if(columnIndex === 4){ // Rola
-            aValue = a.querySelector('.badge').textContent.trim();
-            bValue = b.querySelector('.badge').textContent.trim();
+        else if(columnIndex === CONFIG.COLUMNS.ROLE){ // Rola
+            aValue = a.querySelector(CONFIG.SELECTORS.ROLE_BADGE).textContent.trim();
+            bValue = b.querySelector(CONFIG.SELECTORS.ROLE_BADGE).textContent.trim();
         }
         else{
             aValue = a.querySelector(`td:nth-child(${columnIndex + 1})`).textContent.trim();
             bValue = b.querySelector(`td:nth-child(${columnIndex + 1})`).textContent.trim();
         }
         
-        // obsługa wartości "Brak" i "-"
-        if(aValue === 'Brak' || aValue === '-') aValue = '';
-        if(bValue === 'Brak' || bValue === '-') bValue = '';
+        // obsługa wartości pustych
+        if(CONFIG.EMPTY_VALUES.includes(aValue)) aValue = '';
+        if(CONFIG.EMPTY_VALUES.includes(bValue)) bValue = '';
         
         // sortowanie według typu
         if(dataType === 'number'){
