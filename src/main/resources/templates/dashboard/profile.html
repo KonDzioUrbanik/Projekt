@@ -21,9 +21,36 @@
                     <p class="email-text" th:text="${currentUser.email}"></p>
                 </div>
                 <div class="profile-actions">
+                    <a href="/settings" class="btn-outline">
+                        <i class="fas fa-edit"></i> Edytuj profil
+                    </a>
                     <a href="/change-password" class="btn-outline">
                         <i class="fas fa-key"></i> Zmień hasło
                     </a>
+                </div>
+            </div>
+
+            <div class="stats-container">
+                <div class="stat-card">
+                    <i class="fas fa-sticky-note"></i>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stats-notes">0</span>
+                        <span class="stat-label">Notatek</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-comments"></i>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stats-posts">0</span>
+                        <span class="stat-label">Postów</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-reply"></i>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stats-comments">0</span>
+                        <span class="stat-label">Komentarzy</span>
+                    </div>
                 </div>
             </div>
 
@@ -35,9 +62,9 @@
                         <a href="/dashboard/notes" class="btn-link">Zobacz wszystkie</a>
                     </div>
                     <div id="notes-container" class="notes-preview-list">
-                        <div class="loading-state">
-                            <div class="spinner"></div>
-                        </div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
                     </div>
                 </div>
 

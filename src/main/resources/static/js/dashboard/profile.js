@@ -14,6 +14,11 @@ class ProfileModule {
         this.postsContainer = document.getElementById('posts-container');
         this.commentsContainer = document.getElementById('comments-container');
         
+        // Statystyki
+        this.statsNotes = document.getElementById('stats-notes');
+        this.statsPosts = document.getElementById('stats-posts');
+        this.statsComments = document.getElementById('stats-comments');
+        
         this.load();
     }
 
@@ -45,6 +50,11 @@ class ProfileModule {
     }
 
     renderNotes(notes) {
+        // Aktualizacja statystyki
+        if (this.statsNotes) {
+            this.statsNotes.textContent = notes ? notes.length : 0;
+        }
+
         if (!notes || notes.length === 0) {
             this.showEmptyState(this.notesContainer, 'fa-sticky-note', 'Brak notatek.', '/dashboard/notes', 'Utwórz notatkę');
             return;
@@ -82,6 +92,11 @@ class ProfileModule {
 
     // POSTY
     async loadPosts() {
+        // Aktualizacja statystyki
+        if (this.statsPosts) {
+            this.statsPosts.textContent = posts ? posts.length : 0;
+        }
+
         // Placeholder
         this.renderPosts([]); 
     }
@@ -96,15 +111,21 @@ class ProfileModule {
 
     // KOMENTARZE
     async loadComments() {
+        // Aktualizacja statystyki
+        if (this.statsComments) {
+            this.statsComments.textContent = comments ? comments.length : 0;
+        }
+
         // Placeholder
         this.renderComments([]);
     }
 
     renderComments(comments) {
         if (!comments || comments.length === 0) {
-            this.postsContainer.innerHTML = `
-                <div class="empty-state-small">></i>
-                    <p>Brak postów</p>
+            this.commentsContainer.innerHTML = `
+                <div class="empty-state-small">
+                    <i class="fas fa-comment-slash"></i>
+                    <p>Brak komentarzy</p>
                 </div>
             `;
             return;
@@ -135,8 +156,8 @@ class ProfileModule {
             <div class="empty-state-small error">
                 <i class="fas fa-exclamation-triangle"></i>
                 <p>${message}</p>
-            </div>`
-       return tmp.textContent || tmp.innerText || "";
+            </div>
+        `;
     }
 }
 
