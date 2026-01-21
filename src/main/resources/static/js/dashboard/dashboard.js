@@ -316,7 +316,7 @@ class DashboardHome {
         const icon = this.getIconForClassType(classItem.classType);
         
         // Typ zajęć w formacie czytelnym
-        const classTypeName = this.classTypeNames[classItem.classType] || classItem.classType;
+        const classTypeName = DashboardHome.CONFIG.CLASS_TYPES[classItem.classType] || classItem.classType;
         
         // Obliczenie czasu do/od zajęć (tylko dla dzisiejszych zajęć)
         const timeInfo = isToday ? this.calculateTimeInfo(classItem, status) : null;
@@ -605,7 +605,7 @@ class DashboardHome {
             
             // Renderowanie listy zajęć
             classList.innerHTML = todayClasses.map(classItem => {
-                const classTypeName = this.classTypeNames[classItem.classType] || classItem.classType;
+                const classTypeName = DashboardHome.CONFIG.CLASS_TYPES[classItem.classType] || classItem.classType;
                 const groupNames = classItem.studentGroups 
                     ? classItem.studentGroups.map(g => g.groupName).join(', ') 
                     : 'Brak grupy';
