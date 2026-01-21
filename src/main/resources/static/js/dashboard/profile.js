@@ -1,4 +1,14 @@
 class ProfileModule {
+    static CONFIG = {
+        API: {
+            MY_NOTES: '/api/notes/my-notes'
+        },
+        LIMITS: {
+            NOTES_DISPLAY: 5,
+            PREVIEW_LENGTH: 60
+        }
+    };
+
     constructor() {
         this.notesContainer = document.getElementById('notes-container');
         this.postsContainer = document.getElementById('posts-container');
@@ -18,7 +28,7 @@ class ProfileModule {
     // NOTATKI
     async loadNotes() {
         try {
-            const response = await fetch('/api/notes/my-notes');
+            const response = await fetch(ProfileModule.CONFIG.API.MY_NOTES);
             
             if (!response.ok) {
                 if(response.redirected && response.url.includes('/login')) return;
@@ -48,19 +58,20 @@ class ProfileModule {
         });
 
         // 2. LIMIT: Bierzemy 5 pierwszych
-        const recentNotes = notes.slice(0, 5); 
+        const recentNotes = notes.slice(0, ProfileModule.CONFIG.LIMITS.NOTES_DISPLAY); 
 
         let html = '';
         recentNotes.forEach(note => {
-            // Używamy nowej metody formatDate (czas relatywny)
-            const date = this.formatDate(note.updatedAt || note.createdAt);
+            // Używamy Utils.formatDate (czas relatywny)
+            const date = Utils.formatDate(note.updatedAt || note.createdAt);
             
-            const preview = this.stripHtml(note.content).substring(0, 60) + (note.content.length > 60 ? '...' : '');
+            const preview = Utils.stripHtml(note.content).substring(0, ProfileModule.CONFIG.LIMITS.PREVIEW_LENGTH) + 
+                           (note.content.length > ProfileModule.CONFIG.LIMITS.PREVIEW_LENGTH ? '...' : '');
 
             html += `
                 <a href="/dashboard/notes?id=${note.id}" class="note-mini-card">
-                    <h4 class="note-mini-title">${this.escapeHtml(note.title)}</h4>
-                    <p class="note-mini-content">${this.escapeHtml(preview)}</p>
+                    <h4 class="note-mini-title">${Utils.escapeHtml(note.title)}</h4>
+                    <p class="note-mini-content">${Utils.escapeHtml(preview)}</p>
                     <span class="note-mini-date">${date}</span>
                 </a>
             `;
@@ -92,9 +103,8 @@ class ProfileModule {
     renderComments(comments) {
         if (!comments || comments.length === 0) {
             this.postsContainer.innerHTML = `
-                <div class="empty-state-small">
-                    <i class="fas fa-comment-slash" style="opacity: 0.5; font-size: 2rem; margin-bottom: 10px;"></i>
-                    <p style="color: #64748b;">Brak postów</p>
+                <div class="empty-state-small">></i>
+                    <p>Brak postów</p>
                 </div>
             `;
             return;
@@ -105,40 +115,16 @@ class ProfileModule {
 
     // NARZĘDZIA
 
-    formatDate(dateString) {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffInSeconds = Math.floor((now - date) / 1000);
-
-        if (diffInSeconds < 60) return 'przed chwilą';
-        
-        const diffInMinutes = Math.floor(diffInSeconds / 60);
-        if (diffInMinutes < 60) return `${diffInMinutes} min temu`;
-
-        const diffInHours = Math.floor(diffInMinutes / 60);
-        if (diffInHours < 24) {
-            if (diffInHours === 1) return 'godzinę temu';
-            if (diffInHours > 1 && diffInHours < 5) return `${diffInHours} godz. temu`;
-            return `${diffInHours} godz. temu`;
-        }
-
-        const diffInDays = Math.floor(diffInHours / 24);
-        if (diffInDays === 1) return 'wczoraj';
-
-        return date.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' });
-    }
-
     showEmptyState(container, iconClass, message, linkUrl, linkText) {
         let btnHtml = '';
         if (linkUrl && linkText) {
-            btnHtml = `<a href="${linkUrl}" class="btn-link" style="margin-top:5px; display:inline-block;">${linkText}</a>`;
+            btnHtml = `<a href="${linkUrl}" class="btn-link">${linkText}</a>`;
         }
         
         container.innerHTML = `
-            <div class="empty-state-small" style="text-align:center; padding:30px; color:#64748b;">
-                <i class="fas ${iconClass}" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i>
-                <p style="margin:0;">${message}</p>
+            <div class="empty-state-small">
+                <i class="fas ${iconClass}"></i>
+                <p>${message}</p>
                 ${btnHtml}
             </div>
         `;
@@ -146,25 +132,10 @@ class ProfileModule {
 
     showError(container, message) {
         container.innerHTML = `
-            <div class="empty-state-small" style="text-align:center; padding:30px; color:#ef4444;">
-                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+            <div class="empty-state-small error">
+                <i class="fas fa-exclamation-triangle"></i>
                 <p>${message}</p>
-            </div>`;
-    }
-
-    escapeHtml(text) {
-        if (!text) return '';
-        return text
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
-
-    stripHtml(html) {
-       let tmp = document.createElement("DIV");
-       tmp.innerHTML = html;
+            </div>`
        return tmp.textContent || tmp.innerText || "";
     }
 }

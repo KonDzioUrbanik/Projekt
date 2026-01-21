@@ -1,3 +1,9 @@
+const CONFIG = {
+    API: {
+        USER_ME: '/api/users/me'
+    }
+};
+
 document.addEventListener('DOMContentLoaded', function(){
     const profileForm = document.getElementById('profileForm');
     const messageDiv = document.getElementById('profileMessage');
@@ -9,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function(){
     // inicjalizacja
     async function initialize(){
         try{
-            const response = await fetch('/api/users/me', {
+            const response = await fetch(CONFIG.API.USER_ME, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json'
@@ -142,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function(){
             saveButton.disabled = true;
             saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Zapisywanie...</span>';
             
-            const response = await fetch('/api/users/me', {
+            const response = await fetch(CONFIG.API.USER_ME, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

@@ -3,6 +3,12 @@ class DashboardHome {
 
     // Stałe konfiguracyjne
     static CONFIG = {
+        API: {
+            SCHEDULE: '/api/schedule',
+            SCHEDULE_ALL: '/api/schedule/all',
+            USERS: '/api/users',
+            GROUPS: '/api/groups'
+        },
         ANIMATION_DURATION: 1000,
         ANIMATION_FPS: 60,
         MILLIS_PER_DAY: 24 * 60 * 60 * 1000,
@@ -16,18 +22,8 @@ class DashboardHome {
             STUDENT: 'STUDENT',
             STAROSTA: 'STAROSTA',
             ADMIN: 'ADMIN'
-        }
-    };
-
-    constructor() {
-        // Endpoint API dla harmonogramu zajęć
-        this.apiEndpoint = '/api/schedule';
-        
-        // Dane zajęć
-        this.scheduleData = [];
-        
-        // Mapowanie nazw dni tygodnia
-        this.dayNames = {
+        },
+        DAY_NAMES: {
             'Monday': 'Poniedziałek',
             'Tuesday': 'Wtorek',
             'Wednesday': 'Środa',
@@ -35,17 +31,20 @@ class DashboardHome {
             'Friday': 'Piątek',
             'Saturday': 'Sobota',
             'Sunday': 'Niedziela'
-        };
-        
-        // Mapowanie typów zajęć
-        this.classTypeNames = {
+        },
+        CLASS_TYPES: {
             'WYKLAD': 'Wykład',
             'CWICZENIA': 'Ćwiczenia laborytoryjne',
             'LABORATORIUM': 'Laboratorium',
             'PROJEKT': 'Projekt zespołowy',
             'SEMINARIUM': 'Seminarium',
             'KONSULTACJE': 'Konsultacje'
-        };
+        }
+    };
+
+    constructor() {
+        // Dane zajęć
+        this.scheduleData = [];
         
         // Inicjalizacja
         this.init();
@@ -113,7 +112,7 @@ class DashboardHome {
         if (errorDiv) errorDiv.style.display = 'none';
         
         try {
-            const response = await fetch(this.apiEndpoint);
+            const response = await fetch(DashboardHome.CONFIG.API.SCHEDULE);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -451,9 +450,9 @@ class DashboardHome {
         try {
             // Pobieranie prawdziwych danych z API
             const [usersResponse, groupsResponse, scheduleResponse] = await Promise.all([
-                fetch('/api/users').catch(() => null),
-                fetch('/api/groups').catch(() => null),
-                fetch('/api/schedule/all').catch(() => null)
+                fetch(DashboardHome.CONFIG.API.USERS).catch(() => null),
+                fetch(DashboardHome.CONFIG.API.GROUPS).catch(() => null),
+                fetch(DashboardHome.CONFIG.API.SCHEDULE_ALL).catch(() => null)
             ]);
             
             let totalUsers = '-';
@@ -574,7 +573,7 @@ class DashboardHome {
         
         try {
             // Pobieranie wszystkich zajęć z API
-            const response = await fetch('/api/schedule/all');
+            const response = await fetch(DashboardHome.CONFIG.API.SCHEDULE_ALL);
             
             if (!response.ok) {
                 throw new Error('Nie udało się pobrać harmonogramu');

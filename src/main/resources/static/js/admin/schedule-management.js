@@ -1,14 +1,11 @@
 class ScheduleManagement{
-    constructor(){
-        this.apiEndpoint = '/api/schedule';
-        this.apiEndpointAll = '/api/schedule/all';
-        this.scheduleData = [];
-        this.filteredData = [];
-        this.isEditing = false;
-        this.currentEditId = null;
-        this.allGroups = []; // przechowywanie wszystkich kierunków
-
-        this.dayNames = {
+    static CONFIG = {
+        API: {
+            SCHEDULE: '/api/schedule',
+            SCHEDULE_ALL: '/api/schedule/all',
+            GROUPS: '/api/groups'
+        },
+        DAY_NAMES: {
             'Monday': 'Poniedziałek',
             'Tuesday': 'Wtorek',
             'Wednesday': 'Środa',
@@ -16,16 +13,23 @@ class ScheduleManagement{
             'Friday': 'Piątek',
             'Saturday': 'Sobota',
             'Sunday': 'Niedziela'
-        };
-
-        this.classTypeNames = {
+        },
+        CLASS_TYPES: {
             'WYKLAD': 'Wykład',
             'CWICZENIA': 'Ćwiczenia laboratoryjne',
             'LABORATORIUM': 'Laboratorium',
             'PROJEKT': 'Projekt zespołowy',
             'SEMINARIUM': 'Seminarium',
             'KONSULTACJE': 'Konsultacje'
-        };
+        }
+    };
+
+    constructor(){
+        this.scheduleData = [];
+        this.filteredData = [];
+        this.isEditing = false;
+        this.currentEditId = null;
+        this.allGroups = []; // przechowywanie wszystkich kierunków
 
         this.initializeEventListeners();
         this.loadGroups();
@@ -81,7 +85,7 @@ class ScheduleManagement{
         loading.classList.add('active');
 
         try{
-            const response = await fetch(this.apiEndpointAll);
+            const response = await fetch(ScheduleManagement.CONFIG.API.SCHEDULE_ALL);
 
             if(!response.ok){
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -111,7 +115,7 @@ class ScheduleManagement{
 
     async loadGroups(){
         try{
-            const response = await fetch('/api/groups');
+            const response = await fetch(ScheduleManagement.CONFIG.API.GROUPS);
             if(!response.ok){
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -161,11 +165,11 @@ class ScheduleManagement{
             <tr>
                 <td>${item.id}</td>
                 <td><strong>${item.title}</strong></td>
-                <td><span class="day-badge">${this.dayNames[item.dayOfWeek]}</span></td>
+                <td><span class="day-badge">${ScheduleManagement.CONFIG.DAY_NAMES[item.dayOfWeek]}</span></td>
                 <td>${this.formatTime(item.startTime)} - ${this.formatTime(item.endTime)}</td>
                 <td>${item.room}</td>
                 <td>${item.teacher}</td>
-                <td><span class="class-type-badge ${item.classType}">${this.classTypeNames[item.classType]}</span></td>
+                <td><span class="class-type-badge ${item.classType}">${ScheduleManagement.CONFIG.CLASS_TYPES[item.classType]}</span></td>
                 <td>${item.studentGroups && item.studentGroups.length > 0 
                     ? item.studentGroups.map(g => g.name).join(', ') 
                     : '-'}</td>
@@ -271,7 +275,7 @@ class ScheduleManagement{
             let response;
             if(this.isEditing){
                 // aktualizacja
-                response = await fetch(`${this.apiEndpoint}/${this.currentEditId}`, {
+                response = await fetch(`${ScheduleManagement.CONFIG.API.SCHEDULE}/${this.currentEditId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -281,7 +285,7 @@ class ScheduleManagement{
             } 
             else{
                 // nowe zajecia
-                response = await fetch(this.apiEndpoint, {
+                response = await fetch(ScheduleManagement.CONFIG.API.SCHEDULE, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -324,7 +328,7 @@ class ScheduleManagement{
         }
 
         try{
-            const response = await fetch(`${this.apiEndpoint}/${id}`, {
+            const response = await fetch(`${ScheduleManagement.CONFIG.API.SCHEDULE}/${id}`, {
                 method: 'DELETE'
             });
 
