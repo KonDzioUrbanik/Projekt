@@ -284,7 +284,9 @@ async function handleFormSubmit(e) {
             const idx = AppState.notes.findIndex(n => n.id === resultNote.id);
             if (idx !== -1) AppState.notes[idx] = resultNote;
             
+            // Aktualizacja wybranej notatki
             if (AppState.selectedNote?.id === resultNote.id) {
+                AppState.selectedNote = resultNote; // Ważne: aktualizuj również selectedNote
                 renderNoteView(resultNote);
             }
             showToast('Notatka zaktualizowana', 'success');
