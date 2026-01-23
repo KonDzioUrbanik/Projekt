@@ -164,8 +164,9 @@
 /* RESPONSYWNOŚĆ (MOBILE) */
 
 @media (max-width: 992px) {
-    .navbar-left {
-        width: 100%;
+    .navbar-left,
+    .navbar-left.collapsed {
+        width: 100% !important;
         height: auto;
         flex-direction: row;
         overflow-x: auto;
