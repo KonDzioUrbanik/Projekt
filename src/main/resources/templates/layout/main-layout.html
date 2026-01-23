@@ -17,6 +17,7 @@
 
         <link rel="stylesheet" th:href="@{/css/dashboard/dashboard.css}">
         <link rel="stylesheet" th:href="@{/css/dashboard/sidebar.css}">
+        <link rel="stylesheet" th:href="@{/css/common/feedback-modal.css}">
 
         <th:block layout:fragment="page-styles"></th:block>
     </head>
@@ -32,8 +33,107 @@
             </section>
         </div>
 
+        <!-- Floating Help Button -->
+        <button class="floating-help-btn" id="feedbackBtn" title="Zgłoś problem lub sugestię">
+            <i class="fas fa-bug"></i>
+        </button>
+
+        <!-- Feedback Modal -->
+        <div class="feedback-modal-overlay" id="feedbackModal">
+            <div class="feedback-modal">
+                <div class="feedback-modal-header">
+                    <h2>
+                        <i class="fas fa-bug"></i>
+                        Zgłoś problem
+                    </h2>
+                    <button class="modal-close-btn" id="closeFeedbackModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="feedback-modal-body">
+                    <div class="feedback-message" id="feedbackMessage"></div>
+                    
+                    <form id="feedbackForm">
+                        <div class="feedback-form-group">
+                            <label class="required">Typ zgłoszenia</label>
+                            <div class="feedback-type-options">
+                                <div class="feedback-type-option">
+                                    <input type="radio" id="type-bug" name="type" value="BUG" checked>
+                                    <label for="type-bug" class="feedback-type-label">
+                                        <i class="fas fa-bug"></i>
+                                        <span>Błąd</span>
+                                    </label>
+                                </div>
+                                <div class="feedback-type-option">
+                                    <input type="radio" id="type-suggestion" name="type" value="SUGGESTION">
+                                    <label for="type-suggestion" class="feedback-type-label">
+                                        <i class="fas fa-lightbulb"></i>
+                                        <span>Sugestia</span>
+                                    </label>
+                                </div>
+                                <div class="feedback-type-option">
+                                    <input type="radio" id="type-question" name="type" value="QUESTION">
+                                    <label for="type-question" class="feedback-type-label">
+                                        <i class="fas fa-question-circle"></i>
+                                        <span>Pytanie</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="feedback-form-group">
+                            <label for="feedback-title" class="required">Tytuł</label>
+                            <input 
+                                type="text" 
+                                id="feedback-title" 
+                                name="title"
+                                class="feedback-input" 
+                                placeholder="Krótko opisz problem..."
+                                maxlength="150"
+                                required>
+                        </div>
+
+                        <div class="feedback-form-group">
+                            <label for="feedback-description" class="required">Szczegółowy opis</label>
+                            <textarea 
+                                id="feedback-description" 
+                                name="description"
+                                class="feedback-textarea" 
+                                placeholder="Opisz dokładnie co się stało, na jakiej stronie wystąpił problem..."
+                                maxlength="1000"
+                                required></textarea>
+                            <div class="char-counter">
+                                <span id="charCount">0</span> / 1000
+                            </div>
+                        </div>
+
+                        <div class="feedback-form-group">
+                            <label for="feedback-email">Email kontaktowy (opcjonalnie)</label>
+                            <input 
+                                type="email" 
+                                id="feedback-email" 
+                                name="email"
+                                class="feedback-input" 
+                                placeholder="Jeśli chcesz otrzymać odpowiedź...">
+                        </div>
+                    </form>
+                </div>
+
+                <div class="feedback-modal-footer">
+                    <button type="button" class="feedback-btn feedback-btn-cancel" id="cancelFeedback">
+                        Anuluj
+                    </button>
+                    <button type="submit" form="feedbackForm" class="feedback-btn feedback-btn-submit" id="submitFeedback">
+                        <i class="fas fa-paper-plane"></i> Wyślij
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <script th:src="@{/js/common/user-menu.js}"></script> 
         <script th:src="@{/js/dashboard/sidebar.js}" defer></script>
+        <script th:src="@{/js/common/feedback-modal.js}" defer></script>
 
         <th:block layout:fragment="page-scripts"></th:block>
     </body>
