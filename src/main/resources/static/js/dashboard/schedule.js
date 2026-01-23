@@ -18,7 +18,7 @@ class ScheduleCalendar{
             'SEMINARIUM': 'Seminarium',
             'KONSULTACJE': 'Konsultacje'
         },
-        WORK_DAYS: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+        WORK_DAYS: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     };
     
     constructor(){
@@ -209,7 +209,7 @@ class ScheduleCalendar{
     getTimeSlotsObjects(){
         const slots = [];
         const startHour = 7;
-        const endHour = 20;
+        const endHour = 21;
         
         for(let hour = startHour; hour < endHour; hour++){
             for(let minute = 0; minute < 60; minute += 15){

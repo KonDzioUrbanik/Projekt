@@ -317,6 +317,78 @@
     min-height: 120px;
 }
 
+/* RESPONSYWNOŚĆ MOBILE */
+@media (max-width: 768px) {
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+
+    .profile-actions {
+        margin-left: 0;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .profile-actions .btn-outline {
+        width: 100%;
+        justify-content: center;
+        display: flex;
+    }
+
+    .profile-avatar {
+        width: 70px;
+        height: 70px;
+        font-size: 2rem;
+    }
+
+    .profile-info h2 {
+        font-size: 1.3rem;
+    }
+
+    .stats-container {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .stat-card {
+        padding: 16px;
+    }
+
+    .stat-card i {
+        font-size: 1.5rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .profile-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .span-2 {
+        grid-column: span 1;
+    }
+
+    .notes-preview-list {
+        grid-template-columns: 1fr;
+    }
+
+    .note-mini-title {
+        font-size: 0.9rem;
+    }
+
+    .note-mini-content {
+        font-size: 0.8rem;
+    }
+
+    .card {
+        padding: 16px;
+    }
+}
+
 /* SKELETON LOADER */
 .skeleton-card {
     background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
