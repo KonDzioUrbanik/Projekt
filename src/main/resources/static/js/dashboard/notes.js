@@ -419,7 +419,8 @@ function renderNoteView(note) {
     if (DOM.noteAuthor) DOM.noteAuthor.textContent = `${note.userFirstName} ${note.userLastName}`;
     if (DOM.noteCreatedAt) DOM.noteCreatedAt.textContent = formatDateTime(note.createdAt);
 
-    const isEdited = note.updatedAt && note.createdAt !== note.updatedAt;
+    // Sprawdź czy notatka była edytowana (updatedAt != null)
+    const isEdited = note.updatedAt !== null && note.updatedAt !== undefined;
     if (DOM.noteEditedMeta) DOM.noteEditedMeta.style.display = isEdited ? 'inline-block' : 'none';
 }
 

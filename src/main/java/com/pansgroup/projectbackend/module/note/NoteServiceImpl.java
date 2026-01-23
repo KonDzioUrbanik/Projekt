@@ -46,6 +46,7 @@ public class NoteServiceImpl implements NoteService {
 
         note.setTitle(dto.title().trim());
         note.setContent(dto.content().trim());
+        note.setUpdatedAt(java.time.LocalDateTime.now());
 
         Note updated = noteRepository.save(note);
         return toResponse(updated);
