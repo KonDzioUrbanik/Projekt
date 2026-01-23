@@ -227,15 +227,6 @@
                             </div>
                             <div class="admin-card-body">
                                 <div id="alertsList" class="alerts-list">
-                                    <!-- <div class="alert-item info">
-                                        <div class="alert-icon">
-                                            <i class="fas fa-info-circle"></i>
-                                        </div>
-                                        <div class="alert-content">
-                                            <h4>System działa prawidłowo</h4>
-                                            <p>Wszystkie moduły są aktywne</p>
-                                        </div>
-                                    </div> -->
                                     <div class="coming-soon admin-coming-soon">
                                         <div class="coming-icon">
                                             <i class="fas fa-clock"></i>
@@ -250,11 +241,25 @@
                     </div>
                 </div>
 
-                <!-- Główna treść dashboardu (dla studentów) -->
-                <div sec:authorize="hasRole('STUDENT')" class="student-dashboard">
+                <!-- Główna treść dashboardu (dla studentów i starostów) -->
+                <div sec:authorize="hasAnyRole('STUDENT', 'STAROSTA')" class="student-dashboard">
+                    
+                    <!-- Panel starosty (dodatkowe funkcje) -->
+                    <div sec:authorize="hasRole('STAROSTA')" class="starosta-panel">
+                        <div class="info-banner starosta-banner">
+                            <div class="banner-icon">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div class="banner-content">
+                                <h3>Panel Starosty</h3>
+                                <p>Jako starosta masz dostęp do dodatkowych funkcji zarządzania grupą.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="dashboard-grid">
                         
-                        <!-- Sekcja: Najbliższe zajęcia -->
+                        <!-- Sekcja - najbliższe zajęcia -->
                         <div class="dashboard-card primary-card">
                             <div class="card-header">
                                 <div class="header-left">
