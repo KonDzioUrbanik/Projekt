@@ -4,9 +4,26 @@ const Utils = {
     /* Formatuje datę na format relatywny (np. "przed chwilą", "5 min temu", "wczoraj") */
     formatDate(dateString) {
         if (!dateString) return '';
-        const date = new Date(dateString);
+        
+        // Parsowanie daty - sprawdzamy czy to UTC czy lokalna
+        let date;
+        if (dateString.endsWith('Z') || dateString.includes('+') || dateString.includes('T')) {
+            // ISO 8601 format (prawdopodobnie UTC z serwera)
+            date = new Date(dateString);
+        }
+         else {
+            // Lokalna data
+            date = new Date(dateString);
+        }
+        
         const now = new Date();
         const diffInSeconds = Math.floor((now - date) / 1000);
+
+        // Dodatkowa tolerancja dla drobnych różnic czasowych (np. opóźnienie sieci)
+        if (diffInSeconds < -5) {
+            // Data w przyszłości (więcej niż 5 sekund) - prawdopodobnie problem z czasem serwera
+            return 'przed chwilą';
+        }
 
         if (diffInSeconds < 60) return 'przed chwilą';
         
