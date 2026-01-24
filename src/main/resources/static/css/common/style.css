@@ -242,6 +242,56 @@ body {
     max-width: 280px;
 }
 
+.university-branding {
+    margin-top: 5rem;
+    padding: 4rem 1.5rem;
+    background: linear-gradient(135deg, #f8fafc, #eef2f7);
+    display: flex;
+    justify-content: center;
+}
+
+.branding-content {
+    max-width: 900px;
+    width: 100%;
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+}
+
+.pans-logo {
+    width: 280px;
+    max-width: 100%;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.08));
+}
+
+.branding-text {
+    font-size: 1.2rem;
+    color: #334155;
+    line-height: 1.6;
+}
+
+.branding-text strong {
+    font-weight: 700;
+    color: #0f172a;
+}
+
+/* RWD */
+@media (max-width: 768px) {
+    .branding-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 2rem;
+    }
+
+    .pans-logo {
+        width: 150px;
+    }
+}
+
 /* Footer */
 .landing-footer {
     text-align: center;
