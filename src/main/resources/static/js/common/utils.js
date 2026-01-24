@@ -5,31 +5,30 @@ const Utils = {
     formatDate(dateString) {
         if (!dateString) return '';
         
-        // Parsowanie daty - sprawdzamy czy to UTC czy lokalna
-        let date;
-        if (dateString.endsWith('Z') || dateString.includes('+') || dateString.includes('T')) {
-            // ISO 8601 format (prawdopodobnie UTC z serwera)
-            date = new Date(dateString);
-        }
-         else {
-            // Lokalna data
-            date = new Date(dateString);
-        }
+        // Parsowanie daty - Date() w JS radzi sobie dobrze z ISO 8601
+        const date = new Date(dateString);
+        
+        // Sprawdzenie, czy data jest prawidłowa
+        if (isNaN(date.getTime())) return '';
         
         const now = new Date();
+        // Różnica w sekundach
         const diffInSeconds = Math.floor((now - date) / 1000);
 
-        // Dodatkowa tolerancja dla drobnych różnic czasowych (np. opóźnienie sieci)
+        // Obsługa przyszłości (gdy zegary są lekko niezsynchronizowane)
+        // Jeśli data jest z przyszłości o więcej niż 5 sekund, uznajemy to za "teraz"
         if (diffInSeconds < -5) {
-            // Data w przyszłości (więcej niż 5 sekund) - prawdopodobnie problem z czasem serwera
-            return 'przed chwilą';
+            return 'przed chwilą'; 
         }
 
+        // 2. Mniej niż minuta
         if (diffInSeconds < 60) return 'przed chwilą';
         
+        // 3. Minuty
         const diffInMinutes = Math.floor(diffInSeconds / 60);
         if (diffInMinutes < 60) return `${diffInMinutes} min temu`;
 
+        // 4. Godziny
         const diffInHours = Math.floor(diffInMinutes / 60);
         if (diffInHours < 24) {
             if (diffInHours === 1) return 'godzinę temu';
@@ -37,13 +36,21 @@ const Utils = {
             return `${diffInHours} godz. temu`;
         }
 
+        // 5. Dni
         const diffInDays = Math.floor(diffInHours / 24);
         if (diffInDays === 1) return 'wczoraj';
+        if (diffInDays === 2) return 'przedwczoraj';
 
-        return date.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' });
+        // 6. Data kalendarzowa (dla starszych niż 2 dni)
+        return date.toLocaleDateString('pl-PL', { 
+            day: 'numeric', 
+            month: 'short',
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
     },
 
-    /* Escapuje znaki HTML w tekście */
+    /* Escapuje znaki HTML w tekście (ZAPOBIEGA XSS) */
     escapeHtml(text) {
         if (!text) return '';
         return text
@@ -54,7 +61,7 @@ const Utils = {
             .replace(/'/g, "&#039;");
     },
 
-    /* Usuwa tagi HTML z tekstu */
+    /* Usuwa tagi HTML z tekstu (np. do podglądu) */
     stripHtml(html) {
         if (!html) return '';
         const tmp = document.createElement("DIV");
@@ -63,7 +70,7 @@ const Utils = {
     }
 };
 
-// Eksport dla kompatybilności
+// Eksport dla kompatybilności (jeśli używasz modułów lub testów)
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = Utils;
 }
