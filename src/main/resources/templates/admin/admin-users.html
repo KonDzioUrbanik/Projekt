@@ -35,9 +35,7 @@
                     <div class="filters-section">
                         <div class="search-box">
                             <i class="fas fa-search"></i>
-                            <input type="text" id="searchInput" placeholder="Szukaj po imieniu, nazwisku lub emailu...">
-                        </div>
-                        
+                        <input type="text" id="searchInput" placeholder="Wyszukaj użytkownika po imieniu, nazwisku lub adresie e-mail">
                         <div class="filter-group">
                             <label for="roleFilter"><i class="fas fa-user-tag"></i> Rola:</label>
                             <select id="roleFilter">
@@ -52,10 +50,7 @@
                             <label for="groupFilter"><i class="fas fa-users"></i> Kierunek:</label>
                             <select id="groupFilter">
                                 <option value="">Wszystkie</option>
-                                <option value="Brak">Brak kierunku</option>
-                                <!-- wypelniane dynamicznie przez javascript -->
-                            </select>
-                        </div>
+                            <option value="Brak">Nie przypisano kierunku</option>
 
                         <button class="btn-reset" id="resetFilters">
                             <i class="fas fa-redo"></i> Reset
@@ -113,7 +108,7 @@
                                 <span class="badge" th:classappend="${user.role == 'ADMIN'} ? 'badge-admin' : (${user.role == 'STAROSTA'} ? 'badge-starosta' : 'badge-student')" th:text="${user.role}"> </span>
                             </td>
 
-                            <td th:text="${user.groupName != null} ? ${user.groupName} : 'Brak'"> </td>
+                            <td th:text="${user.groupName != null} ? ${user.groupName} : 'Nie przypisano kierunku'"> </td>
                             
                             <td>
                                 <button class="action-btn btn-edit" title="Edytuj"
@@ -143,7 +138,7 @@
                                 <div class="empty-state">
                                     <i class="fas fa-users"></i>
                                     <h3>Brak użytkowników</h3>
-                                    <p>Nie znaleziono żadnych użytkowników.</p>
+                                    <p>Nie znaleziono żadnych użytkowników spełniających podane kryteria.</p>
                                 </div>
                             </td>
                         </tr>
@@ -184,7 +179,7 @@
                             <div class="form-group">
                                 <label for="editGroup">Przypisz do kierunku</label>
                                 <select id="editGroup" class="form-control">
-                                    <option value="">Brak grupy</option>
+                                <option value="">Nie przypisano do grupy</option>
                                     <!-- grupy będą ładowane dynamicznie przez JavaScript -->
                                 </select>
                             </div>

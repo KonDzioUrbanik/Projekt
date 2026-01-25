@@ -50,7 +50,7 @@ public class MainController {
     public String confirm(@RequestParam("token") String token, RedirectAttributes redirectAttributes) {
         try {
             userService.confirmToken(token);
-            redirectAttributes.addFlashAttribute("successMessage", "Konto zostało pomyślnie aktywowane! Możesz się teraz zalogować.");
+            redirectAttributes.addFlashAttribute("successMessage", "Konto zostało pomyślnie aktywowane. Możesz się teraz zalogować.");
             return "redirect:/login";
 
         } catch (UsernameNotFoundException e) {
@@ -63,7 +63,7 @@ public class MainController {
     @GetMapping("/token-error")
     public String tokenErrorView(Model model) {
         if (!model.containsAttribute("errorMessage")) {
-            model.addAttribute("errorMessage", "Wystąpił nieznany błąd lub link jest nieprawidłowy.");
+            model.addAttribute("errorMessage", "Wystąpił nieznany błąd lub link jest nieprawidłowy. Skontaktuj się z administratorem.");
         }
         return "auth/password-reset-expired";
     }

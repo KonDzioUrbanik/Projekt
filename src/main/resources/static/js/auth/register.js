@@ -21,19 +21,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // sprawdzenie czy hasla sa identyczne
         if (password !== passwordConfirm){
-            displayMessage(errorMessageContainer, 'Hasła nie są identyczne.');
+            displayMessage(errorMessageContainer, 'Wprowadzone hasła nie są identyczne. Upewnij się, że oba pola zawierają to samo hasło.');
             return;
         }
 
         // sprawdzenie czy pola nie sa puste
         if (!firstName || !lastName || !email || !password /*|| !role || !nrAlbumu*/){
-            displayMessage(errorMessageContainer, 'Wszystkie pola są wymagane.');
+            displayMessage(errorMessageContainer, 'Wszystkie pola formularza są wymagane. Proszę uzupełnić brakujące informacje.');
             return;
         }
 
         // sprawdzenie formatu email
         if(!validateStudentEmail(email)){
-            displayMessage(errorMessageContainer, 'Nieprawidłowy e-mail. \nAdres e-mail musi składać się z numeru albumu (same cyfry) oraz domeny @student.kpu.krosno.pl');
+            displayMessage(errorMessageContainer, 'Adres e-mail jest nieprawidłowy. Użyj formatu: numer_albumu@student.kpu.krosno.pl (np. 123456@student.kpu.krosno.pl)');
             return;
         }
 
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // obsluga odpowiedzi HTTP
             if(response.ok){
-                displayMessage(errorMessageContainer, 'Zarejestrowano pomyślnie!', true);
+                displayMessage(errorMessageContainer, 'Rejestracja przebiegła pomyślnie! Na podany adres e-mail został wysłany link aktywacyjny.', true);
                 
                 // przekierowanie na strone logowania
                 redirectAfterDelay('/login');
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } 
         catch (error){
             console.error('Błąd sieci:', error);
-            displayMessage(errorMessageContainer, 'Błąd połączenia z serwerem. Spróbuj ponownie później.');
+            displayMessage(errorMessageContainer, 'Nie udało się nawiązać połączenia z serwerem. Spróbuj ponownie za chwilę.');
         }
         finally{
             enableButton(registerButton, 'Zarejestruj się');

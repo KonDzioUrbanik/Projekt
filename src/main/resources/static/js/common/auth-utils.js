@@ -84,26 +84,26 @@ function redirectAfterDelay(url, delay = AUTH_CONFIG.TIMING.REDIRECT_DELAY) {
 
 /* Obsługuje błędy HTTP i zwraca odpowiedni komunikat */
 function getErrorMessage(response, data = {}) {
-    let errorMsg = 'Wystąpił nieoczekiwany błąd.';
+    let errorMsg = 'Wystąpił nieoczekiwany błąd. Proszę skontaktować się z administratorem, jeśli problem będzie się powtarzać.';
     
     switch (response.status) {
         case 400:
-            errorMsg = data.message || 'Nieprawidłowe dane formularza.';
+            errorMsg = data.message || 'Nieprawidłowe dane formularza. Sprawdź poprawność wypełnienia wszystkich pól.';
             break;
         case 401:
-            errorMsg = data.message || 'Nieprawidłowe dane uwierzytelniające.';
+            errorMsg = data.message || 'Nieprawidłowe dane uwierzytelniające. Sprawdź adres e-mail i hasło.';
             break;
         case 403:
-            errorMsg = data.message || 'Brak uprawnień.';
+            errorMsg = data.message || 'Nie masz uprawnień do wykonania tej operacji.';
             break;
         case 404:
-            errorMsg = data.message || 'Usługa niedostępna.';
+            errorMsg = data.message || 'Usługa jest tymczasowo niedostępna. Spróbuj ponownie za chwilę.';
             break;
         case 500:
-            errorMsg = 'Błąd serwera. Spróbuj ponownie później.';
+            errorMsg = 'Błąd serwera. Spróbuj ponownie później lub skontaktuj się z administratorem.';
             break;
         default:
-            errorMsg = data.message || data.detail || 'Wystąpił nieoczekiwany błąd.';
+            errorMsg = data.message || data.detail || 'Wystąpił nieoczekiwany błąd. Proszę skontaktować się z administratorem, jeśli problem będzie się powtarzać.';
     }
     
     // Dodanie listy błędów walidacji, jeśli istnieje

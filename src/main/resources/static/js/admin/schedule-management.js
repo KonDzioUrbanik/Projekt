@@ -102,7 +102,7 @@ class ScheduleManagement{
                     <td colspan="9" style="text-align: center; padding: 2rem;">
                         <div style="color: #ef4444;">
                             <i class="fas fa-exclamation-triangle" style="font-size: 2rem;"></i>
-                            <p style="margin-top: 1rem;">Błąd ładowania danych: ${error.message}</p>
+                            <p style="margin-top: 1rem;">Nie udało się załadować danych harmonogramu. Sprawdź połączenie internetowe i odśwież stronę.</p>
                         </div>
                     </td>
                 </tr>
@@ -311,7 +311,7 @@ class ScheduleManagement{
         } 
         catch (error){
             console.error('Błąd zapisu:', error);
-            this.showNotification('Błąd podczas zapisywania: ' + error.message, 'error');
+            this.showNotification('Wystąpił błąd podczas zapisywania zajęć. Sprawdź poprawność danych i spróbuj ponownie.', 'error');
         }
     }
 
@@ -323,7 +323,7 @@ class ScheduleManagement{
     }
 
     async deleteSchedule(id){
-        if(!confirm('Czy na pewno chcesz usunąć te zajęcia?')){
+        if(!confirm('Czy na pewno chcesz usunąć te zajęcia? Ta operacja jest nieodwracalna.')){
             return;
         }
 

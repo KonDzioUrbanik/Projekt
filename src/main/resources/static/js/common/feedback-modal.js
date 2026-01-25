@@ -117,17 +117,17 @@ const FeedbackModal = {
 
         // Walidacja
         if (!data.title || !data.description) {
-            this.showMessage('Proszę wypełnić wszystkie wymagane pola.', 'error');
+            this.showMessage('Wszystkie wymagane pola muszą zostać wypełnione.', 'error');
             return;
         }
 
         if (data.title.length < 5) {
-            this.showMessage('Tytuł musi mieć minimum 5 znaków.', 'error');
+            this.showMessage('Tytuł musi zawierać minimum 5 znaków.', 'error');
             return;
         }
 
         if (data.description.length < 10) {
-            this.showMessage('Opis musi mieć minimum 10 znaków.', 'error');
+            this.showMessage('Opis musi zawierać minimum 10 znaków.', 'error');
             return;
         }
 
@@ -161,7 +161,7 @@ const FeedbackModal = {
         } 
         catch (error) {
             console.error('Błąd wysyłania zgłoszenia:', error);
-            this.showMessage('Nie udało się wysłać zgłoszenia. Spróbuj ponownie.', 'error');
+            this.showMessage('Nie udało się wysłać zgłoszenia. Sprawdź połączenie internetowe i spróbuj ponownie.', 'error');
         } 
         finally {
             // Enable button

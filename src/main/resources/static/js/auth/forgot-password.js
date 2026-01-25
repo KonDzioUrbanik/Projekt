@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Walidacja pola
         if (!email){
-            displayMessage(message, "Podaj adres e-mail.");
+            displayMessage(message, "Pole adresu e-mail jest wymagane.");
             return;
         }
 
@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if(response.ok){
-                displayMessage(message, data.message || "Na podany adres e-mail wysłano link resetujący.", true);
+                displayMessage(message, data.message || "Na podany adres e-mail został wysłany link umożliwiający zresetowanie hasła. Sprawdź swoją skrzynkę odbiorcą.", true);
             }
             else{
                 const errorMsg = getErrorMessage(response, data);
@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } 
         catch (err){
             console.error("Błąd połączenia:", err);
-            displayMessage(message, "Nie można połączyć się z serwerem.");
+            displayMessage(message, "Nie udało się nawiązać połączenia z serwerem. Sprawdź swoje połączenie internetowe i spróbuj ponownie.");
         } 
         finally{
             enableButton(button, "Wyślij link resetujący");

@@ -75,7 +75,7 @@
                                 <i class="fas fa-user"></i>
                                 Pseudonim
                             </label>
-                            <input type="text" id="nickName" class="form-control" th:value="${currentUser.nickName}" placeholder="Pseudonim">
+                            <input type="text" id="nickName" class="form-control" th:value="${currentUser.nickName}" placeholder="Pseudonim (opcjonalnie)">
                         </div>
                     </div>
 
@@ -113,7 +113,7 @@
                                     <option value="+7">+7</option>
                                     <option value="+380">+380</option>
                                 </select>
-                                <input type="text" id="phone" class="form-control" placeholder="123456789" pattern="[0-9]*" inputmode="numeric" maxlength="9" style="flex: 1;">
+                                <input type="text" id="phone" class="form-control" placeholder="np. 123456789" pattern="[0-9]*" inputmode="numeric" maxlength="9" style="flex: 1;">
                             </div>
                             <small class="form-text">Podaj 9 cyfr numeru telefonu</small>
                         </div>
@@ -196,7 +196,7 @@
                             <i class="fas fa-pen"></i>
                             O mnie
                         </label>
-                        <textarea id="bio" class="form-control" th:text="${currentUser.bio}" placeholder="Opowiedz coś o sobie..." rows="4" maxlength="500"></textarea>
+                        <textarea id="bio" class="form-control" th:text="${currentUser.bio}" placeholder="Krótki opis o sobie (opcjonalnie)" rows="4" maxlength="500"></textarea>
                         <small class="form-text">Maksymalnie 500 znaków</small>
                     </div>
 
