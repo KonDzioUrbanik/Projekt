@@ -145,7 +145,7 @@ public class UserServiceImpl implements UserService {
 
         // Sprawdzamy poprawność hasła
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-            throw new BadCredentialsException("Nieprawidłowe dane logowania");
+            throw new BadCredentialsException("Wprowadzone dane logowania są nieprawidłowe. Sprawdź adres e-mail i hasło.");
         }
 
         return user;
@@ -204,12 +204,12 @@ public class UserServiceImpl implements UserService {
 
         // Weryfikacja bieżącego hasła
         if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
-            throw new PasswordMismatchException("Nieprawidłowe bieżące hasło");
+            throw new PasswordMismatchException("Podane obecne hasło jest nieprawidłowe.");
         }
 
         // Weryfikacja nowego hasła i potwierdzenia
         if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
-            throw new PasswordMismatchException("Nowe hasło i potwierdzenie hasła nie pasują do siebie");
+            throw new PasswordMismatchException("Nowe hasło i potwierdzenie hasła nie są identyczne.");
         }
 
         // Zmiana hasła
@@ -262,11 +262,11 @@ public class UserServiceImpl implements UserService {
         // Wszystko tutaj jest poprawne
         Optional<ConfirmationToken> tokenOptional = confirmationTokenRepository.findByToken(token);
         if (!tokenOptional.isPresent()) {
-            throw new UsernameNotFoundException("Token jest błędny " + token + " bądz nie istnieje");
+            throw new UsernameNotFoundException("Link aktywacyjny jest nieprawidłowy lub wygasł. Zarejestruj się ponownie lub skontaktuj się z administratorem.");
         } else {
             ConfirmationToken confirmationToken = tokenOptional.get();
             if (confirmationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-                throw new UsernameNotFoundException("Token przeterminowany");
+                throw new UsernameNotFoundException("Link aktywacyjny wygasł. Zarejestruj się ponownie lub skontaktuj się z administratorem.");
             }
             User user = confirmationToken.getUser();
             user.setActivated(true);
@@ -281,7 +281,7 @@ public class UserServiceImpl implements UserService {
         if (user.isEmpty()) {
             throw new UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + email);
         } else if (!user.get().isActivated()) {
-            throw new AccountInactiveException("Konto o tym emailu \n" + email + " nie jest aktywne");
+            throw new AccountInactiveException("Konto z adresem e-mail " + email + " nie zostało aktywowane. Sprawdź swoją skrzynkę pocztową i kliknij w link aktywacyjny.");
         } else {
             User u = user.get();
             PasswordResetToken passwordResetToken = new PasswordResetToken();
@@ -301,7 +301,7 @@ public class UserServiceImpl implements UserService {
 
         // Nie pozwalaj usuwać użytkowników z rolą ADMIN
         if ("ADMIN".equals(user.getRole())) {
-            throw new IllegalStateException("Nie można usunąć konta administratora");
+            throw new IllegalStateException("Nie można usunąć konta administratora. Konta z uprawnieniami administratora są chronione.");
         }
 
         userRepository.delete(user);
@@ -310,12 +310,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public void processPasswordReset(String token, String newPassword, String confirmPassword) {
         if (!newPassword.equals(confirmPassword)) {
-            throw new PasswordMismatchException("Hasła nie są takie same");
+            throw new PasswordMismatchException("Wprowadzone hasła nie są identyczne. Upewnij się, że oba pola zawierają to samo hasło.");
         }
         Optional<PasswordResetToken> tokenOptional = passwordResetTokenRepository.findByToken(token);
         if (!tokenOptional.isEmpty()) {
             if (tokenOptional.get().getExpiryDate().isBefore(LocalDateTime.now())) {
-                throw new UsernameNotFoundException("Token przeterminowany");
+                throw new UsernameNotFoundException("Link do resetowania hasła wygasł. Wystąp o nowy link resetujący.");
             } else {
                 PasswordResetToken passwordResetToken = tokenOptional.get();
                 User user = passwordResetToken.getUser();
@@ -324,7 +324,7 @@ public class UserServiceImpl implements UserService {
                 passwordResetTokenRepository.delete(passwordResetToken);
             }
         } else {
-            throw new UsernameNotFoundException("Token jest błędny " + token + " bądź nie istnieje");
+            throw new UsernameNotFoundException("Link do resetowania hasła jest nieprawidłowy lub wygasł. Wystąp o nowy link resetujący.");
         }
     }
 }

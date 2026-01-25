@@ -233,7 +233,7 @@ async function loadNotes() {
         }
     } catch (error) {
         console.error('Błąd ładowania:', error);
-        showToast('Nie udało się połączyć z serwerem', 'error');
+        showToast('Nie udało się nawiązać połączenia z serwerem. Sprawdź swoje połączenie internetowe.', 'error');
         
         DOM.notesList.innerHTML = `
             <div style="text-align:center; padding:30px; color:var(--danger);">
@@ -289,7 +289,7 @@ async function handleFormSubmit(e) {
                 AppState.selectedNote = resultNote; // Ważne: aktualizuj również selectedNote
                 renderNoteView(resultNote);
             }
-            showToast('Notatka zaktualizowana', 'success');
+            showToast('Notatka została pomyślnie zaktualizowana.', 'success');
         } else {
             const response = await fetch(CONFIG.API.BASE, {
                 method: 'POST',
@@ -304,7 +304,7 @@ async function handleFormSubmit(e) {
             // Aktualizacja URL po utworzeniu nowej notatki
             updateUrl(resultNote.id);
             
-            showToast('Notatka utworzona', 'success');
+            showToast('Notatka została pomyślnie utworzona.', 'success');
         }
 
         applyCurrentFilter();
@@ -343,11 +343,11 @@ async function handleDeleteConfirm() {
         applyCurrentFilter();
         renderNotesList();
         closeDeleteConfirmation();
-        showToast('Notatka została usunięta', 'success');
+        showToast('Notatka została trwale usunięta.', 'success');
 
     } catch (error) {
         console.error('Błąd usuwania:', error);
-        showToast('Nie udało się usunąć notatki. Sprawdź połączenie.', 'error');
+        showToast('Nie udało się usunąć notatki. Sprawdź połączenie internetowe i spróbuj ponownie.', 'error');
     } finally {
         DOM.btnConfirmDelete.disabled = false;
         DOM.btnConfirmDelete.textContent = 'Usuń notatkę';

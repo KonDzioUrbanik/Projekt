@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
     // obsluga anulowania zapisywania profilu
     cancelButton.addEventListener('click', function(){
-        if (confirm('Czy na pewno chcesz anulować? Niezapisane zmiany zostaną utracone.')){
+        if (confirm('Czy na pewno chcesz anulować? Wszystkie niezapisane dane zostaną trwale utracone.')){
             window.location.href = '/dashboard';
         }
     });
@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function(){
                 }
             } 
             else{
-                let errorMessage = 'Błąd aktualizacji profilu';
+                let errorMessage = 'Wystąpił błąd podczas aktualizacji profilu.';
                 
                 try{
                     const errorData = await response.json();

@@ -349,13 +349,13 @@ document.getElementById("editUserForm").addEventListener("submit", async functio
             throw new Error('Błąd podczas przypisywania do kierunku');
         }
 
-        alert("Zmiany zostały zapisane pomyślnie!");
+        alert("Zmiany zostały pomyślnie zapisane.");
         closeEditModal();
         location.reload(); // przeladowanie strony aby zachowac kolejnosc z backendu
     } 
     catch (error){
         console.error('Błąd:', error);
-        alert("Wystąpił błąd podczas zapisywania zmian: " + error.message);
+        alert("Wystąpił błąd podczas zapisywania zmian. Sprawdź połączenie i spróbuj ponownie. Szczegóły: " + error.message);
     }
 });
 

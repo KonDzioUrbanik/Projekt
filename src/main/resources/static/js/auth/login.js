@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // walidacja pol
         if(!email || !password){
-            displayMessage(errorMessageContainer, "Uzupełnij wszystkie pola.");
+            displayMessage(errorMessageContainer, "Proszę uzupełnić wszystkie wymagane pola.");
             return;
         }
 
@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // obsluga odpowiedzi HTTP
             if(response.ok){
                 // SUKCES 
-                displayMessage(errorMessageContainer, "Zalogowano pomyślnie!", true);
+                displayMessage(errorMessageContainer, "Logowanie przebiegło pomyślnie. Przekierowywanie...", true);
                 
                 // przekierowanie na strone dashboard
                 redirectAfterDelay("/dashboard");
@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } 
         catch(error){
             console.error("Błąd połączenia:", error);
-            displayMessage(errorMessageContainer, "Nie można połączyć się z serwerem.");
+            displayMessage(errorMessageContainer, "Nie udało się nawiązać połączenia z serwerem. Sprawdź połączenie internetowe i spróbuj ponownie.");
         } 
         finally{
             // odblokowanie przycisku

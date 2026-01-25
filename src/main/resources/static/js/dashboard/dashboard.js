@@ -132,7 +132,7 @@ class DashboardHome {
                 errorDiv.style.display = 'flex';
                 errorDiv.innerHTML = `
                     <i class="fas fa-exclamation-circle"></i>
-                    <p>Nie udało się załadować zajęć: ${error.message}</p>
+                    <p>Nie udało się załadować harmonogramu zajęć. Sprawdź połączenie internetowe i odśwież stronę.</p>
                 `;
             }
         } finally {
@@ -257,7 +257,7 @@ class DashboardHome {
             container.innerHTML = `
                 <div class="error-state" role="alert">
                     <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
-                    <h3>Wystąpił błąd</h3>
+                    <h3>Wystąpił błąd podczas wczytywania danych</h3>
                     <p>${message}</p>
                 </div>
             `;

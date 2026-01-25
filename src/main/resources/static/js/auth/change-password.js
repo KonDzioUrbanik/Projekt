@@ -24,12 +24,12 @@ document.querySelector('form').addEventListener('submit', async function(e) {
     
     // walidacja po stronie klienta
     if(newPassword !== confirmPassword){
-        displayMessage(messageContainer, 'Nowe hasła nie są identyczne!');
+        displayMessage(messageContainer, 'Wprowadzone hasła nie są identyczne. Upewnij się, że oba pola zawierają to samo hasło.');
         return;
     }
     
     if(newPassword.length < CONFIG.VALIDATION.MIN_PASSWORD_LENGTH){
-        displayMessage(messageContainer, `Hasło musi mieć minimum ${CONFIG.VALIDATION.MIN_PASSWORD_LENGTH} znaków!`);
+        displayMessage(messageContainer, `Hasło musi zawierać minimum ${CONFIG.VALIDATION.MIN_PASSWORD_LENGTH} znaków.`);
         return;
     }
     
@@ -49,16 +49,16 @@ document.querySelector('form').addEventListener('submit', async function(e) {
         });
         
         if(response.ok){
-            displayMessage(messageContainer, 'Hasło zostało zmienione pomyślnie!', true);
+            displayMessage(messageContainer, 'Hasło zostało pomyślnie zmienione. Za chwilę zostaniesz przekierowany do panelu.', true);
             redirectAfterDelay('/dashboard');
         } else {
             const error = await response.text();
-            displayMessage(messageContainer, 'Błąd: ' + error);
+            displayMessage(messageContainer, error || 'Wystąpił błąd podczas zmiany hasła.');
         }
         
     } 
     catch (error){
         console.error('Błąd zmiany hasła:', error);
-        displayMessage(messageContainer, 'Wystąpił błąd podczas zmiany hasła: ' + error.message);
+        displayMessage(messageContainer, 'Wystąpił błąd podczas zmiany hasła. Sprawdź połączenie internetowe i spróbuj ponownie.');
     }
 });

@@ -101,8 +101,8 @@ class GroupsManagement{
             groupsList.innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Błąd ładowania danych</h3>
-                    <p>${error.message}</p>
+                    <h3>Nie udało się załadować listy kierunków</h3>
+                    <p>Sprawdź połączenie internetowe i odśwież stronę.</p>
                 </div>
             `;
         } 
@@ -311,7 +311,7 @@ class GroupsManagement{
         const groupName = document.getElementById('groupName').value.trim();
 
         if(!groupName){
-            alert('Wprowadź nazwę kierunku');
+            alert('Pole nazwy kierunku jest wymagane.');
             return;
         }
 
@@ -354,7 +354,7 @@ class GroupsManagement{
         } 
         catch(error){
             console.error('Błąd zapisu:', error);
-            this.showNotification('Błąd podczas zapisywania: ' + error.message, 'error');
+            this.showNotification('Wystąpił błąd podczas zapisywania kierunku. Sprawdź poprawność danych i spróbuj ponownie.', 'error');
         }
     }
 
@@ -367,7 +367,7 @@ class GroupsManagement{
 
     async deleteGroup(id){
         const group = this.groups.find(g => g.id === id);
-        if(!confirm(`Czy na pewno chcesz usunąć kierunek "${group.name}"?\n\nUwaga: Studenci przypisani do tego kierunku zostaną z niego usunięci.`)){
+        if(!confirm(`Czy na pewno chcesz usunąć kierunek "${group.name}"? Studenci przypisani do tego kierunku zostaną od niego odłączeni. Ta operacja jest nieodwracalna.`)){
             return;
         }
 
