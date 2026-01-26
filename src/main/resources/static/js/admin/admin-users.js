@@ -15,7 +15,7 @@ const CONFIG = {
         ROLE: 4,
         GROUP: 5
     },
-    EMPTY_VALUES: ['Brak', '-', '']
+    EMPTY_VALUES: ['Brak', '-', '', 'Nie przypisano kierunku']
 };
 
 const searchInput = document.getElementById('searchInput');
@@ -46,10 +46,16 @@ function populateGroupFilter(){
     // sortowanie alfabetyczne
     const sortedGroups = Array.from(groups).sort();
     
-    // wyczyszenie i odbudowanie opcji
-    groupFilter.innerHTML = '<option value="">Wszystkie grupy</option>';
+    // wyczyszenie i odbudowanie opcji - najpierw "Wszystkie", potem "Nie przypisano kierunku", potem kierunki
+    groupFilter.innerHTML = '<option value="">Wszystkie</option>';
     
-    // dodanie opcji do selecta
+    // dodanie opcji "Nie przypisano kierunku" jako drugiej
+    const noGroupOption = document.createElement('option');
+    noGroupOption.value = 'Nie przypisano kierunku'; 
+    noGroupOption.textContent = 'Nie przypisano kierunku';
+    groupFilter.appendChild(noGroupOption);
+    
+    // dodanie posortowanych kierunków
     sortedGroups.forEach(group => {
         const option = document.createElement('option');
         option.value = group;
@@ -298,8 +304,8 @@ async function loadGroups(){
 
 function populateGroupSelect(){
     const groupSelect = document.getElementById('editGroup');
-    // zachowanie opcji "Brak kierunku"
-    groupSelect.innerHTML = '<option value="">Brak kierunku</option>';
+    // zachowanie opcji "Nie przypisano do kierunku"
+    groupSelect.innerHTML = '<option value="">Nie przypisano do kierunku</option>';
     
     // sortowanie alfabetyczne kierunków po nazwie
     const sortedGroups = [...allGroups].sort((a, b) => a.name.localeCompare(b.name));
