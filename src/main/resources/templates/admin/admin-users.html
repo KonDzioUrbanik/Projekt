@@ -35,7 +35,8 @@
                     <div class="filters-section">
                         <div class="search-box">
                             <i class="fas fa-search"></i>
-                        <input type="text" id="searchInput" placeholder="Wyszukaj użytkownika po imieniu, nazwisku lub adresie e-mail">
+                            <input type="text" id="searchInput" placeholder="Wyszukaj użytkownika po imieniu, nazwisku lub adresie e-mail">
+                        </div>
                         <div class="filter-group">
                             <label for="roleFilter"><i class="fas fa-user-tag"></i> Rola:</label>
                             <select id="roleFilter">
@@ -50,7 +51,8 @@
                             <label for="groupFilter"><i class="fas fa-users"></i> Kierunek:</label>
                             <select id="groupFilter">
                                 <option value="">Wszystkie</option>
-                            <option value="Brak">Nie przypisano kierunku</option>
+                            </select>
+                        </div>
 
                         <button class="btn-reset" id="resetFilters">
                             <i class="fas fa-redo"></i> Reset
@@ -108,7 +110,9 @@
                                 <span class="badge" th:classappend="${user.role == 'ADMIN'} ? 'badge-admin' : (${user.role == 'STAROSTA'} ? 'badge-starosta' : 'badge-student')" th:text="${user.role}"> </span>
                             </td>
 
-                            <td th:text="${user.groupName != null} ? ${user.groupName} : 'Nie przypisano kierunku'"> </td>
+                            <td>
+                            <span th:if="${user.groupName != null and user.groupName != 'Nie przypisano kierunku'}" th:text="${user.groupName}"></span>
+                            <i th:if="${user.groupName == null or user.groupName == 'Nie przypisano kierunku'}">Nie przypisano kierunku</i>
                             
                             <td>
                                 <button class="action-btn btn-edit" title="Edytuj"
@@ -179,7 +183,7 @@
                             <div class="form-group">
                                 <label for="editGroup">Przypisz do kierunku</label>
                                 <select id="editGroup" class="form-control">
-                                <option value="">Nie przypisano do grupy</option>
+                                    <option value="">Nie przypisano do kierunku</option>
                                     <!-- grupy będą ładowane dynamicznie przez JavaScript -->
                                 </select>
                             </div>
