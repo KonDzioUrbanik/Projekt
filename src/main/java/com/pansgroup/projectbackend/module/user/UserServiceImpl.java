@@ -30,11 +30,11 @@ public class UserServiceImpl implements UserService {
     private final ConfirmationTokenRepository confirmationTokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
 
-
     public UserServiceImpl(UserRepository userRepository,
-                           PasswordEncoder passwordEncoder,
-                           StudentGroupRepository studentGroupRepository,
-                           EmailService emailService, ConfirmationTokenRepository confirmationTokenRepository, PasswordResetTokenRepository passwordResetTokenRepository) {
+            PasswordEncoder passwordEncoder,
+            StudentGroupRepository studentGroupRepository,
+            EmailService emailService, ConfirmationTokenRepository confirmationTokenRepository,
+            PasswordResetTokenRepository passwordResetTokenRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.studentGroupRepository = studentGroupRepository;
@@ -47,7 +47,8 @@ public class UserServiceImpl implements UserService {
     public User findUserByEmailInternal(String email) {
         String e = email.trim().toLowerCase(Locale.ROOT);
         return userRepository.findByEmail(e)
-                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + e));
+                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException(
+                        "Nie znaleziono użytkownika o adresie: " + e));
     }
 
     @Override
@@ -86,7 +87,6 @@ public class UserServiceImpl implements UserService {
         return mapToResponseDto(saved);
     }
 
-
     private Integer extractIndexNumberFromEmail(String email) {
         if (email == null || email.isEmpty()) {
             return null;
@@ -121,7 +121,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAll()
                 .stream()
                 .sorted((u1, u2) -> Long.compare(u1.getId(), u2.getId())) // sortowanie po id rosnaco
-                .map(this::mapToResponseDto)   // bez hasła
+                .map(this::mapToResponseDto) // bez hasła
                 .toList();
     }
 
@@ -141,11 +141,13 @@ public class UserServiceImpl implements UserService {
 
         // Szukamy użytkownika po emailu
         User user = userRepository.findByEmail(normalizedEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + normalizedEmail));
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        "Nie znaleziono użytkownika o adresie: " + normalizedEmail));
 
         // Sprawdzamy poprawność hasła
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-            throw new BadCredentialsException("Wprowadzone dane logowania są nieprawidłowe. Sprawdź adres e-mail i hasło.");
+            throw new BadCredentialsException(
+                    "Wprowadzone dane logowania są nieprawidłowe. Sprawdź adres e-mail i hasło.");
         }
 
         return user;
@@ -171,8 +173,7 @@ public class UserServiceImpl implements UserService {
                 u.getFieldOfStudy(),
                 u.getYearOfStudy(),
                 u.getStudyMode(),
-                u.getBio()
-        );
+                u.getBio());
     }
 
     @Override
@@ -181,10 +182,17 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
-        // Zmiana imienia i nazwiska użytkownika
+        // Aktualizacja danych podstawowych
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
 
+        // Aktualizacja pól informacyjnych profilu
+        // UWAGA: Pola poniżej są CZYSTO INFORMACYJNE i NIE wpływają na członkostwo w
+        // grupie.
+        // Rzeczywiste przypisanie do grupy (user.studentGroup) jest zarządzane
+        // WYŁĄCZNIE
+        // przez administratora poprzez endpoint assignUserToGroup().
+        // Użytkownik może swobodnie edytować te pola dla celów prezentacyjnych.
         user.setNickName(dto.getNickName());
         user.setPhoneNumber(dto.getPhoneNumber());
         user.setFieldOfStudy(dto.getFieldOfStudy());
@@ -239,7 +247,8 @@ public class UserServiceImpl implements UserService {
 
         // 1. Znajdź użytkownika
         User userToUpdate = userRepository.findByEmail(normalizedEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + normalizedEmail));
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        "Nie znaleziono użytkownika o adresie: " + normalizedEmail));
 
         // 2. Znajdź encję kierunku lub usuń przypisanie (jeśli groupId == null)
         if (dto.groupId() == null) {
@@ -262,11 +271,13 @@ public class UserServiceImpl implements UserService {
         // Wszystko tutaj jest poprawne
         Optional<ConfirmationToken> tokenOptional = confirmationTokenRepository.findByToken(token);
         if (!tokenOptional.isPresent()) {
-            throw new UsernameNotFoundException("Link aktywacyjny jest nieprawidłowy lub wygasł. Zarejestruj się ponownie lub skontaktuj się z administratorem.");
+            throw new UsernameNotFoundException(
+                    "Link aktywacyjny jest nieprawidłowy lub wygasł. Zarejestruj się ponownie lub skontaktuj się z administratorem.");
         } else {
             ConfirmationToken confirmationToken = tokenOptional.get();
             if (confirmationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-                throw new UsernameNotFoundException("Link aktywacyjny wygasł. Zarejestruj się ponownie lub skontaktuj się z administratorem.");
+                throw new UsernameNotFoundException(
+                        "Link aktywacyjny wygasł. Zarejestruj się ponownie lub skontaktuj się z administratorem.");
             }
             User user = confirmationToken.getUser();
             user.setActivated(true);
@@ -281,7 +292,8 @@ public class UserServiceImpl implements UserService {
         if (user.isEmpty()) {
             throw new UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + email);
         } else if (!user.get().isActivated()) {
-            throw new AccountInactiveException("Konto z adresem e-mail " + email + " nie zostało aktywowane. Sprawdź swoją skrzynkę pocztową i kliknij w link aktywacyjny.");
+            throw new AccountInactiveException("Konto z adresem e-mail " + email
+                    + " nie zostało aktywowane. Sprawdź swoją skrzynkę pocztową i kliknij w link aktywacyjny.");
         } else {
             User u = user.get();
             PasswordResetToken passwordResetToken = new PasswordResetToken();
@@ -301,7 +313,8 @@ public class UserServiceImpl implements UserService {
 
         // Nie pozwalaj usuwać użytkowników z rolą ADMIN
         if ("ADMIN".equals(user.getRole())) {
-            throw new IllegalStateException("Nie można usunąć konta administratora. Konta z uprawnieniami administratora są chronione.");
+            throw new IllegalStateException(
+                    "Nie można usunąć konta administratora. Konta z uprawnieniami administratora są chronione.");
         }
 
         userRepository.delete(user);
@@ -310,7 +323,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public void processPasswordReset(String token, String newPassword, String confirmPassword) {
         if (!newPassword.equals(confirmPassword)) {
-            throw new PasswordMismatchException("Wprowadzone hasła nie są identyczne. Upewnij się, że oba pola zawierają to samo hasło.");
+            throw new PasswordMismatchException(
+                    "Wprowadzone hasła nie są identyczne. Upewnij się, że oba pola zawierają to samo hasło.");
         }
         Optional<PasswordResetToken> tokenOptional = passwordResetTokenRepository.findByToken(token);
         if (!tokenOptional.isEmpty()) {
@@ -324,7 +338,8 @@ public class UserServiceImpl implements UserService {
                 passwordResetTokenRepository.delete(passwordResetToken);
             }
         } else {
-            throw new UsernameNotFoundException("Link do resetowania hasła jest nieprawidłowy lub wygasł. Wystąp o nowy link resetujący.");
+            throw new UsernameNotFoundException(
+                    "Link do resetowania hasła jest nieprawidłowy lub wygasł. Wystąp o nowy link resetujący.");
         }
     }
 }
