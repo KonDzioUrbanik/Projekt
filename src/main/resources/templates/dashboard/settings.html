@@ -24,180 +24,214 @@
                 </div>
 
                 <!-- sekcja awatara -->
-                <div class="avatar-section">
-                    <div class="avatar-container">
-                        <div class="avatar">
-                            <span>PL</span>
+                <div class="avatar-upload-zone" id="avatarUploadZone">
+                    <div class="avatar-preview-container">
+                        <img id="avatarPreview" src="#" alt="Avatar" draggable="false" style="display: none;" />
+                        <div class="avatar-placeholder" id="avatarPlaceholder">
+                            <i class="fas fa-user"></i>
                         </div>
-                        <label class="avatar-upload-btn" title="Kliknij, aby zmienić awatar">
-                            <i class="fas fa-camera"></i>
-                            <input type="file" accept="image/*" id="avatarUpload">
-                        </label>
+                        <div class="upload-progress" id="uploadProgress" style="display: none;">
+                            <div class="upload-progress-bar" id="uploadProgressBar"></div>
+                        </div>
                     </div>
+                    
+                    <div class="avatar-actions">
+                        <label class="btn-upload">
+                            <i class="fas fa-camera"></i> Wybierz zdjęcie
+                            <input type="file" accept="image/*" id="avatarInput" hidden>
+                        </label>
+                        <button type="button" class="btn-remove" id="removeAvatar" style="display: none;">
+                            <i class="fas fa-trash"></i> Usuń
+                        </button>
+                    </div>
+                    
+                    <div class="upload-hint">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        Przeciągnij i upuść zdjęcie tutaj lub kliknij aby wybrać
+                    </div>
+                    <small class="upload-requirements">
+                        JPG, PNG lub GIF. Maksymalnie 5MB.
+                    </small>
                 </div>
 
-                <!-- informacja o edycji profilu -->
-                <div class="info-box">
-                    <p>
-                        <i class="fas fa-info-circle"></i>
-                        Wypełnij poniższy formularz, aby zaktualizować swoje dane.
-                    </p>
+                <!-- Auto-save indicator -->
+                <div class="auto-save-indicator" id="autoSaveIndicator">
+                    <i class="fas fa-check"></i> Robocza wersja zapisana
                 </div>
+
 
                 <!-- formularz -->
                 <form id="profileForm">
 
-                    <!-- sekcja: dane podstawowe -->
-                    <div class="section-title">
-                        <i class="fas fa-user"></i>
-                        Dane podstawowe
-                    </div>
-
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="firstName">
-                                <i class="fas fa-user"></i>
-                                Imię
-                            </label>
-                            <input type="text" id="firstName" class="form-control" th:value="${currentUser.firstName}" readonly>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="lastName">
-                                <i class="fas fa-user"></i>
-                                Nazwisko
-                            </label>
-                            <input type="text" id="lastName" class="form-control" th:value="${currentUser.lastName}" readonly>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="nickName">
-                                <i class="fas fa-user"></i>
-                                Pseudonim
-                            </label>
-                            <input type="text" id="nickName" class="form-control" th:value="${currentUser.nickName}" placeholder="Pseudonim (opcjonalnie)">
-                        </div>
-                    </div>
-
-                    <div class="section-divider"></div>
-
-                    <!-- sekcja: dane kontaktowe -->
-                    <div class="section-title">
-                        <i class="fas fa-address-book"></i>
-                        Dane kontaktowe
-                    </div>
-
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="email">
-                                <i class="fas fa-envelope"></i>
-                                Email *
-                            </label>
-                            <input type="email" id="email" class="form-control" th:value="${currentUser.email}" readonly>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="phone">
-                                <i class="fas fa-phone"></i>
-                                Telefon
-                            </label>
-                            <div style="display: flex; gap: 10px;">
-                                <select id="phonePrefix" class="form-control" style="flex: 0 0 100px;">
-                                    <option value="+48">+48</option>
-                                    <option value="+1">+1</option>
-                                    <option value="+44">+44</option>
-                                    <option value="+49">+49</option>
-                                    <option value="+33">+33</option>
-                                    <option value="+39">+39</option>
-                                    <option value="+34">+34</option>
-                                    <option value="+7">+7</option>
-                                    <option value="+380">+380</option>
-                                </select>
-                                <input type="text" id="phone" class="form-control" placeholder="np. 123456789" pattern="[0-9]*" inputmode="numeric" maxlength="9" style="flex: 1;">
+                    <!-- KARTA 1: Informacje osobiste -->
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <div>
+                                <h3><i class="fas fa-user"></i> Informacje osobiste</h3>
+                                <p class="card-subtitle">Dane podstawowe i kontaktowe</p>
                             </div>
-                            <small class="form-text">Podaj 9 cyfr numeru telefonu</small>
+                        </div>
+                        
+                        <div class="card-body">
+                            <!-- Pola READ-ONLY -->
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="firstName">
+                                        <i class="fas fa-lock lock-icon"></i> Imię
+                                    </label>
+                                    <input type="text" id="firstName" class="form-control" th:value="${currentUser.firstName}" readonly title="To pole jest zarządzane przez system">
+                                    <small class="form-hint">Zarządzane przez system</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="lastName">
+                                        <i class="fas fa-lock lock-icon"></i> Nazwisko
+                                    </label>
+                                    <input type="text" id="lastName" class="form-control" th:value="${currentUser.lastName}" readonly title="To pole jest zarządzane przez system">
+                                    <small class="form-hint">Zarządzane przez system</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="email">
+                                        <i class="fas fa-lock lock-icon"></i> Email
+                                    </label>
+                                    <input type="email" id="email" class="form-control" th:value="${currentUser.email}" readonly title="To pole jest zarządzane przez system">
+                                    <small class="form-hint">Zarządzane przez system</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="indexNumber">
+                                        <i class="fas fa-lock lock-icon"></i> Numer indeksu
+                                    </label>
+                                    <input type="text" id="indexNumber" class="form-control" th:value="${currentUser.nrAlbumu}" readonly title="To pole jest zarządzane przez system">
+                                    <small class="form-hint">Zarządzane przez system</small>
+                                </div>
+                            </div>
+                            
+                            <div class="section-separator"></div>
+                            
+                            <!-- Pola EDYTOWALNE -->
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="nickName">
+                                        <i class="fas fa-edit edit-icon"></i> Ksywa <span class="optional-badge">opcjonalne</span>
+                                        <span class="validation-icon">
+                                            <i class="fas fa-check-circle valid"></i>
+                                            <i class="fas fa-times-circle invalid"></i>
+                                        </span>
+                                    </label>
+                                    <input type="text" id="nickName" class="form-control" th:value="${currentUser.nickName}" placeholder="Twoja ksywa (opcjonalnie)">
+                                    <small class="form-hint">Jak wolisz być nazywany przez innych</small>
+                                    <small class="validation-message"></small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="phone">
+                                        <i class="fas fa-edit edit-icon"></i> Telefon <span class="optional-badge">opcjonalne</span>
+                                    </label>
+                                    <div style="display: flex; gap: 10px;">
+                                        <select id="phonePrefix" class="form-control" style="flex: 0 0 100px;">
+                                            <option value="+48">+48</option>
+                                            <option value="+1">+1</option>
+                                            <option value="+44">+44</option>
+                                            <option value="+49">+49</option>
+                                            <option value="+33">+33</option>
+                                            <option value="+39">+39</option>
+                                            <option value="+34">+34</option>
+                                            <option value="+7">+7</option>
+                                            <option value="+380">+380</option>
+                                        </select>
+                                        <input type="text" id="phone" class="form-control" placeholder="np. 123456789" pattern="[0-9]*" inputmode="numeric" maxlength="9" style="flex: 1;">
+                                    </div>
+                                    <small class="form-hint">Podaj 9 cyfr numeru telefonu</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="section-divider"></div>
-
-                    <!-- sekcja: informacje o studencie -->
-                    <div class="section-title">
-                        <i class="fas fa-graduation-cap"></i>
-                        Informacje o studencie
-                    </div>
-
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="indexNumber">
-                                <i class="fas fa-id-card"></i>
-                                Numer indeksu
-                            </label>
-                            <input type="text" id="indexNumber" class="form-control" th:value="${currentUser.nrAlbumu}" readonly>
+                    <!-- KARTA 2: Profil studenta -->
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <div>
+                                <h3><i class="fas fa-graduation-cap"></i> Profil studenta</h3>
+                                <p class="card-subtitle">Informacje widoczne dla innych użytkowników</p>
+                            </div>
                         </div>
-
-                        <div class="form-group">
-                            <label for="fieldOfStudy">
-                                <i class="fas fa-book-open"></i>
-                                Kierunek studiów
-                            </label>
-                            <select id="fieldOfStudy" class="form-control">
-                                <option value="">Wybierz kierunek</option>
-                                <option value="Bezpieczeństwo wewnętrzne">Bezpieczeństwo wewnętrzne</option>
-                                <option value="Filologia angielska">Filologia angielska</option>
-                                <option value="Informatyka">Informatyka</option>
-                                <option value="Marketing internetowy">Marketing internetowy</option>
-                                <option value="Pedagogika">Pedagogika</option>
-                                <option value="Ratownictwo medyczne">Ratownictwo medyczne</option>
-                                <option value="Turystyka i rekreacja">Turystyka i rekreacja</option>
-                                <option value="Wychowanie fizyczne i sport">Wychowanie fizyczne i sport</option>
-                                <option value="Zarządzanie">Zarządzanie</option>
-                            </select>
+                        
+                        <div class="card-body">
+                            <!-- Info box -->
+                            <div class="info-box-profile">
+                                <div>
+                                    <p>Pola poniżej nie wpływają na rzeczywiste przypisanie do kierunku studiów.</p>
+                                    <p th:if="${currentUser.groupName}" class="assigned-group"><br>
+                                        <i class="fas fa-check-circle"></i> Twój przypisany kierunek: <strong th:text="${currentUser.groupName}"></strong>
+                                    </p>
+                                    <p th:unless="${currentUser.groupName}" class="no-group">
+                                        <i class="fas fa-exclamation-triangle"></i> Nie jesteś jeszcze przypisany do żadnego kierunku studiów.
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- Grid: 2 kolumny -->
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="fieldOfStudy">
+                                        Kierunek studiów <span class="field-badge">informacyjny</span>
+                                    </label>
+                                    <select id="fieldOfStudy" class="form-control">
+                                        <option value="">Wybierz kierunek</option>
+                                        <option value="Bezpieczeństwo wewnętrzne">Bezpieczeństwo wewnętrzne</option>
+                                        <option value="Filologia angielska">Filologia angielska</option>
+                                        <option value="Informatyka">Informatyka</option>
+                                        <option value="Marketing internetowy">Marketing internetowy</option>
+                                        <option value="Pedagogika">Pedagogika</option>
+                                        <option value="Ratownictwo medyczne">Ratownictwo medyczne</option>
+                                        <option value="Turystyka i rekreacja">Turystyka i rekreacja</option>
+                                        <option value="Wychowanie fizyczne i sport">Wychowanie fizyczne i sport</option>
+                                        <option value="Zarządzanie">Zarządzanie</option>
+                                    </select>
+                                    <small class="form-hint">Wybierz kierunek, który będzie widoczny w Twoim profilu</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="yearOfStudy">
+                                        Rok studiów <span class="field-badge">informacyjny</span>
+                                    </label>
+                                    <select id="yearOfStudy" class="form-control">
+                                        <option value="">Wybierz rok</option>
+                                        <option value="1">I rok</option>
+                                        <option value="2">II rok</option>
+                                        <option value="3">III rok</option>
+                                        <option value="4">IV rok</option>
+                                        <option value="5">V rok</option>
+                                    </select>
+                                    <small class="form-hint">To pole jest wyświetlane w Twoim profilu</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="studyMode">
+                                        Tryb studiów <span class="field-badge">informacyjny</span>
+                                    </label>
+                                    <select id="studyMode" class="form-control">
+                                        <option value="">Wybierz tryb</option>
+                                        <option value="Stacjonarne">Stacjonarne</option>
+                                        <option value="Niestacjonarne">Niestacjonarne</option>
+                                    </select>
+                                    <small class="form-hint">Widoczne dla innych użytkowników</small>
+                                </div>
+                                
+                                <div class="form-group full-width">
+                                    <label for="bio">
+                                        O mnie <span class="optional-badge">opcjonalne</span>
+                                    </label>
+                                    <textarea id="bio" class="form-control" th:text="${currentUser.bio}" placeholder="Napisz coś o sobie..." rows="4" maxlength="500"></textarea>
+                                    <div class="character-counter">
+                                        <i class="fas fa-pen"></i>
+                                        <span id="bioCount">0</span> / 500 znaków
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-
-                        <div class="form-group">
-                            <label for="yearOfStudy">
-                                <i class="fas fa-calendar"></i>
-                                Rok studiów
-                            </label>
-                            <select id="yearOfStudy" class="form-control">
-                                <option value="">Wybierz rok</option>
-                                <option value="1">I rok</option>
-                                <option value="2">II rok</option>
-                                <option value="3">III rok</option>
-                                <option value="4">IV rok</option>
-                                <option value="5">V rok</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="studyMode">
-                                <i class="fas fa-clock"></i>
-                                Tryb studiów
-                            </label>
-                            <select id="studyMode" class="form-control">
-                                <option value="">Wybierz tryb</option>
-                                <option value="Stacjonarne">Stacjonarne</option>
-                                <option value="Niestacjonarne">Niestacjonarne</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="section-divider"></div>
-
-                    <!-- sekcja: dodatkowe informacje -->
-                    <div class="section-title">
-                        <i class="fas fa-align-left"></i>
-                        Dodatkowe informacje
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label for="bio">
-                            <i class="fas fa-pen"></i>
-                            O mnie
-                        </label>
-                        <textarea id="bio" class="form-control" th:text="${currentUser.bio}" placeholder="Krótki opis o sobie (opcjonalnie)" rows="4" maxlength="500"></textarea>
-                        <small class="form-text">Maksymalnie 500 znaków</small>
                     </div>
 
                     <!-- miejsce na komunikaty -->
@@ -221,6 +255,28 @@
                     <a th:href="@{/dashboard}" class="back-link">
                         <i class="fas fa-arrow-left"></i> Powrót do panelu
                     </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- CROP MODAL -->
+        <div id="cropModal" class="crop-modal">
+            <div class="crop-modal-content">
+                <h3><i class="fas fa-crop-alt"></i> Dopasuj zdjęcie</h3>
+                <div class="crop-container-wrapper">
+                    <div class="crop-container" id="cropContainer">
+                        <img id="cropImage" src="" alt="Crop Image">
+                        <div class="crop-overlay"></div>
+                        <div class="crop-circle"></div>
+                    </div>
+                </div>
+                <div class="crop-controls">
+                     <p><i class="fas fa-hand-paper"></i> Przesuń i przybliż zdjęcie (scroll)</p>
+                     <input type="range" id="cropZoom" min="1" max="3" step="0.1" value="1">
+                </div>
+                <div class="crop-actions">
+                    <button id="cancelCrop" class="btn-secondary">Anuluj</button>
+                    <button id="saveCrop" class="btn-primary">Zapisz</button>
                 </div>
             </div>
         </div>
