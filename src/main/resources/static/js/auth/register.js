@@ -3,6 +3,48 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerForm = document.getElementById('registerForm');
     const errorMessageContainer = document.getElementById('errorMessageContainer');
     const registerButton = document.getElementById('registerButton');
+    const passwordInput = document.getElementById('password');
+    const passwordRequirements = document.getElementById('passwordRequirements');
+
+    // Password validation requirements
+    const requirements = {
+        length: { regex: /.{8,}/, id: 'req-length' },
+        uppercase: { regex: /[A-Z]/, id: 'req-uppercase' },
+        lowercase: { regex: /[a-z]/, id: 'req-lowercase' },
+        number: { regex: /\d/, id: 'req-number' },
+        special: { regex: /[@$!%*?&]/, id: 'req-special' }
+    };
+
+    function updatePasswordRequirements() {
+        const password = passwordInput.value;
+        
+        Object.entries(requirements).forEach(([key, req]) => {
+            const element = document.getElementById(req.id);
+            if (!element) return;
+            
+            const icon = element.querySelector('i');
+            if (req.regex.test(password)) {
+                element.classList.remove('unmet');
+                element.classList.add('met');
+                icon.classList.remove('fa-times-circle');
+                icon.classList.add('fa-check-circle');
+            } else {
+                element.classList.remove('met');
+                element.classList.add('unmet');
+                icon.classList.remove('fa-check-circle');
+                icon.classList.add('fa-times-circle');
+            }
+        });
+    }
+
+    // Show password requirements when user starts typing
+    passwordInput.addEventListener('focus', () => {
+        passwordRequirements.style.display = 'block';
+    });
+
+    passwordInput.addEventListener('input', () => {
+        updatePasswordRequirements();
+    });
 
     registerForm.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -14,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const firstName = document.getElementById('imie').value;
         const lastName = document.getElementById('nazwisko').value;
         const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
+        const password = passwordInput.value;
         const passwordConfirm = document.getElementById('password-confirm').value;
         // const role = document.getElementById('role').value;
         // const nrAlbumu = document.getElementById('nrAlbumu').value;

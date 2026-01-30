@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,8 +13,17 @@
 
         <!-- osobny arkusz stylow -->
         <link rel="stylesheet" th:href="@{/css/dashboard/settings.css}" href="../static/css/dashboard/settings.css">
+        <!-- Theme CSS -->
+        <link rel="stylesheet" th:href="@{/css/common/theme.css}">
+        <script th:src="@{/js/common/theme.js}"></script>
     </head>
     <body>
+        <!-- Przycisk zmiany motywu -->
+        <button class="theme-toggle-btn" id="themeToggleBtn" title="Zmień motyw">
+            <i class="fas fa-moon"></i>
+            <i class="fas fa-sun"></i>
+        </button>
+
         <div class="main-container">
             <div class="profile-container">
                 <!-- naglowek -->
