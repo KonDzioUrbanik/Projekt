@@ -37,12 +37,11 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<UserResponseDto> login(
             @Valid @RequestBody LoginRequestDto dto,
-            HttpServletRequest request
-    ) {
-        // 1) Uwierzytelnienie (tu polecą 401 przy złych danych – obsłuży to globalexceptionhandler)
+            HttpServletRequest request) {
+        // 1) Uwierzytelnienie (tu polecą 401 przy złych danych – obsłuży to
+        // globalexceptionhandler)
         Authentication authentication = authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword())
-        );
+                new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword()));
 
         // 2) Zapis kontekstu do security context oraz do sesji (logowanie stanowe)
         SecurityContext context = SecurityContextHolder.createEmptyContext();
@@ -89,21 +88,20 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     public ResponseEntity<Void> forgotPassword(
-            @Valid @RequestBody ForgotPasswordRequestDto dto
-    ) {
-        userService.requestPasswordReset(dto.email());
+            @Valid @RequestBody ForgotPasswordRequestDto dto) {
+        // Normalizacja email (trim + lowercase)
+        String normalizedEmail = dto.email().trim().toLowerCase(java.util.Locale.ROOT);
+        userService.requestPasswordReset(normalizedEmail);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/reset-password")
     public ResponseEntity<Void> resetPassword(
-            @Valid @RequestBody ResetPasswordRequestDto dto
-    ) {
+            @Valid @RequestBody ResetPasswordRequestDto dto) {
         userService.processPasswordReset(
                 dto.token(),
                 dto.newPassword(),
-                dto.confirmPassword()
-        );
+                dto.confirmPassword());
         return ResponseEntity.ok().build();
     }
 }

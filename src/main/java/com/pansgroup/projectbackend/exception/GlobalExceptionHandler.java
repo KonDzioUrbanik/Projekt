@@ -37,10 +37,10 @@ public class GlobalExceptionHandler {
     /* ====== Helpers ====== */
 
     private ProblemDetail pd(HttpStatus status,
-                             String title,
-                             String detail,
-                             HttpServletRequest req,
-                             String code) {
+            String title,
+            String detail,
+            HttpServletRequest req,
+            String code) {
         ProblemDetail p = ProblemDetail.forStatusAndDetail(status, detail);
         p.setTitle(title);
         if (req != null) {
@@ -53,7 +53,7 @@ public class GlobalExceptionHandler {
     }
 
     private ProblemDetail pd(HttpStatus status, String title, String detail, HttpServletRequest req,
-                             String code, Map<String, ?> extra) {
+            String code, Map<String, ?> extra) {
         ProblemDetail p = pd(status, title, detail, req, code);
         if (extra != null) {
             extra.forEach(p::setProperty);
@@ -91,8 +91,7 @@ public class GlobalExceptionHandler {
                         FieldError::getField,
                         FieldError::getDefaultMessage,
                         (a, b) -> a,
-                        LinkedHashMap::new
-                ));
+                        LinkedHashMap::new));
         return pd(HttpStatus.BAD_REQUEST, "Validation error",
                 "Niepoprawne dane formularza.", req, "validation_failed",
                 Map.of("errors", errors));
@@ -106,15 +105,14 @@ public class GlobalExceptionHandler {
                         v -> v.getPropertyPath().toString(),
                         ConstraintViolation::getMessage,
                         (a, b) -> a,
-                        LinkedHashMap::new
-                ));
+                        LinkedHashMap::new));
         return pd(HttpStatus.BAD_REQUEST, "Constraint violation",
                 "Niepoprawne dane żądania.", req, "constraint_violation",
                 Map.of("errors", errors));
     }
 
     /* ====== 400: zły payload / typy ====== */
-    @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
+    @ExceptionHandler({ HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class })
     public ProblemDetail handleBadPayload(Exception ex, HttpServletRequest req) {
         return pd(HttpStatus.BAD_REQUEST, "Malformed request",
                 "Nieprawidłowy format danych wejściowych.", req, "bad_payload",
@@ -129,11 +127,7 @@ public class GlobalExceptionHandler {
                 Map.of("errors", Map.of(ex.getField(), "nie może być puste")));
     }
 
-    // ==================================================================
-    // POPRAWKA LOGOWANIA
-    // ==================================================================
-
-    /* ====== 401: uwierzytelnianie (TYLKO LOGOWANIE) ====== */
+    /* ====== 401: uwierzytelnianie */
     // Ta metoda celowo nie łapie już Twoich własnych wyjątków
     @ExceptionHandler({
             BadCredentialsException.class, // Spring Security
@@ -159,11 +153,6 @@ public class GlobalExceptionHandler {
         return pd(HttpStatus.UNAUTHORIZED, "Authentication failed",
                 detail, req, "auth_failed");
     }
-
-    // ==================================================================
-    // KONIEC POPRAWKI
-    // ==================================================================
-
 
     /* ====== 403: brak uprawnień (np. filtr JWT) ====== */
     @ExceptionHandler(AccessDeniedException.class)
@@ -198,16 +187,13 @@ public class GlobalExceptionHandler {
                 ex.getMessage(), req, "schedule_not_found");
     }
 
-    // ==================================================================
-    // NOWE HANDLERY DLA RESETOWANIA HASŁA
-    // ==================================================================
+    // HANDLERY DLA RESETOWANIA HASŁA
 
     /* ====== 404: Błąd resetu hasła - nie znaleziono użytkownika ====== */
     @ExceptionHandler(com.pansgroup.projectbackend.exception.UsernameNotFoundException.class)
     public ProblemDetail handleResetPasswordUserNotFound(
             com.pansgroup.projectbackend.exception.UsernameNotFoundException ex,
-            HttpServletRequest req
-    ) {
+            HttpServletRequest req) {
         // Przekazuje wiadomość z serwisu (np. "Nie znaleziono użytkownika...")
         return pd(HttpStatus.NOT_FOUND, "User not found",
                 ex.getMessage(),
@@ -223,9 +209,12 @@ public class GlobalExceptionHandler {
                 req, "account_inactive_reset");
     }
 
-    // ==================================================================
-    // KONIEC NOWYCH HANDLERÓW
-    // ==================================================================
+    /* ====== 429: Too Many Requests - Rate Limiting ====== */
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ProblemDetail handleTooManyRequests(TooManyRequestsException ex, HttpServletRequest req) {
+        return pd(HttpStatus.TOO_MANY_REQUESTS, "Too many requests",
+                ex.getMessage(), req, "rate_limit_exceeded");
+    }
 
     /* ====== 409: konflikt/unikalność (np. email) ====== */
     @ExceptionHandler(EmailAlreadyExistsException.class)

@@ -4,8 +4,8 @@ const AUTH_CONFIG = {
     API: {
         LOGIN: '/api/auth/login',
         REGISTER: '/api/auth/register',
-        FORGOT_PASSWORD: '/api/auth/reset-password/request',
-        RESET_PASSWORD: '/api/auth/reset-password/reset'
+        FORGOT_PASSWORD: '/api/auth/forgot-password',
+        RESET_PASSWORD: '/api/auth/reset-password'
     },
     TIMING: {
         REDIRECT_DELAY: 500,

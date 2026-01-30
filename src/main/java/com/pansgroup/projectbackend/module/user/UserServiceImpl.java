@@ -13,11 +13,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("ALL")
 @Service
@@ -29,6 +31,14 @@ public class UserServiceImpl implements UserService {
     private final EmailService emailService;
     private final ConfirmationTokenRepository confirmationTokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
+
+    // Rate limiting dla forgot-password: email -> ostatni czas wysłania
+    private final ConcurrentHashMap<String, LocalDateTime> passwordResetCooldown = new ConcurrentHashMap<>();
+    private static final long COOLDOWN_SECONDS = 60;
+
+    // Rate limiting dla confirmation: token -> ostatni czas próby
+    private final ConcurrentHashMap<String, LocalDateTime> confirmationAttemptsCooldown = new ConcurrentHashMap<>();
+    private static final long CONFIRMATION_COOLDOWN_SECONDS = 5;
 
     public UserServiceImpl(UserRepository userRepository,
             PasswordEncoder passwordEncoder,
@@ -268,6 +278,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void confirmToken(String token) {
+        // Rate limiting - sprawdź czy nie ma zbyt wielu prób dla tego tokenu
+        LocalDateTime lastAttempt = confirmationAttemptsCooldown.get(token);
+        if (lastAttempt != null) {
+            long secondsSinceLastAttempt = Duration.between(lastAttempt, LocalDateTime.now()).getSeconds();
+            if (secondsSinceLastAttempt < CONFIRMATION_COOLDOWN_SECONDS) {
+                long remainingSeconds = CONFIRMATION_COOLDOWN_SECONDS - secondsSinceLastAttempt;
+                throw new TooManyRequestsException(
+                        "Zbyt wiele prób aktywacji. Poczekaj " + remainingSeconds + " sekund przed ponowną próbą.");
+            }
+        }
+
+        // Zapisz timestamp próby
+        confirmationAttemptsCooldown.put(token, LocalDateTime.now());
+
         // Wszystko tutaj jest poprawne
         Optional<ConfirmationToken> tokenOptional = confirmationTokenRepository.findByToken(token);
         if (!tokenOptional.isPresent()) {
@@ -283,11 +307,25 @@ public class UserServiceImpl implements UserService {
             user.setActivated(true);
             userRepository.save(user);
             confirmationTokenRepository.delete(confirmationToken);
+
+            // Usuń z cooldown po udanej aktywacji
+            confirmationAttemptsCooldown.remove(token);
         }
     }
 
     @Override
     public void requestPasswordReset(String email) {
+        // Rate limiting - sprawdź czy użytkownik nie spamuje
+        LocalDateTime lastRequest = passwordResetCooldown.get(email);
+        if (lastRequest != null) {
+            long secondsSinceLastRequest = Duration.between(lastRequest, LocalDateTime.now()).getSeconds();
+            if (secondsSinceLastRequest < COOLDOWN_SECONDS) {
+                long remainingSeconds = COOLDOWN_SECONDS - secondsSinceLastRequest;
+                throw new TooManyRequestsException(
+                        "Poczekaj " + remainingSeconds + " sekund przed ponowną próbą wysłania linku resetującego.");
+            }
+        }
+
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty()) {
             throw new UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + email);
@@ -302,6 +340,9 @@ public class UserServiceImpl implements UserService {
             passwordResetToken.setExpiryDate(LocalDateTime.now().plusMinutes(10));
             passwordResetTokenRepository.save(passwordResetToken);
             emailService.sendPasswordResetEmail(u.getEmail(), passwordResetToken.getToken());
+
+            // Zapisz timestamp ostatniego wysłania dla tego emaila
+            passwordResetCooldown.put(email, LocalDateTime.now());
         }
     }
 

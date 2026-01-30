@@ -12,8 +12,8 @@
             </div>
 
             <div class="header-right">
-                <div class="user-index-container" th:if="${currentUser != null}">
-                    <span class="user-index-number user-index-bold" th:text="${currentUser?.nrAlbumu}"></span>
+                <div class="user-index-container" th:if="${currentUser != null and currentUser.nrAlbumu != null}">
+                    <span class="user-index-number user-index-bold" th:text="${currentUser.nrAlbumu}"></span>
                 </div>
                 <div class="user-menu-wrapper">
                     <div class="user-info" id="userMenuToggle">
@@ -30,24 +30,19 @@
                     <div class="user-dropdown-menu" id="userDropdownMenu">
                         <a th:href="@{/profile}" class="user-dropdown-item">
                             <i class="fas fa-user"></i>
-                            <span>Profil</span>
+                            <span>Mój profil</span>
                         </a>
                         <a th:href="@{/settings}" class="user-dropdown-item">
                             <i class="fas fa-cog"></i>
-                            <span>Ustawienia</span>
+                            <span>Edycja profilu</span>
                         </a>
                         <a th:href="@{/change-password}" class="user-dropdown-item">
                             <i class="fas fa-lock"></i>
                             <span>Zmiana hasła</span>
                         </a>
-                        <a href="#" class="user-dropdown-item">
-                            <i class="fas fa-book"></i>
-                            <span>Samouczek</span>
-                        </a>
                         <div class="user-dropdown-divider"></div>
-                        <a href="#" class="user-dropdown-item">
-                            <i class="fas fa-moon"></i>
-                            <span>Przełącz na motyw ciemny</span>
+                        <a href="#" class="user-dropdown-item" id="themeToggleDropdown">
+                            <span class="theme-toggle-text">Przełącz na motyw ciemny</span>
                         </a>
                     </div>
                 </div>

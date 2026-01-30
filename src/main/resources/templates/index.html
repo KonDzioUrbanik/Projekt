@@ -12,8 +12,15 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
         <link rel="stylesheet" th:href="@{/css/common/style.css}">
+        <link rel="stylesheet" th:href="@{/css/common/theme.css}">
+        <script th:src="@{/js/common/theme.js}"></script>
     </head>
     <body>
+        <!-- Przycisk zmiany motywu -->
+        <button class="theme-toggle-btn" id="themeToggleBtn" title="Zmień motyw">
+            <i class="fas fa-moon"></i>
+            <i class="fas fa-sun"></i>
+        </button>
         
         <nav class="landing-nav">
             <a href="/" class="nav-logo">
