@@ -42,6 +42,11 @@
                 <span class="link-text">Notatki</span>
             </a>
 
+            <a th:href="@{/dashboard/university-calendar}" class="btn-navbar-left" th:classappend="${activePage == 'university-calendar-public'} ? 'active'">
+                <i class="fas fa-university"></i>
+                <span class="link-text">Kalendarz akademicki</span>
+            </a>
+
             <div sec:authorize="hasRole('ADMIN')" class="admin-section">
                 <p class="admin-section-label">Admin</p>
                 <div class="admin-divider"></div> <a th:href="@{/admin/users}" class="btn-navbar-left" th:classappend="${activePage == 'users'} ? 'active'">
@@ -66,7 +71,7 @@
                 </a>
                 <a th:href="@{/admin/university-calendar}" class="btn-navbar-left" th:classappend="${activePage == 'university-calendar'} ? 'active'">
                     <i class="fas fa-university"></i>
-                    <span class="link-text">Rok akademicki</span>
+                    <span class="link-text">Kalendarz akademicki</span>
                 </a>
                 <a th:href="@{/admin/alerts}" class="btn-navbar-left" th:classappend="${activePage == 'alerts'} ? 'active'">
                     <i class="fas fa-exclamation-triangle"></i>

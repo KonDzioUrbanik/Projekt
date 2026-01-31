@@ -20,7 +20,8 @@
     flex-shrink: 0;
     height: 100%;
     transition: width var(--transition-speed) ease;
-    overflow-x: hidden; /* Ukrywa tekst podczas animacji */
+    overflow-x: hidden;
+    /* Ukrywa tekst podczas animacji */
     position: relative;
     z-index: 50;
 }
@@ -36,12 +37,14 @@
 .sidebar-header-actions {
     padding: 15px;
     display: flex;
-    justify-content: flex-end; /* Przycisk po prawej */
+    justify-content: flex-end;
+    /* Przycisk po prawej */
     transition: justify-content var(--transition-speed);
 }
 
 .navbar-left.collapsed .sidebar-header-actions {
-    justify-content: center; /* Przycisk na środku po zwinięciu */
+    justify-content: center;
+    /* Przycisk na środku po zwinięciu */
 }
 
 .btn-toggle {
@@ -67,8 +70,14 @@
 }
 
 /* Custom scrollbar dla sidebara */
-.sidebar-menu::-webkit-scrollbar { width: 4px; }
-.sidebar-menu::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+.sidebar-menu::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+}
 
 .btn-navbar-left {
     display: flex;
@@ -81,7 +90,8 @@
     font-weight: 500;
     border-left: 4px solid transparent;
     transition: all 0.2s ease;
-    white-space: nowrap; /* Zapobiega łamaniu tekstu */
+    white-space: nowrap;
+    /* Zapobiega łamaniu tekstu */
 }
 
 .btn-navbar-left i {
@@ -114,7 +124,8 @@
 .navbar-left.collapsed .link-text {
     opacity: 0;
     pointer-events: none;
-    display: none; /* Całkowite ukrycie */
+    display: none;
+    /* Całkowite ukrycie */
 }
 
 /* Wyśrodkowanie ikon po zwinięciu */
@@ -147,7 +158,7 @@
 .admin-divider {
     display: none;
     height: 1px;
-    background: rgba(255,255,255,0.2);
+    background: rgba(255, 255, 255, 0.2);
     margin: 10px auto;
     width: 40%;
 }
@@ -164,6 +175,7 @@
 /* RESPONSYWNOŚĆ (MOBILE) */
 
 @media (max-width: 992px) {
+
     .navbar-left,
     .navbar-left.collapsed {
         width: 100% !important;
@@ -171,25 +183,32 @@
         flex-direction: row;
         overflow-x: auto;
         padding: 10px;
-        background: white; /* Na mobile jasne tło */
+        background: var(--bg-card);
+        /* Na mobile jasne tło (zmienna) */
         border-bottom: 1px solid var(--border-color);
     }
 
-    .sidebar-header-actions { display: none; } /* Brak przycisku na mobile */
-    .admin-divider { display: none; }
-    
+    .sidebar-header-actions {
+        display: none;
+    }
+
+    /* Brak przycisku na mobile */
+    .admin-divider {
+        display: none;
+    }
+
     .sidebar-menu {
         display: flex;
         gap: 10px;
         overflow-y: hidden;
     }
 
-    .btn-navbar-left{
+    .btn-navbar-left {
         margin-bottom: 0;
         padding: 8px 16px;
         border-radius: 20px;
-        background: var(--color-secondary, #f8f9fa);
-        color: var(--text-dark);
+        background: var(--bg-step);
+        color: var(--text-main);
         font-size: 0.85rem;
         font-weight: 600;
         border: 1px solid var(--border-color);
@@ -197,25 +216,28 @@
         justify-content: center;
     }
 
-     /* Aktywny przycisk na mobile */
-    .btn-navbar-left.active{
+    /* Aktywny przycisk na mobile */
+    .btn-navbar-left.active {
         background: var(--color-primary);
         color: white;
         border-color: var(--color-primary);
     }
 
-    .btn-navbar-left:hover{
-        background: var(--text-white);
-        color: var(--text-dark);
+    .btn-navbar-left:hover {
+        background: var(--bg-card);
+        color: var(--text-main);
         border-color: var(--color-primary);
         transform: none;
     }
-    
-    .btn-navbar-left.active:hover{
+
+    .btn-navbar-left.active:hover {
         background-color: var(--color-primary-dark);
         color: white;
     }
-    
+
     /* Na mobile tekst zawsze widoczny */
-    .link-text { display: inline !important; opacity: 1 !important; }
+    .link-text {
+        display: inline !important;
+        opacity: 1 !important;
+    }
 }

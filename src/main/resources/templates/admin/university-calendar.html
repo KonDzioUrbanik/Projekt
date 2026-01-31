@@ -3,27 +3,322 @@
     <head>
         <title>Kalendarz akademicki</title>
         <th:block layout:fragment="page-styles">
-            <link rel="stylesheet" th:href="@{/css/admin/admin-users.css}" href="../../static/css/admin/admin-users.css">
+            <link rel="stylesheet" th:href="@{/css/admin/university-calendar.css}">
         </th:block>
     </head>
     <body>
         <div layout:fragment="content">
-        
-            <!-- <nav class="breadcrumb">
-                <a href="/dashboard" class="breadcrumb-item">
-                    <i class="fas fa-home"></i> Strona główna
-                </a>
-                <span class="breadcrumb-separator">/</span>
-                <span class="breadcrumb-item active">Panel administratora</span>
-                <span class="breadcrumb-separator">/</span>
-                <span class="breadcrumb-item active">Kalendarz akademicki</span>
-            </nav> -->
-        
-            <div class="admin-header">
-                <div>
-                    <h1>Kalendarz akademicki</h1>
+            <div class="calendar-wrapper">
+                <div class="calendar-header">
+                    <h2>Kalendarz akademicki</h2>
+                    <p>Rok akademicki 2025/2026</p>
+                </div>
+
+                <div class="management-panel" sec:authorize="hasRole('ADMIN')">
+                    <div class="panel-title">
+                        <h3><i class="fas fa-cogs"></i> Zarządzanie</h3>
+                    </div>
+                    <div class="panel-actions">
+                        <button class="btn-panel btn-panel-secondary" id="btnExportPdf"><i class="fas fa-file-pdf"></i> Eksportuj PDF</button>
+                        <button class="btn-panel btn-panel-primary" id="btnAddEvent"><i class="fas fa-plus"></i> Dodaj wydarzenie</button>
+                    </div>
+                </div>
+
+                <!-- SEMESTRY -->
+                <div class="semesters-grid">
+                    <!-- Semestr Zimowy -->
+                    <div class="semester-card">
+                        <div class="semester-header">
+                            <span><i class="fas fa-snowflake"></i> Semestr Zimowy</span>
+                            <small>1 października 2025 - 22 lutego 2026</small>
+                        </div>
+                        <div class="semester-body">
+                            <ul class="events-list" id="winterReviewList">
+                                <!-- Dane ładowane dynamicznie z JS -->
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Semestr Letni -->
+                    <div class="semester-card">
+                        <div class="semester-header">
+                            <span><i class="fas fa-sun"></i> Semestr Letni</span>
+                            <small>23 lutego 2026 - 30 września 2026</small>
+                        </div>
+                        <div class="semester-body">
+                            <ul class="events-list" id="summerReviewList">
+                                <!-- Dane ładowane dynamicznie z JS -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HARMONOGRAM TYGODNI A/B - SEMESTR ZIMOWY -->
+                <div class="schedule-section">
+                    <h3>Harmonogram tygodni - Semestr Zimowy</h3>
+                    <div class="months-grid">
+                        
+                        <!-- Październik -->
+                        <div class="month-card">
+                            <div class="month-header">Październik 2025</div>
+                            <table class="weeks-table">
+                                <thead>
+                                    <tr>
+                                        <th>Pn</th><th>Wt</th><th>Śr</th><th>Cz</th><th>Pt</th><th>Sb</th><th>Nd</th><th>Tydzień</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td></td><td></td><td>1</td><td>2</td><td>3</td><td>4</td><td class="day-off">5</td><td><span class="badge-week A">A</span></td></tr>
+                                    <tr><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td class="day-off">12</td><td><span class="badge-week B">B</span></td></tr>
+                                    <tr><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td class="day-off">19</td><td><span class="badge-week A">A</span></td></tr>
+                                    <tr><td>20</td><td>21</td><td>22</td><td>23</td><td>24</td><td>25</td><td class="day-off">26</td><td><span class="badge-week B">B</span></td></tr>
+                                    <tr><td>27</td><td>28</td><td>29</td><td>30</td><td>31</td><td></td><td></td><td><span class="badge-week A">A</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Listopad -->
+                        <div class="month-card">
+                            <div class="month-header">Listopad 2025</div>
+                            <table class="weeks-table">
+                                <thead>
+                                    <tr>
+                                        <th>Pn</th><th>Wt</th><th>Śr</th><th>Cz</th><th>Pt</th><th>Sb</th><th>Nd</th><th>Tydzień</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td></td><td></td><td></td><td></td><td></td><td class="day-off">1</td><td class="day-off">2</td><td><span class="badge-week A">A</span></td></tr>
+                                    <tr><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td class="day-off">9</td><td><span class="badge-week B">B</span></td></tr>
+                                    <tr><td>10</td><td class="day-off">11</td><td class="day-off">12</td><td>13</td><td>14</td><td>15</td><td class="day-off">16</td><td><span class="badge-week A">A</span></td></tr>
+                                    <tr><td>17</td><td>18</td><td>19</td><td>20</td><td>21</td><td>22</td><td class="day-off">23</td><td><span class="badge-week B">B</span></td></tr>
+                                    <tr><td>24</td><td>25</td><td>26</td><td>27</td><td>28</td><td>29</td><td class="day-off">30</td><td><span class="badge-week A">A</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Grudzień -->
+                        <div class="month-card">
+                            <div class="month-header">Grudzień 2025</div>
+                            <table class="weeks-table">
+                                <thead>
+                                    <tr>
+                                        <th>Pn</th><th>Wt</th><th>Śr</th><th>Cz</th><th>Pt</th><th>Sb</th><th>Nd</th><th>Tydzień</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td class="day-off">7</td><td><span class="badge-week B">B</span></td></tr>
+                                    <tr><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td><td class="day-off">14</td><td><span class="badge-week A">A</span></td></tr>
+                                    <tr><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td><td class="day-off">21</td><td><span class="badge-week B">B</span></td></tr>
+                                    <tr>
+                                        <td class="day-off">22</td><td class="day-off">23</td><td class="day-off">24</td><td class="day-off">25</td><td class="day-off">26</td><td class="day-off">27</td><td class="day-off">28</td><td>-</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="day-off">29</td><td class="day-off">30</td><td class="day-off">31</td><td></td><td></td><td></td><td></td><td>-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                         <!-- Styczeń -->
+                         <div class="month-card">
+                            <div class="month-header">Styczeń 2026</div>
+                            <table class="weeks-table">
+                                <thead>
+                                    <tr>
+                                        <th>Pn</th><th>Wt</th><th>Śr</th><th>Cz</th><th>Pt</th><th>Sb</th><th>Nd</th><th>Tydzień</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td></td><td></td><td></td><td class="day-off">1</td><td class="day-off">2</td><td class="day-off">3</td><td class="day-off">4</td><td>-</td></tr>
+                                    <tr><td class="day-off">5</td><td class="day-off">6</td><td>7</td><td>8</td><td>9</td><td>10</td><td class="day-off">11</td><td><span class="badge-week A">A</span></td></tr>
+                                    <tr><td>12</td><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td class="day-off">18</td><td><span class="badge-week B">B</span></td></tr>
+                                    <tr><td>19</td><td>20</td><td>21</td><td>22</td><td>23</td><td>24</td><td class="day-off">25</td><td><span class="badge-week A">A</span></td></tr>
+                                    <tr><td>26</td><td>27</td><td>28</td><td>29</td><td>30</td><td>31</td><td></td><td><span class="badge-week B">B</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Luty (Zima) -->
+                        <div class="month-card">
+                            <div class="month-header">Luty 2026 (Zima)</div>
+                            <table class="weeks-table">
+                                <thead>
+                                    <tr>
+                                        <th>Pn</th><th>Wt</th><th>Śr</th><th>Cz</th><th>Pt</th><th>Sb</th><th>Nd</th><th>Tydzień</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td></td><td></td><td></td><td></td><td></td><td></td><td class="day-off">1</td><td>-</td></tr>
+                                    <tr><td class="day-exam">2</td><td class="day-exam">3</td><td class="day-exam">4</td><td class="day-exam">5</td><td class="day-exam">6</td><td class="day-exam">7</td><td class="day-off">8</td><td>-</td></tr>
+                                    <tr><td class="day-exam">9</td><td class="day-exam">10</td><td class="day-off">11</td><td class="day-off">12</td><td class="day-off">13</td><td class="day-off">14</td><td class="day-off">15</td><td>-</td></tr>
+                                    <tr><td class="day-exam">16</td><td class="day-exam">17</td><td class="day-exam">18</td><td class="day-exam">19</td><td class="day-exam">20</td><td class="day-exam">21</td><td class="day-off">22</td><td>-</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HARMONOGRAM TYGODNI A/B - SEMESTR LETNI -->
+                <div class="schedule-section" style="margin-top: 3rem;">
+                    <h3>Harmonogram tygodni - Semestr Letni</h3>
+                    <div class="months-grid">
+                        
+                        <!-- Luty (Lato) -->
+                        <div class="month-card">
+                            <div class="month-header">Luty 2026 (Lato)</div>
+                            <table class="weeks-table">
+                                <thead>
+                                    <tr>
+                                        <th>Pn</th><th>Wt</th><th>Śr</th><th>Cz</th><th>Pt</th><th>Sb</th><th>Nd</th><th>Tydzień</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>23</td><td>24</td><td>25</td><td>26</td><td>27</td><td>28</td><td></td><td><span class="badge-week A">A</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Marzec -->
+                        <div class="month-card">
+                            <div class="month-header">Marzec 2026</div>
+                            <table class="weeks-table">
+                                <thead>
+                                    <tr>
+                                        <th>Pn</th><th>Wt</th><th>Śr</th><th>Cz</th><th>Pt</th><th>Sb</th><th>Nd</th><th>Tydzień</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td></td><td></td><td></td><td></td><td></td><td></td><td class="day-off">1</td><td><span class="badge-week A">A</span></td></tr>
+                                    <tr><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td class="day-off">8</td><td><span class="badge-week B">B</span></td></tr>
+                                    <tr><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td><td>14</td><td class="day-off">15</td><td><span class="badge-week A">A</span></td></tr>
+                                    <tr><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td><td>21</td><td class="day-off">22</td><td><span class="badge-week B">B</span></td></tr>
+                                    <tr><td>23</td><td>24</td><td>25</td><td>26</td><td>27</td><td>28</td><td class="day-off">29</td><td><span class="badge-week A">A</span></td></tr>
+                                    <tr><td>30</td><td>31</td><td></td><td></td><td></td><td></td><td></td><td><span class="badge-week B">B</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Kwiecień -->
+                        <div class="month-card">
+                            <div class="month-header">Kwiecień 2026</div>
+                            <table class="weeks-table">
+                                <thead>
+                                    <tr>
+                                        <th>Pn</th><th>Wt</th><th>Śr</th><th>Cz</th><th>Pt</th><th>Sb</th><th>Nd</th><th>Tydzień</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td></td><td></td><td>1</td><td>2</td><td class="day-off">3</td><td class="day-off">4</td><td class="day-off">5</td><td><span class="badge-week B">B</span></td></tr>
+                                    <tr><td class="day-off">6</td><td class="day-off">7</td><td>8</td><td>9</td><td>10</td><td>11</td><td class="day-off">12</td><td><span class="badge-week A">A</span></td></tr>
+                                    <tr><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td class="day-off">19</td><td><span class="badge-week B">B</span></td></tr>
+                                    <tr><td>20</td><td>21</td><td>22</td><td>23</td><td>24</td><td>25</td><td class="day-off">26</td><td><span class="badge-week A">A</span></td></tr>
+                                    <tr><td>27</td><td>28</td><td>29</td><td>30</td><td></td><td></td><td></td><td><span class="badge-week B">B</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Maj -->
+                        <div class="month-card">
+                            <div class="month-header">Maj 2026</div>
+                            <table class="weeks-table">
+                                <thead>
+                                    <tr>
+                                        <th>Pn</th><th>Wt</th><th>Śr</th><th>Cz</th><th>Pt</th><th>Sb</th><th>Nd</th><th>Tydzień</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td></td><td></td><td></td><td></td><td class="day-off">1</td><td class="day-off">2</td><td class="day-off">3</td><td>-</td></tr>
+                                    <tr><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td class="day-off">10</td><td><span class="badge-week A">A</span></td></tr>
+                                    <tr><td>11</td><td>12</td><td>13</td><td>14</td><td>15</td><td>16</td><td class="day-off">17</td><td><span class="badge-week B">B</span></td></tr>
+                                    <tr><td>18</td><td>19</td><td>20</td><td>21</td><td>22</td><td>23</td><td class="day-off">24</td><td><span class="badge-week A">A</span></td></tr>
+                                    <tr><td>25</td><td>26</td><td>27</td><td>28</td><td>29</td><td>30</td><td class="day-off">31</td><td><span class="badge-week B">B</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Czerwiec -->
+                         <div class="month-card">
+                            <div class="month-header">Czerwiec 2026</div>
+                            <table class="weeks-table">
+                                <thead>
+                                    <tr>
+                                        <th>Pn</th><th>Wt</th><th>Śr</th><th>Cz</th><th>Pt</th><th>Sb</th><th>Nd</th><th>Tydzień</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>1</td><td>2</td><td>3</td><td class="day-off">4</td><td>5</td><td>6</td><td class="day-off">7</td><td><span class="badge-week A">A</span></td></tr>
+                                    <tr><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td><td class="day-off">14</td><td><span class="badge-week B">B</span></td></tr>
+                                    <tr><td>15</td><td class="day-exam">16</td><td class="day-exam">17</td><td class="day-exam">18</td><td class="day-exam">19</td><td class="day-exam">20</td><td class="day-off">21</td><td>-</td></tr>
+                                    <tr><td class="day-exam">22</td><td class="day-exam">23</td><td class="day-exam">24</td><td class="day-exam">25</td><td class="day-exam">26</td><td class="day-exam">27</td><td class="day-off">28</td><td>-</td></tr>
+                                    <tr><td class="day-off">29</td><td class="day-off">30</td><td></td><td></td><td></td><td></td><td></td><td>-</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+
+                    <div class="legend-box">
+                        <div class="legend-item"><span class="legend-dot" style="background: #e0f2fe; border: 2px solid #0284c7;"></span> Tydzień A</div>
+                        <div class="legend-item"><span class="legend-dot" style="background: #fce7f3; border: 2px solid #db2777;"></span> Tydzień B</div>
+                        <div class="legend-item"><span class="legend-dot" style="background: #dc2626;"></span> Dni wolne / święta</div>
+                        <div class="legend-item"><span class="legend-dot" style="background: #005efa;"></span> Sesja egzaminacyjna</div>
+                    </div>
+                </div>
+
+            <div class="modal" id="addEventModal" sec:authorize="hasRole('ADMIN')">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="modalTitle">Dodaj wydarzenie</h3>
+                        <button class="close-btn" id="closeModal">&times;</button>
+                    </div>
+                    <form id="eventForm">
+                        <input type="hidden" id="eventId"> <!-- Hidden ID -->
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="eventTitle">Nazwa wydarzenia</label>
+                                <input type="text" id="eventTitle" placeholder="np. Juwenalia" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="eventDateFrom">Data od</label>
+                                    <input type="date" id="eventDateFrom" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="eventDateTo">Data do</label>
+                                    <input type="date" id="eventDateTo" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="event-type">Typ wydarzenia</label>
+                                <select id="event-type" required>
+                                    <option value="DIDACTIC">Zajęcia dydaktyczne</option>
+                                    <option value="EXAM">Sesja egzaminacyjna</option>
+                                    <option value="HOLIDAY">Święto / Wolne</option>
+                                    <option value="BREAK">Przerwa międzysemestralna/wakacyjna</option>
+                                    <option value="SCHEDULE_CHANGE">Zmiana w planie</option>
+                                    <option value="OTHER">Inne (Wybierz kolor)</option>
+                                </select>
+                            </div>
+                            <!-- Pole wyboru koloru (Tylko dla typu OTHER) -->
+                            <div class="form-group" id="color-picker-container" style="display: none;">
+                                <label for="event-color-picker">Wybierz kolor tła</label>
+                                <input type="color" id="event-color-picker" class="color-input" value="#3b82f6" style="width: 100%; height: 40px; cursor: pointer;">
+                            </div>
+                        </div>
+                        
+                        <div class="modal-footer">
+                             <!-- Delete btn - hidden by default -->
+                            <button type="button" class="btn-tertiary" id="deleteEventBtn" style="color: #ef4444; border-color: #ef4444; display: none;">Usuń</button>
+                             <div style="flex: 1;"></div> <!-- Spacer -->
+                            <button type="button" class="btn-tertiary" id="cancelBtn">Anuluj</button>
+                            <button type="submit" class="btn-primary">Zapisz zmiany</button>
+                        </div>
+                    </form>
                 </div>
             </div>
-        
+
+            <!-- Scripts -->
+            <script th:src="@{/js/admin/university-calendar.js}"></script>
+        </div>
     </body>
 </html>

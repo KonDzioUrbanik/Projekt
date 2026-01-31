@@ -1,0 +1,721 @@
+/* WRAPPER */
+.calendar-wrapper {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-header {
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 1rem;
+}
+
+.calendar-header h2 {
+    color: #2c3e50;
+    font-size: 1.8rem;
+    margin: 0 0 0.5rem 0;
+}
+
+.calendar-header p {
+    color: #6c757d;
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+/* GRID LAYOUT */
+.semesters-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+/* SEMESTER CARD */
+.semester-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.semester-header {
+    background: #f8f9fa;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+    font-weight: 700;
+    color: #2c3e50;
+    font-size: 1.1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.semester-header i {
+    color: #005efa;
+}
+
+.semester-body {
+    padding: 1.5rem;
+}
+
+.events-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.event-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid #f1f1f1;
+    font-size: 0.95rem;
+}
+
+.event-item:last-child {
+    border-bottom: none;
+}
+
+.event-dates {
+    font-weight: 600;
+    color: #2c3e50;
+    flex: 1;
+}
+
+.event-desc {
+    color: #495057;
+    flex: 1;
+    text-align: right;
+}
+
+/* SCHEDULE SECTION (A/B WEEKS) */
+.schedule-section h3 {
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    font-size: 1.4rem;
+    border-left: 4px solid #005efa;
+    padding-left: 1rem;
+}
+
+.months-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.month-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: white;
+    overflow: hidden;
+    /* Prevent table overflow */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.month-header {
+    background: #f8f9fa;
+    padding: 0.8rem;
+    text-align: center;
+    font-weight: 700;
+    color: #2c3e50;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.weeks-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    /* Stable column widths */
+}
+
+.weeks-table th {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #6c757d;
+    padding: 0.5rem;
+    border-bottom: 1px solid #e0e0e0;
+    background: #fff;
+}
+
+.weeks-table td {
+    padding: 0.6rem;
+    text-align: center;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #f1f1f1;
+    color: #2c3e50;
+}
+
+.weeks-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Week Type Badges */
+.badge-week {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.badge-week.A {
+    background: #e0f2fe;
+    color: #0284c7;
+}
+
+.badge-week.B {
+    background: #fce7f3;
+    color: #db2777;
+}
+
+/* Text Colors for List View */
+/* Text Colors for List View - !important to override dark mode specificity */
+.text-red {
+    color: #ef4444 !important;
+    font-weight: 600;
+}
+
+.text-blue {
+    color: #3b82f6 !important;
+    font-weight: 600;
+}
+
+.text-purple {
+    color: #8b5cf6 !important;
+    font-weight: 600;
+}
+
+.text-green {
+    color: #10b981 !important;
+    font-weight: 600;
+}
+
+/* Day Markers (Circles) */
+.day-marker {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: white;
+    margin: -4px;
+}
+
+.day-marker.red {
+    background-color: #ef4444;
+}
+
+.day-marker.blue {
+    background-color: #3b82f6;
+}
+
+.day-marker.purple {
+    background-color: #8b5cf6;
+}
+
+.day-marker.green {
+    background-color: #10b981;
+}
+
+/* LEGEND */
+.legend-box {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #495057;
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+[data-theme="dark"] .modal-content select option {
+    background-color: #1f2937;
+    color: #f3f4f6;
+}
+
+/* RESPONSYWNOSC */
+@media (max-width: 992px) {
+    .semesters-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .calendar-wrapper {
+        padding: 1rem;
+    }
+
+    .event-item {
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+
+    .event-desc {
+        text-align: left;
+    }
+
+    .months-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* DARK MODE */
+[data-theme="dark"] .calendar-wrapper {
+    background: var(--bg-card);
+    box-shadow: none;
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .calendar-header {
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .calendar-header h2 {
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .calendar-header p {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .semester-card {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .semester-header {
+    background: var(--bg-step);
+    border-bottom-color: var(--border-color);
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .event-item {
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .event-dates {
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .event-desc {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .schedule-section h3 {
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .month-card {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .month-header {
+    background: var(--bg-step);
+    border-bottom-color: var(--border-color);
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .weeks-table th {
+    background: var(--bg-card);
+    border-bottom-color: var(--border-color);
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .weeks-table td {
+    background: var(--bg-card);
+    border-bottom-color: var(--border-color);
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .badge-week.A {
+    background: rgba(2, 132, 199, 0.2);
+    color: #38bdf8;
+}
+
+[data-theme="dark"] .badge-week.B {
+    background: rgba(219, 39, 119, 0.2);
+    color: #f472b6;
+}
+
+[data-theme="dark"] .day-off {
+    color: #f87171;
+}
+
+[data-theme="dark"] .day-exam {
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .legend-box {
+    background: var(--bg-step);
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .legend-item {
+    color: var(--text-secondary);
+}
+
+/* MANAGEMENT PANEL */
+.management-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e0e0e0;
+}
+
+.panel-title h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.panel-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-panel {
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    border: none;
+}
+
+.btn-panel-primary {
+    background: #005efa;
+    color: white;
+}
+
+.btn-panel-primary:hover {
+    background: #0046b8;
+}
+
+.btn-panel-secondary {
+    background: #f8f9fa;
+    color: #495057;
+    border: 1px solid #dee2e6;
+}
+
+.btn-panel-secondary:hover {
+    background: #e9ecef;
+    color: #212529;
+}
+
+[data-theme="dark"] .management-panel {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .panel-title h3 {
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .btn-panel-secondary {
+    background: var(--bg-step);
+    color: var(--text-secondary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .btn-panel-secondary:hover {
+    background: var(--bg-background);
+    color: var(--text-main);
+}
+
+/* MODAL STYLES */
+.modal {
+    display: none;
+    /* Hidden by default */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+    /* Black w/ opacity */
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 0;
+    border: 1px solid #888;
+    width: 100%;
+    max-width: 500px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #2c3e50;
+}
+
+.close-btn {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    line-height: 1;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    background: #f8f9fa;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+/* Form Styles inside Modal */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.6rem;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+/* Dark Mode Modal */
+[data-theme="dark"] .modal-content {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-header {
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-header h3 {
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .modal-footer {
+    background-color: var(--bg-step);
+    border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .form-group label {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .form-group select {
+    background-color: var(--bg-background);
+    border-color: var(--border-color);
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .close-btn {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .close-btn:hover {
+    color: var(--text-main);
+}
+
+/* BUTTONS IN MODAL */
+.btn-tertiary,
+.btn-primary {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+}
+
+.btn-tertiary {
+    background: transparent;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+}
+
+.btn-tertiary:hover {
+    background: #f1f5f9;
+    color: #334155;
+    border-color: #94a3b8;
+}
+
+.btn-primary {
+    background: #005efa;
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary:hover {
+    background: #0046b8;
+    box-shadow: 0 4px 12px rgba(0, 94, 250, 0.2);
+}
+
+/* Dark Mode Buttons */
+[data-theme="dark"] .btn-tertiary {
+    color: var(--text-muted);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .btn-tertiary:hover {
+    background-color: var(--bg-step);
+    color: var(--text-main);
+
+    /* Hide sidebar and other layout elements */
+    .side-nav,
+    .navbar,
+    .management-panel,
+    .modal,
+    .modal-backdrop {
+        display: none !important;
+    }
+
+    /* Show only calendar wrapper and its children */
+    .calendar-wrapper,
+    .calendar-wrapper * {
+        visibility: visible;
+    }
+
+    /* Reset positioning */
+    .calendar-wrapper {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        border: none;
+        background: white !important;
+        /* Force white background */
+    }
+
+    /* Adjust grids for print */
+    .semesters-grid,
+    .months-grid {
+        display: block;
+        /* Avoid grid breaking issues */
+    }
+
+    .semester-card,
+    .month-card {
+        page-break-inside: avoid;
+        /* Prevent cutting cards in half */
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+    }
+
+    /* Force background colors */
+    .badge-week,
+    .legend-dot,
+    .day-marker,
+    .month-header {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Hide URL footers etc if possible via CSS (browser dependent) */
+    @page {
+        margin: 1cm;
+        size: landscape;
+        /* Suggest landscape for calendar */
+    }
+}
