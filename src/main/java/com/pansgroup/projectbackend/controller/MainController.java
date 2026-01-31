@@ -1,6 +1,5 @@
 package com.pansgroup.projectbackend.controller;
 
-
 import com.pansgroup.projectbackend.exception.UsernameNotFoundException;
 import com.pansgroup.projectbackend.module.dashboard.DashboardService;
 import com.pansgroup.projectbackend.module.dashboard.dto.DashboardResponseDto;
@@ -50,7 +49,8 @@ public class MainController {
     public String confirm(@RequestParam("token") String token, RedirectAttributes redirectAttributes) {
         try {
             userService.confirmToken(token);
-            redirectAttributes.addFlashAttribute("successMessage", "Konto zostało pomyślnie aktywowane. Możesz się teraz zalogować.");
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Konto zostało pomyślnie aktywowane. Możesz się teraz zalogować.");
             return "redirect:/login";
 
         } catch (UsernameNotFoundException e) {
@@ -59,19 +59,19 @@ public class MainController {
         }
     }
 
-
     @GetMapping("/token-error")
     public String tokenErrorView(Model model) {
         if (!model.containsAttribute("errorMessage")) {
-            model.addAttribute("errorMessage", "Wystąpił nieznany błąd lub link jest nieprawidłowy. Skontaktuj się z administratorem.");
+            model.addAttribute("errorMessage",
+                    "Wystąpił nieznany błąd lub link jest nieprawidłowy. Skontaktuj się z administratorem.");
         }
         return "auth/password-reset-expired";
     }
+
     @GetMapping("/reset-password")
     public String resetPasswordView(
             @RequestParam("token") String token,
-            Model model
-    ) {
+            Model model) {
         model.addAttribute("token", token);
         return "auth/reset-password";
     }
@@ -81,11 +81,9 @@ public class MainController {
         return "auth/forgot-password";
     }
 
-
-
     @ModelAttribute("currentUser")
     public UserResponseDto populateUser(Principal principal) {
-        if(principal != null){
+        if (principal != null) {
             return userService.getCurrentUser(principal.getName());
         }
         return null;
@@ -95,7 +93,7 @@ public class MainController {
     public String dashboardView(Model model, Principal principal) {
         // ActivePage potrzebne do Sidebara
         model.addAttribute("activePage", "home");
-        
+
         // dodatkowe dane specyficzne dla dashboardu (np. notatki)
         DashboardResponseDto data = dashboardService.getDashboardData(principal.getName());
         model.addAttribute("notes", data.notes());
@@ -104,63 +102,71 @@ public class MainController {
     }
 
     @GetMapping("/dashboard/calendar")
-    public String calendarView(Model model){
+    public String calendarView(Model model) {
         model.addAttribute("activePage", "calendar");
 
         return "dashboard/calendar";
     }
+
     @GetMapping("/dashboard/schedule")
-    public String scheduleView(Model model){
+    public String scheduleView(Model model) {
         model.addAttribute("activePage", "schedule");
 
         return "dashboard/schedule";
     }
 
     @GetMapping("/profile")
-    public String profileView(Model model){
+    public String profileView(Model model) {
         model.addAttribute("activePage", "profile");
 
         return "dashboard/profile";
     }
 
     @GetMapping("/settings")
-    public String settingsView(Model model){
+    public String settingsView(Model model) {
         model.addAttribute("activePage", "settings");
 
         return "dashboard/settings";
     }
 
     @GetMapping("/change-password")
-    public String changePasswordView(Model model){
+    public String changePasswordView(Model model) {
         model.addAttribute("activePage", "settings");
 
         return "auth/change-password";
     }
 
     @GetMapping("/dashboard/attendance")
-    public String attendanceView(Model model){
+    public String attendanceView(Model model) {
         model.addAttribute("activePage", "attendance");
 
         return "dashboard/attendance";
     }
 
+    @GetMapping("/dashboard/university-calendar")
+    public String universityCalendarView(Model model) {
+        model.addAttribute("activePage", "university-calendar-public");
+
+        return "admin/university-calendar";
+    }
+
     @GetMapping("/dashboard/forum")
-    public String forumView(Model model){
+    public String forumView(Model model) {
         model.addAttribute("activePage", "forum");
 
         return "dashboard/forum";
     }
 
     @GetMapping("/dashboard/notes")
-    public String notesView(Model model){
+    public String notesView(Model model) {
         model.addAttribute("activePage", "notes");
 
         return "dashboard/notes";
     }
 
-    //zarządzanie harmonogramem zajęć 
+    // zarządzanie harmonogramem zajęć
     @GetMapping("/admin/schedule-management")
-    public String scheduleManagementView(Model model){
+    public String scheduleManagementView(Model model) {
         model.addAttribute("activePage", "schedule-management");
 
         return "admin/schedule-management";
@@ -168,7 +174,7 @@ public class MainController {
 
     // zarządzanie kierunkami studiów
     @GetMapping("/admin/groups-management")
-    public String groupsManagementView(Model model){
+    public String groupsManagementView(Model model) {
         model.addAttribute("activePage", "groups-management");
 
         return "admin/groups-management";
