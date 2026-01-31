@@ -772,25 +772,46 @@
 
     [data-theme="dark"] .navbar-left,
     [data-theme="dark"] .navbar-left.collapsed {
-        background: var(--bg-card);
+        background: #1a1f26 !important;
         border-bottom-color: var(--border-color);
     }
 
     [data-theme="dark"] .btn-navbar-left {
-        background: var(--bg-step);
-        color: var(--text-dark);
-        border-color: var(--border-color);
+        background: #252b33 !important;
+        color: var(--text-dark) !important;
+        border-color: var(--border-color) !important;
+    }
+
+    [data-theme="dark"] .btn-navbar-left i {
+        color: var(--color-primary) !important;
     }
 
     [data-theme="dark"] .btn-navbar-left.active {
-        background: var(--color-primary);
-        color: white;
-        border-color: var(--color-primary);
+        background: var(--color-primary) !important;
+        color: white !important;
+        border-color: var(--color-primary) !important;
     }
 
     [data-theme="dark"] .btn-navbar-left:hover {
-        background: var(--color-secondary-dark);
-        border-color: var(--color-primary);
+        background: var(--color-secondary-dark) !important;
+        border-color: var(--color-primary) !important;
+    }
+
+    [data-theme="dark"] .admin-section {
+        border-top-color: var(--border-color);
+        display: flex;
+        gap: 10px;
+        margin-top: 0;
+        padding-top: 0;
+    }
+
+    [data-theme="dark"] .admin-section-label {
+        display: none;
+        /* Ukrywamy etykietę Admin w wersji mobilnej poziomej */
+    }
+
+    [data-theme="dark"] .admin-divider {
+        display: none;
     }
 }
 

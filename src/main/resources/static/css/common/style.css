@@ -72,6 +72,8 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     width: 100%;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 .nav-left {
@@ -297,6 +299,30 @@ body {
     .pans-logo {
         width: 150px;
     }
+
+    .landing-nav {
+        margin-top: 40px;
+        padding: 1rem;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .nav-actions {
+        width: 100%;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .nav-actions .btn {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+        flex: 1;
+        max-width: 150px;
+    }
+
+    .nav-logo span {
+        font-size: 1.1rem;
+    }
 }
 
 /* Footer */
@@ -344,6 +370,7 @@ body {
 
 .subtitle {
     color: var(--text-secondary);
+    margin-bottom: 20px;
     font-size: 1rem;
 }
 
@@ -571,7 +598,7 @@ body {
         width: 100%;
     }
 
-    .btn {
+    .hero-buttons .btn {
         width: 100%;
     }
 
@@ -588,7 +615,7 @@ body {
 
     .main-container {
         align-items: flex-start;
-        padding-top: 40px;
+        padding-top: 70px;
     }
 }
 
