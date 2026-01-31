@@ -1749,3 +1749,490 @@ body,
     border-color: var(--border-color);
     color: var(--text-dark);
 }
+
+/* PANEL ADMINISTRACYJNY */
+
+/* Stat Card - ikony (środek ikony biały) */
+[data-theme="dark"] .stat-card .stat-icon i {
+    color: white !important;
+}
+
+[data-theme="dark"] .stat-label {
+    color: var(--text-light);
+}
+
+[data-theme="dark"] .stat-value {
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .stat-change {
+    color: var(--text-muted);
+}
+
+/* ZARZĄDZANIE UŻYTKOWNIKAMI */
+
+[data-theme="dark"] .users-table-wrapper {
+    background: var(--bg-card);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .admin-header h1 {
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .admin-header p {
+    color: var(--text-light);
+}
+
+/* Breadcrumb */
+[data-theme="dark"] .breadcrumb-item {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .breadcrumb-item.active {
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .breadcrumb-separator {
+    color: var(--border-color);
+}
+
+/* Sekcja filtrów */
+[data-theme="dark"] .users-table-wrapper .filters-section,
+[data-theme="dark"] .schedule-management-wrapper .filters-section,
+[data-theme="dark"] .groups-management-wrapper .filters-section {
+    background: var(--bg-step);
+}
+
+/* Pole wyszukiwania */
+[data-theme="dark"] .search-box input {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .search-box input::placeholder {
+    color: var(--text-placeholder);
+}
+
+[data-theme="dark"] .search-box input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.15);
+}
+
+[data-theme="dark"] .search-box i {
+    color: var(--text-muted);
+}
+
+/* Grupy filtrów */
+[data-theme="dark"] .filter-group label,
+[data-theme="dark"] .filter-box label,
+[data-theme="dark"] .sort-box label {
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .filter-group select,
+[data-theme="dark"] .filter-box select,
+[data-theme="dark"] .sort-box select {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .filter-group select:focus,
+[data-theme="dark"] .filter-box select:focus,
+[data-theme="dark"] .sort-box select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.15);
+}
+
+/* Przycisk Reset */
+[data-theme="dark"] .btn-reset {
+    background: var(--bg-step);
+    color: var(--text-dark);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .btn-reset:hover {
+    background: var(--color-secondary-dark);
+}
+
+/* Info o wynikach */
+[data-theme="dark"] .results-info {
+    background: rgba(74, 158, 255, 0.1);
+    border-color: rgba(74, 158, 255, 0.3);
+    color: var(--color-primary);
+}
+
+/* Tabela użytkowników */
+[data-theme="dark"] .users-table th {
+    background-color: var(--color-primary);
+}
+
+[data-theme="dark"] .users-table td {
+    border-bottom-color: var(--border-color);
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .users-table tr:hover {
+    background-color: var(--bg-step);
+}
+
+/* Avatar użytkownika w tabeli */
+[data-theme="dark"] .user-avatar-icon {
+    background: var(--bg-step);
+    color: var(--text-light);
+}
+
+/* Badge ról */
+[data-theme="dark"] .badge-admin {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+[data-theme="dark"] .badge-student {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .badge-starosta {
+    background-color: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+}
+
+/* Przyciski akcji w tabeli */
+[data-theme="dark"] .action-btn.btn-edit {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .action-btn.btn-edit:hover {
+    background: rgba(59, 130, 246, 0.3);
+}
+
+[data-theme="dark"] .action-btn.btn-delete {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+[data-theme="dark"] .action-btn.btn-delete:hover {
+    background: rgba(239, 68, 68, 0.3);
+}
+
+/* Empty state i no results */
+[data-theme="dark"] .empty-state {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .empty-state h3 {
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .empty-state i {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .no-results-message {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .no-results-message i {
+    color: var(--text-muted);
+}
+
+/* Modal edycji użytkownika */
+[data-theme="dark"] .modal-content {
+    background: var(--bg-card);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .modal-header {
+    border-bottom-color: var(--border-color);
+    background: var(--bg-step);
+}
+
+[data-theme="dark"] .modal-header h3 {
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .close-btn {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .close-btn:hover {
+    color: var(--error-text);
+}
+
+[data-theme="dark"] .modal-body label {
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .modal-footer {
+    background: var(--bg-step);
+    border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .user-summary {
+    background: var(--bg-step);
+}
+
+[data-theme="dark"] .avatar-small {
+    background: var(--bg-card);
+    color: var(--text-light);
+}
+
+[data-theme="dark"] .hint-text {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .edit-user-email {
+    color: var(--text-light);
+}
+
+/* ZARZĄDZANIE HARMONOGRAMEM */
+
+[data-theme="dark"] .schedule-management-wrapper {
+    background: var(--bg-card);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .header-section {
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .header-section h2 {
+    color: var(--text-dark);
+}
+
+/* Tabela harmonogramu */
+[data-theme="dark"] #scheduleTable {
+    background: var(--bg-card);
+}
+
+[data-theme="dark"] #scheduleTable thead {
+    background: var(--color-primary);
+}
+
+[data-theme="dark"] #scheduleTable tbody tr {
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] #scheduleTable tbody tr:hover {
+    background: var(--bg-step);
+}
+
+[data-theme="dark"] #scheduleTable td {
+    color: var(--text-dark);
+}
+
+/* Badge dla dnia */
+[data-theme="dark"] .day-badge {
+    background: var(--bg-step);
+    color: var(--text-dark);
+}
+
+/* Loading spinner */
+[data-theme="dark"] .spinner {
+    border-color: var(--border-color);
+    border-top-color: var(--color-primary);
+}
+
+[data-theme="dark"] .loading p {
+    color: var(--text-secondary);
+}
+
+/* Formularz w modalu */
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .form-group select {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .form-group input:focus,
+[data-theme="dark"] .form-group select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.15);
+}
+
+[data-theme="dark"] .form-group label {
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .form-hint {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .form-actions {
+    border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .btn-cancel {
+    background: var(--bg-step);
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .btn-cancel:hover {
+    background: var(--color-secondary-dark);
+}
+
+/* ZARZĄDZANIE KIERUNKAMI */
+
+[data-theme="dark"] .groups-management-wrapper {
+    background: var(--bg-card);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Stats box */
+[data-theme="dark"] .stats-box {
+    background: var(--bg-step);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .stats-box .stat-label {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .stats-box .stat-value {
+    color: var(--color-primary);
+}
+
+/* Group cards */
+[data-theme="dark"] .group-card {
+    background: var(--bg-step);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .group-card:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .group-info h3,
+[data-theme="dark"] .group-info h4 {
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .group-id {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .group-info h4 mark {
+    background: rgba(255, 235, 59, 0.3);
+    color: var(--text-dark);
+}
+
+/* Empty state dla grup */
+[data-theme="dark"] .groups-management-wrapper .empty-state {
+    background: var(--bg-step);
+}
+
+[data-theme="dark"] .groups-management-wrapper .empty-state h3 {
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .groups-management-wrapper .empty-state p {
+    color: var(--text-secondary);
+}
+
+/* Formularz w modalu grup */
+[data-theme="dark"] .groups-management-wrapper .form-group small {
+    color: var(--text-muted);
+}
+
+/* PAGINACJA */
+[data-theme="dark"] .pagination-controls {
+    background: var(--bg-step);
+}
+
+[data-theme="dark"] .pagination-info {
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .pagination-info span {
+    color: var(--color-primary);
+}
+
+[data-theme="dark"] .pagination-btn {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .pagination-btn:hover:not(:disabled) {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+}
+
+[data-theme="dark"] .pagination-btn:disabled {
+    opacity: 0.4;
+}
+
+[data-theme="dark"] .pagination-size label {
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .pagination-size select {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .pagination-size select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.15);
+}
+
+/* PRZYCISK EKSPORTU CSV */
+[data-theme="dark"] .btn-export {
+    background: #28a745;
+    color: white;
+}
+
+[data-theme="dark"] .btn-export:hover {
+    background: #218838;
+    box-shadow: 0 2px 5px rgba(40, 167, 69, 0.4);
+}
+
+/* MODAL EKSPORTU CSV */
+[data-theme="dark"] .export-section h4 {
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .export-section h4 i {
+    color: var(--color-primary);
+}
+
+[data-theme="dark"] .radio-option,
+[data-theme="dark"] .checkbox-option {
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .radio-option:hover,
+[data-theme="dark"] .checkbox-option:hover {
+    background: var(--bg-step);
+    border-color: var(--color-primary);
+}
+
+[data-theme="dark"] .radio-option span,
+[data-theme="dark"] .checkbox-option span {
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .select-all-row span {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .btn-link {
+    color: var(--color-primary);
+}
+
+[data-theme="dark"] .btn-link:hover {
+    color: var(--color-primary-light);
+}
+
+/* STATUS I ROK STUDIÓW NA LIŚCIE UŻYTKOWNIKÓW */
+[data-theme="dark"] .status-dot {
+    border-color: var(--bg-card);
+}
