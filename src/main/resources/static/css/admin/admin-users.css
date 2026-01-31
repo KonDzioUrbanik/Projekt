@@ -130,7 +130,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
-    align-items: center;
+    align-items: flex-end;
     padding: 1rem;
     background: #f8f9fa;
     border-radius: 8px;
@@ -169,8 +169,10 @@
 
 .filter-group {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column;
+    gap: 0.3rem;
+    flex: 1;
+    min-width: 200px;
 }
 
 .filter-group label {
@@ -227,6 +229,8 @@
     color: #1e40af;
     font-weight: 600;
     border: 1px solid #bfdbfe;
+    width: fit-content;
+    /* Ograniczenie szerokości */
 }
 
 .results-info #resultsCount {

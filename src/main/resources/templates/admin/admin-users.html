@@ -32,7 +32,7 @@
                     <div class="filters-section">
                         <div class="search-box">
                             <i class="fas fa-search"></i>
-                            <input type="text" id="searchInput" placeholder="Wyszukaj użytkownika po imieniu, nazwisku lub adresie e-mail">
+                            <input type="text" id="searchInput" placeholder="Wyszukaj użytkownika po imieniu, nazwisku lub adresie e-mail" title="Wyszukaj użytkownika po imieniu, nazwisku lub adresie e-mail">
                         </div>
                         <div class="filter-group">
                             <label for="roleFilter"><i class="fas fa-user-tag"></i> Rola:</label>
@@ -256,11 +256,11 @@
                 <div class="modal-content export-modal">
                     <div class="modal-header">
                         <h3><i class="fas fa-file-csv"></i> Eksport do CSV</h3>
-                        <button class="close-btn" onclick="closeExportModal()">x</button>
+                        <button class="close-btn" onclick="closeExportModal()">&times;</button>
                     </div>
                     
                     <div class="modal-body">
-                        <div class="export-data-summary" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: 6px; border-left: 4px solid var(--color-primary);">
+                        <div class="export-data-summary" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-step); border-radius: 6px; border-left: 4px solid var(--color-primary);">
                             <h4 style="margin: 0; font-size: 0.95rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
                                 <i class="fas fa-info-circle"></i> Eksport danych
                             </h4>
