@@ -28,9 +28,6 @@
 
             <div class="users-table-wrapper">
                 <div class="table-controls">
-                    <button class="btn btn-primary">
-                        Dodaj użytkownika
-                    </button>
                     
                     <div class="filters-section">
                         <div class="search-box">
@@ -54,13 +51,58 @@
                             </select>
                         </div>
 
+                        <div class="filter-group">
+                            <label for="yearFilter"><i class="fas fa-graduation-cap"></i> Rok:</label>
+                            <select id="yearFilter">
+                                <option value="">Wszystkie</option>
+                                <option value="1">I</option>
+                                <option value="2">II</option>
+                                <option value="3">III</option>
+                                <option value="4">IV</option>
+                                <option value="5">V</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="statusFilter"><i class="fas fa-toggle-on"></i> Status:</label>
+                            <select id="statusFilter">
+                                <option value="">Wszystkie</option>
+                                <option value="true">Aktywne</option>
+                                <option value="false">Nieaktywne</option>
+                            </select>
+                        </div>
+
                         <button class="btn-reset" id="resetFilters">
                             <i class="fas fa-redo"></i> Reset
+                        </button>
+                        
+                        <button class="btn-export" id="exportCsvBtn" title="Eksportuj widocznych użytkowników do pliku CSV">
+                            <i class="fas fa-file-csv"></i> Eksportuj CSV
                         </button>
                     </div>
                     
                     <div class="results-info">
                         <span id="resultsCount">0</span> <span id="resultsText">użytkowników</span>
+                    </div>
+                </div>
+                
+                <!-- Kontrolki paginacji - góra -->
+                <div class="pagination-controls" id="paginationTop">
+                    <div class="pagination-info">
+                        Strona <span id="currentPageTop">1</span> z <span id="totalPagesTop">1</span>
+                    </div>
+                    <div class="pagination-buttons">
+                        <button class="pagination-btn" id="prevPageTop" disabled><i class="fas fa-chevron-left"></i> Poprzednia</button>
+                        <button class="pagination-btn" id="nextPageTop">Następna <i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div class="pagination-size">
+                        <label for="pageSizeTop">Na stronie:</label>
+                        <select id="pageSizeTop">
+                            <option value="25">25</option>
+                            <option value="50" selected>50</option>
+                            <option value="100">100</option>
+                            <option value="all">Wszystkie</option>
+                        </select>
                     </div>
                 </div>
                 
@@ -76,20 +118,25 @@
                             <th class="sortable" data-column="2" data-type="text">
                                 Email <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="sortable" data-column="3" data-type="number">
-                                NrAlbumu <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="sortable" data-column="4" data-type="text">
+                            <th class="sortable" data-column="3" data-type="text">
                                 Rola <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="sortable" data-column="5" data-type="text">
+                            <th class="sortable" data-column="4" data-type="text">
                                 Kierunek <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th class="sortable" data-column="5" data-type="number">
+                                Rok <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th class="sortable" data-column="6" data-type="number">
+                                NrAlbumu <i class="fas fa-sort sort-icon"></i>
                             </th>
                             <th>Akcje</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="user : ${users}">
+                        <tr th:each="user : ${users}" 
+                            th:data-year="${user.yearOfStudy}" 
+                            th:data-status="${user.isActivated}">
 
                             <td th:text="${user.id}">1</td>
 
@@ -97,6 +144,10 @@
                                 <div class="user-cell">
                                     <div class="user-avatar-icon">
                                         <i class="fas fa-user"></i>
+                                        <span class="status-dot" 
+                                              th:classappend="${user.isActivated} ? 'status-active' : 'status-inactive'"
+                                              th:title="${user.isActivated} ? 'Konto aktywne' : 'Konto nieaktywne'">
+                                        </span>
                                     </div>
                                     <span th:text="${user.firstName} + ' ' + ${user.lastName}"> </span>
                                 </div>
@@ -104,16 +155,19 @@
 
                             <td th:text="${user.email}"> </td>
 
-                            <td th:text="${user.nrAlbumu != null} ? ${user.nrAlbumu} : '-'"> </td>
-
                             <td>
                                 <span class="badge" th:classappend="${user.role == 'ADMIN'} ? 'badge-admin' : (${user.role == 'STAROSTA'} ? 'badge-starosta' : 'badge-student')" th:text="${user.role}"> </span>
                             </td>
 
                             <td>
-                            <span th:if="${user.groupName != null and user.groupName != 'Nie przypisano kierunku'}" th:text="${user.groupName}"></span>
-                            <i th:if="${user.groupName == null or user.groupName == 'Nie przypisano kierunku'}">Nie przypisano kierunku</i>
+                                <span th:if="${user.groupName != null}" th:text="${user.groupName}"></span>
+                                <i th:if="${user.groupName == null}">Nie przypisano kierunku</i>
+                            </td>
                             
+                            <td th:text="${user.yearOfStudy != null} ? ${user.yearOfStudy} : '-'"> </td>
+                            
+                            <td th:text="${user.nrAlbumu != null} ? ${user.nrAlbumu} : '-'"> </td>
+
                             <td>
                                 <button class="action-btn btn-edit" title="Edytuj"
                                         th:if="${user.role != 'ADMIN'}" 
@@ -194,6 +248,73 @@
                             <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- Modal eksportu CSV -->
+            <div id="exportModal" class="modal-overlay">
+                <div class="modal-content export-modal">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-file-csv"></i> Eksport do CSV</h3>
+                        <button class="close-btn" onclick="closeExportModal()">x</button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="export-data-summary" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: 6px; border-left: 4px solid var(--color-primary);">
+                            <h4 style="margin: 0; font-size: 0.95rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-info-circle"></i> Eksport danych
+                            </h4>
+                            <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: var(--text-secondary);">
+                                Zostanie wyeksportowanych <strong id="exportCount">0</strong> użytkowników (zgodnie z aktywnymi filtrami).
+                            </p>
+                        </div>
+                        
+                        <div class="export-section">
+                            <h4><i class="fas fa-columns"></i> Kolumny do eksportu</h4>
+                            <div class="export-columns">
+                                <label class="checkbox-option">
+                                    <input type="checkbox" id="exportId" checked>
+                                    <span>ID</span>
+                                </label>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" id="exportName" checked>
+                                    <span>Imię i Nazwisko</span>
+                                </label>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" id="exportEmail" checked>
+                                    <span>Email</span>
+                                </label>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" id="exportAlbum" checked>
+                                    <span>Nr Albumu</span>
+                                </label>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" id="exportRole" checked>
+                                    <span>Rola</span>
+                                </label>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" id="exportGroup" checked>
+                                    <span>Kierunek</span>
+                                </label>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" id="exportYear" checked>
+                                    <span>Rok</span>
+                                </label>
+                            </div>
+                            <div class="select-all-row">
+                                <button type="button" class="btn-link" onclick="toggleAllColumns(true)">Zaznacz wszystkie</button>
+                                <span>|</span>
+                                <button type="button" class="btn-link" onclick="toggleAllColumns(false)">Odznacz wszystkie</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-tertiary" onclick="closeExportModal()">Anuluj</button>
+                        <button type="button" class="btn btn-export" onclick="performExport()">
+                            <i class="fas fa-download"></i> Pobierz CSV
+                        </button>
+                    </div>
                 </div>
             </div>
         </div> 
