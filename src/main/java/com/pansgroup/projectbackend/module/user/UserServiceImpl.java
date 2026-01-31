@@ -181,9 +181,33 @@ public class UserServiceImpl implements UserService {
                 u.getNickName(),
                 u.getPhoneNumber(),
                 u.getFieldOfStudy(),
-                u.getYearOfStudy(),
+                // Priorytet dla roku studiów: Kierunek > Profil
+                extractYearFromGroupName(groupName) != null ? extractYearFromGroupName(groupName) : u.getYearOfStudy(),
                 u.getStudyMode(),
                 u.getBio());
+    }
+
+    private Integer extractYearFromGroupName(String groupName) {
+        if (groupName == null || groupName.isEmpty()) {
+            return null;
+        }
+
+        // Szukanie rzymskich cyfr oznaczających rok (I-V)
+        // \b zapewnia, że jest to całe słowo (np. żeby nie złapać 'I' w słowie
+        // 'Informatyka')
+        // Sprawdzamy najpierw IV, żeby nie złapało I czy V
+        if (groupName.matches(".*\\bIV\\b.*"))
+            return 4;
+        if (groupName.matches(".*\\bIII\\b.*"))
+            return 3;
+        if (groupName.matches(".*\\bII\\b.*"))
+            return 2;
+        if (groupName.matches(".*\\bI\\b.*"))
+            return 1;
+        if (groupName.matches(".*\\bV\\b.*"))
+            return 5;
+
+        return null;
     }
 
     @Override

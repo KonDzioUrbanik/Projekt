@@ -12,13 +12,23 @@
             <div class="schedule-management-wrapper">
                 <div class="header-section">
                     <h2>Zarządzanie harmonogramem zajęć</h2>
-                    <button class="btn-add" id="addScheduleBtn">
-                        Dodaj zajęcia
-                    </button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-export" id="openExportModalBtn">
+                            <i class="fas fa-file-csv"></i> Eksportuj CSV
+                        </button>
+                        <button class="btn-add" id="addScheduleBtn">
+                            <i class="fas fa-plus"></i> Dodaj zajęcia
+                        </button>
+                    </div>
                 </div>
 
                 <!-- filtry -->
                 <div class="filters-section">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Szukaj przedmiotu, sali, prowadzącego..." title="Szukaj przedmiotu, sali, prowadzącego">
+                    </div>
+
                     <div class="filter-group">
                         <label for="dayFilter"><i class="fas fa-calendar-day"></i> Dzień:</label>
                         <select id="dayFilter">
@@ -48,8 +58,33 @@
                         <i class="fas fa-redo"></i> Reset
                     </button>
                 </div>
+                
+                <div class="results-info">
+                    <span id="resultsCount">0</span> <span id="resultsText">zajęć</span>
+                </div>
 
                 <!-- tabela zajec -->
+                
+                <!-- Kontrolki paginacji -->
+                <div class="pagination-controls" id="paginationTop">
+                    <div class="pagination-info">
+                        Strona <span id="currentPageTop">1</span> z <span id="totalPagesTop">1</span>
+                    </div>
+                    <div class="pagination-buttons">
+                        <button class="pagination-btn" id="prevPageTop" disabled><i class="fas fa-chevron-left"></i> Poprzednia</button>
+                        <button class="pagination-btn" id="nextPageTop">Następna <i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div class="pagination-size">
+                        <label for="pageSizeTop">Na stronie:</label>
+                        <select id="pageSizeTop">
+                            <option value="25">25</option>
+                            <option value="50" selected>50</option>
+                            <option value="100">100</option>
+                            <option value="all">Wszystkie</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="table-container">
                     <table id="scheduleTable">
                         <thead>
@@ -86,77 +121,122 @@
                         <button class="close-btn" id="closeModal">&times;</button>
                     </div>
                     <form id="scheduleForm">
-                        <input type="hidden" id="scheduleId">
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="title"> Nazwa przedmiotu</label>
-                                <input type="text" id="title" required>
+                        <div class="modal-body">
+                            <input type="hidden" id="scheduleId">
+
+                            <div class="form-row">
+                                <div class="form-group full-width">
+                                    <label for="title"> Nazwa przedmiotu</label>
+                                    <input type="text" id="title" required placeholder="np. Analiza Matematyczna">
+                                </div>
                             </div>
 
-                            <div class="form-group">
-                                <label for="room"> Sala</label>
-                                <input type="text" id="room" required>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="room"> Sala</label>
+                                    <input type="text" id="room" required placeholder="np. 104A">
+                                </div>
+                                <div class="form-group">
+                                    <label for="teacher"> Prowadzący</label>
+                                    <input type="text" id="teacher" required placeholder="np. dr Jan Kowalski">
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="teacher"> Prowadzący</label>
-                                <input type="text" id="teacher" required>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="classType"> Typ zajęć</label>
+                                    <select id="classType" required>
+                                        <option value="WYKLAD">Wykład</option>
+                                        <option value="CWICZENIA">Ćwiczenia laboratoryjne</option>
+                                        <option value="LABORATORIUM">Laboratorium</option>
+                                        <option value="PROJEKT">Projekt zespołowy</option>
+                                        <option value="SEMINARIUM">Seminarium</option>
+                                        <option value="KONSULTACJE">Konsultacje</option>
+                                    </select>
+                                </div>
                             </div>
 
-                            <div class="form-group">
-                                <label for="classType"> Typ zajęć</label>
-                                <select id="classType" required>
-                                    <option value="">Wybierz typ</option>
-                                    <option value="WYKLAD">Wykład</option>
-                                    <option value="CWICZENIA">Ćwiczenia laboratoryjne</option>
-                                    <option value="LABORATORIUM">Laboratorium</option>
-                                    <option value="PROJEKT">Projekt zespołowy</option>
-                                    <option value="SEMINARIUM">Seminarium</option>
-                                    <option value="KONSULTACJE">Konsultacje</option>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="dayOfWeek"> Dzień tygodnia</label>
+                                    <select id="dayOfWeek" required>
+                                        <option value="">Wybierz dzień</option>
+                                        <option value="Monday">Poniedziałek</option>
+                                        <option value="Tuesday">Wtorek</option>
+                                        <option value="Wednesday">Środa</option>
+                                        <option value="Thursday">Czwartek</option>
+                                        <option value="Friday">Piątek</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="startTime"> Godzina rozpoczęcia</label>
+                                    <input type="time" id="startTime" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="endTime"> Godzina zakończenia</label>
+                                    <input type="time" id="endTime" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label for="studentGroups"> Kierunki studiów</label>
+                                <select id="studentGroups" multiple size="5">
+                                    <!-- wypełniane dynamicznie z API -->
                                 </select>
+                                <small class="form-hint">Przytrzymaj 'Ctrl' aby wybrać wiele kierunków</small>
                             </div>
                         </div>
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="dayOfWeek"> Dzień tygodnia</label>
-                                <select id="dayOfWeek" required>
-                                    <option value="">Wybierz dzień</option>
-                                    <option value="Monday">Poniedziałek</option>
-                                    <option value="Tuesday">Wtorek</option>
-                                    <option value="Wednesday">Środa</option>
-                                    <option value="Thursday">Czwartek</option>
-                                    <option value="Friday">Piątek</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="startTime"> Godzina rozpoczęcia</label>
-                                <input type="time" id="startTime" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="endTime"> Godzina zakończenia</label>
-                                <input type="time" id="endTime" required>
-                            </div>
-                        </div>
-
-                        <div class="form-group full-width">
-                            <label for="studentGroups"> Kierunki studiów</label>
-                            <select id="studentGroups" multiple size="5">
-                                <!-- wypełniane dynamicznie z API -->
-                            </select>
-                            <small class="form-hint">Przytrzymaj 'Ctrl' aby wybrać wiele kierunków</small>
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="button" class="btn-cancel" id="cancelBtn">Anuluj</button>
-                            <button type="submit" class="btn-save"><i class="fas fa-save"></i> Zapisz</button>
+                        <div class="modal-footer">
+                            <button type="button" class="btn-tertiary" id="cancelBtn">Anuluj</button>
+                            <button type="submit" class="btn-primary">Zapisz zmiany</button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- Modal eksportu CSV -->
+            <div id="exportModal" class="modal">
+                <div class="modal-content export-modal">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-file-csv"></i> Eksport do CSV</h3>
+                        <button class="close-btn" id="closeExportModalBtn">&times;</button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="export-data-summary">
+                            <h4><i class="fas fa-info-circle"></i> Eksport danych</h4>
+                            <p>Zostanie wyeksportowanych <strong id="exportCount">0</strong> zajęć (zgodnie z aktywnymi filtrami).</p>
+                        </div>
+                        
+                        <div class="export-section">
+                            <h4><i class="fas fa-columns"></i> Kolumny do eksportu</h4>
+                            <div class="export-columns">
+                                <label class="checkbox-option"><input type="checkbox" id="exId" checked> <span>ID</span></label>
+                                <label class="checkbox-option"><input type="checkbox" id="exTitle" checked> <span>Przedmiot</span></label>
+                                <label class="checkbox-option"><input type="checkbox" id="exDay" checked> <span>Dzień</span></label>
+                                <label class="checkbox-option"><input type="checkbox" id="exTime" checked> <span>Godziny</span></label>
+                                <label class="checkbox-option"><input type="checkbox" id="exRoom" checked> <span>Sala</span></label>
+                                <label class="checkbox-option"><input type="checkbox" id="exTeacher" checked> <span>Prowadzący</span></label>
+                                <label class="checkbox-option"><input type="checkbox" id="exType" checked> <span>Typ</span></label>
+                                <label class="checkbox-option"><input type="checkbox" id="exGroups" checked> <span>Kierunki</span></label>
+                            </div>
+                            <div class="select-all-row">
+                                <button type="button" class="btn-link" id="selectAllCols">Zaznacz wszystkie</button>
+                                <span>|</span>
+                                <button type="button" class="btn-link" id="deselectAllCols">Odznacz wszystkie</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn-tertiary" id="cancelExportBtn">Anuluj</button>
+                        <button type="button" class="btn-export-modal" id="performExportBtn">
+                            <i class="fas fa-download"></i> Pobierz CSV
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
