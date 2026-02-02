@@ -142,6 +142,38 @@
     background: #5a6268;
 }
 
+.btn-bulk-delete {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 0.6rem 1.2rem;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    align-self: flex-end;
+    height: fit-content;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-bulk-delete:hover {
+    background: #fecaca;
+    box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
+}
+
+[data-theme="dark"] .btn-bulk-delete {
+    background: rgba(220, 38, 38, 0.15);
+    color: #f87171;
+    border-color: rgba(220, 38, 38, 0.3);
+}
+
+[data-theme="dark"] .btn-bulk-delete:hover {
+    background: rgba(220, 38, 38, 0.25);
+    border-color: #f87171;
+}
+
 /* TABELA */
 .table-container {
     overflow-x: auto;
@@ -800,6 +832,16 @@
     background: transparent;
     color: var(--text-secondary);
     border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .day-badge {
+    background-color: #374151;
+    /* Ciemny szary zamiast jasnego */
+    color: #f3f4f6;
+    /* Bardzo jasny szary tekst */
+    border: 1px solid #4b5563;
+    /* Subtelna ramka dla kontrastu */
+    font-weight: 600;
 }
 
 [data-theme="dark"] .checkbox-option:hover {

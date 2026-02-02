@@ -6,7 +6,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
+        
         <title>Panel Studenta</title>
 
         <link rel="icon" th:href="@{/favicon.png}" type="image/png">
@@ -29,9 +29,9 @@
         <div class="dashboard-container">
             <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
-            <section class="navbar-middle">
+            <main class="navbar-middle">
                 <div layout:fragment="content"></div>
-            </section>
+            </main>
         </div>
 
         <!-- Floating Help Button -->

@@ -1,34 +1,90 @@
 class ScheduleCalendar{
     static CONFIG = {
         API_ENDPOINT: '/api/schedule',
+        CALENDAR_ENDPOINT: '/api/calendar',
         DAY_NAMES: {
-            'Monday': 'Poniedziałek',
-            'Tuesday': 'Wtorek',
-            'Wednesday': 'Środa',
-            'Thursday': 'Czwartek',
-            'Friday': 'Piątek',
-            'Saturday': 'Sobota',
-            'Sunday': 'Niedziela'
+            'Monday': 'Poniedziałek', 'Tuesday': 'Wtorek', 'Wednesday': 'Środa',
+            'Thursday': 'Czwartek', 'Friday': 'Piątek', 'Saturday': 'Sobota', 'Sunday': 'Niedziela'
         },
         CLASS_TYPES: {
-            'WYKLAD': 'Wykład',
-            'CWICZENIA': 'Ćwiczenia laboratoryjne',
-            'LABORATORIUM': 'Laboratorium',
-            'PROJEKT': 'Projekt zespołowy',
-            'SEMINARIUM': 'Seminarium',
-            'KONSULTACJE': 'Konsultacje'
+            'WYKLAD': 'Wykład', 'CWICZENIA': 'Ćwiczenia laboratoryjne', 'LABORATORIUM': 'Laboratorium',
+            'PROJEKT': 'Projekt zespołowy', 'SEMINARIUM': 'Seminarium', 'KONSULTACJE': 'Konsultacje'
         },
         WORK_DAYS: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     };
     
     constructor(){
         this.scheduleData = [];
+        this.calendarEvents = []; // Dane z kalendarza akademickiego
         this.apiEndpoint = ScheduleCalendar.CONFIG.API_ENDPOINT;
         
         this.dayNames = ScheduleCalendar.CONFIG.DAY_NAMES;
         this.classTypeNames = ScheduleCalendar.CONFIG.CLASS_TYPES;
         
-        this.loadSchedule();
+        // Stan kalendarza
+        this.currentDate = new Date();
+        this.currentWeekStart = this.getStartOfWeek(this.currentDate);
+        
+        this.initializeUI();
+        this.loadData();
+    }
+    
+    async loadData() {
+        await Promise.all([
+            this.loadCalendarEvents(),
+            this.loadSchedule()
+        ]);
+        this.renderSchedule();
+    }
+
+    // Pobranie wydarzeń z kalendarza akademickiego
+    async loadCalendarEvents() {
+        try {
+            const response = await fetch(ScheduleCalendar.CONFIG.CALENDAR_ENDPOINT);
+            if(response.ok) {
+                this.calendarEvents = await response.json();
+            } else {
+                console.error("Failed to load calendar events");
+            }
+        } catch (e) {
+            console.error("Error loading calendar events:", e);
+        }
+    }
+    
+    // Pomocnicza metoda do formatowania daty lokalnie do YYYY-MM-DD
+    formatDateLocal(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    // Sprawdza czy dany dzień jest dniem wolnym (BREAK, HOLIDAY, EXAM)
+    getSpecialDayInfo(date) {
+        if (!this.calendarEvents || this.calendarEvents.length === 0) return null;
+
+        const checkDateStr = this.formatDateLocal(date);
+        const checkTime = date.getTime();
+        
+        // Typy wydarzeń które blokują zajęcia
+        const blockingTypes = ['BREAK', 'HOLIDAY', 'EXAM'];
+
+        // Szukamy wydarzenia blokującego
+        const special = this.calendarEvents.find(event => {
+            if (!blockingTypes.includes(event.type)) return false;
+
+            // Porównujemy stringi dat YYYY-MM-DD (bezpieczniejsze dla stref czasowych)
+            return checkDateStr >= event.dateFrom && checkDateStr <= event.dateTo;
+        });
+        
+        if (special) {
+            return {
+                name: special.title,
+                type: special.type
+            };
+        }
+        
+        return null;
     }
     
     // zaladowanie harmonogramu zajec z API
@@ -48,6 +104,8 @@ class ScheduleCalendar{
             
             this.scheduleData = await response.json();
             this.renderSchedule();
+            this.updateRealTimeFeatures();
+            this.updateControls(); // Aktualizacja etykiet daty
         } 
         catch(error){
             console.error('Błąd ładowania harmonogramu:', error);
@@ -65,40 +123,134 @@ class ScheduleCalendar{
         }
     }
     
+    // Obliczanie początku tygodnia (Poniedziałek)
+    getStartOfWeek(date) {
+        const d = new Date(date);
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+        d.setDate(diff);
+        d.setHours(0, 0, 0, 0);
+        return d;
+    }
+
+    // Zmiana tygodnia
+    changeWeek(offset) {
+        this.currentDate.setDate(this.currentDate.getDate() + (offset * 7));
+        this.currentWeekStart = this.getStartOfWeek(this.currentDate);
+        this.renderSchedule();
+        this.updateControls();
+        this.updateRealTimeFeatures();
+    }
+
+    // Ustawienie na dzisiaj
+    resetToToday() {
+        this.currentDate = new Date();
+        this.currentWeekStart = this.getStartOfWeek(this.currentDate);
+        this.renderSchedule();
+        this.updateControls();
+        this.updateRealTimeFeatures();
+    }
+
+    // Aktualizacja kontrolek (daty, typ tygodnia)
+    updateControls() {
+        const start = new Date(this.currentWeekStart);
+        const end = new Date(this.currentWeekStart);
+        end.setDate(end.getDate() + 6);
+        
+        const options = { day: 'numeric', month: '2-digit' };
+        const rangeText = `${start.toLocaleDateString('pl-PL', options)} - ${end.toLocaleDateString('pl-PL', options)}`;
+        document.getElementById('dateRangeLabel').textContent = rangeText;
+
+        const weekType = this.getWeekType(start);
+        const weekName = weekType === 'WEEK_A' ? 'Tydzień A (Nieparzysty)' : 'Tydzień B (Parzysty)';
+        document.getElementById('weekTypeLabel').textContent = weekName;
+    }
+
+    // Obliczanie numeru tygodnia (ISO 8601)
+    getWeekNumber(d) {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+        var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        return weekNo;
+    }
+
+    // Typ tygodnia: A (nieparzysty), B (parzysty) - z uwzględnieniem semestrów
+    getWeekType(date) {
+        const weekNumber = this.getWeekNumber(date);
+        
+        // Granica semestrów: 23 luty 2026 zaczyna się semestr letni
+        // Data bez czasu dla bezpiecznego porównania
+        const checkDate = new Date(date);
+        checkDate.setHours(0,0,0,0);
+        const semesterSwitch = new Date(2026, 1, 23); // luty to index 1
+
+        if (checkDate < semesterSwitch) {
+            // SEMESTR ZIMOWY
+            // Wg kalendarza: Tygodnie parzyste ISO (np. 40, 42) to WEEK_A
+            return weekNumber % 2 === 0 ? 'WEEK_A' : 'WEEK_B';
+        } else {
+            // SEMESTR LETNI
+            // Wg kalendarza: Tyodnie nieparzyste ISO (np. 9) to WEEK_A
+            return weekNumber % 2 !== 0 ? 'WEEK_A' : 'WEEK_B';
+        }
+    }
+    
     // renderowanie harmonogramu zajec
     renderSchedule(){
         const grid = document.getElementById('scheduleGrid');
         grid.innerHTML = '';
         
+        // Filtrowanie po typie tygodnia
+        const currentWeekType = this.getWeekType(this.currentWeekStart);
+        
         // sprwadzenie czy sa dane
         if(!this.scheduleData || this.scheduleData.length === 0){
-            grid.innerHTML = `
+             grid.innerHTML = `
                 <div class="empty-schedule">
                     <h3>Brak harmonogramu zajęć</h3>
                     <p>Nie znaleziono żadnych zajęć w systemie.</p>
-                    <p style="font-size: 0.9rem; color: #6c757d; margin-top: 1rem;">
-                        Możliwe przyczyny:<br>
-                        • Nie jesteś przypisany do żadnego kierunku.<br>
-                        • Administrator jeszcze nie dodał zajęć dla Twojego kierunku.<br>
-                        <br>Skontaktuj się z administratorem systemu.
-                    </p>
+                     <p style="font-size: 0.9rem; color: #6c757d; margin-top: 1rem;">Skontaktuj się z administratorem.</p>
                 </div>
             `;
             grid.style.display = 'flex';
+            this.updateNextClassWidget(); 
             return;
         }
+
+        // Filtrujemy zajęcia dla aktualnego tygodnia (ALL lub pasujący typ)
+        const weekFilteredData = this.scheduleData.filter(item => {
+             return item.weekType === 'ALL' || !item.weekType || item.weekType === currentWeekType;
+        });
         
         // naglowek godzin
         grid.innerHTML += '<div class="time-header">Godziny</div>';
         
-        // naglowki dni
+        // naglowki dni (z datami)
         const workDays = ScheduleCalendar.CONFIG.WORK_DAYS;
-        workDays.forEach(dayKey => {
-            grid.innerHTML += `<div class="day-header">${this.dayNames[dayKey]}</div>`;
+        const specialDaysMap = {}; // Cache dla dni wolnych w tym tygodniu
+
+        workDays.forEach((dayKey, index) => {
+            const dayDate = new Date(this.currentWeekStart);
+            dayDate.setDate(dayDate.getDate() + index);
+            const dateStr = dayDate.toLocaleDateString('pl-PL', { day: 'numeric', month: 'numeric'});
+            
+            const specialInfo = this.getSpecialDayInfo(dayDate);
+            if(specialInfo) {
+                specialDaysMap[dayKey] = specialInfo;
+            }
+
+            const isSpecialClass = specialInfo ? 'special-day-header' : '';
+            const specialLabel = specialInfo ? `<span class="special-label">${specialInfo.name}</span>` : '';
+            
+            grid.innerHTML += `<div class="day-header ${isSpecialClass}" data-date="${this.formatDateLocal(dayDate)}">
+                ${this.dayNames[dayKey]} <span class="header-date">${dateStr}</span>
+                ${specialLabel}
+            </div>`;
         });
         
-        // grupowanie zajec wedlug dni
-        const grouped = this.groupByDay();
+        // grupowanie zajec wedlug dni (używamy przefiltrowanych danych)
+        const grouped = this.groupByDay(weekFilteredData);
         
         // pobranie posortowanych przedzialow czasowych
         const timeSlots = this.getTimeSlotsObjects();
@@ -124,6 +276,19 @@ class ScheduleCalendar{
             // dla kazdego dnia
             workDays.forEach((dayKey, dayIndex) => {
                 const columnIndex = dayIndex + 2; // +2 bo pierwsza kolumna to godziny
+                
+                // JEŚLI DZIEŃ JEST WOLNY -> Nie renderuj zajęć, ewentualnie wyszarz komórki
+                if (specialDaysMap[dayKey]) {
+                     const cell = document.createElement('div');
+                     cell.className = 'class-cell special-day-cell';
+                     // cell.textContent = "Wolne"; // Opcjonalnie
+                     cell.title = specialDaysMap[dayKey].name;
+                     cell.style.gridRow = rowIndex;
+                     cell.style.gridColumn = columnIndex;
+                     grid.appendChild(cell);
+                     return; // SKIP rendering classes
+                }
+
                 const classes = this.getClassesForTimeSlot(dayKey, slotObj, grouped);
                 
                 // sprawdź czy w tym slotcie rozpoczynają się jakieś zajęcia
@@ -152,6 +317,11 @@ class ScheduleCalendar{
                         classItem.className = `class-item ${typeClass}`;
                         classItem.style.gridRow = `${rowIndex} / span ${rowSpan}`;
                         classItem.style.gridColumn = columnIndex;
+                        
+                        // Store data for modal
+                        classItem.setAttribute('data-class-json', JSON.stringify(c));
+                        classItem.onclick = () => this.openClassDetails(c);
+                        
                         classItem.innerHTML = `
                             <div class="class-title">${c.title}</div>
                             <div class="class-time">${this.formatTime(c.startTime)} - ${this.formatTime(c.endTime)}</div>
@@ -183,9 +353,9 @@ class ScheduleCalendar{
     }
     
     // grupowanie zajec wedlug dni
-    groupByDay(){
+    groupByDay(data = this.scheduleData){
         const grouped = {};
-        this.scheduleData.forEach(item => {
+        data.forEach(item => {
             if (!grouped[item.dayOfWeek]) grouped[item.dayOfWeek] = [];
             grouped[item.dayOfWeek].push(item);
         });
@@ -271,10 +441,238 @@ class ScheduleCalendar{
         
         return '';
     }
+
+    initializeUI() {
+        // Obsługa zamykania modala
+        const modal = document.getElementById('classDetailsModal');
+        const closeBtn = document.querySelector('.close-modal');
+        
+        if(closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                modal.classList.remove('active');
+            });
+        }
+
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+        
+        // Nawigacja
+        document.getElementById('prevWeekBtn').addEventListener('click', () => this.changeWeek(-1));
+        document.getElementById('nextWeekBtn').addEventListener('click', () => this.changeWeek(1));
+        document.getElementById('todayBtn').addEventListener('click', () => this.resetToToday());
+
+        // Uruchomienie timera do aktualizacji "Next Class" i linii czasu
+        this.updateRealTimeFeatures();
+        setInterval(() => this.updateRealTimeFeatures(), 60000); // Co minutę
+    }
+
+    updateRealTimeFeatures() {
+        this.highlightCurrentDay();
+        this.updateTimeLine();
+        this.updateNextClassWidget();
+    }
+
+    highlightCurrentDay() {
+        const todayStr = this.formatDateLocal(new Date());
+
+        // Reset highlight
+        document.querySelectorAll('.day-header').forEach(el => el.classList.remove('current-day'));
+        document.querySelectorAll('.class-cell').forEach(el => el.classList.remove('current-day-col'));
+
+        // Znajdź nagłówek z dzisiejszą datą
+        const todayHeader = document.querySelector(`.day-header[data-date="${todayStr}"]`);
+        
+        if (todayHeader) {
+            todayHeader.classList.add('current-day');
+            
+            // Opcjonalnie: podświetlenie całej kolumny
+            // Musimy sprawdzić który to numer kolumny
+            const headers = Array.from(document.querySelectorAll('.day-header'));
+            const colIndex = headers.indexOf(todayHeader);
+            
+            if (colIndex !== -1) {
+                const columnIndex = colIndex + 2; // +2 bo pierwsza kolumna to godziny
+                document.querySelectorAll(`.class-cell[style*="grid-column: ${columnIndex}"]`).forEach(cell => {
+                    cell.classList.add('current-day-col');
+                });
+            }
+        }
+    }
+
+    updateTimeLine() {
+        // Usunięcie starej linii
+        const oldLine = document.getElementById('currentTimeLine');
+        if(oldLine) oldLine.remove();
+
+        // Jeśli nie ma podświetlonego dnia (tzn. nie jesteśmy w aktualnym tygodniu), nie pokazujemy linii czasu
+        if (!document.querySelector('.day-header.current-day')) return;
+
+        const now = new Date();
+        const currentHour = now.getHours() + now.getMinutes() / 60;
+        
+        // Zakres 8:00 - 20:00 (zgodnie z renderowaniem)
+        // W renderSchedule: startHour = 7, endHour = 21
+        const startHour = 7;
+        const endHour = 21;
+
+        if (currentHour < startHour || currentHour > endHour) return;
+
+        // Znajdź odpowiedni slot
+        const slots = this.getTimeSlotsObjects();
+        let closestSlotIndex = -1;
+        let minuteOffset = 0;
+        
+        for(let i=0; i<slots.length; i++) {
+            if (currentHour >= slots[i].startTime && currentHour < (slots[i].startTime + 0.25)) {
+                closestSlotIndex = i;
+                // Oblicz ile minut upłyneło w tym slocie (0-15)
+                // Np. 10:17 -> startTime 10:15 (10.25) -> diff = 0.0333h = 2 minuty
+                const diffHours = currentHour - slots[i].startTime;
+                // diffHours to ułamek godziny. Slot ma 0.25h.
+                // Procent slotu = diffHours / 0.25
+                // Ponieważ height jest auto, nie możemy użyć prostego %, ale spróbujmy:
+                // Załóżmy że chcemy przesunąć linię w dół.
+                // Możemy użyć translateY w %? Nie, bo element ma wysokość 0 (border).
+                // Ale, jeśli wrzucimy go do slotu... to pozycja relative do slotu.
+                // Slot (timeSlotDiv) jest height: auto.
+                // Spróbujmy znaleźć timeSlotDiv odpowiadający temu wierszowi.
+                minuteOffset = (diffHours / 0.25) * 100; // % wysokości slotu
+                break;
+            }
+        }
+
+        if (closestSlotIndex !== -1) {
+            const rowIndex = closestSlotIndex + 2; // +1 header
+            const grid = document.getElementById('scheduleGrid');
+            
+            // Znajdź time-slot element dla tego wiersza, aby ewentualnie pobrać jego wysokość?
+            // Trudne w CSS Grid jeśli wiersze są auto.
+            // Ale możemy założyć uproszczenie: Linia jest na początku slotu + offset w pikselach? 
+            // Nie znamy wysokości.
+            // Najbezpieczniej: Offset w procentach załatwi sprawę, jeśli linia będzie wewnątrz relatywnego kontenera w tym row.
+            // Ale my wrzucamy linię bezpośrednio do grida.
+            
+            // Nowe podejście: Margines górny.
+            // Zakładając że średni slot ma np. 40px, możemy dodać px.
+            // Albo lepiej: Dodajmy `transform: translateY` zależny od % ale czego?
+            // Grid cell wysokość zależy od zawartości.
+            // Ale time-slot (pierwsza kolumna) ma min-height.
+            // Spróbujmy po prostu:
+            
+            const line = document.createElement('div');
+            line.id = 'currentTimeLine';
+            line.className = 'current-time-line';
+            line.style.gridRow = rowIndex;
+            line.style.gridColumn = "1 / -1"; 
+            
+            // Przesunięcie w dół w zależności od minut (0-15)
+            // Zakładamy ze slot ma ok 25-30px minimum.
+            // 15 minut to cały slot.
+            // Spróbujmy 'calc' w oparciu o szacowaną wysokość lub po prostu hardcoded px/minutę jeśli design jest spójny.
+            // W CSS time-slot ma min-height: 20px oraz padding 0.25rem (4px).
+            // Więc slot to min. ~28px.
+            // Przyjmijmy że 1 minuta to ok 2px przesunięcia.
+            
+            const offsetPx = Math.round((minuteOffset / 100) * 28); 
+            line.style.transform = `translateY(${offsetPx}px)`;
+            
+            grid.appendChild(line);
+        }
+    }
+
+    updateNextClassWidget() {
+        const widget = document.getElementById('nextClassWidget');
+        if (!widget || this.scheduleData.length === 0) return;
+
+        const now = new Date();
+        const currentDayIndex = now.getDay();
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const currentDayName = days[currentDayIndex];
+        const currentTimeNum = now.getHours() + now.getMinutes() / 60;
+
+        // Szukamy następnych zajęć
+        // 1. Dzisiaj, później niż teraz
+        // 2. Jutro (lub pierwszy następny dzień roboczy)
+
+        let nextClass = null;
+        let minDiff = Infinity;
+        let isToday = false;
+
+        // Sprawdź dzisiejsze zajęcia
+        const todaysClasses = this.scheduleData.filter(c => c.dayOfWeek === currentDayName);
+        todaysClasses.forEach(c => {
+            const startNum = this.timeToNumber(c.startTime);
+            if (startNum > currentTimeNum) {
+                const diff = startNum - currentTimeNum;
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    nextClass = c;
+                    isToday = true;
+                }
+            }
+        });
+
+        // Jeśli nie ma dzisiaj, szukaj w kolejnych dniach
+        if (!nextClass) {
+            // Uproszczenie: szukaj w całym zbiorze, wybierz ten z najmniejszym "dystansem" dni
+            // To wymagałoby mapowania dni na liczby i modulo 7
+        }
+
+        if (nextClass && isToday) {
+            const timeToStart = Math.round((this.timeToNumber(nextClass.startTime) - currentTimeNum) * 60);
+            
+            if (timeToStart <= 120) { // Pokazuj tylko jeśli mniej niż 2h
+                widget.style.display = 'flex';
+                document.getElementById('timeToNext').textContent = timeToStart;
+                document.getElementById('nextClassTitle').textContent = nextClass.title;
+                
+                const room = nextClass.room ? `Sala ${nextClass.room}` : '';
+                const type = nextClass.classType ? (ScheduleCalendar.CONFIG.CLASS_TYPES[nextClass.classType] || nextClass.classType) : '';
+                document.getElementById('nextClassDetails').textContent = `${type} • ${room}`;
+            } else {
+                 widget.style.display = 'none';
+            }
+        } else {
+            widget.style.display = 'none';
+        }
+    }
+
+    openClassDetails(classData) {
+        const modal = document.getElementById('classDetailsModal');
+        
+        document.getElementById('modalClassTitle').textContent = classData.title;
+        document.getElementById('modalClassTime').textContent = `${this.formatTime(classData.startTime)} - ${this.formatTime(classData.endTime)}`;
+        document.getElementById('modalClassTeacher').textContent = classData.teacher || 'Brak danych';
+        document.getElementById('modalClassRoom').textContent = classData.room || 'Brak danych';
+        
+        // Wyświetlanie grup zamiast rocznika
+        let groupText = '-';
+        if (classData.studentGroups && classData.studentGroups.length > 0) {
+            groupText = classData.studentGroups.map(g => g.name).join(', ');
+        } else if (classData.yearPlan) {
+            groupText = classData.yearPlan;
+        }
+        document.getElementById('modalClassGroup').textContent = groupText;
+
+        const typeName = ScheduleCalendar.CONFIG.CLASS_TYPES[classData.classType] || classData.classType || 'Zajęcia';
+        document.getElementById('modalClassType').textContent = typeName;
+        
+        // Kolory
+        const colorClass = `class-type-${(classData.classType || '').toLowerCase()}`;
+        // Reset old classes
+        const strip = document.getElementById('modalColorStrip');
+        strip.className = 'modal-header-strip ' + colorClass;
+
+        modal.classList.add('active');
+    }
 }
 
 // inicjalizacja
-document.addEventListener('DOMContentLoaded', () => {
-});
-
 window.ScheduleCalendar = ScheduleCalendar;
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Klasa jest inicjalizowana w HTML
+});

@@ -67,86 +67,90 @@ function setupManagementButtons() {
         });
     }
 
-    // Funkcja otwierająca modal (Globalna, używana przez kliknięcia w kalendarz/listę)
-    window.openModal = function(eventData = null) {
-        modal.style.display = 'flex';
-        
-        if (eventData) {
-            // EDIT MODE
-            modalTitle.textContent = 'Edytuj wydarzenie';
+    // Funkcja otwierająca modal
+    if (modal) {
+        window.openModal = function(eventData = null) {
+            modal.style.display = 'flex';
             
-            // Store ID in DOM dataset (Source of Truth)
-            eventForm.dataset.eventId = eventData.id;
-            
-            document.getElementById('eventTitle').value = eventData.title;
-            document.getElementById('eventDateFrom').value = eventData.dateFrom;
-            document.getElementById('eventDateTo').value = eventData.dateTo;
-            document.getElementById('event-type').value = eventData.type;
-            
-            if (eventData.type === 'OTHER') {
-                document.getElementById('color-picker-container').style.display = 'block';
-                document.getElementById('event-color-picker').value = eventData.markerColor || '#3b82f6';
-            } else {
+            if (eventData) {
+                modalTitle.textContent = 'Edytuj wydarzenie';
+                
+                eventForm.dataset.eventId = eventData.id;
+                
+                document.getElementById('eventTitle').value = eventData.title;
+                document.getElementById('eventDateFrom').value = eventData.dateFrom;
+                document.getElementById('eventDateTo').value = eventData.dateTo;
+                document.getElementById('event-type').value = eventData.type;
+                
+                if (eventData.type === 'OTHER') {
+                    document.getElementById('color-picker-container').style.display = 'block';
+                    document.getElementById('event-color-picker').value = eventData.markerColor || '#3b82f6';
+                } else {
+                    document.getElementById('color-picker-container').style.display = 'none';
+                }
+
+                if (deleteBtn) deleteBtn.style.display = 'block';
+            } 
+            else {
+                modalTitle.textContent = 'Dodaj wydarzenie';
+                eventForm.reset();
+                
+                delete eventForm.dataset.eventId;
+                
                 document.getElementById('color-picker-container').style.display = 'none';
+                if (deleteBtn) deleteBtn.style.display = 'none'; // Hide delete btn
             }
-
-            if (deleteBtn) deleteBtn.style.display = 'block'; // Show delete btn
-        } else {
-            // CREATE MODE
-            modalTitle.textContent = 'Dodaj wydarzenie';
-            eventForm.reset();
-            
-            // Clear ID from DOM
-            delete eventForm.dataset.eventId;
-            
-            document.getElementById('color-picker-container').style.display = 'none';
-            if (deleteBtn) deleteBtn.style.display = 'none'; // Hide delete btn
-        }
-    };
-
-    // 2. Obsługa Formularza (Create POST / Update PUT)
-    eventForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Read ID from DOM
-        const id = eventForm.dataset.eventId;
-        console.log("Submitting form. ID found in dataset:", id); 
-
-        const typeSelectval = document.getElementById('event-type').value;
-        let markerColor = null;
-        if (typeSelectval === 'OTHER') {
-            markerColor = document.getElementById('event-color-picker').value;
-        }
-
-        const formData = {
-            title: document.getElementById('eventTitle').value,
-            dateFrom: document.getElementById('eventDateFrom').value,
-            dateTo: document.getElementById('eventDateTo').value,
-            type: typeSelectval,
-            markerColor: markerColor
         };
 
-        const url = id ? `/api/calendar/${id}` : '/api/calendar';
-        const method = id ? 'PUT' : 'POST';
+        // Obsługa formularza
+        if (eventForm) {
+            eventForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Read ID from DOM
+                const id = eventForm.dataset.eventId;
+                console.log("Submitting form. ID found in dataset:", id); 
 
-        fetch(url, {
-            method: method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        })
-        .then(response => {
-            if (response.ok) return response.json();
-            throw new Error('Network response was not ok');
-        })
-        .then(() => {
-            closeModal();
-            loadEvents(); // Reload all
-        })
-        .catch(error => console.error('Error:', error));
-    });
+                const typeSelectval = document.getElementById('event-type').value;
+                let markerColor = null;
+                if (typeSelectval === 'OTHER') {
+                    markerColor = document.getElementById('event-color-picker').value;
+                }
 
-    // 3. Obsługa Usuwania
-    if (deleteBtn) {
+                const formData = {
+                    title: document.getElementById('eventTitle').value,
+                    dateFrom: document.getElementById('eventDateFrom').value,
+                    dateTo: document.getElementById('eventDateTo').value,
+                    type: typeSelectval,
+                    markerColor: markerColor
+                };
+
+                const url = id ? `/api/calendar/${id}` : '/api/calendar';
+                const method = id ? 'PUT' : 'POST';
+
+                fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => {
+                    if (response.ok) return response.json();
+                    throw new Error('Network response was not ok');
+                })
+                .then(() => {
+                    closeModal();
+                    loadEvents(); // Reload all
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        }
+    } 
+    else {
+        window.openModal = function() { console.warn("Modal not available"); };
+    }
+
+    // Obsługa Usuwania
+    if (deleteBtn && eventForm) {
         deleteBtn.addEventListener('click', () => {
             const id = eventForm.dataset.eventId;
             
@@ -174,7 +178,12 @@ function loadEvents() {
         .then(response => response.json())
         .then(events => {
             renderReviewLists(events);
-            applyCalendarMarkers(events);
+            try {
+                applyCalendarMarkers(events);
+            } catch (e) {
+                console.error("Error applying markers:", e);
+            }
+            highlightCurrentDay();
         })
         .catch(console.error);
 }
@@ -182,7 +191,7 @@ function loadEvents() {
 // Helper do kolorów
 function getEventColorClass(type, title) {
     if (type === 'HOLIDAY') return 'red'; // Czerwony
-    if (type === 'EXAM') return 'blue';    // Niebieski
+    if (type === 'EXAM') return 'blue'; // Niebieski
     if (type === 'SCHEDULE_CHANGE') return 'green'; // Zielony
     
     if (type === 'BREAK') {
@@ -237,7 +246,7 @@ function renderReviewLists(events) {
             `;
             
             // Add click listener for Edit
-            if (document.body.contains(document.getElementById('addEventModal'))) { // check if admin
+            if (document.getElementById('addEventModal')) { // check if admin
                  li.style.cursor = 'pointer';
                  li.addEventListener('click', () => {
                      openModal(event);
@@ -278,6 +287,7 @@ function applyCalendarMarkers(events) {
 
     // 2. Iteracja po HTML i malowanie
     const monthCards = document.querySelectorAll('.month-card');
+    const isAdmin = !!document.getElementById('addEventModal'); // Check ONCE
     
     const monthsPL = {
         'Styczeń': 0, 'Luty': 1, 'Marzec': 2, 'Kwiecień': 3, 'Maj': 4, 'Czerwiec': 5,
@@ -314,21 +324,66 @@ function applyCalendarMarkers(events) {
                 const data = dateDataMap.get(dateKey);
                 
                 let style = '';
+                const cursorStyle = isAdmin ? 'cursor: pointer;' : '';
+
                 if (data.hexColor) {
-                    style = `style="background-color: ${data.hexColor}; color: white; cursor: pointer;"`;
+                    style = `style="background-color: ${data.hexColor}; color: white; ${cursorStyle}"`;
                 } else {
-                    style = 'style="cursor: pointer;"';
+                    style = `style="${cursorStyle}"`;
                 }
 
                 cell.innerHTML = `<span class="day-marker ${data.color}" ${style} title="${data.title}">${day}</span>`;
                 
                 // Add click listener
-                cell.querySelector('.day-marker').addEventListener('click', () => {
-                    openModal(data.originalEvent);
-                });
+                if (isAdmin) {
+                    const marker = cell.querySelector('.day-marker');
+                    if (marker) {
+                        marker.addEventListener('click', () => {
+                            openModal(data.originalEvent);
+                        });
+                    }
+                }
             }
         });
     });
+}
+
+function highlightCurrentDay() {
+    const wrapper = document.querySelector('.calendar-wrapper');
+    const serverDateStr = wrapper ? wrapper.dataset.serverDate : null;
+
+    if (serverDateStr) {
+        // serverDateStr format: 'YYYY-MM-DD'
+        const parts = serverDateStr.split('-');
+        const currentYear = parseInt(parts[0]);
+        const currentMonth = parseInt(parts[1]) - 1; // 0-indexed for MonthsPL array
+        const currentDay = parseInt(parts[2]);
+
+        const monthCards = document.querySelectorAll('.month-card');
+        const monthsPL = {
+            'Styczeń': 0, 'Luty': 1, 'Marzec': 2, 'Kwiecień': 3, 'Maj': 4, 'Czerwiec': 5,
+            'Lipiec': 6, 'Sierpień': 7, 'Wrzesień': 8, 'Październik': 9, 'Listopad': 10, 'Grudzień': 11
+        };
+
+        monthCards.forEach(card => {
+            const headerText = card.querySelector('.month-header').innerText.trim(); 
+            const headerParts = headerText.split(' ');
+            const monthName = headerParts[0];
+            let year = parseInt(headerParts[1]);
+            if (isNaN(year) && headerParts.length > 2) year = parseInt(headerParts[2]);
+
+            if (monthsPL[monthName] === currentMonth && year === currentYear) {
+                // Determine which cell is "currentDay"
+                const cells = card.querySelectorAll('td');
+                cells.forEach(cell => {
+                    const dayText = cell.innerText.trim();
+                    if (dayText && parseInt(dayText) === currentDay) {
+                        cell.classList.add('today-highlight');
+                    }
+                });
+            }
+        });
+    }
 }
 // Helper to attach event to map needed in previous step
 

@@ -61,6 +61,26 @@ class DashboardHome {
         if (adminDashboard) {
             this.initAdminPanel();
         }
+
+        // Uruchomienie zegara
+        this.updateClock();
+        setInterval(() => this.updateClock(), 1000);
+    }
+    
+    // Aktualizacja zegara
+    updateClock() {
+        const timeElement = document.getElementById('currentTime');
+        if (!timeElement) return;
+
+        const now = new Date();
+        timeElement.textContent = now.toLocaleTimeString('pl-PL');
+        
+        const weekBadge = document.getElementById('currentWeekType');
+        if(weekBadge) {
+            const weekType = this.getWeekType(now);
+            const weekName = weekType === 'WEEK_A' ? 'Tydzień A' : 'Tydzień B';
+            weekBadge.textContent = weekName;
+        }
     }
     
     // Ustawienie powitania w zależności od pory dnia
@@ -481,12 +501,29 @@ class DashboardHome {
             }
             
             // Liczba zajęć dzisiaj
-            if (scheduleResponse && scheduleResponse.ok) {
-                const allSchedule = await scheduleResponse.json();
-                const today = this.getDayOfWeek(new Date());
-                const todayClasses = allSchedule.filter(c => c.dayOfWeek === today);
-                totalClassesToday = todayClasses.length;
-            }
+            // Filtrowanie po tygodniu (A/B)
+        const currentWeekType = this.getWeekType(new Date());
+        
+        if (this.scheduleData && this.scheduleData.length > 0) {
+             const allSchedule = this.scheduleData;
+             
+             // Filtrujemy najpierw po tygodniu
+             const weekFilteredSchedule = allSchedule.filter(item => {
+                 return item.weekType === 'ALL' || item.weekType === currentWeekType;
+             });
+
+            // Dzisiejsze zajęcia
+            const today = this.getDayOfWeek(new Date());
+            const todayClasses = weekFilteredSchedule.filter(c => c.dayOfWeek === today);
+            this.renderTodayClasses(todayClasses);
+
+            // Jutrzejsze zajęcia
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tomorrowDay = this.getDayOfWeek(tomorrow);
+            const tomorrowClasses = weekFilteredSchedule.filter(c => c.dayOfWeek === tomorrowDay);
+            this.renderTomorrowClasses(tomorrowClasses);
+        }
             
             // Aktualizacja wartości statystyk
             this.updateStatValue('totalUsers', totalUsers);
@@ -607,34 +644,37 @@ class DashboardHome {
             classList.innerHTML = todayClasses.map(classItem => {
                 const classTypeName = DashboardHome.CONFIG.CLASS_TYPES[classItem.classType] || classItem.classType;
                 const groupNames = classItem.studentGroups 
-                    ? classItem.studentGroups.map(g => g.groupName).join(', ') 
+                    ? classItem.studentGroups.map(g => g.name).join(', ') 
                     : 'Brak grupy';
                 
                 return `
                     <div class="admin-class-item">
-                        <div class="admin-class-info">
-                            <h4>${classItem.title}</h4>
-                            <div class="admin-class-details">
-                                <span>
-                                    <i class="fas fa-graduation-cap"></i>
-                                    ${classTypeName}
-                                </span>
-                                <span>
-                                    <i class="fas fa-chalkboard-teacher"></i>
-                                    ${classItem.teacher || 'Brak wykładowcy'}
-                                </span>
-                                <span>
-                                    <i class="fas fa-door-open"></i>
-                                    ${classItem.room || 'Brak sali'}
-                                </span>
-                                <span>
-                                    <i class="fas fa-users"></i>
-                                    ${groupNames}
-                                </span>
+                        <div class="admin-class-header-row">
+                            <span class="admin-group-badge">
+                                ${groupNames}
+                            </span>
+                            <div class="admin-time-badge">
+                                <i class="fas fa-clock"></i>
+                                ${this.formatTime(classItem.startTime)} - ${this.formatTime(classItem.endTime)}
                             </div>
                         </div>
-                        <div class="admin-class-time">
-                            ${this.formatTime(classItem.startTime)} - ${this.formatTime(classItem.endTime)}
+
+                        <div class="admin-class-main-row">
+                            <h4>
+                                ${classItem.title}
+                                <span class="admin-type-badge">${classTypeName}</span>
+                            </h4>
+                        </div>
+                        
+                        <div class="admin-class-footer-row">
+                            <div class="admin-footer-item">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                                <span>${classItem.teacher || 'Brak wykładowcy'}</span>
+                            </div>
+                            <div class="admin-footer-item">
+                                <i class="fas fa-door-open"></i>
+                                <span>Sala ${classItem.room || '-'}</span>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -649,6 +689,33 @@ class DashboardHome {
                     <p>${error.message}</p>
                 </div>
             `;
+        }
+    }
+
+    // Obliczanie numeru tygodnia (ISO 8601)
+    getWeekNumber(d) {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+        var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        return weekNo;
+    }
+
+    // Typ tygodnia: A (nieparzysty), B (parzysty) - z uwzględnieniem semestrów
+    getWeekType(date) {
+        const weekNumber = this.getWeekNumber(date);
+        
+        // Granica semestrów: 23 luty 2026 zaczyna się semestr letni
+        const checkDate = new Date(date);
+        checkDate.setHours(0,0,0,0);
+        const semesterSwitch = new Date(2026, 1, 23); // luty (index 1)
+
+        if (checkDate < semesterSwitch) {
+            // SEMESTR ZIMOWY
+            return weekNumber % 2 === 0 ? 'WEEK_A' : 'WEEK_B';
+        } else {
+            // SEMESTR LETNI
+            return weekNumber % 2 !== 0 ? 'WEEK_A' : 'WEEK_B';
         }
     }
 }

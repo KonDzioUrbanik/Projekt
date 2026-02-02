@@ -20,6 +20,7 @@ import java.util.List;
 
 @Service
 @Transactional
+@SuppressWarnings("null")
 public class ScheduleServiceImpl implements ScheduleService {
 
     private final ScheduleRepository scheduleRepository;
@@ -27,9 +28,9 @@ public class ScheduleServiceImpl implements ScheduleService {
     private final StudentGroupRepository studentGroupRepository;
 
     // Wstrzyknięcie zależności Repozytorium
-    public ScheduleServiceImpl(ScheduleRepository scheduleRepository, 
-                               UserRepository userRepository,
-                               StudentGroupRepository studentGroupRepository) {
+    public ScheduleServiceImpl(ScheduleRepository scheduleRepository,
+            UserRepository userRepository,
+            StudentGroupRepository studentGroupRepository) {
         this.scheduleRepository = scheduleRepository;
         this.userRepository = userRepository;
         this.studentGroupRepository = studentGroupRepository;
@@ -38,18 +39,18 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     public ScheduleEntryResponseDto create(ScheduleEntryCreateDto dto) {
         ScheduleEntry entry = toEntity(dto);
-        
+
         // Przypisanie kierunków jeśli podano
-        if(dto.studentGroupIds() != null && !dto.studentGroupIds().isEmpty()){
+        if (dto.studentGroupIds() != null && !dto.studentGroupIds().isEmpty()) {
             List<StudentGroup> groups = new ArrayList<>();
-            for(Long groupId : dto.studentGroupIds()){
+            for (Long groupId : dto.studentGroupIds()) {
                 StudentGroup group = studentGroupRepository.findById(groupId)
                         .orElseThrow(() -> new StudentGroupNotFoundException(groupId));
                 groups.add(group);
             }
             entry.setStudentGroups(groups);
         }
-        
+
         ScheduleEntry saved = scheduleRepository.save(entry);
         return toResponse(saved);
     }
@@ -68,11 +69,10 @@ public class ScheduleServiceImpl implements ScheduleService {
         entry.setStartTime(dto.startTime());
         entry.setEndTime(dto.endTime());
         entry.setClassType(dto.classType());
-        
         // Aktualizacja przypisanych kierunków
-        if(dto.studentGroupIds() != null){
+        if (dto.studentGroupIds() != null) {
             List<StudentGroup> groups = new ArrayList<>();
-            for(Long groupId : dto.studentGroupIds()){
+            for (Long groupId : dto.studentGroupIds()) {
                 StudentGroup group = studentGroupRepository.findById(groupId)
                         .orElseThrow(() -> new StudentGroupNotFoundException(groupId));
                 groups.add(group);
@@ -82,6 +82,8 @@ public class ScheduleServiceImpl implements ScheduleService {
             entry.setStudentGroups(new ArrayList<>());
         }
 
+        entry.setWeekType(dto.weekType());
+
         ScheduleEntry updated = scheduleRepository.save(entry);
         return toResponse(updated);
     }
@@ -89,9 +91,37 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     public void delete(Long id) {
         // Wyszukanie i usunięcie wpisu, rzucenie wyjątku 404, jeśli nie istnieje
+        if (id == null)
+            return;
         ScheduleEntry entry = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleEntryNotFoundException(id));
         scheduleRepository.delete(entry);
+    }
+
+    @Override
+    public void deleteByGroupId(Long groupId) {
+        if (groupId == null)
+            return;
+
+        StudentGroup group = studentGroupRepository.findById(groupId)
+                .orElseThrow(() -> new StudentGroupNotFoundException(groupId));
+
+        // Znajdujemy wszystkie zajęcia przypisane do tej grupy
+        List<ScheduleEntry> entries = scheduleRepository.findByStudentGroups(group);
+
+        for (ScheduleEntry entry : entries) {
+            List<StudentGroup> groups = entry.getStudentGroups();
+            if (groups != null) {
+                if (groups.size() <= 1) {
+                    // Jeśli to jedyna grupa dla tych zajęć -> usuwamy całe zajęcia
+                    scheduleRepository.delete(entry);
+                } else {
+                    // Jeśli jest więcej grup -> tylko odpinamy tę jedną grupę
+                    groups.remove(group);
+                    scheduleRepository.save(entry);
+                }
+            }
+        }
     }
 
     @Override
@@ -128,12 +158,12 @@ public class ScheduleServiceImpl implements ScheduleService {
     // ---------- METODY POMOCNICZE (Konwersja) ----------
 
     private ScheduleEntryResponseDto toResponse(ScheduleEntry entry) {
-        List<StudentGroupResponseDto> groupDtos = entry.getStudentGroups() != null 
-            ? entry.getStudentGroups().stream()
-                .map(g -> new StudentGroupResponseDto(g.getId(), g.getName()))
-                .toList()
-            : Collections.emptyList();
-            
+        List<StudentGroupResponseDto> groupDtos = entry.getStudentGroups() != null
+                ? entry.getStudentGroups().stream()
+                        .map(g -> new StudentGroupResponseDto(g.getId(), g.getName()))
+                        .toList()
+                : Collections.emptyList();
+
         return new ScheduleEntryResponseDto(
                 entry.getId(),
                 entry.getTitle(),
@@ -143,8 +173,8 @@ public class ScheduleServiceImpl implements ScheduleService {
                 entry.getStartTime(),
                 entry.getEndTime(),
                 entry.getClassType(),
-                groupDtos
-        );
+                groupDtos,
+                entry.getWeekType());
     }
 
     private ScheduleEntry toEntity(ScheduleEntryCreateDto dto) {
@@ -156,6 +186,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         entry.setStartTime(dto.startTime());
         entry.setEndTime(dto.endTime());
         entry.setClassType(dto.classType());
+        entry.setWeekType(dto.weekType());
         // studentGroups są ustawiane w metodzie create
         return entry;
     }

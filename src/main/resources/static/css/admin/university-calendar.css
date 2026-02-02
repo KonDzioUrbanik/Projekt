@@ -101,7 +101,7 @@
 
 .months-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     gap: 1.5rem;
     align-items: start;
 }
@@ -221,6 +221,29 @@
 
 .day-marker.green {
     background-color: #10b981;
+}
+
+/* TODAY HIGHLIGHT */
+.today-highlight {
+    box-shadow: inset 0 0 0 2px #ef4444 !important;
+    border-radius: 4px;
+    font-weight: 700;
+    color: #ef4444;
+    position: relative;
+    z-index: 1;
+}
+
+/* ROW HOVER EFFECT */
+.weeks-table tbody tr:hover td {
+    background-color: rgba(0, 94, 250, 0.05);
+    /* Delikatne niebieskie tło */
+    transition: background-color 0.2s ease;
+}
+
+/* Dark Mode Hover Adjustment */
+[data-theme="dark"] .weeks-table tbody tr:hover td {
+    background-color: rgba(59, 130, 246, 0.15);
+    /* Wyraźniejsze w dark mode */
 }
 
 /* LEGEND */
@@ -658,64 +681,121 @@
 [data-theme="dark"] .btn-tertiary:hover {
     background-color: var(--bg-step);
     color: var(--text-main);
+}
 
-    /* Hide sidebar and other layout elements */
+/* PRINT STYLES */
+@media print {
+
+    /* Hide Sidebar, Navbar, Management Panel */
     .side-nav,
     .navbar,
     .management-panel,
     .modal,
-    .modal-backdrop {
+    #themeToggleBtn,
+    .landing-nav,
+    .hero-section,
+    .dashboard-container>div:not(.navbar-middle),
+    .floating-help-btn {
         display: none !important;
     }
 
-    /* Show only calendar wrapper and its children */
-    .calendar-wrapper,
-    .calendar-wrapper * {
-        visibility: visible;
-    }
-
-    /* Reset positioning */
+    /* Reset Layout for Print */
+    body,
+    .dashboard-container,
+    .navbar-middle,
     .calendar-wrapper {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        box-shadow: none;
-        border: none;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
         background: white !important;
-        /* Force white background */
+        color: black !important;
+        position: static !important;
+        overflow: visible !important;
+        height: auto !important;
     }
 
-    /* Adjust grids for print */
+    .dashboard-container {
+        display: block !important;
+    }
+
+    .calendar-wrapper {
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Print Colors */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Force Light Theme Colors */
+    .calendar-header h2 {
+        color: #000 !important;
+    }
+
+    .calendar-header p {
+        color: #555 !important;
+    }
+
+    .semester-card {
+        border: 1px solid #ccc !important;
+    }
+
+    .semester-header {
+        background: #f0f0f0 !important;
+        color: #000 !important;
+    }
+
+    .event-dates {
+        color: #000 !important;
+    }
+
+    .event-desc {
+        color: #333 !important;
+    }
+
+    .month-header {
+        background: #f0f0f0 !important;
+        color: #000 !important;
+        border-bottom: 1px solid #ccc !important;
+    }
+
+    .weeks-table th {
+        color: #555 !important;
+        background: #fff !important;
+    }
+
+    .weeks-table td {
+        color: #000 !important;
+        border-bottom: 1px solid #ddd !important;
+    }
+
+    /* Layout Adjustments */
     .semesters-grid,
     .months-grid {
-        display: block;
-        /* Avoid grid breaking issues */
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 1rem !important;
+        page-break-inside: avoid;
     }
 
     .semester-card,
     .month-card {
+        break-inside: avoid;
         page-break-inside: avoid;
-        /* Prevent cutting cards in half */
-        margin-bottom: 20px;
-        border: 1px solid #ddd;
+        margin-bottom: 1rem;
     }
 
-    /* Force background colors */
-    .badge-week,
-    .legend-dot,
-    .day-marker,
-    .month-header {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+    /* Ensure today highlight is visible in print */
+    .today-highlight {
+        box-shadow: inset 0 0 0 2px #ef4444 !important;
+        color: #ef4444 !important;
     }
 
-    /* Hide URL footers etc if possible via CSS (browser dependent) */
     @page {
-        margin: 1cm;
+        margin: 0.5cm;
         size: landscape;
-        /* Suggest landscape for calendar */
     }
 }

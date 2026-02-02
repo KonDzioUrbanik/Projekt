@@ -13,5 +13,4 @@ public class ProjectBackendApplication {
 
         SpringApplication.run(ProjectBackendApplication.class, args);
     }
-
 }
