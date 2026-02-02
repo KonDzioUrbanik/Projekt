@@ -54,8 +54,26 @@
                         </select>
                     </div>
 
+                    <div class="filter-group">
+                        <label for="groupFilter"><i class="fas fa-users"></i> Kierunek:</label>
+                        <select id="groupFilter">
+                            <option value="">Wszystkie kierunki</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="teacherFilter"><i class="fas fa-chalkboard-teacher"></i> Wykładowca:</label>
+                        <select id="teacherFilter">
+                            <option value="">Wszyscy wykładowcy</option>
+                        </select>
+                    </div>
+
                     <button class="btn-reset" id="resetFilters">
                         <i class="fas fa-redo"></i> Reset
+                    </button>
+
+                    <button class="btn-bulk-delete" id="clearGroupScheduleBtn" style="display: none;">
+                        <i class="fas fa-trash-alt"></i> Wyczyść plan dla kierunku
                     </button>
                 </div>
                 
@@ -96,6 +114,7 @@
                                 <th>Sala</th>
                                 <th>Prowadzący</th>
                                 <th>Typ</th>
+                                <th>Tydzień</th>
                                 <th>Kierunki</th>
                                 <th>Akcje</th>
                             </tr>
@@ -176,7 +195,18 @@
 
                                 <div class="form-group">
                                     <label for="endTime"> Godzina zakończenia</label>
-                                    <input type="time" id="endTime" required>
+                                    <input type="time" id="endTime" required="">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group full-width">
+                                    <label for="weekType"> Powtarzalność (Tydzień)</label>
+                                    <select id="weekType" required="">
+                                        <option value="ALL">Każdy tydzień</option>
+                                        <option value="WEEK_A">Tydzień A (nieparzysty)</option>
+                                        <option value="WEEK_B">Tydzień B (parzysty)</option>
+                                    </select>
                                 </div>
                             </div>
 
@@ -221,6 +251,7 @@
                                 <label class="checkbox-option"><input type="checkbox" id="exRoom" checked> <span>Sala</span></label>
                                 <label class="checkbox-option"><input type="checkbox" id="exTeacher" checked> <span>Prowadzący</span></label>
                                 <label class="checkbox-option"><input type="checkbox" id="exType" checked> <span>Typ</span></label>
+                                <label class="checkbox-option"><input type="checkbox" id="exWeek" checked> <span>Tydzień</span></label>
                                 <label class="checkbox-option"><input type="checkbox" id="exGroups" checked> <span>Kierunki</span></label>
                             </div>
                             <div class="select-all-row">

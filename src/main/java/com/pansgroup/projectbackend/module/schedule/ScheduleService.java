@@ -10,10 +10,17 @@ public interface ScheduleService {
 
     // ----------- OPERACJE CRUD DLA ADMINISTRATORA -----------
     ScheduleEntryResponseDto create(ScheduleEntryCreateDto dto);
+
     ScheduleEntryResponseDto update(Long id, ScheduleEntryUpdateDto dto);
+
     void delete(Long id);
+
+    void deleteByGroupId(Long groupId);
+
     // ----------- OPERACJE ODCZYTU -----------
     ScheduleEntryResponseDto findById(Long id);
+
     List<ScheduleEntryResponseDto> findAll();
+
     List<ScheduleEntryResponseDto> getMySchedule(String userEmail);
 }

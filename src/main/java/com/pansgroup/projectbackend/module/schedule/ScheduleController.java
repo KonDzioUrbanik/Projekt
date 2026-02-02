@@ -56,4 +56,10 @@ public class ScheduleController {
     public void delete(@PathVariable Long id) {
         scheduleService.delete(id);
     }
+
+    @DeleteMapping("/group/{groupId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteByGroup(@PathVariable Long groupId) {
+        scheduleService.deleteByGroupId(groupId);
+    }
 }

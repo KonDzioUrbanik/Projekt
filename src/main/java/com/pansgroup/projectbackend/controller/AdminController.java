@@ -15,17 +15,17 @@ import java.util.List;
 @Controller
 @RequestMapping("/admin") // Wszystkie metody bbeda zaczynac sis od /admin
 @PreAuthorize("hasRole('ADMIN')") // Zabezpieczenie: Tylko admin wejdzie do tej klasy
-public class AdminController{
+public class AdminController {
 
     private final UserService userService;
 
-    public AdminController(UserService userService){
+    public AdminController(UserService userService) {
         this.userService = userService;
     }
 
     @ModelAttribute("currentUser")
-    public UserResponseDto populateUser(Principal principal){
-        if(principal != null){
+    public UserResponseDto populateUser(Principal principal) {
+        if (principal != null) {
             return userService.getCurrentUser(principal.getName());
         }
         return null;
@@ -33,13 +33,13 @@ public class AdminController{
 
     // Endpoint: /admin/users
     @GetMapping("/users")
-    public String usersView(Model model){
+    public String usersView(Model model) {
         // Pobieranie listy wszystkich uzytkownikow z serwisu
         List<UserResponseDto> users = userService.findAll();
-        
+
         // Wrzucenie do modelu
         model.addAttribute("users", users);
-        
+
         // Ustawienie aktywnej strony dla sidebara
         model.addAttribute("activePage", "users");
 
@@ -49,18 +49,18 @@ public class AdminController{
 
     // Endpoint: /admin/announcement
     @GetMapping("/announcement")
-    public String announcementView(Model model){
+    public String announcementView(Model model) {
 
         // Ustawienie aktywnej strony dla sidebara
         model.addAttribute("activePage", "announcement");
-        
+
         // Zwrocenie widoku HTML
         return "admin/announcement";
     }
 
     // Endpoint: /admin/post-control
     @GetMapping("/post-control")
-    public String postControlView(Model model){      
+    public String postControlView(Model model) {
 
         // Ustawienie aktywnej strony dla sidebara
         model.addAttribute("activePage", "post-control");
@@ -71,18 +71,19 @@ public class AdminController{
 
     // Endpoint: /admin/university-calendar
     @GetMapping("/university-calendar")
-    public String universityCalendarView(Model model){
-        
+    public String universityCalendarView(Model model) {
+
         // Ustawienie aktywnej strony dla sidebara
         model.addAttribute("activePage", "university-calendar");
+        model.addAttribute("currentDate", java.time.LocalDate.now());
 
         // Zwrocenie widoku HTML
         return "admin/university-calendar";
     }
 
-     // Endpoint: /admin/alerts
+    // Endpoint: /admin/alerts
     @GetMapping("/alerts")
-    public String alertsView(Model model){
+    public String alertsView(Model model) {
 
         // Ustawienie aktywnej strony dla sidebara
         model.addAttribute("activePage", "alerts");

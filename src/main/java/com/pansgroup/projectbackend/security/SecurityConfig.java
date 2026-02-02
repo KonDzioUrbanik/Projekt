@@ -27,8 +27,7 @@ public class SecurityConfig {
                 "/favicon.ico",
                 "/css/**",
                 "/js/**",
-                "/images/**"
-        );
+                "/images/**");
     }
 
     @Bean
@@ -39,7 +38,8 @@ public class SecurityConfig {
                 throw new UsernameNotFoundException("Nie znaleziono użytkownika: " + email);
             }
             if (!user.isActivated()) {
-                throw new DisabledException("Konto nie zostało aktywowane. Sprawdź swoją skrzynkę e-mail i kliknij w link aktywacyjny. Jeśli nie otrzymałeś wiadomości, skontaktuj się z administratorem.");
+                throw new DisabledException(
+                        "Konto nie zostało aktywowane. Sprawdź swoją skrzynkę e-mail i kliknij w link aktywacyjny. Jeśli nie otrzymałeś wiadomości, skontaktuj się z administratorem.");
             }
             return org.springframework.security.core.userdetails.User
                     .withUsername(user.getEmail())
@@ -60,7 +60,8 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable);
         http.httpBasic(AbstractHttpConfigurer::disable);
 
-        // Dzięki temu Spring wie, że jak ktoś nie ma dostępu, to trzeba go rzucić na "/login"
+        // Dzięki temu Spring wie, że jak ktoś nie ma dostępu, to trzeba go rzucić na
+        // "/login"
         http.formLogin(form -> form
                 .loginPage("/login") // Adres widoku logowania
                 .loginProcessingUrl("/login") // Adres POST formularza
@@ -69,10 +70,9 @@ public class SecurityConfig {
         );
 
         http.logout(logout -> logout
-            .logoutUrl("/logout")
-            .logoutSuccessUrl("/login?logout")
-            .permitAll()
-        );
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/login?logout")
+                .permitAll());
 
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(
@@ -89,8 +89,8 @@ public class SecurityConfig {
                         "/reset-password",
                         "/forgot-password",
                         "/password-reset-expired",
-                        "/token-error"
-                ).permitAll()
+                        "/token-error")
+                .permitAll()
 
                 // API endpoints tylko dla ADMIN
                 .requestMatchers(HttpMethod.POST, "/api/schedule/**", "/api/groups").hasRole("ADMIN")
@@ -98,36 +98,35 @@ public class SecurityConfig {
                         "/api/schedule/**",
                         "/api/groups/**",
                         "/api/users/role/update/**",
-                        "/api/users/assign-group/**"
-                ).hasRole("ADMIN")
+                        "/api/users/assign-group/**")
+                .hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/schedule/**", "/api/groups/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/groups", "/api/schedule/all").hasRole("ADMIN")
-                
+
                 // Widoki admin tylko dla ADMIN
                 .requestMatchers("/admin/**").hasRole("ADMIN")
 
                 .requestMatchers(HttpMethod.GET,
                         "/api/schedule",
                         "/api/schedule/{id}",
-                        "/api/groups/{id}"
-                ).authenticated()
+                        "/api/groups/{id}")
+                .authenticated()
 
-                //to dla api
+                // to dla api
                 .requestMatchers(
                         "/api/users/me",
-                        "/api/notes/**"
-                ).authenticated()
+                        "/api/notes/**")
+                .authenticated()
 
-                //to dla stron widokow
+                // to dla stron widokow
                 .requestMatchers(
-                    "/dashboard", 
-                    "/schedule", //dodalem dla planu zajec
-                    "/profile",//dodalem dla edycji profilu
-                    "/change-password" //dodalem dla zmiany hasla
+                        "/dashboard",
+                        "/schedule", // dodalem dla planu zajec
+                        "/profile", // dodalem dla edycji profilu
+                        "/change-password" // dodalem dla zmiany hasla
                 ).authenticated()
 
-                .anyRequest().authenticated()
-        );
+                .anyRequest().authenticated());
 
         return http.build();
     }

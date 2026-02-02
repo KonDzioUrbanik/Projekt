@@ -146,6 +146,7 @@ public class MainController {
     @GetMapping("/dashboard/university-calendar")
     public String universityCalendarView(Model model) {
         model.addAttribute("activePage", "university-calendar-public");
+        model.addAttribute("currentDate", java.time.LocalDate.now());
 
         return "admin/university-calendar";
     }

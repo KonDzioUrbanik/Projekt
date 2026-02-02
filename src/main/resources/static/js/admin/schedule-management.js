@@ -12,6 +12,9 @@ class ScheduleManagement {
         CLASS_TYPES: {
             'WYKLAD': 'Wykład', 'CWICZENIA': 'Ćwiczenia laboratoryjne', 'LABORATORIUM': 'Laboratorium',
             'PROJEKT': 'Projekt', 'SEMINARIUM': 'Seminarium', 'KONSULTACJE': 'Konsultacje'
+        },
+        WEEK_TYPES: {
+            'ALL': 'Każdy', 'WEEK_A': 'Tydzień A', 'WEEK_B': 'Tydzień B'
         }
     };
 
@@ -51,8 +54,16 @@ class ScheduleManagement {
         // Filtry
         document.getElementById('dayFilter').addEventListener('change', () => this.applyFilters());
         document.getElementById('typeFilter').addEventListener('change', () => this.applyFilters());
+        document.getElementById('groupFilter').addEventListener('change', () => this.applyFilters());
+        document.getElementById('teacherFilter').addEventListener('change', () => this.applyFilters());
         document.getElementById('searchInput').addEventListener('input', () => this.applyFilters());
         document.getElementById('resetFilters').addEventListener('click', () => this.resetFilters());
+        
+        // Masowe usuwanie
+        const clearBtn = document.getElementById('clearGroupScheduleBtn');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => this.clearGroupSchedule());
+        }
 
         // Paginacja
         document.getElementById('prevPageTop').addEventListener('click', () => this.changePage(this.currentPage - 1));
@@ -129,6 +140,7 @@ class ScheduleManagement {
             if(!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             this.scheduleData = await response.json();
+            this.populateTeacherFilter(); // Populate teachers after loading data
             this.applyFilters(); // To wywoła renderTable (przez updatePaginationUI)
         } catch (error) {
             console.error('Błąd ładowania:', error);
@@ -144,6 +156,7 @@ class ScheduleManagement {
             if(!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             this.allGroups = await response.json();
             this.populateGroupsSelect();
+            this.populateGroupFilter(); // Populate filter select
         } catch (error) {
             console.error('Błąd ładowania kierunków:', error);
         }
@@ -162,15 +175,59 @@ class ScheduleManagement {
         });
     }
 
+    populateGroupFilter(){
+        const groupFilter = document.getElementById('groupFilter');
+        // Keep first option (Wszystkie kierunki)
+        groupFilter.innerHTML = '<option value="">Wszystkie kierunki</option>';
+        
+        const sortedGroups = [...this.allGroups].sort((a, b) => a.name.localeCompare(b.name, 'pl'));
+        
+        sortedGroups.forEach(group => {
+            const option = document.createElement('option');
+            option.value = group.id; // Używamy ID zamiast nazwy dla precyzji
+            option.textContent = group.name;
+            groupFilter.appendChild(option);
+        });
+    }
+
+    populateTeacherFilter(){
+        const teacherFilter = document.getElementById('teacherFilter');
+        teacherFilter.innerHTML = '<option value="">Wszyscy wykładowcy</option>';
+
+        const teachers = [...new Set(this.scheduleData.map(item => item.teacher).filter(t => t))].sort((a,b) => a.localeCompare(b, 'pl'));
+        
+        teachers.forEach(teacher => {
+            const option = document.createElement('option');
+            option.value = teacher;
+            option.textContent = teacher;
+            teacherFilter.appendChild(option);
+        });
+    }
+
     // Filtrowanie i Paginacja
     applyFilters(){
         const dayFilter = document.getElementById('dayFilter').value;
         const typeFilter = document.getElementById('typeFilter').value;
+        const groupFilter = document.getElementById('groupFilter').value;
+        const teacherFilter = document.getElementById('teacherFilter').value;
         const searchText = document.getElementById('searchInput').value.toLowerCase().trim();
 
         this.filteredData = this.scheduleData.filter(item => {
             const dayMatch = !dayFilter || item.dayOfWeek === dayFilter;
             const typeMatch = !typeFilter || item.classType === typeFilter;
+            const teacherMatch = !teacherFilter || item.teacher === teacherFilter;
+            
+            // Group Filter Logic
+            let groupMatch = true;
+            if (groupFilter) {
+                const selectedGroupId = parseInt(groupFilter);
+                if (!item.studentGroups) groupMatch = false;
+                else {
+                    // Check if any of the item's groups matches the selected group ID
+                    groupMatch = item.studentGroups.some(g => g.id === selectedGroupId);
+                }
+            }
+
             const itemGroups = item.studentGroups ? item.studentGroups.map(g => g.name).join(' ').toLowerCase() : '';
             
             let searchMatch = true;
@@ -185,17 +242,35 @@ class ScheduleManagement {
                               itemGroups.includes(searchText);
             }
 
-            return dayMatch && typeMatch && searchMatch;
+            return dayMatch && typeMatch && groupMatch && teacherMatch && searchMatch;
         });
 
         this.updateResultsCounter();
         this.currentPage = 1; // Reset do pierwszej strony po filtracji
         this.updatePaginationUI();
+        this.toggleBulkDeleteButton(groupFilter);
+    }
+
+    toggleBulkDeleteButton(groupId) {
+        const btn = document.getElementById('clearGroupScheduleBtn');
+        if (!btn) return;
+
+        if (groupId) {
+            btn.style.display = 'flex';
+            const group = this.allGroups.find(g => g.id.toString() === groupId.toString());
+            if (group) {
+                btn.title = `Usuń wszystkie zajęcia dla: ${group.name}`;
+            }
+        } else {
+            btn.style.display = 'none';
+        }
     }
 
     resetFilters(){
         document.getElementById('dayFilter').value = '';
         document.getElementById('typeFilter').value = '';
+        document.getElementById('groupFilter').value = '';
+        document.getElementById('teacherFilter').value = '';
         document.getElementById('searchInput').value = '';
         this.applyFilters();
     }
@@ -288,6 +363,7 @@ class ScheduleManagement {
                 <td>${item.room}</td>
                 <td>${item.teacher}</td>
                 <td><span class="class-type-badge ${item.classType}">${ScheduleManagement.CONFIG.CLASS_TYPES[item.classType]}</span></td>
+                <td><span class="week-badge">${ScheduleManagement.CONFIG.WEEK_TYPES[item.weekType] || item.weekType || 'Każdy'}</span></td>
                 <td>${item.studentGroups && item.studentGroups.length > 0 
                     ? item.studentGroups.map(g => g.name).join(', ') 
                     : '-'}</td>
@@ -337,6 +413,7 @@ class ScheduleManagement {
             document.getElementById('room').value = data.room;
             document.getElementById('teacher').value = data.teacher;
             document.getElementById('classType').value = data.classType;
+            document.getElementById('weekType').value = data.weekType || 'ALL';
             document.getElementById('dayOfWeek').value = data.dayOfWeek;
             document.getElementById('startTime').value = this.formatTimeForInput(data.startTime);
             document.getElementById('endTime').value = this.formatTimeForInput(data.endTime);
@@ -348,10 +425,12 @@ class ScheduleManagement {
                     option.selected = groupIds.includes(option.value);
                 });
             }
-        } else {
+        } 
+        else {
             this.isEditing = false;
             this.currentEditId = null;
             modalTitle.innerHTML = 'Dodaj zajęcia';
+            document.getElementById('weekType').value = 'ALL';
         }
         modal.classList.add('active');
     }
@@ -371,6 +450,7 @@ class ScheduleManagement {
             room: document.getElementById('room').value,
             teacher: document.getElementById('teacher').value,
             classType: document.getElementById('classType').value,
+            weekType: document.getElementById('weekType').value,
             dayOfWeek: document.getElementById('dayOfWeek').value,
             startTime: document.getElementById('startTime').value + ':00',
             endTime: document.getElementById('endTime').value + ':00',
@@ -407,8 +487,6 @@ class ScheduleManagement {
     }
 
     async deleteSchedule(id){
-        if(!confirm('Czy usunąć te zajęcia?')) return;
-
         try {
             const response = await fetch(`${ScheduleManagement.CONFIG.API.SCHEDULE}/${id}`, { method: 'DELETE' });
             if(!response.ok) throw new Error(`Status: ${response.status}`);
@@ -417,6 +495,45 @@ class ScheduleManagement {
         } catch (error) {
             console.error('Błąd usuwania:', error);
             this.showNotification('Błąd usuwania: ' + error.message, 'error');
+        }
+    }
+
+    async clearGroupSchedule() {
+        const groupFilter = document.getElementById('groupFilter');
+        const groupId = groupFilter.value;
+        
+        if (!groupId) return;
+
+        const group = this.allGroups.find(g => g.id.toString() === groupId.toString());
+        const groupName = group ? group.name : 'tego kierunku';
+
+        const count = this.filteredData.length;
+        if (count === 0) {
+            this.showNotification('Brak zajęć do usunięcia dla tego kierunku.', 'info');
+            return;
+        }
+
+        const confirmMsg = `UWAGA! Czy na pewno chcesz usunąć WSZYSTKIE zajęcia (${count}) dla kierunku: ${groupName}?\n\nTej operacji nie można cofnąć.`;
+        
+        if (!confirm(confirmMsg)) return;
+
+        const loading = document.getElementById('loading');
+        loading.classList.add('active');
+
+        try {
+            const response = await fetch(`${ScheduleManagement.CONFIG.API.SCHEDULE}/group/${groupId}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) throw new Error(`Status: ${response.status}`);
+
+            this.showNotification(`Pomyślnie wyczyszczono plan dla: ${groupName}`, 'success');
+            await this.loadSchedule();
+        } catch (error) {
+            console.error('Błąd masowego usuwania:', error);
+            this.showNotification('Wystąpił błąd podczas usuwania planu.', 'error');
+        } finally {
+            loading.classList.remove('active');
         }
     }
 
@@ -438,6 +555,7 @@ class ScheduleManagement {
         const includeRoom = document.getElementById('exRoom').checked;
         const includeTeacher = document.getElementById('exTeacher').checked;
         const includeType = document.getElementById('exType').checked;
+        const includeWeek = document.getElementById('exWeek').checked;
         const includeGroups = document.getElementById('exGroups').checked;
 
         let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // BOM
@@ -450,6 +568,7 @@ class ScheduleManagement {
         if (includeRoom) headers.push("Sala");
         if (includeTeacher) headers.push("Prowadzący");
         if (includeType) headers.push("Typ");
+        if (includeWeek) headers.push("Tydzień");
         if (includeGroups) headers.push("Kierunki");
         
         csvContent += headers.join(";") + "\n";
@@ -463,6 +582,7 @@ class ScheduleManagement {
             if (includeRoom) row.push(`"${item.room}"`);
             if (includeTeacher) row.push(`"${item.teacher}"`);
             if (includeType) row.push(ScheduleManagement.CONFIG.CLASS_TYPES[item.classType] || item.classType);
+            if (includeWeek) row.push(ScheduleManagement.CONFIG.WEEK_TYPES[item.weekType] || item.weekType || 'Każdy');
             if (includeGroups) {
                 const groups = item.studentGroups ? item.studentGroups.map(g => g.name).join(', ') : '';
                 row.push(`"${groups}"`);

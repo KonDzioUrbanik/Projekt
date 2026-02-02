@@ -3,6 +3,10 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="PANSportal - Platforma studencka dla studentów PANS w Krośnie.">
+        <meta name="keywords" content="PANS, PANSportal, student, Krosno">
+        <meta name="author" content="PANS">
+        
         <title>PANSportal</title>
 
         <link rel="icon" th:href="@{/favicon.png}" type="image/png">
@@ -36,53 +40,57 @@
             </div>
         </nav>
 
-        <header class="hero-section">
-            <span class="hero-badge">Nowy Rok Akademicki 2025/26</span>
-            
-           <h1 class="hero-title">
-               Witamy w PANSportal
-            </h1>
-            
-            <p class="hero-subtitle">
-                Twoje miejsce do zarządzania studiami.
-            </p>
-
-            <div class="hero-buttons">
-                <a th:href="@{/login}" class="btn btn-primary">
-                    <i class="fas fa-sign-in-alt"></i> Przejdź do panelu
-                </a>
-            </div>
-        </header>
-
-        <section class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon"><i class="far fa-calendar-alt"></i></div>
-                <h3 class="feature-title">Organizacja czasu</h3>
-                <p class="feature-desc">Twój harmonogram zajęć i kalendarz roku akademickiego zawsze pod ręką.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-graduation-cap"></i></div>
-                <h3 class="feature-title">Postępy w nauce</h3>
-                <p class="feature-desc">Monitoruj swoje oceny, zaliczenia i obecności na bieżąco.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-comments"></i></div>
-                <h3 class="feature-title">Społeczność</h3>
-                <p class="feature-desc">Forum grupy i szybka wymiana informacji ze studentami oraz wykładowcami.</p>
-            </div>
-        </section>
-
-        <section class="university-branding">
-            <div class="branding-content">
-                <img src="/images/LogoPANS.png" alt="Logo PANS" class="pans-logo">
-                <p class="branding-text">
-                    Platforma dedykowana studentom<br>
-                    <strong>Państwowej Akademii Nauk Stosowanych w Krośnie</strong>
+        <main>
+            <header class="hero-section">
+                <span class="hero-badge">Nowy Rok Akademicki 2025/26</span>
+                
+            <h1 class="hero-title">
+                Witamy w PANSportal
+                </h1>
+                
+                <p class="hero-subtitle">
+                    Twoje miejsce do zarządzania studiami.
                 </p>
-            </div>
-        </section>
+
+                <div class="hero-buttons">
+                    <a th:href="@{/login}" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Przejdź do panelu
+                    </a>
+                </div>
+            </header>
+
+            <section class="features-grid">
+                <h2 class="sr-only">Kluczowe funkcje</h2>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="far fa-calendar-alt"></i></div>
+                    <h3 class="feature-title">Organizacja czasu</h3>
+                    <p class="feature-desc">Twój harmonogram zajęć i kalendarz roku akademickiego zawsze pod ręką.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-graduation-cap"></i></div>
+                    <h3 class="feature-title">Postępy w nauce</h3>
+                    <p class="feature-desc">Monitoruj swoje oceny, zaliczenia i obecności na bieżąco.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-comments"></i></div>
+                    <h3 class="feature-title">Społeczność</h3>
+                    <p class="feature-desc">Forum grupy i szybka wymiana informacji ze studentami oraz wykładowcami.</p>
+                </div>
+            </section>
+
+            <section class="university-branding">
+                <h2 class="sr-only">Informacje o uczelni</h2>
+                <div class="branding-content">
+                    <img src="/images/LogoPANS.png" alt="Logo PANS" class="pans-logo" width="263" height="59">
+                    <p class="branding-text">
+                        Platforma dedykowana studentom<br>
+                        <strong>Państwowej Akademii Nauk Stosowanych w Krośnie</strong>
+                    </p>
+                </div>
+            </section>
+        </main>
 
         <footer class="landing-footer">
             <p>&copy; 2026 PANSportal. Wszelkie prawa zastrzeżone.</p>

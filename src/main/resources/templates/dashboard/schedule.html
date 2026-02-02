@@ -12,12 +12,86 @@
             <div class="schedule-wrapper">
                 <h2 class="page-title-large">Harmonogram zajęć</h2>
 
-                <div class="schedule-grid" id="scheduleGrid">
+                <!-- Panel Nawigacji -->
+                <div class="schedule-controls">
+                    <div class="week-navigation">
+                        <button id="prevWeekBtn" class="nav-btn" title="Poprzedni tydzień">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button id="todayBtn" class="nav-btn">Dzisiaj</button>
+                        <button id="nextWeekBtn" class="nav-btn" title="Następny tydzień">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
                     </div>
+                    
+                    <div class="current-week-info">
+                        <span id="dateRangeLabel" class="date-range">--</span>
+                        <span id="weekTypeLabel" class="week-type-badge">--</span>
+                    </div>
+
+                    <div class="view-actions">
+                         <!-- Miejsce na przyszłe przyciski -->
+                    </div>
+                </div>
+
+                <div class="next-class-widget" id="nextClassWidget" style="display: none;">
+                    <div class="next-class-content">
+                        <div class="next-class-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="next-class-info">
+                            <span class="next-label">Następne zajęcia (za <span id="timeToNext">--</span> min):</span>
+                            <h3 id="nextClassTitle">--</h3>
+                            <p id="nextClassDetails">--</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="schedule-grid" id="scheduleGrid">
+                </div>
 
                 <div class="loading" id="loading">
                     <div class="spinner"></div>
                     <p>Ładowanie harmonogramu zajęć...</p>
+                </div>
+            </div>
+
+            <!-- Modal Szczegółów Zajęć -->
+            <div id="classDetailsModal" class="modal">
+                <div class="modal-content class-details-content">
+                    <span class="close-modal">&times;</span>
+                    <div class="modal-header-strip" id="modalColorStrip"></div>
+                    <div class="modal-body-details">
+                        <h2 id="modalClassTitle"></h2>
+                        <div class="modal-meta-row">
+                            <span class="modal-badge" id="modalClassType"></span>
+                            <span class="modal-time" id="modalClassTime"></span>
+                        </div>
+                        
+                        <div class="modal-info-grid">
+                            <div class="info-item">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                                <div>
+                                    <label>Prowadzący</label>
+                                    <p id="modalClassTeacher"></p>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <div>
+                                    <label>Sala</label>
+                                    <p id="modalClassRoom"></p>
+                                </div>
+                            </div>
+                            <div class="info-item" id="modalGroupRow">
+                                <i class="fas fa-users"></i>
+                                <div>
+                                    <label>Kierunek</label>
+                                    <p id="modalClassGroup"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
