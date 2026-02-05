@@ -77,6 +77,10 @@
                     <i class="fas fa-exclamation-triangle"></i>
                     <span class="link-text">Alerty</span>
                 </a>
+                <a th:href="@{/admin/feedback}" class="btn-navbar-left" th:classappend="${activePage == 'feedback'} ? 'active'">
+                    <i class="fas fa-bug"></i>
+                    <span class="link-text">Zgłoszenia</span>
+                </a>
             </div>
         </div>
     </nav>

@@ -1,0 +1,471 @@
+:root {
+    --feedback-open-bg: #e3f2fd;
+    --feedback-open-text: #1976d2;
+    --feedback-progress-bg: #fff3e0;
+    --feedback-progress-text: #f57c00;
+    --feedback-resolved-bg: #e8f5e9;
+    --feedback-resolved-text: #388e3c;
+    --feedback-rejected-bg: #ffebee;
+    --feedback-rejected-text: #d32f2f;
+}
+
+[data-theme="dark"] {
+    --feedback-open-bg: rgba(25, 118, 210, 0.15);
+    --feedback-open-text: #90caf9;
+    --feedback-progress-bg: rgba(245, 124, 0, 0.15);
+    --feedback-progress-text: #ffb74d;
+    --feedback-resolved-bg: rgba(56, 142, 60, 0.15);
+    --feedback-resolved-text: #a5d6a7;
+    --feedback-rejected-bg: rgba(211, 47, 47, 0.15);
+    --feedback-rejected-text: #ef9a9a;
+}
+
+/* Layout & Utils */
+.feedback-wrapper {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+.table-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.filters-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+.search-box {
+    position: relative;
+    width: 300px;
+}
+
+.search-box i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+}
+
+.search-box input {
+    width: 100%;
+    padding: 0.6rem 1rem 0.6rem 2.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-input);
+    color: var(--text-main);
+    font-size: 0.95rem;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.filter-group select {
+    padding: 0.5rem 2rem 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-input);
+    color: var(--text-main);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.results-info {
+    padding: 8px 12px;
+    background: #eff6ff;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    color: #1e40af;
+    font-weight: 600;
+    border: 1px solid #bfdbfe;
+    width: fit-content;
+    margin-bottom: 1rem;
+}
+
+/* Table Styles */
+.table-scroll-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.feedback-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.feedback-table th {
+    text-align: left;
+    padding: 1rem;
+    border-bottom: 2px solid var(--border-color);
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.feedback-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+    vertical-align: middle;
+}
+
+.feedback-table tr:hover {
+    background-color: var(--bg-hover);
+}
+
+/* Status Badges */
+.badge-status {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.status-open {
+    background-color: var(--feedback-open-bg);
+    color: var(--feedback-open-text);
+}
+
+.status-in_progress {
+    background-color: var(--feedback-progress-bg);
+    color: var(--feedback-progress-text);
+}
+
+.status-resolved {
+    background-color: var(--feedback-resolved-bg);
+    color: var(--feedback-resolved-text);
+}
+
+.status-rejected {
+    background-color: var(--feedback-rejected-bg);
+    color: var(--feedback-rejected-text);
+}
+
+/* Type Icons */
+.type-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.75rem;
+}
+
+.type-bug {
+    background-color: rgba(211, 47, 47, 0.1);
+    color: #d32f2f;
+}
+
+.type-suggestion {
+    background-color: rgba(25, 118, 210, 0.1);
+    color: #1976d2;
+}
+
+.type-other {
+    background-color: rgba(158, 158, 158, 0.1);
+    color: #757575;
+}
+
+.feedback-title-cell {
+    display: flex;
+    align-items: center;
+}
+
+.feedback-title-text {
+    font-weight: 500;
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Action Buttons */
+.action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+}
+
+.btn-view {
+    color: var(--color-primary);
+    background: rgba(0, 94, 250, 0.1);
+}
+
+.btn-view:hover {
+    background: var(--color-primary);
+    color: white;
+}
+
+.btn-delete {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.btn-delete:hover {
+    background: #ef4444;
+    color: white;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: var(--bg-card);
+    width: 100%;
+    max-width: 600px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--text-main);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.modal-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+}
+
+.detail-row {
+    margin-bottom: 1.5rem;
+}
+
+.detail-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-value {
+    color: var(--text-main);
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.feedback-description-full {
+    background: var(--bg-step);
+    padding: 1rem;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    border: 1px solid var(--border-color);
+}
+
+.contact-info {
+    display: flex;
+    gap: 2rem;
+}
+
+.modal-footer {
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.status-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-status-action {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-mark-open {
+    color: #1976d2;
+    border-color: #1976d2;
+    background: transparent;
+}
+
+.btn-mark-open:hover {
+    background: #e3f2fd;
+}
+
+.btn-mark-progress {
+    color: #f57c00;
+    border-color: #f57c00;
+    background: transparent;
+}
+
+.btn-mark-progress:hover {
+    background: #fff3e0;
+}
+
+.btn-mark-resolved {
+    color: #388e3c;
+    border-color: #388e3c;
+    background: transparent;
+}
+
+.btn-mark-resolved:hover {
+    background: #e8f5e9;
+}
+
+.btn-mark-rejected {
+    color: #d32f2f;
+    border-color: #d32f2f;
+    background: transparent;
+}
+
+.btn-mark-rejected:hover {
+    background: #ffebee;
+}
+
+.technical-details {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border-color);
+    padding-top: 1rem;
+}
+
+/* Attachments & Comments */
+.attachment-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--bg-step);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: #1976d2;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.attachment-link:hover {
+    background: var(--bg-hover);
+    border-color: #1976d2;
+}
+
+.btn-save-comment {
+    margin-top: 0.75rem;
+    padding: 0.5rem 1rem;
+    background: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+    float: right;
+}
+
+.btn-save-comment:hover {
+    background: #1565c0;
+}
+
+.comment-wrapper {
+    overflow: hidden;
+    /* Clearfix for float */
+}
+
+/* Fix focus border issue */
+.feedback-description-full,
+.feedback-input,
+.feedback-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    color: var(--text-main);
+}
+
+.feedback-description-full:focus {
+    outline: none;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+/* Update dark mode focus override - handled in theme or here */
+[data-theme="dark"] .feedback-description-full:focus {
+    border-color: #4a9eff;
+    box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.15);
+    color: var(--text-dark);
+}

@@ -91,4 +91,14 @@ public class AdminController {
         // Zwrocenie widoku HTML
         return "admin/alerts";
     }
+
+    // Endpoint: /admin/feedback
+    @GetMapping("/feedback")
+    public String feedbackView(Model model) {
+        // Ustawienie aktywnej strony dla sidebara
+        model.addAttribute("activePage", "feedback");
+
+        // Zwrocenie widoku HTML
+        return "admin/admin-feedback";
+    }
 }

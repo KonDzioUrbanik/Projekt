@@ -74,7 +74,7 @@
                                     </label>
                                 </div>
                                 <div class="feedback-type-option">
-                                    <input type="radio" id="type-question" name="type" value="QUESTION">
+                                    <input type="radio" id="type-question" name="type" value="OTHER">
                                     <label for="type-question" class="feedback-type-label">
                                         <i class="fas fa-question-circle"></i>
                                         <span>Pytanie</span>
@@ -118,6 +118,21 @@
                                 class="feedback-input" 
                                 placeholder="Adres e-mail (opcjonalnie, jeśli oczekujesz odpowiedzi)">
                         </div>
+
+                        <div class="feedback-form-group">
+                            <label for="feedback-file">Załącznik (opcjonalnie)</label>
+                            <input 
+                                type="file" 
+                                id="feedback-file" 
+                                name="file"
+                                class="feedback-input" 
+                                accept=".jpg,.jpeg,.png,.pdf">
+                            <small style="display:block; margin-top:0.25rem; color:var(--text-muted); font-size:0.8rem;">
+                                Maksymalny rozmiar pliku: 5MB. Dozwolone formaty: Obrazy, PDF.
+                            </small>
+                        </div>
+                        
+                        <input type="text" name="website" style="display:none !important" tabindex="-1" autocomplete="off">
                     </form>
                 </div>
 

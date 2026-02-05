@@ -798,21 +798,37 @@
     }
 
     [data-theme="dark"] .admin-section {
-        border-top-color: var(--border-color);
-        display: flex;
-        gap: 10px;
-        margin-top: 0;
-        padding-top: 0;
+        border-top-color: var(--border-color) !important;
     }
+}
 
-    [data-theme="dark"] .admin-section-label {
-        display: none;
-        /* Ukrywamy etykietę Admin w wersji mobilnej poziomej */
-    }
+/* Custom Scrollbar dla Dark Mode */
+[data-theme="dark"] ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
 
-    [data-theme="dark"] .admin-divider {
-        display: none;
-    }
+[data-theme="dark"] ::-webkit-scrollbar-track {
+    background: var(--bg-main);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: #3f4756;
+    border-radius: 5px;
+    border: 2px solid var(--bg-main);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background: #566070;
+}
+
+[data-theme="dark"] .admin-section-label {
+    display: none;
+    /* Ukrywamy etykietę Admin w wersji mobilnej poziomej */
+}
+
+[data-theme="dark"] .admin-divider {
+    display: none;
 }
 
 /* MODUŁ NOTATEK - Ciemny motyw */

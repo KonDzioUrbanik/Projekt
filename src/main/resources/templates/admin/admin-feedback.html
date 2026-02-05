@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/main-layout}">
+    <head>
+        <title>Zgłoszenia i feedback</title>
+        <th:block layout:fragment="page-styles">
+            <link rel="stylesheet" th:href="@{/css/admin/admin-feedback.css}" href="../../static/css/admin/admin-feedback.css">
+        </th:block>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            
+            <div class="admin-header">
+                <div>
+                    <h1>Zgłoszenia i feedback</h1>
+                    <p>Zarządzaj zgłoszeniami błędów, sugestii i opiniami użytkowników</p>
+                </div>
+            </div>
+
+            <div class="feedback-wrapper">
+                <div class="table-controls">
+                    <div class="filters-section">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchInput" placeholder="Szukaj (temat, treść, email)...">
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="typeFilter"><i class="fas fa-tag"></i> Typ:</label>
+                            <select id="typeFilter">
+                                <option value="">Wszystkie</option>
+                                <option value="BUG">Błąd</option>
+                                <option value="SUGGESTION">Sugestia</option>
+                                <option value="OTHER">Inne</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="statusFilter"><i class="fas fa-tasks"></i> Status:</label>
+                            <select id="statusFilter">
+                                <option value="">Wszystkie</option>
+                                <option value="OPEN">Nowe</option>
+                                <option value="IN_PROGRESS">W trakcie</option>
+                                <option value="RESOLVED">Rozwiązane</option>
+                                <option value="REJECTED">Odrzucone</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="results-info">
+                        <strong><span id="resultsCount">0</span></strong> zgłoszeń
+                    </div>
+                </div>
+
+                <div class="table-scroll-container">
+                    <table class="feedback-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Typ</th>
+                                <th>Temat</th>
+                                <th>Zgłaszający</th>
+                                <th>Status</th>
+                                <th>Data</th>
+                                <th>Akcje</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Rows will be populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Detail Modal -->
+            <div id="feedbackDetailModal" class="modal-overlay">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Szczegóły zgłoszenia</h3>
+                        <button class="close-btn" onclick="FeedbackManager.closeModal()">&times;</button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="detail-row">
+                            <h4 id="modalTitle" style="margin-top: 0; margin-bottom: 0.5rem; font-size: 1.2rem;"></h4>
+                            <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+                                <span id="modalStatus"></span>
+                                <span id="modalType" style="color: var(--text-secondary); font-size: 0.9rem;"></span>
+                                <span style="color: var(--text-secondary);">•</span>
+                                <span id="modalDate" style="color: var(--text-secondary); font-size: 0.9rem;"></span>
+                            </div>
+                        </div>
+
+                        <div class="detail-row">
+                            <span class="detail-label">Treść zgłoszenia</span>
+                            <div id="modalDescription" class="feedback-description-full"></div>
+                        </div>
+
+                        <div class="detail-row contact-info">
+                            <div>
+                                <span class="detail-label">Zgłaszający</span>
+                                <div id="modalEmail" class="detail-value"></div>
+                            </div>
+                        </div>
+
+                        <div class="detail-row" id="attachmentRow" style="display:none;">
+                            <span class="detail-label">Załącznik</span>
+                            <div id="modalAttachment">
+                            </div>
+                        </div>
+
+                        <div class="detail-row comment-section">
+                            <span class="detail-label">Komentarz administratora</span>
+                            <div class="comment-wrapper">
+                                <textarea id="adminComment" class="feedback-description-full" style="width: 100%; min-height: 80px; margin-top: 0.5rem; font-family: inherit;" placeholder="Wewnętrzna notatka dotycząca tego zgłoszenia..."></textarea>
+                                <button class="btn-save-comment" onclick="FeedbackManager.saveComment()">
+                                    <i class="fas fa-save"></i> Zapisz notatkę
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="modalTechDetails" class="technical-details">
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <div class="status-actions">
+                            <button class="btn-status-action btn-mark-open" onclick="FeedbackManager.updateStatus('OPEN')">
+                                <i class="fas fa-redo"></i> Otwarte
+                            </button>
+                            <button class="btn-status-action btn-mark-progress" onclick="FeedbackManager.updateStatus('IN_PROGRESS')">
+                                <i class="fas fa-spinner"></i> W trakcie
+                            </button>
+                            <button class="btn-status-action btn-mark-resolved" onclick="FeedbackManager.updateStatus('RESOLVED')">
+                                <i class="fas fa-check"></i> Rozwiązane
+                            </button>
+                            <button class="btn-status-action btn-mark-rejected" onclick="FeedbackManager.updateStatus('REJECTED')">
+                                <i class="fas fa-times"></i> Odrzucone
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <th:block layout:fragment="page-scripts">
+            <script th:src="@{/js/admin/admin-feedback.js}"></script>
+        </th:block>
+    </body>
+</html>
