@@ -35,7 +35,14 @@
                 <!-- sekcja awatara -->
                 <div class="avatar-upload-zone" id="avatarUploadZone">
                     <div class="avatar-preview-container">
-                        <img id="avatarPreview" src="#" alt="Avatar" draggable="false" style="display: none;" />
+                        <img id="avatarPreview" 
+                             th:src="@{'/api/users/' + ${currentUser.id} + '/avatar'}" 
+                             alt="Avatar" 
+                             draggable="false" 
+                             style="display: none;"
+                             onload="this.style.display='block'; document.getElementById('avatarPlaceholder').style.display='none'; document.getElementById('removeAvatar').style.display='inline-flex'"
+                             onerror="this.style.display='none'; document.getElementById('avatarPlaceholder').style.display='flex'; document.getElementById('removeAvatar').style.display='none'"
+                        />
                         <div class="avatar-placeholder" id="avatarPlaceholder">
                             <i class="fas fa-user"></i>
                         </div>

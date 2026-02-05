@@ -12,8 +12,13 @@
         <div class="profile-container">
             
             <div class="profile-header card">
-                <div class="profile-avatar">
-                    <i class="fas fa-user"></i>
+                <div class="profile-avatar" style="overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                    <img th:if="${currentUser != null}" 
+                         th:src="@{'/api/users/' + ${currentUser.id} + '/avatar'}" 
+                         style="width: 100%; height: 100%; object-fit: cover;"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" 
+                         alt="Avatar">
+                    <i class="fas fa-user" style="display:none; font-size: 3rem;"></i>
                 </div>
                 <div class="profile-info">
                     <h2 th:text="${currentUser.firstName + ' ' + currentUser.lastName}"></h2>
@@ -97,7 +102,6 @@
     </div>
 
     <th:block layout:fragment="page-scripts">
-        <script th:src="@{/js/common/utils.js}"></script>
         <script th:src="@{/js/dashboard/profile.js}"></script>
     </th:block>
 </body>
