@@ -3,6 +3,7 @@ package com.pansgroup.projectbackend.module.user;
 import com.pansgroup.projectbackend.module.user.dto.*;
 
 import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService {
     UserResponseDto create(UserCreateDto dto);
@@ -33,4 +34,9 @@ public interface UserService {
 
     void processPasswordReset(String token, String newPassword, String confirmPassword);
 
+    void uploadAvatar(Long userId, MultipartFile file);
+
+    User getAvatar(Long userId);
+
+    void removeAvatar(Long userId);
 }

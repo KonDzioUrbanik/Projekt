@@ -1,3 +1,5 @@
+'use strict';
+
 // Moduł strony głównej dashboardu
 class DashboardHome {
 
@@ -241,25 +243,9 @@ class DashboardHome {
         });
     }
     
-    // Konwersja czasu do minut dla sortowania
+    // Konwersja czasu do minut dla sortowania - używa Utils
     timeToMinutes(timeObj) {
-        if (!timeObj) {
-            return 0;
-        }
-        
-        // Obsługa formatu string "HH:MM:SS"
-        if (typeof timeObj === 'string') {
-            const parts = timeObj.split(':');
-            const hour = parseInt(parts[0], 10) || 0;
-            const minute = parseInt(parts[1], 10) || 0;
-            return hour * 60 + minute;
-        }
-        
-        // Obsługa formatu obiektu {hour, minute}
-        const hour = timeObj.hour !== undefined ? timeObj.hour : 0;
-        const minute = timeObj.minute !== undefined ? timeObj.minute : 0;
-        
-        return hour * 60 + minute;
+        return Utils.timeToMinutes(timeObj);
     }
     
     // Walidacja danych zajęć
@@ -341,10 +327,16 @@ class DashboardHome {
         // Obliczenie czasu do/od zajęć (tylko dla dzisiejszych zajęć)
         const timeInfo = isToday ? this.calculateTimeInfo(classItem, status) : null;
         
+        // Escapowanie danych użytkownika (XSS prevention)
+        const safeTitle = Utils.escapeHtml(classItem.title);
+        const safeRoom = Utils.escapeHtml(classItem.room);
+        const safeTeacher = Utils.escapeHtml(classItem.teacher);
+        const safeClassType = Utils.escapeHtml(classTypeName);
+        
         card.innerHTML = `
             <div class="home-class-time-badge">
                 <i class="fas fa-clock"></i>
-                <span>${this.formatTime(classItem.startTime)} - ${this.formatTime(classItem.endTime)}</span>
+                <span>${Utils.formatTime(classItem.startTime)} - ${Utils.formatTime(classItem.endTime)}</span>
                 ${timeInfo ? `<span style="margin-left: 0.5rem; color: var(--text-light); font-weight: 500;">${timeInfo}</span>` : ''}
             </div>
             
@@ -354,23 +346,23 @@ class DashboardHome {
                         <i class="fas ${icon}"></i>
                     </div>
                     <div class="home-class-details">
-                        <h4 class="home-class-title">${classItem.title}</h4>
-                        <p class="home-class-type">${classTypeName}</p>
+                        <h4 class="home-class-title">${safeTitle}</h4>
+                        <p class="home-class-type">${safeClassType}</p>
                     </div>
                 </div>
                 
                 <div class="home-class-meta">
-                    ${classItem.room ? `
+                    ${safeRoom ? `
                         <div class="home-meta-item">
                             <i class="fas fa-door-open"></i>
-                            <span>Sala ${classItem.room}</span>
+                            <span>Sala ${safeRoom}</span>
                         </div>
                     ` : ''}
                     
                     ${classItem.teacher ? `
                         <div class="home-meta-item">
                             <i class="fas fa-chalkboard-teacher"></i>
-                            <span>${classItem.teacher}</span>
+                            <span>${safeTeacher}</span>
                         </div>
                     ` : ''}
                 </div>
@@ -401,21 +393,9 @@ class DashboardHome {
         return icons[classType] || 'fa-book';
     }
     
-    // Formatowanie czasu
+    // Formatowanie czasu - używa Utils
     formatTime(timeObj) {
-        if (!timeObj) {
-            return '--:--';
-        }
-        
-        if (typeof timeObj === 'string') {
-            return timeObj;
-        }
-        
-        // Obsługa obiektu LocalTime z backendu
-        const hour = timeObj.hour !== undefined ? String(timeObj.hour).padStart(2, '0') : '00';
-        const minute = timeObj.minute !== undefined ? String(timeObj.minute).padStart(2, '0') : '00';
-        
-        return `${hour}:${minute}`;
+        return Utils.formatTime(timeObj);
     }
     
     // Obliczenie informacji o czasie do/od zajęć
@@ -644,8 +624,14 @@ class DashboardHome {
             classList.innerHTML = todayClasses.map(classItem => {
                 const classTypeName = DashboardHome.CONFIG.CLASS_TYPES[classItem.classType] || classItem.classType;
                 const groupNames = classItem.studentGroups 
-                    ? classItem.studentGroups.map(g => g.name).join(', ') 
+                    ? classItem.studentGroups.map(g => Utils.escapeHtml(g.name)).join(', ') 
                     : 'Brak grupy';
+                
+                // Escapowanie danych (XSS prevention)
+                const safeTitle = Utils.escapeHtml(classItem.title);
+                const safeTeacher = Utils.escapeHtml(classItem.teacher) || 'Brak wykładowcy';
+                const safeRoom = Utils.escapeHtml(classItem.room) || '-';
+                const safeClassType = Utils.escapeHtml(classTypeName);
                 
                 return `
                     <div class="admin-class-item">
@@ -655,25 +641,25 @@ class DashboardHome {
                             </span>
                             <div class="admin-time-badge">
                                 <i class="fas fa-clock"></i>
-                                ${this.formatTime(classItem.startTime)} - ${this.formatTime(classItem.endTime)}
+                                ${Utils.formatTime(classItem.startTime)} - ${Utils.formatTime(classItem.endTime)}
                             </div>
                         </div>
 
                         <div class="admin-class-main-row">
                             <h4>
-                                ${classItem.title}
-                                <span class="admin-type-badge">${classTypeName}</span>
+                                ${safeTitle}
+                                <span class="admin-type-badge">${safeClassType}</span>
                             </h4>
                         </div>
                         
                         <div class="admin-class-footer-row">
                             <div class="admin-footer-item">
                                 <i class="fas fa-chalkboard-teacher"></i>
-                                <span>${classItem.teacher || 'Brak wykładowcy'}</span>
+                                <span>${safeTeacher}</span>
                             </div>
                             <div class="admin-footer-item">
                                 <i class="fas fa-door-open"></i>
-                                <span>Sala ${classItem.room || '-'}</span>
+                                <span>Sala ${safeRoom}</span>
                             </div>
                         </div>
                     </div>
@@ -686,37 +672,20 @@ class DashboardHome {
                 <div class="error-state">
                     <i class="fas fa-exclamation-triangle"></i>
                     <h3>Nie udało się załadować zajęć</h3>
-                    <p>${error.message}</p>
+                    <p>${Utils.escapeHtml(error.message)}</p>
                 </div>
             `;
         }
     }
 
-    // Obliczanie numeru tygodnia (ISO 8601)
+    // Obliczanie numeru tygodnia - używa Utils
     getWeekNumber(d) {
-        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-        var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-        var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-        return weekNo;
+        return Utils.getWeekNumber(d);
     }
 
-    // Typ tygodnia: A (nieparzysty), B (parzysty) - z uwzględnieniem semestrów
+    // Typ tygodnia - używa Utils
     getWeekType(date) {
-        const weekNumber = this.getWeekNumber(date);
-        
-        // Granica semestrów: 23 luty 2026 zaczyna się semestr letni
-        const checkDate = new Date(date);
-        checkDate.setHours(0,0,0,0);
-        const semesterSwitch = new Date(2026, 1, 23); // luty (index 1)
-
-        if (checkDate < semesterSwitch) {
-            // SEMESTR ZIMOWY
-            return weekNumber % 2 === 0 ? 'WEEK_A' : 'WEEK_B';
-        } else {
-            // SEMESTR LETNI
-            return weekNumber % 2 !== 0 ? 'WEEK_A' : 'WEEK_B';
-        }
+        return Utils.getWeekType(date);
     }
 }
 

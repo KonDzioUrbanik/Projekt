@@ -30,7 +30,7 @@ class ProfileModule {
         ]);
     }
 
-    // NOTATKI
+    // Sekcja: Notatki
     async loadNotes() {
         try {
             const response = await fetch(ProfileModule.CONFIG.API.MY_NOTES);
@@ -50,7 +50,7 @@ class ProfileModule {
     }
 
     renderNotes(notes) {
-        // Aktualizacja statystyki
+        // Aktualizacja licznika
         if (this.statsNotes) {
             this.statsNotes.textContent = notes ? notes.length : 0;
         }
@@ -60,14 +60,14 @@ class ProfileModule {
             return;
         }
 
-        // SORTOWANIE: Najnowsze na górze
+        // Sortowanie: Najnowsze na górze
         notes.sort((a, b) => {
             const dateA = new Date(a.updatedAt || a.createdAt);
             const dateB = new Date(b.updatedAt || b.createdAt);
             return dateB - dateA;
         });
 
-        // 2. LIMIT: Bierzemy 5 pierwszych
+        // Limit wyświetlania: 5 najnowszych
         const recentNotes = notes.slice(0, ProfileModule.CONFIG.LIMITS.NOTES_DISPLAY); 
 
         let html = '';
@@ -90,15 +90,16 @@ class ProfileModule {
         this.notesContainer.innerHTML = html;
     }
 
-    // POSTY
+    // Sekcja: Posty
     async loadPosts() {
-        // Aktualizacja statystyki
+        const posts = []; // Tymczasowe dane (placeholder)
+        
+        // Aktualizacja licznika
         if (this.statsPosts) {
             this.statsPosts.textContent = posts ? posts.length : 0;
         }
 
-        // Placeholder
-        this.renderPosts([]); 
+        this.renderPosts(posts); 
     }
 
     renderPosts(posts) {
@@ -109,15 +110,16 @@ class ProfileModule {
         // logika renderowania postów ...
     }
 
-    // KOMENTARZE
+    // Sekcja: Komentarze
     async loadComments() {
-        // Aktualizacja statystyki
+        const comments = []; // Tymczasowe dane (placeholder)
+
+        // Aktualizacja licznika
         if (this.statsComments) {
             this.statsComments.textContent = comments ? comments.length : 0;
         }
 
-        // Placeholder
-        this.renderComments([]);
+        this.renderComments(comments);
     }
 
     renderComments(comments) {
@@ -131,10 +133,10 @@ class ProfileModule {
             return;
         }
 
-        // logika renderowania komentarzy ...
+        // TODO: Implementacja wyświetlania komentarzy
     }
 
-    // NARZĘDZIA
+    // Sekcja: Narzędzia pomocnicze
 
     showEmptyState(container, iconClass, message, linkUrl, linkText) {
         let btnHtml = '';

@@ -407,4 +407,68 @@ public class UserServiceImpl implements UserService {
                     "Link do resetowania hasła jest nieprawidłowy lub wygasł. Wystąp o nowy link resetujący.");
         }
     }
+
+    @Override
+    @Transactional
+    public void uploadAvatar(Long userId, org.springframework.web.multipart.MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "Plik nie może być pusty");
+        }
+
+        String filename = org.springframework.util.StringUtils.cleanPath(file.getOriginalFilename());
+        String extension = org.springframework.util.StringUtils.getFilenameExtension(filename);
+        List<String> allowedExtensions = java.util.Arrays.asList("jpg", "jpeg", "png", "gif");
+
+        if (extension == null || !allowedExtensions.contains(extension.toLowerCase())) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST,
+                    "Niedozwolone rozszerzenie pliku: " + extension + ". Dozwolone: jpg, png, gif.");
+        }
+
+        String mimeType = file.getContentType();
+        if (mimeType == null || !mimeType.startsWith("image/")) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "Niedozwolony typ pliku: " + mimeType);
+        }
+
+        if (file.getSize() > 5 * 1024 * 1024) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "Plik jest zbyt duży (max 5MB).");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+
+        try {
+            user.setAvatarData(file.getBytes());
+            user.setAvatarContentType(mimeType);
+            userRepository.save(user);
+        } catch (java.io.IOException e) {
+            throw new RuntimeException("Błąd podczas przetwarzania awatara", e);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public User getAvatar(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+
+        if (user.getAvatarData() == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.NOT_FOUND, "Użytkownik nie ma awatara");
+        }
+        return user;
+    }
+
+    @Override
+    @Transactional
+    public void removeAvatar(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+        user.setAvatarData(null);
+        user.setAvatarContentType(null);
+        userRepository.save(user);
+    }
 }

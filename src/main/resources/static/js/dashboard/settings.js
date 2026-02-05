@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function(){
     
     let messageTimeout = null;
 
-    // Character Counter
+    // Licznik znaków w bio
     function updateCharacterCount() {
         if (!bioTextarea || !bioCounter) return;
         const count = bioTextarea.value.length;
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function(){
         bioTextarea.addEventListener('keyup', updateCharacterCount);
     }
 
-    // Tooltip dla readonly
+    // Podpowiedzi dla pól zablokowanych
     document.querySelectorAll('[readonly]').forEach(field => {
         field.addEventListener('click', function() {
             if (!this.dataset.tooltipShown) {
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function(){
         });
     });
 
-    // inicjalizacja
+    // Inicjalizacja danych użytkownika
     async function initialize(){
         try{
             const response = await fetch(CONFIG.API.USER_ME, {
@@ -68,8 +68,6 @@ document.addEventListener('DOMContentLoaded', function(){
                 if(userData.phoneNumber) {
                     const phoneStr = userData.phoneNumber.replace(/\s/g, ''); // usuń ewentualne spacje z bazy
                     
-                    // Zakładamy, że poprawne numery w bazie mają format +XXYYYYYYYYY (prefix + 9 cyfr)
-                    // Jeśli numer jest dłuższy niż 9 znaków, próbujemy wyodrębnić prefix
                     if(phoneStr.length > 9) {
                         const number = phoneStr.slice(-9);
                         const prefix = phoneStr.slice(0, phoneStr.length - 9);
@@ -122,6 +120,9 @@ document.addEventListener('DOMContentLoaded', function(){
                     document.getElementById('bio').value = userData.bio;
                     updateCharacterCount();
                 }
+
+                // Ładowanie awatara
+                loadUserAvatar(userData.id);
             }
         } 
         catch(error){
@@ -129,9 +130,36 @@ document.addEventListener('DOMContentLoaded', function(){
         }
     }
 
+    function loadUserAvatar(userId) {
+        const avatarPreview = document.getElementById('avatarPreview');
+        const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+        const removeAvatarBtn = document.getElementById('removeAvatar');
+        
+        if(!avatarPreview) return;
+
+        // Dodajemy timestamp aby uniknąć cache'owania po zmianie
+        const avatarUrl = `/api/users/${userId}/avatar?t=${new Date().getTime()}`;
+        
+        const img = new Image();
+        img.onload = function() {
+            avatarPreview.src = avatarUrl;
+            avatarPreview.style.display = 'block';
+            avatarPlaceholder.style.display = 'none';
+            if(removeAvatarBtn) removeAvatarBtn.style.display = 'inline-flex';
+        };
+        img.onerror = function() {
+            // Brak awatara - placeholder + inicjały
+            avatarPreview.style.display = 'none';
+            avatarPlaceholder.style.display = 'flex';
+            initializeAvatar(); 
+            if(removeAvatarBtn) removeAvatarBtn.style.display = 'none';
+        };
+        img.src = avatarUrl;
+    }
+
     initialize();
 
-    // obsluga anulowania
+    // Obsługa przycisku Anuluj
     cancelButton.addEventListener('click', function(){
         if (confirm('Czy na pewno chcesz anulować? Wszystkie niezapisane dane zostaną trwale utracone.')){
             window.location.href = '/dashboard';
@@ -140,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
 
 
-    // funkcja wyswietlania komunikatow
+    // Wyświetlanie komunikatów w formularzu
     function showMessage(message, type){
         if(messageTimeout) {
             clearTimeout(messageTimeout);
@@ -166,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function(){
         }, 5000);
     }
 
-    // inicjalizacja awatara z inicjalow
+    // Generowanie awatara z inicjałów
     function initializeAvatar(){
         const firstName = document.getElementById('firstName').value || '';
         const lastName = document.getElementById('lastName').value || '';
@@ -182,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function(){
         let autoSaveTimer = null;
         let avatarFile = null;
 
-        // Avatar Upload
+        // Obsługa wgrywania awatara
         const avatarUploadZone = document.getElementById('avatarUploadZone');
         const avatarInput = document.getElementById('avatarInput');
         const avatarPreview = document.getElementById('avatarPreview');
@@ -251,10 +279,10 @@ document.addEventListener('DOMContentLoaded', function(){
         if (avatarPreviewContainer && avatarInput) {
             avatarPreviewContainer.addEventListener('click', (e) => {
                 if (originalImageSrc) {
-                    // Jeśli mamy oryginał w pamięci (sesja), edytujemy go
+                    // Edycja istniejącego zdjęcia z pamięci
                     openCropModal(originalImageSrc);
                 } else {
-                    // Jeśli nie (np. zdjęcie z serwera), wybieramy nowy plik
+                    // Wybór nowego pliku
                     avatarInput.click();
                 }
             });
@@ -270,10 +298,10 @@ document.addEventListener('DOMContentLoaded', function(){
 
             modal.classList.add('visible');
             
-            // Constants
+            // Stałe konfiguracyjne
             const CROP_SIZE = 250; 
             
-            // Variables
+            // Zmienne stanu
             let scale = 1;
             let minScale = 1;
             let maxScale = 5;
@@ -282,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function(){
             let isDragging = false;
             let startX, startY;
             
-            // Image Loaded Handler
+            // Obsługa załadowania obrazu
             cropImage.onload = function() {
                 const w = this.naturalWidth;
                 const h = this.naturalHeight;
@@ -307,7 +335,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
             cropImage.src = imageSrc;
             
-            // Slider Logic
+            // Obsługa suwaka przybliżenia
             if(cropZoom) {
                 cropZoom.oninput = function() {
                     scale = parseFloat(this.value);
@@ -316,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function(){
                 }
             }
 
-            // Mouse wheel & Drag logic
+            // Obsługa myszy (kółko i przeciąganie)
             const container = document.getElementById('cropContainer');
             if(container) {
                 container.onwheel = function(e) {
@@ -375,7 +403,7 @@ document.addEventListener('DOMContentLoaded', function(){
                 cropImage.style.transform = `translate(calc(-50% + ${posX}px), calc(-50% + ${posY}px)) scale(${scale})`;
             }
 
-            // SAVE CROP Logic
+            // Zapisywanie wykadrowanego zdjęcia
             const saveBtn = document.getElementById('saveCrop');
             // Usuwamy stare listenery (klonowanie elementu to prosty trick)
             const newSaveBtn = saveBtn.cloneNode(true);
@@ -413,7 +441,7 @@ document.addEventListener('DOMContentLoaded', function(){
             };
 
             const cancelBtn = document.getElementById('cancelCrop');
-            // Reset listenera cancel
+            // Reset obsługi przycisku Anuluj
             const newCancelBtn = cancelBtn.cloneNode(true);
             cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
 
@@ -444,9 +472,49 @@ document.addEventListener('DOMContentLoaded', function(){
             }, 100);
         }
 
+        let shouldDeleteAvatar = false;
+        
+        function handleAvatarFile(file) {
+            // Walidacja rozszerzenia (po nazwie pliku)
+            const allowedExtensions = /(\.jpg|\.jpeg|\.png|\.gif)$/i;
+            if (!allowedExtensions.exec(file.name)) {
+                showMessage('Niedozwolone rozszerzenie pliku. Dozwolone są tylko: JPG, JPEG, PNG, GIF.', 'error');
+                avatarFile = null; // Reset
+                if (avatarInput) avatarInput.value = ''; // Reset input
+                return;
+            }
+
+            // Walidacja typu MIME (dodatkowe zabezpieczenie)
+            if (!file.type.match('image.*')) {
+                showMessage('Proszę wybrać plik obrazu (JPG, PNG, GIF).', 'error');
+                avatarFile = null;
+                if (avatarInput) avatarInput.value = '';
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                showMessage('Plik jest za duży. Maksymalny rozmiar to 5MB.', 'error');
+                avatarFile = null;
+                if (avatarInput) avatarInput.value = '';
+                return;
+            }
+
+            avatarFile = file;
+            shouldDeleteAvatar = false; // Reset flag
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                originalImageSrc = e.target.result;
+                openCropModal(originalImageSrc);
+            };
+            reader.readAsDataURL(file);
+        }
+
         if (removeAvatarBtn) {
             removeAvatarBtn.addEventListener('click', () => {
                 avatarFile = null;
+                shouldDeleteAvatar = true; // Set flag
+                avatarPreview.src = '#'; // Clear src
                 avatarPreview.style.display = 'none';
                 avatarPlaceholder.style.display = 'flex';
                 removeAvatarBtn.style.display = 'none';
@@ -457,7 +525,7 @@ document.addEventListener('DOMContentLoaded', function(){
             });
         }
 
-        // Real-time Validation
+        // Walidacja w czasie rzeczywistym
         const nickNameInput = document.getElementById('nickName');
         const phoneInput = document.getElementById('phone');
 
@@ -503,8 +571,6 @@ document.addEventListener('DOMContentLoaded', function(){
             return isValid;
         }
 
-        // Usunięto walidację realtime dla nickName (zgodnie z życzeniem)
-
         // Listener dla telefonu - tylko cyfry (bez formatowania)
         if (phoneInput) {
             phoneInput.addEventListener('input', (e) => {
@@ -513,7 +579,7 @@ document.addEventListener('DOMContentLoaded', function(){
             });
         }
 
-        // WALIDACJA FORMULARZA
+        // Walidacja przed wysłaniem formularza
         const settingsForm = document.querySelector('form');
         const fieldOfStudySelect = document.getElementById('fieldOfStudy');
         const yearOfStudySelect = document.getElementById('yearOfStudy');
@@ -546,7 +612,7 @@ document.addEventListener('DOMContentLoaded', function(){
             const bio = bioTextarea ? bioTextarea.value.trim() : '';
             const phoneNumber = phoneInput ? phoneInput.value.trim() : '';
             
-            // 1. Walidacja selectów (tylko jeśli były wcześniej ustawione)
+            // Walidacja selectów (tylko jeśli były wcześniej ustawione)
             if (fieldOfStudySelect && fieldOfStudySelect.dataset.wasSet === 'true' && fieldOfStudySelect.value === '') {
                  showMessage('Musisz wybrać kierunek studiów.', 'error');
                  return false;
@@ -562,13 +628,13 @@ document.addEventListener('DOMContentLoaded', function(){
                  return false;
             }
 
-            // 2. Walidacja bio
+            // Walidacja bio
             if(bio && bio.length > 500){
                 showMessage('Opis "O mnie" może mieć maksymalnie 500 znaków', 'error');
                 return false;
             }
 
-            // 3. Walidacja telefonu (proste 9 cyfr)
+            // Walidacja telefonu (proste 9 cyfr)
             if(phoneNumber && phoneNumber.length > 0) {
                  if (!/^\d{9}$/.test(phoneNumber)) {
                      showMessage('Numer telefonu musi składać się z 9 cyfr', 'error');
@@ -653,6 +719,26 @@ document.addEventListener('DOMContentLoaded', function(){
                     });
 
                     if(response.ok){
+                        // Obsługa Awatara (Upload / Delete)
+                        try {
+                            if (shouldDeleteAvatar) {
+                                await fetch('/api/users/me/avatar', {
+                                    method: 'DELETE',
+                                    credentials: 'include'
+                                });
+                            } else if (avatarFile) {
+                                const formData = new FormData();
+                                formData.append('file', avatarFile);
+                                await fetch('/api/users/me/avatar', {
+                                    method: 'POST',
+                                    credentials: 'include',
+                                    body: formData
+                                });
+                            }
+                        } catch (avatarError) {
+                            console.error("Błąd podczas aktualizacji awatara:", avatarError);
+                        }
+
                         const updatedUser = await response.json();
                         
                         // Sukces - animacja
@@ -695,7 +781,7 @@ document.addEventListener('DOMContentLoaded', function(){
             });
         }
 
-        // Success Animation
+        // Animacja sukcesu
         window.showSuccessAnimation = function() {
             const overlay = document.createElement('div');
             overlay.className = 'success-overlay';

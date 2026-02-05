@@ -17,8 +17,14 @@
                 </div>
                 <div class="user-menu-wrapper">
                     <div class="user-info" id="userMenuToggle">
-                        <div class="user-avatar">
-                            <i class="fas fa-user"></i>
+                        <div class="user-avatar" style="overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                            <img th:if="${currentUser != null}" 
+                                 th:src="@{'/api/users/' + ${currentUser.id} + '/avatar'}" 
+                                 style="width: 100%; height: 100%; object-fit: cover;"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" 
+                                 alt="Avatar">
+                            <i class="fas fa-user" style="display:none; font-size: 1.2rem;"></i>
+                            <i th:if="${currentUser == null}" class="fas fa-user"></i>
                         </div>
                         <div class="user-details">
                             <span class="user-name" th:text="${currentUser?.firstName} + ' ' + ${currentUser?.lastName}"></span>

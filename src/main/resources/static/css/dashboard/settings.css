@@ -944,7 +944,7 @@ select.form-control {
 }
 
 .success-checkmark {
-    background: white;
+    background: var(--bg-card);
     padding: 50px;
     border-radius: 20px;
     text-align: center;
@@ -953,67 +953,78 @@ select.form-control {
     transition: transform 0.3s ease;
 }
 
-.success-overlay.show .success-checkmark {
-    transform: scale(1);
-}
-
-.checkmark {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 20px;
-}
-
-.checkmark-circle {
-    stroke: #10b981;
-    stroke-width: 3;
-    stroke-dasharray: 166;
-    stroke-dashoffset: 166;
-    fill: none;
-    animation: checkmark-circle 0.6s ease-in-out forwards;
-}
-
-.checkmark-check {
-    stroke: #10b981;
-    stroke-width: 4;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-dasharray: 48;
-    stroke-dashoffset: 48;
-    fill: none;
-    animation: checkmark-check 0.3s 0.6s ease-in-out forwards;
-}
-
-@keyframes checkmark-circle {
-    from {
-        stroke-dashoffset: 166;
-    }
-
-    to {
-        stroke-dashoffset: 0;
-    }
-}
-
-@keyframes checkmark-check {
-    from {
-        stroke-dashoffset: 48;
-    }
-
-    to {
-        stroke-dashoffset: 0;
-    }
-}
-
 .success-checkmark h3 {
     margin: 0 0 10px 0;
-    color: #1f2937;
+    color: var(--text-dark);
     font-size: 1.5rem;
     font-weight: 700;
 }
 
 .success-checkmark p {
     margin: 0;
-    color: #6b7280;
+    color: var(--text-light);
     font-size: 1rem;
+}
+
+/* Success Checkmark Animation */
+.checkmark {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: block;
+    stroke-width: 2;
+    stroke: #10b981;
+    stroke-miterlimit: 10;
+    margin: 0 auto 15px auto;
+    box-shadow: inset 0px 0px 0px #10b981;
+    animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+}
+
+.checkmark-circle {
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    stroke-width: 2;
+    stroke-miterlimit: 10;
+    stroke: #10b981;
+    fill: none;
+    animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.checkmark-check {
+    transform-origin: 50% 50%;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    fill: none;
+    /* Kluczowe dla poprawnego wyglądu */
+    stroke: #10b981;
+    /* Wymuszenie koloru */
+    stroke-width: 3;
+    /* Troszkę grubszy dla lepszej widoczności */
+    animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+}
+
+@keyframes stroke {
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes scale {
+
+    0%,
+    100% {
+        transform: none;
+    }
+
+    50% {
+        transform: scale3d(1.1, 1.1, 1);
+    }
+}
+
+@keyframes fill {
+    100% {
+        box-shadow: inset 0px 0px 0px 30px transparent;
+    }
 }
 
 /* CROP MODAL STYLES */

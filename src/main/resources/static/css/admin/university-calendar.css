@@ -300,6 +300,43 @@
     .months-grid {
         grid-template-columns: 1fr;
     }
+
+    /* Panel zarządzania - responsywność */
+    .management-panel {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+
+    .panel-title {
+        margin-bottom: 0.5rem;
+    }
+
+    .panel-title h3 {
+        justify-content: center;
+    }
+
+    .panel-actions {
+        justify-content: center;
+    }
+
+    .btn-panel {
+        flex: 1;
+        min-width: 140px;
+        justify-content: center;
+    }
+}
+
+/* Bardzo małe ekrany */
+@media (max-width: 480px) {
+    .panel-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-panel {
+        width: 100%;
+    }
 }
 
 /* DARK MODE */
@@ -403,6 +440,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
     background: white;
     padding: 1rem 1.5rem;
     border-radius: 12px;
@@ -422,7 +461,8 @@
 
 .panel-actions {
     display: flex;
-    gap: 1rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
 }
 
 .btn-panel {

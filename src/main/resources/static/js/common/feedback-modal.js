@@ -1,3 +1,5 @@
+'use strict';
+
 /* FEEDBACK MODAL - Obsługa zgłaszania problemów */
 
 const FeedbackModal = {
@@ -19,6 +21,7 @@ const FeedbackModal = {
     },
 
     // Cachowanie elementów DOM
+    // Cachowanie elementów DOM
     cacheElements() {
         this.elements = {
             btn: document.getElementById('feedbackBtn'),
@@ -29,7 +32,8 @@ const FeedbackModal = {
             submitBtn: document.getElementById('submitFeedback'),
             message: document.getElementById('feedbackMessage'),
             description: document.getElementById('feedback-description'),
-            charCount: document.getElementById('charCount')
+            charCount: document.getElementById('charCount'),
+            fileInput: document.getElementById('feedback-file')
         };
     },
 
@@ -41,10 +45,7 @@ const FeedbackModal = {
         // Zamykanie modalu
         this.elements.closeBtn.addEventListener('click', () => this.close());
         this.elements.cancelBtn.addEventListener('click', () => this.close());
-        // this.elements.modal.addEventListener('click', (e) => {
-        //     if (e.target === this.elements.modal) this.close();
-        // });
-
+        
         // Escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.elements.modal.classList.contains('active')) {
@@ -55,11 +56,41 @@ const FeedbackModal = {
         // Licznik znaków
         this.elements.description.addEventListener('input', () => this.updateCharCount());
 
+        // Walidacja pliku przy wyborze
+        if (this.elements.fileInput) {
+            this.elements.fileInput.addEventListener('change', (e) => this.validateFile(e.target));
+        }
+
         // Submit formularza
         this.elements.form.addEventListener('submit', (e) => {
             e.preventDefault();
             this.submit();
         });
+    },
+
+    validateFile(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        // Walidacja rozmiaru (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            this.showMessage('Plik jest zbyt duży (maksymalnie 5MB).', 'error');
+            input.value = ''; // Reset input
+            return;
+        }
+
+        // Walidacja rozszerzenia
+        const allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
+        const fileName = file.name.toLowerCase();
+        const isValid = allowedExtensions.some(ext => fileName.endsWith('.' + ext));
+
+        if (!isValid) {
+            this.showMessage('Niedozwolony format pliku. Dozwolone: jpg, jpeg, png, pdf.', 'error');
+            input.value = ''; // Reset input
+            return;
+        }
+
+        this.hideMessage();
     },
 
     // Otwieranie modalu
@@ -85,8 +116,12 @@ const FeedbackModal = {
 
     // Aktualizacja licznika znaków
     updateCharCount() {
-        const length = this.elements.description.value.length;
-        this.elements.charCount.textContent = length;
+        if (this.elements.description) {
+            const length = this.elements.description.value.length;
+            if (this.elements.charCount) {
+                this.elements.charCount.textContent = length;
+            }
+        }
     },
 
     // Pokazywanie wiadomości
@@ -104,30 +139,35 @@ const FeedbackModal = {
     async submit() {
         const submitBtn = this.elements.submitBtn;
         const formData = new FormData(this.elements.form);
+        
+        // Dodatkowe metadane
+        formData.append('url', window.location.href);
+        formData.append('userAgent', navigator.userAgent);
 
-        // Dane formularza
-        const data = {
-            type: formData.get('type'),
-            title: formData.get('title').trim(),
-            description: formData.get('description').trim(),
-            email: formData.get('email')?.trim() || null,
-            url: window.location.href,
-            userAgent: navigator.userAgent
-        };
+        // Pobranie wartości do walidacji
+        const title = formData.get('title')?.trim();
+        const description = formData.get('description')?.trim();
+        const file = formData.get('file');
 
         // Walidacja
-        if (!data.title || !data.description) {
+        if (!title || !description) {
             this.showMessage('Wszystkie wymagane pola muszą zostać wypełnione.', 'error');
             return;
         }
 
-        if (data.title.length < 5) {
+        if (title.length < 5) {
             this.showMessage('Tytuł musi zawierać minimum 5 znaków.', 'error');
             return;
         }
 
-        if (data.description.length < 10) {
+        if (description.length < 10) {
             this.showMessage('Opis musi zawierać minimum 10 znaków.', 'error');
+            return;
+        }
+
+        // Walidacja pliku (rozmiar)
+        if (file && file.size > 0 && file.size > 5 * 1024 * 1024) { // 5MB
+            this.showMessage('Plik jest zbyt duży (maksymalnie 5MB).', 'error');
             return;
         }
 
@@ -138,14 +178,23 @@ const FeedbackModal = {
         try {
             const response = await fetch(this.CONFIG.API.SUBMIT, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
+                body: formData
             });
 
             if (!response.ok) {
-                throw new Error('Błąd serwera');
+                // Próba odczytania komunikatu błędu z backendu
+                let errorMsg = 'Błąd serwera';
+                try {
+                    const errorData = await response.json();
+                    errorMsg = errorData.message || errorMsg;
+                } catch(e) {
+                    // Fallback to text if not JSON
+                    try {
+                         const text = await response.text();
+                         if(text) errorMsg = text;
+                    } catch(e2) {}
+                }
+                throw new Error(errorMsg);
             }
 
             const result = await response.json();
@@ -161,7 +210,7 @@ const FeedbackModal = {
         } 
         catch (error) {
             console.error('Błąd wysyłania zgłoszenia:', error);
-            this.showMessage('Nie udało się wysłać zgłoszenia. Sprawdź połączenie internetowe i spróbuj ponownie.', 'error');
+            this.showMessage(error.message || 'Nie udało się wysłać zgłoszenia. Sprawdź połączenie internetowe i spróbuj ponownie.', 'error');
         } 
         finally {
             // Enable button

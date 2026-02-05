@@ -1,3 +1,5 @@
+'use strict';
+
 document.addEventListener("DOMContentLoaded", () => {
 
     const loginForm = document.getElementById("loginForm");
@@ -37,7 +39,9 @@ document.addEventListener("DOMContentLoaded", () => {
             try{
                 data = await response.json();
             } 
-            catch{
+            catch(jsonError){
+                // Serwer nie zwrócił poprawnego JSON - używamy pustego obiektu
+                console.warn('Odpowiedź serwera nie jest poprawnym JSON:', jsonError);
                 data = {};
             }
 
