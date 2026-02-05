@@ -388,6 +388,31 @@
         padding: 1rem;
     }
 
+    /* Nawigacja tygodniowa - responsywność */
+    .schedule-controls {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 0.75rem;
+    }
+
+    .week-navigation {
+        order: 1;
+    }
+
+    .current-week-info {
+        order: 0;
+    }
+
+    .next-class-widget {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .next-class-content {
+        flex-direction: column;
+    }
+
     /* Siatka jest przewijalna poziomo */
     .schedule-grid {
         display: grid;

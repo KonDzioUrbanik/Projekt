@@ -1,3 +1,5 @@
+'use strict';
+
 document.addEventListener('DOMContentLoaded', () => {
 
     const registerForm = document.getElementById('registerForm');

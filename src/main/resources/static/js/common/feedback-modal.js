@@ -1,3 +1,5 @@
+'use strict';
+
 /* FEEDBACK MODAL - Obsługa zgłaszania problemów */
 
 const FeedbackModal = {

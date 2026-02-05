@@ -1,3 +1,5 @@
+'use strict';
+
 class ScheduleManagement {
     static CONFIG = {
         API: {
@@ -56,7 +58,11 @@ class ScheduleManagement {
         document.getElementById('typeFilter').addEventListener('change', () => this.applyFilters());
         document.getElementById('groupFilter').addEventListener('change', () => this.applyFilters());
         document.getElementById('teacherFilter').addEventListener('change', () => this.applyFilters());
-        document.getElementById('searchInput').addEventListener('input', () => this.applyFilters());
+        
+        // Debounce na wyszukiwarce - 300ms opóźnienia dla lepszej wydajności
+        const debouncedSearch = Utils.debounce(() => this.applyFilters(), 300);
+        document.getElementById('searchInput').addEventListener('input', debouncedSearch);
+        
         document.getElementById('resetFilters').addEventListener('click', () => this.resetFilters());
         
         // Masowe usuwanie
@@ -112,8 +118,13 @@ class ScheduleManagement {
                 // Obsługa przycisku edycji (także kliknięcie w ikonę)
                 const editBtn = e.target.closest('.btn-edit');
                 if (editBtn) {
-                    const scheduleData = JSON.parse(editBtn.getAttribute('data-schedule'));
-                    this.openModal(scheduleData);
+                    const scheduleJson = editBtn.getAttribute('data-schedule');
+                    const scheduleData = Utils.safeJsonParse(scheduleJson, null);
+                    if (scheduleData) {
+                        this.openModal(scheduleData);
+                    } else {
+                        console.error('Błąd parsowania danych zajęć');
+                    }
                     return;
                 }
 
@@ -354,19 +365,29 @@ class ScheduleManagement {
             return;
         }
 
-        tableBody.innerHTML = data.map(item => `
+        tableBody.innerHTML = data.map(item => {
+            // Escapowanie danych (XSS prevention)
+            const safeTitle = Utils.escapeHtml(item.title);
+            const safeRoom = Utils.escapeHtml(item.room);
+            const safeTeacher = Utils.escapeHtml(item.teacher);
+            const dayName = ScheduleManagement.CONFIG.DAY_NAMES[item.dayOfWeek] || item.dayOfWeek;
+            const classTypeName = ScheduleManagement.CONFIG.CLASS_TYPES[item.classType] || item.classType;
+            const weekTypeName = ScheduleManagement.CONFIG.WEEK_TYPES[item.weekType] || item.weekType || 'Każdy';
+            const groupNames = item.studentGroups && item.studentGroups.length > 0 
+                ? item.studentGroups.map(g => Utils.escapeHtml(g.name)).join(', ') 
+                : '-';
+            
+            return `
             <tr>
                 <td>${item.id}</td>
-                <td><strong>${item.title}</strong></td>
-                <td><span class="day-badge">${ScheduleManagement.CONFIG.DAY_NAMES[item.dayOfWeek]}</span></td>
-                <td>${this.formatTime(item.startTime)} - ${this.formatTime(item.endTime)}</td>
-                <td>${item.room}</td>
-                <td>${item.teacher}</td>
-                <td><span class="class-type-badge ${item.classType}">${ScheduleManagement.CONFIG.CLASS_TYPES[item.classType]}</span></td>
-                <td><span class="week-badge">${ScheduleManagement.CONFIG.WEEK_TYPES[item.weekType] || item.weekType || 'Każdy'}</span></td>
-                <td>${item.studentGroups && item.studentGroups.length > 0 
-                    ? item.studentGroups.map(g => g.name).join(', ') 
-                    : '-'}</td>
+                <td><strong>${safeTitle}</strong></td>
+                <td><span class="day-badge">${dayName}</span></td>
+                <td>${Utils.formatTime(item.startTime)} - ${Utils.formatTime(item.endTime)}</td>
+                <td>${safeRoom}</td>
+                <td>${safeTeacher}</td>
+                <td><span class="class-type-badge ${item.classType}">${classTypeName}</span></td>
+                <td><span class="week-badge">${weekTypeName}</span></td>
+                <td>${groupNames}</td>
                 <td>
                     <div class="action-buttons">
                         <button class="action-btn btn-edit" title="Edytuj" data-schedule='${JSON.stringify(item).replace(/'/g, "&#39;")}'>
@@ -378,7 +399,7 @@ class ScheduleManagement {
                     </div>
                 </td>
             </tr>
-        `).join('');
+        `}).join('');
     }
     
     renderErrorState() {

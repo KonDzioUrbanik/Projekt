@@ -240,4 +240,115 @@
         display: inline !important;
         opacity: 1 !important;
     }
+
+    /* Ikona w aktywnym przycisku - biała */
+    .btn-navbar-left.active i {
+        color: white;
+    }
+
+    /* Sekcja admin na mobile - wyróżnienie niebieską ramką */
+    .admin-section {
+        display: contents;
+        border: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .admin-section-label {
+        display: none;
+    }
+
+    .admin-section .btn-navbar-left {
+        border: 2px solid var(--color-primary);
+        color: var(--color-primary);
+        background: transparent;
+    }
+
+    .admin-section .btn-navbar-left i {
+        color: var(--color-primary);
+    }
+
+    .admin-section .btn-navbar-left.active {
+        background: var(--color-primary);
+        color: white;
+        border-color: var(--color-primary);
+    }
+
+    .admin-section .btn-navbar-left.active i {
+        color: white;
+    }
+
+    .admin-section .btn-navbar-left:hover {
+        background: rgba(0, 94, 250, 0.1);
+        color: var(--color-primary);
+    }
+}
+
+/* DARK MODE - MOBILE */
+@media (max-width: 992px) {
+
+    [data-theme="dark"] .navbar-left,
+    [data-theme="dark"] .navbar-left.collapsed {
+        background: var(--bg-card);
+        border-bottom-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .btn-navbar-left {
+        background: var(--bg-step);
+        color: var(--text-main);
+        border-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .btn-navbar-left i {
+        color: var(--text-secondary);
+    }
+
+    /* Aktywny przycisk w dark mode - biała ikona i tekst */
+    [data-theme="dark"] .btn-navbar-left.active {
+        background: var(--color-primary);
+        color: white;
+        border-color: var(--color-primary);
+    }
+
+    [data-theme="dark"] .btn-navbar-left.active i {
+        color: white !important;
+    }
+
+    [data-theme="dark"] .btn-navbar-left:hover {
+        background: var(--bg-step);
+        color: var(--text-main);
+        border-color: var(--color-primary);
+    }
+
+    /* Admin section w dark mode - wyraźna niebieska ramka z większym kontrastem */
+    [data-theme="dark"] .admin-section .btn-navbar-left {
+        border: 2px solid #60a5fa !important;
+        color: #93c5fd !important;
+        background: rgba(59, 130, 246, 0.15) !important;
+    }
+
+    [data-theme="dark"] .admin-section .btn-navbar-left i {
+        color: #93c5fd !important;
+    }
+
+    /* Aktywny admin item z wypełnieniem */
+    [data-theme="dark"] .admin-section .btn-navbar-left.active {
+        background: var(--color-primary) !important;
+        color: white !important;
+        border-color: var(--color-primary) !important;
+    }
+
+    [data-theme="dark"] .admin-section .btn-navbar-left.active i {
+        color: white !important;
+    }
+
+    [data-theme="dark"] .admin-section .btn-navbar-left:hover {
+        background: rgba(59, 130, 246, 0.25) !important;
+        color: #bfdbfe !important;
+        border-color: #93c5fd !important;
+    }
+
+    [data-theme="dark"] .admin-section .btn-navbar-left:hover i {
+        color: #bfdbfe;
+    }
 }

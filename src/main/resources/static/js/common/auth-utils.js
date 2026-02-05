@@ -1,3 +1,5 @@
+'use strict';
+
 /* WSPÓLNE NARZĘDZIA DLA MODUŁÓW AUTORYZACJI */
 
 const AUTH_CONFIG = {
@@ -28,6 +30,7 @@ function displayMessage(container, message, isSuccess = false) {
         return;
     }
     
+    // Escapowanie HTML dla bezpieczeństwa (XSS prevention)
     container.innerHTML = message;
     container.className = isSuccess ? 'form-message success' : 'form-message error';
 }
@@ -82,6 +85,17 @@ function redirectAfterDelay(url, delay = AUTH_CONFIG.TIMING.REDIRECT_DELAY) {
     }, delay);
 }
 
+/* Escapuje HTML - helper dla komunikatów błędów */
+function escapeHtmlForAuth(text) {
+    if (text === null || text === undefined) return '';
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 /* Obsługuje błędy HTTP i zwraca odpowiedni komunikat */
 function getErrorMessage(response, data = {}) {
     let errorMsg = 'Wystąpił nieoczekiwany błąd. Proszę skontaktować się z administratorem, jeśli problem będzie się powtarzać.';
@@ -106,14 +120,17 @@ function getErrorMessage(response, data = {}) {
             errorMsg = data.message || data.detail || 'Wystąpił nieoczekiwany błąd. Proszę skontaktować się z administratorem, jeśli problem będzie się powtarzać.';
     }
     
-    // Dodanie listy błędów walidacji, jeśli istnieje
+    // Escapowanie głównego komunikatu
+    let safeErrorMsg = escapeHtmlForAuth(errorMsg);
+    
+    // Dodanie listy błędów walidacji, jeśli istnieje (każdy element escapowany)
     if (data.errors && Array.isArray(data.errors)) {
-        errorMsg += '<ul>';
+        safeErrorMsg += '<ul>';
         data.errors.forEach(err => {
-            errorMsg += `<li>${err}</li>`;
+            safeErrorMsg += `<li>${escapeHtmlForAuth(err)}</li>`;
         });
-        errorMsg += '</ul>';
+        safeErrorMsg += '</ul>';
     }
     
-    return errorMsg;
+    return safeErrorMsg;
 }

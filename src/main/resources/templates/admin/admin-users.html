@@ -106,102 +106,105 @@
                     </div>
                 </div>
                 
-                <table class="users-table">
-                    <thead>
-                        <tr>
-                            <th class="sortable" data-column="0" data-type="number">
-                                ID <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="sortable" data-column="1" data-type="text">
-                                Imię i Nazwisko <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="sortable" data-column="2" data-type="text">
-                                Email <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="sortable" data-column="3" data-type="text">
-                                Rola <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="sortable" data-column="4" data-type="text">
-                                Kierunek <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="sortable" data-column="5" data-type="number">
-                                Rok <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="sortable" data-column="6" data-type="number">
-                                NrAlbumu <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th>Akcje</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="user : ${users}" 
-                            th:data-year="${user.yearOfStudy}" 
-                            th:data-status="${user.isActivated}">
+                <!-- Kontener na tabelę z osobnym przewijaniem -->
+                <div class="table-scroll-container">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-column="0" data-type="number">
+                                    ID <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="sortable" data-column="1" data-type="text">
+                                    Imię i Nazwisko <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="sortable" data-column="2" data-type="text">
+                                    Email <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="sortable" data-column="3" data-type="text">
+                                    Rola <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="sortable" data-column="4" data-type="text">
+                                    Kierunek <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="sortable" data-column="5" data-type="number">
+                                    Rok <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="sortable" data-column="6" data-type="number">
+                                    NrAlbumu <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th>Akcje</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="user : ${users}" 
+                                th:data-year="${user.yearOfStudy}" 
+                                th:data-status="${user.isActivated}">
 
-                            <td th:text="${user.id}">1</td>
+                                <td th:text="${user.id}">1</td>
 
-                            <td>
-                                <div class="user-cell">
-                                    <div class="user-avatar-icon">
-                                        <i class="fas fa-user"></i>
-                                        <span class="status-dot" 
-                                              th:classappend="${user.isActivated} ? 'status-active' : 'status-inactive'"
-                                              th:title="${user.isActivated} ? 'Konto aktywne' : 'Konto nieaktywne'">
-                                        </span>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="user-avatar-icon">
+                                            <i class="fas fa-user"></i>
+                                            <span class="status-dot" 
+                                                  th:classappend="${user.isActivated} ? 'status-active' : 'status-inactive'"
+                                                  th:title="${user.isActivated} ? 'Konto aktywne' : 'Konto nieaktywne'">
+                                            </span>
+                                        </div>
+                                        <span th:text="${user.firstName} + ' ' + ${user.lastName}"> </span>
                                     </div>
-                                    <span th:text="${user.firstName} + ' ' + ${user.lastName}"> </span>
-                                </div>
-                            </td>
+                                </td>
 
-                            <td th:text="${user.email}"> </td>
+                                <td th:text="${user.email}"> </td>
 
-                            <td>
-                                <span class="badge" th:classappend="${user.role == 'ADMIN'} ? 'badge-admin' : (${user.role == 'STAROSTA'} ? 'badge-starosta' : 'badge-student')" th:text="${user.role}"> </span>
-                            </td>
+                                <td>
+                                    <span class="badge" th:classappend="${user.role == 'ADMIN'} ? 'badge-admin' : (${user.role == 'STAROSTA'} ? 'badge-starosta' : 'badge-student')" th:text="${user.role}"> </span>
+                                </td>
 
-                            <td>
-                                <span th:if="${user.groupName != null}" th:text="${user.groupName}"></span>
-                                <i th:if="${user.groupName == null}">Nie przypisano kierunku</i>
-                            </td>
-                            
-                            <td th:text="${user.yearOfStudy != null} ? ${user.yearOfStudy} : '-'"> </td>
-                            
-                            <td th:text="${user.nrAlbumu != null} ? ${user.nrAlbumu} : '-'"> </td>
-
-                            <td>
-                                <button class="action-btn btn-edit" title="Edytuj"
-                                        th:if="${user.role != 'ADMIN'}" 
-                                        th:data-email="${user.email}"
-                                        th:data-firstname="${user.firstName}"
-                                        th:data-lastname="${user.lastName}"
-                                        th:data-role="${user.role}"
-                                        th:data-group="${user.groupName != null ? user.groupName : ''}"
-                                        onclick="openEditModal(this)">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-
-                                <button class="action-btn btn-delete" title="Usuń" 
-                                        th:if="${user.role != 'ADMIN'}">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
+                                <td>
+                                    <span th:if="${user.groupName != null}" th:text="${user.groupName}"></span>
+                                    <i th:if="${user.groupName == null}">Nie przypisano kierunku</i>
+                                </td>
                                 
-                                <span th:if="${user.role == 'ADMIN'}" class="admin-protected-icon">
-                                    <i class="fas fa-lock" title="Konto chronione"></i>
-                                </span>
-                            </td>
-                        </tr>
-                    </tbody>
-                        <tr th:if="${users.empty}">
-                            <td colspan="7" class="empty-state-cell">
-                                <div class="empty-state">
-                                    <i class="fas fa-users"></i>
-                                    <h3>Brak użytkowników</h3>
-                                    <p>Nie znaleziono żadnych użytkowników spełniających podane kryteria.</p>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                                <td th:text="${user.yearOfStudy != null} ? ${user.yearOfStudy} : '-'"> </td>
+                                
+                                <td th:text="${user.nrAlbumu != null} ? ${user.nrAlbumu} : '-'"> </td>
+
+                                <td>
+                                    <button class="action-btn btn-edit" title="Edytuj"
+                                            th:if="${user.role != 'ADMIN'}" 
+                                            th:data-email="${user.email}"
+                                            th:data-firstname="${user.firstName}"
+                                            th:data-lastname="${user.lastName}"
+                                            th:data-role="${user.role}"
+                                            th:data-group="${user.groupName != null ? user.groupName : ''}"
+                                            onclick="openEditModal(this)">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+
+                                    <button class="action-btn btn-delete" title="Usuń" 
+                                            th:if="${user.role != 'ADMIN'}">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                    
+                                    <span th:if="${user.role == 'ADMIN'}" class="admin-protected-icon">
+                                        <i class="fas fa-lock" title="Konto chronione"></i>
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                            <tr th:if="${users.empty}">
+                                <td colspan="7" class="empty-state-cell">
+                                    <div class="empty-state">
+                                        <i class="fas fa-users"></i>
+                                        <h3>Brak użytkowników</h3>
+                                        <p>Nie znaleziono żadnych użytkowników spełniających podane kryteria.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div id="editUserModal" class="modal-overlay">

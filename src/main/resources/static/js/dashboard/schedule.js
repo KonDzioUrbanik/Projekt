@@ -1,3 +1,5 @@
+'use strict';
+
 class ScheduleCalendar{
     static CONFIG = {
         API_ENDPOINT: '/api/schedule',
@@ -112,7 +114,7 @@ class ScheduleCalendar{
             grid.innerHTML = `
                 <div class="error-message">
                     <h3>Błąd ładowania harmonogramu zajęć</h3>
-                    <p>${error.message}</p>
+                    <p>${Utils.escapeHtml(error.message)}</p>
                 </div>
             `;
             grid.style.display = 'block';
@@ -166,34 +168,14 @@ class ScheduleCalendar{
         document.getElementById('weekTypeLabel').textContent = weekName;
     }
 
-    // Obliczanie numeru tygodnia (ISO 8601)
+    // Obliczanie numeru tygodnia - używa Utils
     getWeekNumber(d) {
-        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-        var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-        var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-        return weekNo;
+        return Utils.getWeekNumber(d);
     }
 
-    // Typ tygodnia: A (nieparzysty), B (parzysty) - z uwzględnieniem semestrów
+    // Typ tygodnia - używa Utils
     getWeekType(date) {
-        const weekNumber = this.getWeekNumber(date);
-        
-        // Granica semestrów: 23 luty 2026 zaczyna się semestr letni
-        // Data bez czasu dla bezpiecznego porównania
-        const checkDate = new Date(date);
-        checkDate.setHours(0,0,0,0);
-        const semesterSwitch = new Date(2026, 1, 23); // luty to index 1
-
-        if (checkDate < semesterSwitch) {
-            // SEMESTR ZIMOWY
-            // Wg kalendarza: Tygodnie parzyste ISO (np. 40, 42) to WEEK_A
-            return weekNumber % 2 === 0 ? 'WEEK_A' : 'WEEK_B';
-        } else {
-            // SEMESTR LETNI
-            // Wg kalendarza: Tyodnie nieparzyste ISO (np. 9) to WEEK_A
-            return weekNumber % 2 !== 0 ? 'WEEK_A' : 'WEEK_B';
-        }
+        return Utils.getWeekType(date);
     }
     
     // renderowanie harmonogramu zajec
@@ -322,13 +304,20 @@ class ScheduleCalendar{
                         classItem.setAttribute('data-class-json', JSON.stringify(c));
                         classItem.onclick = () => this.openClassDetails(c);
                         
+                        // Escapowanie danych (XSS prevention)
+                        const safeTitle = Utils.escapeHtml(c.title);
+                        const safeTeacher = Utils.escapeHtml(c.teacher);
+                        const safeRoom = Utils.escapeHtml(c.room);
+                        const safeClassType = Utils.escapeHtml(classTypeName);
+                        const safeYearPlan = Utils.escapeHtml(c.yearPlan);
+                        
                         classItem.innerHTML = `
-                            <div class="class-title">${c.title}</div>
-                            <div class="class-time">${this.formatTime(c.startTime)} - ${this.formatTime(c.endTime)}</div>
-                            ${c.teacher ? `<div class="class-teacher">${c.teacher}</div>` : ''}
-                            ${c.room ? `<div class="class-room">${c.room}</div>` : ''}
-                            ${classTypeName ? `<div class="class-type">${classTypeName}</div>` : ''}
-                            ${c.yearPlan ? `<div class="class-year-plan">${c.yearPlan}</div>` : ''}
+                            <div class="class-title">${safeTitle}</div>
+                            <div class="class-time">${Utils.formatTime(c.startTime)} - ${Utils.formatTime(c.endTime)}</div>
+                            ${c.teacher ? `<div class="class-teacher">${safeTeacher}</div>` : ''}
+                            ${c.room ? `<div class="class-room">${safeRoom}</div>` : ''}
+                            ${classTypeName ? `<div class="class-type">${safeClassType}</div>` : ''}
+                            ${c.yearPlan ? `<div class="class-year-plan">${safeYearPlan}</div>` : ''}
                         `;
                         grid.appendChild(classItem);
                     });
@@ -422,24 +411,9 @@ class ScheduleCalendar{
         });
     }
     
-    // formatowanie czasu
+    // formatowanie czasu - używa Utils
     formatTime(timeObj) {
-        if (!timeObj) return '';
-        
-        // obsluga formatu string (HH:MM:SS lub HH:MM)
-        if(typeof timeObj === 'string'){
-            const parts = timeObj.split(':');
-            return `${parts[0]}:${parts[1]}`;
-        }
-        
-        // obsluga formatu obiektowego {hour, minute, second}
-        if(typeof timeObj === 'object' && timeObj.hour !== undefined){
-            const h = String(timeObj.hour).padStart(2, '0');
-            const m = String(timeObj.minute).padStart(2, '0');
-            return `${h}:${m}`;
-        }
-        
-        return '';
+        return Utils.formatTime(timeObj);
     }
 
     initializeUI() {
@@ -528,17 +502,7 @@ class ScheduleCalendar{
         for(let i=0; i<slots.length; i++) {
             if (currentHour >= slots[i].startTime && currentHour < (slots[i].startTime + 0.25)) {
                 closestSlotIndex = i;
-                // Oblicz ile minut upłyneło w tym slocie (0-15)
-                // Np. 10:17 -> startTime 10:15 (10.25) -> diff = 0.0333h = 2 minuty
                 const diffHours = currentHour - slots[i].startTime;
-                // diffHours to ułamek godziny. Slot ma 0.25h.
-                // Procent slotu = diffHours / 0.25
-                // Ponieważ height jest auto, nie możemy użyć prostego %, ale spróbujmy:
-                // Załóżmy że chcemy przesunąć linię w dół.
-                // Możemy użyć translateY w %? Nie, bo element ma wysokość 0 (border).
-                // Ale, jeśli wrzucimy go do slotu... to pozycja relative do slotu.
-                // Slot (timeSlotDiv) jest height: auto.
-                // Spróbujmy znaleźć timeSlotDiv odpowiadający temu wierszowi.
                 minuteOffset = (diffHours / 0.25) * 100; // % wysokości slotu
                 break;
             }
@@ -548,33 +512,11 @@ class ScheduleCalendar{
             const rowIndex = closestSlotIndex + 2; // +1 header
             const grid = document.getElementById('scheduleGrid');
             
-            // Znajdź time-slot element dla tego wiersza, aby ewentualnie pobrać jego wysokość?
-            // Trudne w CSS Grid jeśli wiersze są auto.
-            // Ale możemy założyć uproszczenie: Linia jest na początku slotu + offset w pikselach? 
-            // Nie znamy wysokości.
-            // Najbezpieczniej: Offset w procentach załatwi sprawę, jeśli linia będzie wewnątrz relatywnego kontenera w tym row.
-            // Ale my wrzucamy linię bezpośrednio do grida.
-            
-            // Nowe podejście: Margines górny.
-            // Zakładając że średni slot ma np. 40px, możemy dodać px.
-            // Albo lepiej: Dodajmy `transform: translateY` zależny od % ale czego?
-            // Grid cell wysokość zależy od zawartości.
-            // Ale time-slot (pierwsza kolumna) ma min-height.
-            // Spróbujmy po prostu:
-            
             const line = document.createElement('div');
             line.id = 'currentTimeLine';
             line.className = 'current-time-line';
             line.style.gridRow = rowIndex;
             line.style.gridColumn = "1 / -1"; 
-            
-            // Przesunięcie w dół w zależności od minut (0-15)
-            // Zakładamy ze slot ma ok 25-30px minimum.
-            // 15 minut to cały slot.
-            // Spróbujmy 'calc' w oparciu o szacowaną wysokość lub po prostu hardcoded px/minutę jeśli design jest spójny.
-            // W CSS time-slot ma min-height: 20px oraz padding 0.25rem (4px).
-            // Więc slot to min. ~28px.
-            // Przyjmijmy że 1 minuta to ok 2px przesunięcia.
             
             const offsetPx = Math.round((minuteOffset / 100) * 28); 
             line.style.transform = `translateY(${offsetPx}px)`;
@@ -592,10 +534,6 @@ class ScheduleCalendar{
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const currentDayName = days[currentDayIndex];
         const currentTimeNum = now.getHours() + now.getMinutes() / 60;
-
-        // Szukamy następnych zajęć
-        // 1. Dzisiaj, później niż teraz
-        // 2. Jutro (lub pierwszy następny dzień roboczy)
 
         let nextClass = null;
         let minDiff = Infinity;
@@ -615,19 +553,14 @@ class ScheduleCalendar{
             }
         });
 
-        // Jeśli nie ma dzisiaj, szukaj w kolejnych dniach
-        if (!nextClass) {
-            // Uproszczenie: szukaj w całym zbiorze, wybierz ten z najmniejszym "dystansem" dni
-            // To wymagałoby mapowania dni na liczby i modulo 7
-        }
-
         if (nextClass && isToday) {
             const timeToStart = Math.round((this.timeToNumber(nextClass.startTime) - currentTimeNum) * 60);
             
             if (timeToStart <= 120) { // Pokazuj tylko jeśli mniej niż 2h
                 widget.style.display = 'flex';
                 document.getElementById('timeToNext').textContent = timeToStart;
-                document.getElementById('nextClassTitle').textContent = nextClass.title;
+                // Escapowanie dla bezpieczeństwa
+                document.getElementById('nextClassTitle').textContent = nextClass.title || '';
                 
                 const room = nextClass.room ? `Sala ${nextClass.room}` : '';
                 const type = nextClass.classType ? (ScheduleCalendar.CONFIG.CLASS_TYPES[nextClass.classType] || nextClass.classType) : '';
@@ -643,8 +576,9 @@ class ScheduleCalendar{
     openClassDetails(classData) {
         const modal = document.getElementById('classDetailsModal');
         
-        document.getElementById('modalClassTitle').textContent = classData.title;
-        document.getElementById('modalClassTime').textContent = `${this.formatTime(classData.startTime)} - ${this.formatTime(classData.endTime)}`;
+        // Używamy textContent zamiast innerHTML - automatycznie escapuje HTML
+        document.getElementById('modalClassTitle').textContent = classData.title || '';
+        document.getElementById('modalClassTime').textContent = `${Utils.formatTime(classData.startTime)} - ${Utils.formatTime(classData.endTime)}`;
         document.getElementById('modalClassTeacher').textContent = classData.teacher || 'Brak danych';
         document.getElementById('modalClassRoom').textContent = classData.room || 'Brak danych';
         

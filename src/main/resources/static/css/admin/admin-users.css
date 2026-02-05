@@ -52,10 +52,16 @@
     border-radius: 12px;
     padding: 1.5rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    overflow-x: auto;
     display: flex;
     flex-direction: column;
 }
+
+/* Osobny kontener dla tabeli z przewijaniem */
+.table-scroll-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 
 .user-cell {
     display: flex;
@@ -554,12 +560,18 @@
         text-align: center;
     }
 
-    /* Kontener tabeli */
+    /* Kontener głowny - bez overflow */
     .users-table-wrapper {
         padding: 10px;
+        overflow: visible;
+    }
+
+    /* Kontener tabeli - przewijalny */
+    .table-scroll-container {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
-        display: block;
+        margin: 0 -10px;
+        padding: 0 10px;
     }
 
     /* Sama tabela */
