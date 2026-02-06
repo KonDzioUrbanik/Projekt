@@ -20,7 +20,6 @@
         <script th:src="@{/js/common/theme.js}"></script>
     </head>
     <body>
-        <!-- Przycisk zmiany motywu -->
         <button class="theme-toggle-btn" id="themeToggleBtn" title="Zmień motyw">
             <i class="fas fa-moon"></i>
             <i class="fas fa-sun"></i>
@@ -42,20 +41,53 @@
 
         <main>
             <header class="hero-section">
-                <span class="hero-badge">Nowy Rok Akademicki 2025/26</span>
-                
-            <h1 class="hero-title">
-                Witamy w PANSportal
-                </h1>
-                
-                <p class="hero-subtitle">
-                    Twoje miejsce do zarządzania studiami.
-                </p>
+                <div class="hero-content">
+                    <span class="hero-badge">Nowy Rok Akademicki 2025/26</span>
+                    
+                    <h1 class="hero-title">Witamy w PANSportal</h1>
+                    
+                    <div class="hero-text-group">
+                        <h2 class="hero-secondary-title">Twoje miejsce do</h2>
+                        <div class="typewriter-wrapper">
+                            <span class="typewriter-text"></span><span class="cursor">|</span>
+                        </div>
+                    </div>
+                    
+                    <p class="hero-subtitle">
+                        Kompleksowa platforma dla studentów PANS w Krośnie.
+                    </p>
 
-                <div class="hero-buttons">
-                    <a th:href="@{/login}" class="btn btn-primary">
-                        <i class="fas fa-sign-in-alt"></i> Przejdź do panelu
-                    </a>
+                    <div class="hero-buttons">
+                        <a th:href="@{/login}" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Przejdź do panelu
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="hero-visual">
+                    <div class="levitating-card">
+                        <div class="card-header-mock">
+                            <div class="dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                        </div>
+                        <div class="card-body-mock">
+                            <div class="mock-sidebar">
+                                <div class="mock-line" style="width: 60%"></div>
+                                <div class="mock-line" style="width: 80%"></div>
+                                <div class="mock-line" style="width: 70%"></div>
+                            </div>
+                            <div class="mock-content">
+                                <div class="mock-title"></div>
+                                <div class="mock-grid">
+                                    <div class="mock-item"></div>
+                                    <div class="mock-item"></div>
+                                    <div class="mock-item"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-glow"></div>
+                    </div>
                 </div>
             </header>
 
@@ -68,9 +100,9 @@
                 </div>
                 
                 <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-graduation-cap"></i></div>
-                    <h3 class="feature-title">Postępy w nauce</h3>
-                    <p class="feature-desc">Monitoruj swoje oceny, zaliczenia i obecności na bieżąco.</p>
+                    <div class="feature-icon"><i class="fas fa-book-open"></i></div>
+                    <h3 class="feature-title">Notatki i materiały</h3>
+                    <p class="feature-desc">Twórz notatki, zapisuj ważne informacje i miej dostęp do materiałów w każdym momencie.</p>
                 </div>
                 
                 <div class="feature-card">
@@ -90,11 +122,44 @@
                     </p>
                 </div>
             </section>
+
+            <section class="info-section">
+                <div class="info-grid">
+                    <div class="info-column">
+                        <h4><i class="fas fa-university"></i> Kontakt z uczelnią</h4>
+                        <ul class="info-list">
+                            <li><i class="fas fa-map-marker-alt"></i> Państwowa Akademia Nauk Stosowanych w Krośnie<br>Rynek 1, 38-400 Krosno</li>
+                            <li><i class="fas fa-phone"></i> +48 13 43 755 00</li>
+                            <li><i class="fas fa-envelope"></i> <a href="mailto:pans@pans.krosno.pl">pans@pans.krosno.pl</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="info-column">
+                        <h4><i class="fas fa-link"></i> Przydatne linki</h4>
+                        <ul class="info-links">
+                            <li><a href="https://pans.krosno.pl" target="_blank">Strona główna PANS</a></li>
+                            <li><a href="https://biblioteka.pans.krosno.pl" target="_blank">Biblioteka uczelniana</a></li>
+                            <li><a href="https://e-learning.kpu.krosno.pl/" target="_blank">E-Student</a></li>
+                            <li><a href="https://usos.kpu.krosno.pl/" target="_blank">USOSWeb</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="info-column">
+                        <h4><i class="fas fa-headset"></i> Pomoc techniczna</h4>
+                        <p>Masz problem z logowaniem lub działaniem systemu?</p>
+                        <a href="/" class="btn btn-outline btn-sm" style="margin-top: 10px;">
+                            Zgłoś problem
+                        </a>
+                    </div>
+                </div>
+            </section>
         </main>
 
         <footer class="landing-footer">
             <p>&copy; 2026 PANSportal. Wszelkie prawa zastrzeżone.</p>
         </footer>
+
+        <script th:src="@{/js/landing/landing.js}" src="../static/js/landing/landing.js"></script>
 
     </body>
 </html>
