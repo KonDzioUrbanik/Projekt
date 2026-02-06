@@ -9,7 +9,8 @@ class DashboardHome {
             SCHEDULE: '/api/schedule',
             SCHEDULE_ALL: '/api/schedule/all',
             USERS: '/api/users',
-            GROUPS: '/api/groups'
+            GROUPS: '/api/groups',
+            CALENDAR_ACTIVE: '/api/calendar/active'
         },
         ANIMATION_DURATION: 1000,
         ANIMATION_FPS: 60,
@@ -47,6 +48,8 @@ class DashboardHome {
     constructor() {
         // Dane zajęć
         this.scheduleData = [];
+        // Aktywny okres specjalny (sesja, przerwa itp.)
+        this.activeSpecialPeriod = null;
         
         // Inicjalizacja
         this.init();
@@ -124,6 +127,21 @@ class DashboardHome {
         dateElement.textContent = now.toLocaleDateString('pl-PL', options);
     }
     
+    // Pobranie aktywnego okresu specjalnego (sesja, przerwa, święto)
+    async loadActiveSpecialPeriod() {
+        try {
+            const response = await fetch(DashboardHome.CONFIG.API.CALENDAR_ACTIVE);
+            if (response.ok && response.status !== 204) {
+                this.activeSpecialPeriod = await response.json();
+            } else {
+                this.activeSpecialPeriod = null;
+            }
+        } catch (error) {
+            console.error('Błąd ładowania okresu specjalnego:', error);
+            this.activeSpecialPeriod = null;
+        }
+    }
+
     // Pobranie najbliższych zajęć z API
     async loadUpcomingClasses() {
         const loader = document.getElementById('classesLoader');
@@ -134,6 +152,9 @@ class DashboardHome {
         if (errorDiv) errorDiv.style.display = 'none';
         
         try {
+            // Najpierw pobierz aktywny okres specjalny
+            await this.loadActiveSpecialPeriod();
+            
             const response = await fetch(DashboardHome.CONFIG.API.SCHEDULE);
             
             if (!response.ok) {
@@ -193,12 +214,20 @@ class DashboardHome {
         const todayContainer = document.getElementById('todayClasses');
         const tomorrowContainer = document.getElementById('tomorrowClasses');
         const noClassesDiv = document.getElementById('noClasses');
+        const specialPeriodDiv = document.getElementById('specialPeriodInfo');
         
         // Ukryj wszystkie kontenery na początku
         currentContainer.style.display = 'none';
         todayContainer.style.display = 'none';
         tomorrowContainer.style.display = 'none';
         noClassesDiv.style.display = 'none';
+        if (specialPeriodDiv) specialPeriodDiv.style.display = 'none';
+        
+        // Sprawdź czy jest aktywny okres specjalny
+        if (this.activeSpecialPeriod) {
+            this.displaySpecialPeriodInfo();
+            return;
+        }
         
         // Wyświetlenie aktualnych zajęć
         if (currentClasses.length > 0) {
@@ -227,6 +256,52 @@ class DashboardHome {
         }
     }
     
+    // Wyświetlenie informacji o specjalnym okresie (sesja, przerwa, święto)
+    displaySpecialPeriodInfo() {
+        const specialPeriodDiv = document.getElementById('specialPeriodInfo');
+        if (!specialPeriodDiv || !this.activeSpecialPeriod) return;
+        
+        const period = this.activeSpecialPeriod;
+        
+        // Wybierz ikonę i komunikat w zależności od typu
+        let icon, message, cssClass;
+        switch (period.type) {
+            case 'EXAM':
+                icon = 'fa-file-signature';
+                message = 'Powodzenia na egzaminach!';
+                cssClass = 'special-exam';
+                break;
+            case 'BREAK':
+                icon = 'fa-mug-hot';
+                message = 'Odpoczynek od zajęć!';
+                cssClass = 'special-break';
+                break;
+            case 'HOLIDAY':
+                icon = 'fa-calendar-xmark';
+                message = 'Dzień wolny od zajęć';
+                cssClass = 'special-holiday';
+                break;
+            default:
+                icon = 'fa-info-circle';
+                message = 'Brak zajęć dydaktycznych';
+                cssClass = 'special-other';
+        }
+        
+        specialPeriodDiv.innerHTML = `
+            <div class="special-period-card ${cssClass}">
+                <div class="special-period-icon">
+                    <i class="fas ${icon}"></i>
+                </div>
+                <div class="special-period-content">
+                    <h3>${period.title}</h3>
+                    <p>${message}</p>
+                    <span class="special-period-dates">${period.formattedDateRange || ''}</span>
+                </div>
+            </div>
+        `;
+        specialPeriodDiv.style.display = 'block';
+    }
+    
     // Pobranie dnia tygodnia dla daty
     getDayOfWeek(date) {
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -235,7 +310,15 @@ class DashboardHome {
     
     // Filtrowanie zajęć dla danego dnia
     getClassesForDay(dayName, date) {
-        const dayClasses = this.scheduleData.filter(c => c.dayOfWeek === dayName);
+        // Pobierz aktualny typ tygodnia dla podanej daty
+        const currentWeekType = this.getWeekType(date);
+        
+        // Filtruj według dnia i typu tygodnia
+        const dayClasses = this.scheduleData.filter(c => {
+            const matchesDay = c.dayOfWeek === dayName;
+            const matchesWeek = c.weekType === 'ALL' || !c.weekType || c.weekType === currentWeekType;
+            return matchesDay && matchesWeek;
+        });
         
         // Sortowanie po czasie rozpoczęcia
         return dayClasses.sort((a, b) => {

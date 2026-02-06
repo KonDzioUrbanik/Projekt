@@ -79,11 +79,48 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if(response.ok){
-                displayMessage(message, data.message || "Na podany adres e-mail został wysłany link umożliwiający zresetowanie hasła. Sprawdź swoją skrzynkę odbiorczą.", true);
-                
                 // Zapisz timestamp i start cooldown
                 localStorage.setItem(COOLDOWN_KEY, Date.now().toString());
-                startCooldown(COOLDOWN_SECONDS);
+                
+                // Pokaż modal sukcesu
+                const overlay = document.createElement('div');
+                overlay.className = 'success-overlay';
+                overlay.onclick = (e) => e.stopPropagation();
+                
+                overlay.innerHTML = `
+                    <div class="success-checkmark">
+                        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                            <circle class="checkmark-circle" cx="26" cy="26" r="25"/>
+                            <path class="checkmark-check" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                        </svg>
+                        <h3>Wysłano link!</h3>
+                        <p>${data.message || "Na podany adres e-mail został wysłany link umożliwiający zresetowanie hasła. Sprawdź swoją skrzynkę odbiorczą."}</p>
+                        <p style="margin-top: 15px; font-size: 0.9em; color: var(--text-light);">
+                            Przekierowanie do logowania za <span id="redirectCountdown" style="font-weight: bold; color: var(--color-primary, #005efa);">5</span> s...
+                        </p>
+                    </div>
+                `;
+
+                document.body.appendChild(overlay);
+
+                // Animacja wejścia
+                setTimeout(() => overlay.classList.add('show'), 10);
+
+                // Licznik
+                let secondsLeft = 5;
+                const countdownElement = document.getElementById('redirectCountdown');
+                
+                const interval = setInterval(() => {
+                    secondsLeft--;
+                    if (countdownElement) countdownElement.textContent = secondsLeft;
+                    
+                    if (secondsLeft <= 0) {
+                        clearInterval(interval);
+                        overlay.classList.remove('show');
+                        setTimeout(() => overlay.remove(), 300);
+                        window.location.href = '/login';
+                    }
+                }, 1000);
             }
             else if (response.status === 429) {
                 // Rate limiting - parsuj ile sekund pozostało z komunikatu

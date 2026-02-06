@@ -3,9 +3,12 @@ package com.pansgroup.projectbackend.module.calendar;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,6 +25,26 @@ public class CalendarEventService {
         return calendarEventRepository.findAllByOrderByDateFromAsc().stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Zwraca aktywny okres specjalny (BREAK, HOLIDAY, EXAM) dla podanej daty.
+     * Jeśli brak takiego okresu, zwraca Optional.empty()
+     */
+    public Optional<CalendarEventDto> getActiveSpecialPeriod(LocalDate date) {
+        List<CalendarEventType> blockingTypes = Arrays.asList(
+                CalendarEventType.BREAK,
+                CalendarEventType.HOLIDAY,
+                CalendarEventType.EXAM);
+
+        List<CalendarEvent> events = calendarEventRepository.findActiveEventsByTypesAndDate(blockingTypes, date);
+
+        if (events.isEmpty()) {
+            return Optional.empty();
+        }
+
+        // Zwróć pierwszy znaleziony (posortowane po dateFrom)
+        return Optional.of(mapToDto(events.get(0)));
     }
 
     public CalendarEventDto createEvent(CalendarEventDto dto) {
