@@ -527,20 +527,52 @@ class ScheduleCalendar{
 
     updateNextClassWidget() {
         const widget = document.getElementById('nextClassWidget');
-        if (!widget || this.scheduleData.length === 0) return;
+        if (!widget) return;
 
         const now = new Date();
+        
+        // Sprawdź czy dzisiaj jest dzień specjalny (sesja, przerwa, święto)
+        const specialDay = this.getSpecialDayInfo(now);
+        if (specialDay) {
+            widget.style.display = 'flex';
+            
+            // Ukryj elementy czasu i pokaż info o specjalnym okresie
+            const timeToNextEl = document.getElementById('timeToNext');
+            const nextLabelEl = document.querySelector('.next-label');
+            const nextClassTitleEl = document.getElementById('nextClassTitle');
+            const nextClassDetailsEl = document.getElementById('nextClassDetails');
+            
+            if (timeToNextEl) timeToNextEl.style.display = 'none';
+            if (nextLabelEl) nextLabelEl.innerHTML = specialDay.name;
+            if (nextClassTitleEl) nextClassTitleEl.textContent = this.getSpecialPeriodMessage(specialDay.type);
+            if (nextClassDetailsEl) nextClassDetailsEl.textContent = 'Brak zajęć dydaktycznych';
+            
+            return;
+        }
+
+        if (this.scheduleData.length === 0) {
+            widget.style.display = 'none';
+            return;
+        }
+
         const currentDayIndex = now.getDay();
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const currentDayName = days[currentDayIndex];
         const currentTimeNum = now.getHours() + now.getMinutes() / 60;
+        
+        // Pobierz aktualny typ tygodnia (WEEK_A lub WEEK_B)
+        const currentWeekType = this.getWeekType(now);
 
         let nextClass = null;
         let minDiff = Infinity;
         let isToday = false;
 
-        // Sprawdź dzisiejsze zajęcia
-        const todaysClasses = this.scheduleData.filter(c => c.dayOfWeek === currentDayName);
+        // Sprawdź dzisiejsze zajęcia - filtruj też według typu tygodnia
+        const todaysClasses = this.scheduleData.filter(c => {
+            const matchesDay = c.dayOfWeek === currentDayName;
+            const matchesWeek = c.weekType === 'ALL' || !c.weekType || c.weekType === currentWeekType;
+            return matchesDay && matchesWeek;
+        });
         todaysClasses.forEach(c => {
             const startNum = this.timeToNumber(c.startTime);
             if (startNum > currentTimeNum) {
@@ -558,7 +590,18 @@ class ScheduleCalendar{
             
             if (timeToStart <= 120) { // Pokazuj tylko jeśli mniej niż 2h
                 widget.style.display = 'flex';
-                document.getElementById('timeToNext').textContent = timeToStart;
+                
+                // Przywróć widoczność elementów
+                const timeToNextEl = document.getElementById('timeToNext');
+                const nextLabelEl = document.querySelector('.next-label');
+                
+                if (timeToNextEl) {
+                    timeToNextEl.style.display = '';
+                    timeToNextEl.textContent = timeToStart;
+                }
+                // Przywróć oryginalny format napisu
+                if (nextLabelEl) nextLabelEl.innerHTML = `Następne zajęcia (za <span id="timeToNext">${timeToStart}</span> min):`;
+                
                 // Escapowanie dla bezpieczeństwa
                 document.getElementById('nextClassTitle').textContent = nextClass.title || '';
                 
@@ -570,6 +613,20 @@ class ScheduleCalendar{
             }
         } else {
             widget.style.display = 'none';
+        }
+    }
+
+    // Zwraca komunikat dla typu specjalnego okresu
+    getSpecialPeriodMessage(type) {
+        switch (type) {
+            case 'EXAM':
+                return 'Powodzenia na egzaminach!';
+            case 'BREAK':
+                return 'Odpoczynek od zajęć!';
+            case 'HOLIDAY':
+                return 'Dzień wolny od zajęć';
+            default:
+                return 'Brak zajęć';
         }
     }
 
