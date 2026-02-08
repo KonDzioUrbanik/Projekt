@@ -15,7 +15,8 @@ const CONFIG = {
         COPY: (id) => `/api/notes/${id}/copy`,
         TAGS: (id) => `/api/notes/${id}/tags`,
         SEARCH_TAG: '/api/notes/search/tag',
-        SEARCH_USERS: '/api/users/search'
+        SEARCH_USERS: '/api/users/search',
+        SHARED_USERS: (id) => `/api/notes/${id}/shared-users`
     },
     LIMITS: {
         TITLE_MAX: 150,
@@ -101,7 +102,8 @@ const DOM = {
     btnTextInc: document.getElementById('btnTextInc'),
     btnTextDec: document.getElementById('btnTextDec'),
     btnExportPdf: document.getElementById('btnExportPdf'),
-    btnExportDocx: document.getElementById('btnExportDocx')
+    btnExportDocx: document.getElementById('btnExportDocx'),
+    btnToggleFullscreen: document.getElementById('btnToggleFullscreen')
 };
 
 // INICJALIZACJA
@@ -136,6 +138,7 @@ function setupEventListeners() {
 
     // Przyciski bocznego panelu
     if (DOM.btnNewNote) DOM.btnNewNote.addEventListener('click', openCreateModal);
+    if (DOM.btnToggleFullscreen) DOM.btnToggleFullscreen.addEventListener('click', toggleFullscreenModal);
 
     // Akcje notatki
     if (DOM.btnEdit) DOM.btnEdit.addEventListener('click', openEditModal);
@@ -406,7 +409,7 @@ async function handleFormSubmit(e) {
 
             // Udostępnienie/zmiana widoczności jeśli potrzeba
             if (visibility !== resultNote.visibility || AppState.selectedUsers.length > 0) {
-                await shareNoteData(resultNote.id, visibility);
+                resultNote = await shareNoteData(resultNote.id, visibility);
             }
             
             showToast('Notatka została pomyślnie zaktualizowana.', 'success');
@@ -854,7 +857,7 @@ function openCreateModal() {
     setTimeout(() => DOM.formNoteTitle.focus(), 50);
 }
 
-function openEditModal() {
+async function openEditModal() {
     if (!AppState.selectedNote) return;
     
     // Sprawdź uprawnienia do edycji (jeśli zdefiniowane)
@@ -880,9 +883,18 @@ function openEditModal() {
     DOM.formNoteTags.disabled = false;
     
     // Załaduj użytkowników jeśli udostępniona
-    if (AppState.selectedNote.visibility === 'SHARED_WITH_USERS' && AppState.selectedNote.sharedWithUserIds) {
-        // Tutaj możemy tylko przechować ID, szczegóły będą przy renderowaniu
-        AppState.selectedUsers = AppState.selectedNote.sharedWithUserIds.map(id => ({ id }));
+    if (AppState.selectedNote.visibility === 'SHARED_WITH_USERS') {
+        try {
+            const response = await fetch(CONFIG.API.SHARED_USERS(AppState.selectedNote.id));
+            if (response.ok) {
+                const users = await response.json();
+                AppState.selectedUsers = users;
+                renderSelectedUsers();
+            }
+        } catch (error) {
+            console.error('Błąd pobierania użytkowników:', error);
+            showToast('Nie udało się pobrać listy użytkowników', 'error');
+        }
     }
     
     handleVisibilityChange();
@@ -894,8 +906,33 @@ function openEditModal() {
     DOM.noteFormOverlay.style.display = 'flex';
 }
 
+function toggleFullscreenModal(e) {
+    if (e) e.preventDefault();
+    DOM.noteFormOverlay.classList.toggle('fullscreen');
+    
+    const icon = DOM.btnToggleFullscreen.querySelector('i');
+    if (DOM.noteFormOverlay.classList.contains('fullscreen')) {
+        icon.classList.remove('fa-expand');
+        icon.classList.add('fa-compress');
+        DOM.btnToggleFullscreen.title = "Zamknij pełny ekran";
+    } else {
+        icon.classList.remove('fa-compress');
+        icon.classList.add('fa-expand');
+        DOM.btnToggleFullscreen.title = "Pełny ekran";
+    }
+}
+
 function closeFormModal() {
     DOM.noteFormOverlay.style.display = 'none';
+    
+    // Reset fullscreen
+    DOM.noteFormOverlay.classList.remove('fullscreen');
+    const icon = DOM.btnToggleFullscreen.querySelector('i');
+    if (icon) {
+        icon.classList.remove('fa-compress');
+        icon.classList.add('fa-expand');
+    }
+    DOM.btnToggleFullscreen.title = "Pełny ekran";
 }
 
 function openDeleteConfirmation() {

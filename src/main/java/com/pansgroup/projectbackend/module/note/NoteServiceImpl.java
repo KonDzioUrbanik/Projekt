@@ -3,6 +3,8 @@ package com.pansgroup.projectbackend.module.note;
 import com.pansgroup.projectbackend.exception.NoteNotFoundException;
 import com.pansgroup.projectbackend.exception.UserNotFoundException;
 import com.pansgroup.projectbackend.exception.UsernameNotFoundException;
+import com.pansgroup.projectbackend.module.user.dto.UserResponseDto;
+
 import com.pansgroup.projectbackend.module.note.dto.*;
 import com.pansgroup.projectbackend.module.user.User;
 import com.pansgroup.projectbackend.module.user.UserRepository;
@@ -69,7 +71,6 @@ public class NoteServiceImpl implements NoteService {
         Note note = noteRepository.findById(id)
                 .orElseThrow(() -> new NoteNotFoundException(id));
 
-        // Zwiększ licznik wyświetleń
         note.incrementViewCount();
         noteRepository.save(note);
 
@@ -103,7 +104,7 @@ public class NoteServiceImpl implements NoteService {
                 .toList();
     }
 
-    // === NOWE METODY: WSPÓŁDZIELENIE NOTATEK ===
+    // WSPÓŁDZIELENIE NOTATEK
 
     @Transactional
     public NoteDTO shareNote(Long noteId, ShareNoteRequest request) {
@@ -169,18 +170,18 @@ public class NoteServiceImpl implements NoteService {
         // Zbierz wszystkie notatki do których użytkownik ma dostęp
         Set<Note> accessibleNotes = new HashSet<>();
 
-        // 1. Własne notatki
+        // Własne notatki
         accessibleNotes.addAll(noteRepository.findByAuthor_Id(currentUser.getId()));
 
-        // 2. Udostępnione dla mnie
+        // Udostępnione dla mnie
         accessibleNotes.addAll(noteRepository.findSharedWithUser(currentUser.getId()));
 
-        // 3. Notatki grupy
+        // Notatki grupy
         if (currentUser.getStudentGroup() != null) {
             accessibleNotes.addAll(noteRepository.findByGroupVisibility(currentUser.getStudentGroup().getId()));
         }
 
-        // 4. Publiczne
+        // Publiczne
         accessibleNotes.addAll(noteRepository.findPublicNotes());
 
         return accessibleNotes.stream()
@@ -189,7 +190,7 @@ public class NoteServiceImpl implements NoteService {
                 .collect(Collectors.toList());
     }
 
-    // === ULUBIONE ===
+    // ULUBIONE
 
     @Transactional
     public NoteDTO toggleFavorite(Long noteId) {
@@ -221,7 +222,7 @@ public class NoteServiceImpl implements NoteService {
                 .collect(Collectors.toList());
     }
 
-    // === TAGI ===
+    // TAGI
 
     @Transactional
     public NoteDTO updateTags(Long noteId, String tags) {
@@ -246,7 +247,7 @@ public class NoteServiceImpl implements NoteService {
                 .collect(Collectors.toList());
     }
 
-    // === KOPIOWANIE ===
+    // KOPIOWANIE
 
     @Transactional
     public NoteDTO copyNote(Long noteId) {
@@ -273,7 +274,7 @@ public class NoteServiceImpl implements NoteService {
         return NoteDTO.fromEntity(saved, currentUser);
     }
 
-    // === METODY POMOCNICZE ===
+    // METODY POMOCNICZE
 
     private boolean hasAccessToNote(Note note, User user) {
         // Autor zawsze ma dostęp
@@ -306,6 +307,7 @@ public class NoteServiceImpl implements NoteService {
                 u.getId(),
                 u.getFirstName(),
                 u.getLastName(),
+                n.getVisibility().name(),
                 n.getCreatedAt(),
                 n.getUpdatedAt());
     }
@@ -322,6 +324,32 @@ public class NoteServiceImpl implements NoteService {
             throw new IllegalStateException("Użytkownik nie jest uwierzytelniony.");
         }
         return authentication.getName();
+    }
+
+    public List<UserResponseDto> getNoteSharedUsers(Long noteId) {
+        Note note = findNoteByIdAndEnsureOwnership(noteId);
+        return note.getSharedWith().stream()
+                .map(this::mapToUserDto)
+                .toList();
+    }
+
+    private UserResponseDto mapToUserDto(User u) {
+        return new UserResponseDto(
+                u.getId(),
+                u.getFirstName(),
+                u.getLastName(),
+                u.getEmail(),
+                u.getRole(),
+                u.getNrAlbumu(),
+                u.getStudentGroup() != null ? u.getStudentGroup().getId() : null,
+                u.getStudentGroup() != null ? u.getStudentGroup().getName() : null,
+                u.isActivated(),
+                u.getNickName(),
+                u.getPhoneNumber(),
+                u.getFieldOfStudy(),
+                u.getYearOfStudy(),
+                u.getStudyMode(),
+                u.getBio());
     }
 
     private Note findNoteByIdAndEnsureOwnership(Long noteId) {

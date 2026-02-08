@@ -962,24 +962,23 @@ select {
 }
 
 .note-header {
-    padding: 30px 40px;
+    padding: 20px 30px;
     border-bottom: 1px solid var(--border);
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    /* Ważne: przyciski zostają na górze przy wieloliniowym tytule */
-    gap: 20px;
+    /* Zmiana na flex-start dla lepszego układu przy wrapie */
+    gap: 15px;
     flex-shrink: 0;
-    /* Nagłówek nie kurczy się przy scrollowaniu treści */
+    flex-wrap: wrap;
 }
 
 .note-title-wrapper {
-    flex: 1;
-    /* Zajmuje całą dostępną przestrzeń minus przyciski */
+    flex: 1 1 250px;
+    /* Nieco mniejsza baza */
     min-width: 0;
-    /* ✨ MAGIA: Pozwala kontenerowi flex kurczyć się, gdy tekst jest za długi */
-    margin-right: 10px;
-    /* Dodatkowy odstęp od przycisków */
+    margin-right: 15px;
+    margin-bottom: 5px;
 }
 
 .note-title-wrapper h1 {
@@ -1015,13 +1014,17 @@ select {
 }
 
 .note-view-actions {
+    flex: 0 1 auto;
+    /* Może się kurczyć jeśli trzeba, ale preferuje swój rozmiar */
     display: flex;
     gap: 8px;
     align-items: center;
-    flex-shrink: 0;
-    /* Zapobiega zgniataniu przycisków przez długi tytuł */
+    justify-content: flex-end;
+    margin-left: auto;
+    flex-wrap: wrap;
+    /* Pozwalamy na wrap WEWNĄTRZ kontenera przycisków na bardzo małych ekranach */
     margin-top: 5px;
-    /* Wyrównanie optyczne do pierwszej linii tytułu */
+    /* Odstęp od góry (wyrównanie do tytułu) */
 }
 
 .divider-vertical {
@@ -1302,7 +1305,7 @@ select {
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     outline: none;
-    resize: none;
+    resize: vertical;
     font-size: 1rem;
     line-height: 1.6;
     color: var(--text-main);
@@ -1613,22 +1616,26 @@ select {
         gap: 8px;
     }
 
-    .note-actions {
+    .note-view-actions {
         width: 100%;
         justify-content: flex-start;
         flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 5px;
     }
 
-    .note-actions button {
+    .note-view-actions button {
         flex: 0 0 auto;
-        min-width: 44px;
-        /* Touch-friendly */
-        min-height: 44px;
+        min-width: 36px;
+        min-height: 36px;
+        font-size: 0.9rem;
+        padding: 6px;
     }
 
     .btn-icon {
-        min-width: 44px;
-        min-height: 44px;
+        min-width: 36px;
+        min-height: 36px;
+        padding: 6px;
     }
 
     .note-body {
@@ -2304,4 +2311,78 @@ select {
     border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
     outline: none;
+}
+
+/* Fullscreen Modal Styles */
+.modal-overlay.fullscreen {
+    padding: 0;
+    align-items: flex-start;
+}
+
+.modal-overlay.fullscreen .modal-card {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-overlay.fullscreen .modal-body {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding-bottom: 0;
+}
+
+.modal-overlay.fullscreen #noteForm {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.modal-overlay.fullscreen .form-section-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+    padding-bottom: 0;
+}
+
+.modal-overlay.fullscreen .form-textarea {
+    flex-grow: 1;
+    height: 100% !important;
+    min-height: 0;
+    max-height: none;
+    resize: none;
+    border-radius: 0;
+    margin-bottom: 0;
+}
+
+.modal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-icon-header {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 5px;
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-icon-header:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
 }
