@@ -3,10 +3,13 @@
     --primary: #2563eb;
     --primary-hover: #1d4ed8;
     --primary-light: #eff6ff;
-    
+
     --danger: #ef4444;
     --danger-hover: #dc2626;
     --danger-light: #fef2f2;
+
+    --success: #10b981;
+    --success-light: #d1fae5;
 
     --text-main: #1e293b;
     --text-secondary: #64748b;
@@ -15,7 +18,8 @@
     --bg-app: #f1f5f9;
     --bg-white: #ffffff;
     --bg-sidebar: #f8fafc;
-    
+    --bg-hover: #f1f5f9;
+
     --border: #e2e8f0;
     --border-focus: #bfdbfe;
 
@@ -25,6 +29,60 @@
 
     --radius-md: 8px;
     --radius-lg: 12px;
+}
+
+/* TRYB CIEMNY */
+[data-theme="dark"] {
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --primary-light: #1e3a8a;
+
+    --danger: #f87171;
+    --danger-hover: #ef4444;
+    --danger-light: #7f1d1d;
+
+    --success: #34d399;
+    --success-light: #064e3b;
+
+    --text-main: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+
+    --bg-app: #0f172a;
+    --bg-white: #1e293b;
+    --bg-sidebar: #1e293b;
+    --bg-hover: #334155;
+
+    --border: #334155;
+    --border-focus: #3b82f6;
+
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+}
+
+/* SMOOTH TRANSITIONS DLA THEME SWITCHING */
+
+* {
+    transition: background-color 0.3s ease,
+        border-color 0.3s ease,
+        color 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+/* Wyłącz transitions dla elementów interaktywnych */
+button,
+.filter-chip,
+.note-card,
+.btn-icon,
+input,
+textarea,
+select {
+    transition: background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease !important;
 }
 
 /* UKŁAD */
@@ -39,7 +97,6 @@
     overflow: hidden;
     border: 1px solid var(--border);
 }
-
 
 /* PASEK BOCZNY */
 
@@ -84,6 +141,17 @@
     background: var(--primary-hover);
 }
 
+/* DARK MODE - PRZYCISK NOWEJ NOTATKI */
+
+[data-theme="dark"] .btn-new-note {
+    background: var(--primary);
+    color: white;
+}
+
+[data-theme="dark"] .btn-new-note:hover {
+    background: #2563eb;
+}
+
 /* Szukanie */
 .notes-search {
     padding: 0 20px 15px 20px;
@@ -119,39 +187,85 @@
     box-shadow: 0 0 0 3px var(--primary-light);
 }
 
+/* DARK MODE - WYSZUKIWANIE */
+
+[data-theme="dark"] .search-wrapper input {
+    background: var(--bg-app);
+    border-color: var(--border);
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .search-wrapper input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+[data-theme="dark"] .search-wrapper input::placeholder {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .search-wrapper i {
+    color: var(--text-muted);
+}
+
 /* Filtry */
 .notes-filters {
-    padding: 0 20px 15px 20px;
+    padding: 0 15px 12px 15px;
     display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 6px;
     border-bottom: 1px solid var(--border);
 }
 
-.notes-filters::-webkit-scrollbar { display: none; }
-
 .filter-chip {
-    padding: 6px 12px;
-    font-size: 0.8rem;
-    background: transparent;
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    background: var(--bg-white);
     border: 1px solid var(--border);
-    border-radius: 20px;
+    border-radius: 16px;
     color: var(--text-secondary);
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .filter-chip:hover {
-    background: var(--bg-white);
-    border-color: var(--text-secondary);
+    background: var(--bg-hover);
+    border-color: var(--primary);
+    color: var(--primary);
 }
 
 .filter-chip.active {
-    background: var(--text-main);
+    background: var(--primary);
     color: white;
-    border-color: var(--text-main);
+    border-color: var(--primary);
+}
+
+.filter-chip i {
+    font-size: 0.7rem;
+}
+
+/* DARK MODE - FILTRY */
+
+[data-theme="dark"] .filter-chip {
+    background: var(--bg-app);
+    border-color: var(--border);
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .filter-chip:hover {
+    background: var(--bg-hover);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+[data-theme="dark"] .filter-chip.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
 }
 
 /* Lista */
@@ -165,19 +279,296 @@
 .note-body::-webkit-scrollbar {
     width: 10px;
 }
+
 .note-body::-webkit-scrollbar-track {
     background: transparent;
     margin-top: 10px;
     margin-bottom: 10px;
 }
+
 .notes-list::-webkit-scrollbar-thumb,
 .note-body::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 5px;
-    border: 3px solid var(--bg-white); /* Tworzy efekt marginesu wokół paska */
+    border: 3px solid var(--bg-white);
 }
+
 .note-body::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
+}
+
+[data-theme="dark"] .notes-list::-webkit-scrollbar-thumb,
+[data-theme="dark"] .note-body::-webkit-scrollbar-thumb {
+    background: #475569;
+    border: 3px solid var(--bg-white);
+}
+
+[data-theme="dark"] .note-body::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+}
+
+/* ================== DARK MODE - PRZYCISKI ================== */
+
+[data-theme="dark"] .btn-icon {
+    background: var(--bg-white);
+    border-color: var(--border);
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .btn-icon:hover {
+    border-color: var(--text-main);
+    color: var(--text-main);
+    background: var(--bg-hover);
+}
+
+[data-theme="dark"] .btn-icon-danger:hover {
+    border-color: var(--danger);
+    background: rgba(239, 68, 68, 0.1);
+}
+
+[data-theme="dark"] .btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+[data-theme="dark"] .btn-primary:hover {
+    background: #2563eb;
+}
+
+[data-theme="dark"] .btn-text {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+}
+
+[data-theme="dark"] .btn-text:hover {
+    background: var(--bg-hover);
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+[data-theme="dark"] .btn-danger:hover {
+    background: var(--danger-hover);
+}
+
+[data-theme="dark"] .btn-text-gray {
+    background: var(--bg-hover);
+    border-color: var(--border);
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .btn-text-gray:hover {
+    background: #334155;
+}
+
+[data-theme="dark"] .btn-danger-block {
+    background: var(--danger);
+}
+
+[data-theme="dark"] .btn-danger-block:hover {
+    background: var(--danger-hover);
+}
+
+/* ================== DARK MODE - MODAL ================== */
+
+[data-theme="dark"] .modal-overlay {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="dark"] .modal-card {
+    background: var(--bg-white);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .modal-header {
+    border-bottom-color: var(--border);
+}
+
+[data-theme="dark"] .modal-header h3 {
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .btn-close {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .btn-close:hover {
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .modal-footer {
+    background: var(--bg-app);
+    border-top-color: var(--border);
+}
+
+[data-theme="dark"] .modal-footer-centered {
+    background: var(--bg-white);
+}
+
+[data-theme="dark"] .modal-icon-wrapper.danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+}
+
+[data-theme="dark"] .modal-body-centered h3 {
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .modal-body-centered p {
+    color: var(--text-secondary);
+}
+
+/* ================== DARK MODE - FORMULARZE ================== */
+
+[data-theme="dark"] .form-group label {
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .form-input,
+[data-theme="dark"] .form-select,
+[data-theme="dark"] .form-textarea {
+    background: var(--bg-app);
+    border-color: var(--border);
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .form-input:focus,
+[data-theme="dark"] .form-select:focus,
+[data-theme="dark"] .form-textarea:focus {
+    border-color: var(--primary);
+    background: transparent;
+}
+
+[data-theme="dark"] .form-input::placeholder,
+[data-theme="dark"] .form-textarea::placeholder {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .form-select option {
+    background: var(--bg-white);
+    color: var(--text-main);
+}
+
+/* ================== DARK MODE - BADGES ================== */
+
+[data-theme="dark"] .badge-visibility {
+    border-width: 1px;
+    border-style: solid;
+}
+
+[data-theme="dark"] .badge-visibility.private {
+    background: rgba(100, 116, 139, 0.2);
+    color: #94a3b8;
+    border-color: #475569;
+}
+
+[data-theme="dark"] .badge-visibility.shared {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    border-color: #3b82f6;
+}
+
+[data-theme="dark"] .badge-visibility.group {
+    background: rgba(168, 85, 247, 0.2);
+    color: #c084fc;
+    border-color: #a855f7;
+}
+
+[data-theme="dark"] .badge-visibility.public {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+    border-color: #22c55e;
+}
+
+[data-theme="dark"] .badge-edited {
+    background: var(--bg-hover);
+    color: var(--text-secondary);
+}
+
+/* ================== DARK MODE - TAGS I CHIPS ================== */
+
+[data-theme="dark"] .tag-chip {
+    background: var(--bg-hover);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+}
+
+[data-theme="dark"] .tag-chip:hover {
+    background: #334155;
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .user-chip {
+    background: var(--bg-hover);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+}
+
+[data-theme="dark"] .user-chip button {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .user-chip button:hover {
+    color: var(--danger);
+}
+
+/* ================== DARK MODE - INNE ELEMENTY ================== */
+
+[data-theme="dark"] .note-footer-info {
+    background: var(--bg-app);
+    border-top-color: var(--border);
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .empty-icon-bg {
+    background: var(--bg-hover);
+}
+
+[data-theme="dark"] .empty-icon-bg i {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .notes-empty-state h3 {
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .user-search-box {
+    background: var(--bg-app);
+    border-color: var(--border);
+}
+
+[data-theme="dark"] .user-search-input {
+    background: transparent;
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .user-search-input::placeholder {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .user-search-results {
+    background: var(--bg-white);
+    border-color: var(--border);
+}
+
+[data-theme="dark"] .user-result-item {
+    border-bottom-color: var(--border);
+}
+
+[data-theme="dark"] .user-result-item:hover {
+    background: var(--bg-hover);
+}
+
+[data-theme="dark"] .user-result-name {
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .user-result-email {
+    color: var(--text-secondary);
 }
 
 /* Karta notatki */
@@ -189,18 +580,66 @@
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: all 0.2s ease;
+    position: relative;
 }
 
 .note-card:hover {
-    background: white;
+    background: var(--bg-hover);
     box-shadow: var(--shadow-sm);
     transform: translateY(-1px);
+    border-color: var(--border);
 }
 
 .note-card.active {
-    background: white;
+    background: var(--bg-hover);
     border-color: var(--primary);
     box-shadow: 0 0 0 1px var(--primary);
+}
+
+[data-theme="dark"] .note-card:hover {
+    background: var(--bg-hover);
+}
+
+[data-theme="dark"] .note-card.active {
+    background: var(--bg-hover);
+}
+
+[data-theme="dark"] .note-card-action-btn {
+    background: var(--bg-app);
+    border-color: var(--border);
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .note-card-action-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--text-main);
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .note-card-action-btn.active {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: #f59e0b;
+    color: #fbbf24;
+}
+
+[data-theme="dark"] .note-card-visibility.private {
+    background: var(--bg-hover);
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .note-card-visibility.shared {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .note-card-visibility.group {
+    background: rgba(168, 85, 247, 0.15);
+    color: #c084fc;
+}
+
+[data-theme="dark"] .note-card-visibility.public {
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
 }
 
 .note-card h3 {
@@ -211,6 +650,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    padding-right: 60px;
 }
 
 .note-card p {
@@ -228,8 +668,92 @@
 .note-card-footer {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     font-size: 0.75rem;
     color: var(--text-muted);
+}
+
+/* Szybkie akcje w karcie notatki */
+.note-card-actions {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.note-card:hover .note-card-actions {
+    opacity: 1;
+}
+
+.note-card.active .note-card-actions {
+    opacity: 1;
+}
+
+.note-card-action-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 0.85rem;
+}
+
+.note-card-action-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-main);
+    border-color: var(--text-secondary);
+    transform: translateY(-1px);
+}
+
+.note-card-action-btn.active {
+    color: #f59e0b;
+    border-color: #f59e0b;
+    background: rgba(245, 158, 11, 0.1);
+}
+
+.note-card-action-btn.active:hover {
+    color: #d97706;
+    border-color: #d97706;
+}
+
+/* Badge widoczności w stopce */
+.note-card-visibility {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.note-card-visibility.private {
+    color: var(--text-muted);
+    background: var(--bg-app);
+}
+
+.note-card-visibility.shared {
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.note-card-visibility.group {
+    color: #a855f7;
+    background: rgba(168, 85, 247, 0.1);
+}
+
+.note-card-visibility.public {
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.1);
 }
 
 /* GŁÓWNA ZAWARTOŚĆ */
@@ -240,8 +764,10 @@
     display: flex;
     flex-direction: column;
     position: relative;
-    overflow: hidden; /* Zapobiega wychodzeniu treści poza główny kontener */
-    min-width: 0; /* Kluczowe dla flexboxa, aby text-overflow działał w dzieciach */
+    overflow: hidden;
+    /* Zapobiega wychodzeniu treści poza główny kontener */
+    min-width: 0;
+    /* Kluczowe dla flexboxa, aby text-overflow działał w dzieciach */
 }
 
 .notes-empty-state {
@@ -271,6 +797,158 @@
     color: var(--text-muted);
 }
 
+/* FORMATOWANIE TEKSTU (MARKDOWN LITE) */
+
+.formatting-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px;
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.btn-format {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.btn-format:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text-main);
+}
+
+.format-divider {
+    width: 1px;
+    height: 16px;
+    background: var(--border);
+    margin: 0 4px;
+}
+
+/* Dostosowanie textarea do toolbara */
+.form-textarea {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    margin-top: 0;
+    resize: vertical;
+    /* Pozwala rozciągać w pionie */
+    min-height: 200px;
+}
+
+/* DARK MODE - TOOLBAR */
+
+[data-theme="dark"] .formatting-toolbar {
+    background: var(--bg-app);
+    border-color: var(--border);
+}
+
+[data-theme="dark"] .btn-format {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .btn-format:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-main);
+}
+
+/* STYLES FOR RENDERED MARKDOWN CONTENT */
+
+.note-content-text {
+    line-height: 1.6;
+    font-size: 0.95rem;
+    white-space: pre-wrap;
+    /* Zachowuje podstawowe entery */
+}
+
+/* Podkreślenie */
+.note-content-text u {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+}
+
+/* Nagłówki w treści notatki */
+.note-content-text h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 1.5em 0 0.5em 0;
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid var(--border);
+}
+
+.note-content-text h3:first-child {
+    margin-top: 0;
+}
+
+/* Listy w treści notatki */
+.note-content-text ul {
+    margin: 0.5em 0;
+    padding-left: 1.5em;
+    list-style-type: disc;
+}
+
+.note-content-text li {
+    margin-bottom: 0.3em;
+}
+
+/* Kod w treści notatki */
+.note-content-text code {
+    background: rgba(0, 0, 0, 0.05);
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.85em;
+    color: var(--primary);
+}
+
+[data-theme="dark"] .note-content-text code {
+    background: rgba(255, 255, 255, 0.1);
+    color: #60a5fa;
+}
+
+/* Linki w treści notatki */
+.note-content-text a {
+    color: var(--primary);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+}
+
+.note-content-text a:hover {
+    border-bottom-color: var(--primary);
+}
+
+/* Pogrubienie i kursywa */
+.note-content-text strong {
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.note-content-text em {
+    font-style: italic;
+}
+
+/* Cytat (opcjonalne, jeśli dodamy obsługę >) */
+.note-content-text blockquote {
+    border-left: 3px solid var(--primary);
+    margin: 1em 0;
+    padding-left: 1em;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
 .notes-empty-state h3 {
     color: var(--text-main);
     margin-bottom: 10px;
@@ -284,19 +962,23 @@
 }
 
 .note-header {
-    padding: 30px 40px;
+    padding: 20px 30px;
     border-bottom: 1px solid var(--border);
     display: flex;
     justify-content: space-between;
-    align-items: flex-start; /* Ważne: przyciski zostają na górze przy wieloliniowym tytule */
-    gap: 20px;
-    flex-shrink: 0; /* Nagłówek nie kurczy się przy scrollowaniu treści */
+    align-items: flex-start;
+    /* Zmiana na flex-start dla lepszego układu przy wrapie */
+    gap: 15px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
 }
 
 .note-title-wrapper {
-    flex: 1; /* Zajmuje całą dostępną przestrzeń minus przyciski */
-    min-width: 0; /* ✨ MAGIA: Pozwala kontenerowi flex kurczyć się, gdy tekst jest za długi */
-    margin-right: 10px; /* Dodatkowy odstęp od przycisków */
+    flex: 1 1 250px;
+    /* Nieco mniejsza baza */
+    min-width: 0;
+    margin-right: 15px;
+    margin-bottom: 5px;
 }
 
 .note-title-wrapper h1 {
@@ -304,7 +986,7 @@
     color: var(--text-main);
     margin: 0 0 10px 0;
     line-height: 1.3;
-    
+
     /* ŁAMANIE DŁUGICH CIĄGÓW ZNAKÓW  */
     overflow-wrap: break-word;
     word-wrap: break-word;
@@ -331,18 +1013,32 @@
     text-transform: uppercase;
 }
 
-.note-actions {
+.note-view-actions {
+    flex: 0 1 auto;
+    /* Może się kurczyć jeśli trzeba, ale preferuje swój rozmiar */
     display: flex;
     gap: 8px;
-    flex-shrink: 0; /* Zapobiega zgniataniu przycisków przez długi tytuł */
-    margin-top: 5px; /* Wyrównanie optyczne do pierwszej linii tytułu */
+    align-items: center;
+    justify-content: flex-end;
+    margin-left: auto;
+    flex-wrap: wrap;
+    /* Pozwalamy na wrap WEWNĄTRZ kontenera przycisków na bardzo małych ekranach */
+    margin-top: 5px;
+    /* Odstęp od góry (wyrównanie do tytułu) */
+}
+
+.divider-vertical {
+    width: 1px;
+    height: 24px;
+    background-color: var(--border);
+    margin: 0 4px;
 }
 
 .btn-icon {
     width: 36px;
     height: 36px;
     border: 1px solid var(--border);
-    background: white;
+    background: var(--bg-white);
     border-radius: var(--radius-md);
     color: var(--text-secondary);
     cursor: pointer;
@@ -364,13 +1060,15 @@
 }
 
 .note-body {
-    flex: 1; /* Wypełnia resztę wysokości kontenera */
-    padding: 30px 40px; /* Margines wewnętrzny dla tekstu */
-    
+    flex: 1;
+    /* Wypełnia resztę wysokości kontenera */
+    padding: 30px 40px;
+    /* Margines wewnętrzny dla tekstu */
+
     /* Pasek przewijania tylko w tej sekcji */
-    overflow-y: auto; 
+    overflow-y: auto;
     overflow-x: hidden;
-    
+
     /* Stabilizuje pasek przewijania */
     scrollbar-gutter: stable;
 }
@@ -379,13 +1077,14 @@
     font-size: 1.1rem;
     line-height: 1.8;
     color: var(--text-main);
-    white-space: pre-wrap; /* Zachowuje entery i spacje */
-    
+    white-space: pre-wrap;
+    /* Zachowuje entery i spacje */
+
     /* ŁAMANIE DŁUGIEJ TREŚCI */
     overflow-wrap: break-word;
     word-wrap: break-word;
     word-break: break-word;
-    
+
     width: 100%;
 }
 
@@ -395,7 +1094,8 @@
     font-size: 0.8rem;
     color: var(--text-muted);
     background: #fafafa;
-    flex-shrink: 0; /* Stopka zawsze widoczna, nie znika */
+    flex-shrink: 0;
+    /* Stopka zawsze widoczna, nie znika */
 }
 
 /* MODALE I FORMULARZ */
@@ -416,7 +1116,7 @@
 }
 
 .modal-card {
-    background: white;
+    background: var(--bg-white);
     width: 100%;
     max-width: 650px;
     border-radius: var(--radius-lg);
@@ -427,7 +1127,9 @@
     animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.modal-sm { max-width: 400px; }
+.modal-sm {
+    max-width: 400px;
+}
 
 .modal-header {
     padding: 20px 25px;
@@ -437,7 +1139,10 @@
     align-items: center;
 }
 
-.modal-header h3 { margin: 0; font-size: 1.25rem; }
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+}
 
 .btn-close {
     background: none;
@@ -460,7 +1165,7 @@
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-    background: #fafafa;
+    background: var(--bg-sidebar);
     border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
@@ -512,7 +1217,7 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    background: white;
+    background: var(--bg-white);
     border-top: none;
 }
 
@@ -558,13 +1263,14 @@
 /* SEKCJE FORMULARZA */
 
 .form-section-title {
-    padding: 25px 25px 10px 25px;
-    border-bottom: 1px dashed var(--border);
-    background: #fff;
+    padding: 20px 25px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-sidebar);
 }
 
 .form-section-content {
-    padding: 15px 25px 25px 25px;
+    padding: 20px 25px;
+    background: var(--bg-white);
     flex-grow: 1;
     display: flex;
     flex-direction: column;
@@ -574,27 +1280,45 @@
     width: 100%;
     font-size: 1.5rem;
     font-weight: 700;
-    border: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
     outline: none;
-    padding: 5px 0;
+    padding: 10px 15px;
     color: var(--text-main);
-    background: transparent;
+    background: var(--bg-white);
+    transition: all 0.2s;
 }
-.form-input-title::placeholder { color: var(--text-muted); }
+
+.form-input-title:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.form-input-title::placeholder {
+    color: var(--text-muted);
+}
 
 .form-textarea {
     width: 100%;
     min-height: 250px;
     flex-grow: 1;
-    border: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
     outline: none;
-    resize: none;
+    resize: vertical;
     font-size: 1rem;
     line-height: 1.6;
     color: var(--text-main);
     font-family: inherit;
-    background: transparent;
+    background: var(--bg-white);
     margin-top: 10px;
+    padding: 15px;
+    transition: all 0.2s;
+}
+
+.form-textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
 }
 
 .char-counter {
@@ -605,16 +1329,62 @@
     transition: color 0.2s;
 }
 
-.char-counter.warning { color: #f59e0b; }
-.char-counter.danger { color: var(--danger); font-weight: 600; }
+.char-counter.warning {
+    color: #f59e0b;
+}
+
+.char-counter.danger {
+    color: var(--danger);
+    font-weight: 600;
+}
+
+.form-group {
+    padding: 20px 25px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-white);
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-white);
+    color: var(--text-main);
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.form-text {
+    display: block;
+    margin-top: 8px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
 
 .form-error-msg {
-    margin: 0 25px 15px 25px;
-    color: var(--danger);
+    margin: 15px 25px;
+    color: #b91c1c;
     font-size: 0.9rem;
-    padding: 10px;
-    background: var(--danger-light);
-    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    font-weight: 500;
+    display: block;
 }
 
 .btn-primary {
@@ -626,7 +1396,10 @@
     font-weight: 600;
     cursor: pointer;
 }
-.btn-primary:hover { background: var(--primary-hover); }
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+}
 
 .btn-danger {
     background: var(--danger);
@@ -637,7 +1410,10 @@
     font-weight: 600;
     cursor: pointer;
 }
-.btn-danger:hover { background: var(--danger-hover); }
+
+.btn-danger:hover {
+    background: var(--danger-hover);
+}
 
 .btn-text {
     background: transparent;
@@ -646,8 +1422,12 @@
     border: none;
     cursor: pointer;
     font-weight: 500;
+    border-radius: var(--radius-md);
 }
-.btn-text:hover { color: var(--text-main); }
+
+.btn-text:hover {
+    color: var(--text-main);
+}
 
 /* POWIADOMIENIA (TOAST) */
 
@@ -660,8 +1440,9 @@
     flex-direction: column;
     gap: 10px;
 }
+
 .toast {
-    background: white;
+    background: var(--bg-white);
     padding: 16px 20px;
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-lg);
@@ -674,83 +1455,934 @@
     font-size: 0.95rem;
     color: var(--text-main);
 }
-.toast.success { border-color: #10b981; }
-.toast.error { border-color: var(--danger); }
-.toast i { font-size: 1.2rem; }
-.toast.success i { color: #10b981; }
-.toast.error i { color: var(--danger); }
+
+.toast.success {
+    border-color: #10b981;
+}
+
+.toast.error {
+    border-color: var(--danger);
+}
+
+.toast i {
+    font-size: 1.2rem;
+}
+
+.toast.success i {
+    color: #10b981;
+}
+
+.toast.error i {
+    color: var(--danger);
+}
+
+/* DARK MODE - TOASTY */
+
+[data-theme="dark"] .toast {
+    background: var(--bg-white);
+    color: var(--text-main);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="dark"] .toast.success {
+    border-color: #10b981;
+}
+
+[data-theme="dark"] .toast.success i {
+    color: #34d399;
+}
+
+[data-theme="dark"] .toast.error {
+    border-color: var(--danger);
+}
+
+[data-theme="dark"] .toast.error i {
+    color: #f87171;
+}
 
 @keyframes slideInRight {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-@keyframes fadeOut {
-    to { opacity: 0; transform: translateY(10px); }
-}
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
 
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* RESPONSYWNOŚĆ - TABLET */
+@media (max-width: 1024px) {
+    .notes-sidebar {
+        width: 280px;
+    }
+
+    .note-title {
+        font-size: 1.4rem;
+    }
+}
+
+/* RESPONSYWNOŚĆ - MOBILE */
 @media (max-width: 768px) {
-    .notes-container { 
-        flex-direction: column; 
-        height: auto; 
+    .notes-container {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
     }
-    
-    .notes-sidebar { 
-        width: 100%; 
-        height: 50vh; /* Zwiększona wysokość z 300px */
-        min-height: 400px; /* Minimalna wysokość */
-        border-right: none; 
-        border-bottom: 1px solid var(--border); 
+
+    .notes-sidebar {
+        width: 100%;
+        height: 50vh;
+        min-height: 400px;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
     }
-    
+
     .notes-list {
         padding: 8px;
     }
-    
+
     .note-card {
         padding: 12px;
         margin-bottom: 6px;
     }
-    
-    .note-card-title {
-        font-size: 0.9rem; /* Zmniejszona czcionka */
+
+    .note-card h3 {
+        font-size: 0.9rem;
     }
-    
-    .note-card-preview {
-        font-size: 0.8rem; /* Zmniejszona czcionka */
+
+    .note-card p {
+        font-size: 0.8rem;
     }
-    
-    .note-card-date {
-        font-size: 0.75rem; /* Zmniejszona czcionka */
+
+    .note-card-footer span {
+        font-size: 0.75rem;
     }
-    
-    .note-header { 
-        padding: 16px; 
-        flex-direction: column; 
-        gap: 12px; 
+
+    /* Przyciski akcji zawsze widoczne na mobile */
+    .note-card-actions {
+        opacity: 1;
     }
-    
+
+    .note-card-action-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+    }
+
+    .note-header {
+        padding: 16px;
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
     .note-title {
-        font-size: 1.3rem; /* Zmniejszona czcionka tytułu */
+        font-size: 1.3rem;
     }
-    
-    .note-actions { 
-        width: 100%; 
-        justify-content: flex-end; 
+
+    .note-meta {
+        flex-wrap: wrap;
+        gap: 8px;
     }
-    
-    .note-body { 
-        padding: 16px; 
-        font-size: 0.95rem; /* Zmniejszona czcionka treści */
+
+    .note-view-actions {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 5px;
     }
-    
+
+    .note-view-actions button {
+        flex: 0 0 auto;
+        min-width: 36px;
+        min-height: 36px;
+        font-size: 0.9rem;
+        padding: 6px;
+    }
+
+    .btn-icon {
+        min-width: 36px;
+        min-height: 36px;
+        padding: 6px;
+    }
+
+    .note-body {
+        padding: 16px;
+        font-size: 0.95rem;
+    }
+
     .notes-sidebar-title {
         font-size: 1.2rem;
     }
-    
+
     .btn-new-note {
         font-size: 0.85rem;
         padding: 8px 14px;
     }
+
+    /* Filtry w mobile - zawijamy */
+    .notes-filters {
+        padding: 8px 12px;
+        gap: 5px;
+    }
+
+    .filter-chip {
+        padding: 4px 8px;
+        font-size: 0.7rem;
+    }
+
+    /* Modal w mobile */
+    .note-form-modal {
+        padding: 10px;
+    }
+
+    .note-form-content {
+        width: 95%;
+        max-width: none;
+        margin: 10px auto;
+        max-height: 95vh;
+    }
+
+    .modal-header h2 {
+        font-size: 1.1rem;
+    }
+
+    .modal-body {
+        padding: 15px;
+    }
+
+    .form-group label {
+        font-size: 0.85rem;
+    }
+
+    #formNoteTitle,
+    #formNoteContent,
+    #formNoteTags,
+    #formNoteVisibility {
+        font-size: 0.9rem;
+    }
+
+    /* User search w mobile */
+    #shareWithUsersSection {
+        padding: 12px;
+    }
+
+    .user-chip {
+        font-size: 0.8rem;
+        padding: 5px 10px;
+    }
+}
+
+/* RESPONSYWNOŚĆ - SMALL MOBILE */
+@media (max-width: 480px) {
+    .notes-sidebar {
+        height: 45vh;
+        min-height: 350px;
+    }
+
+    .filter-chip {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+
+    .note-title {
+        font-size: 1.2rem;
+        word-break: break-word;
+    }
+
+    .note-title-wrapper h1 {
+        font-size: 1.1rem;
+    }
+
+    .note-content-text {
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    .note-actions button {
+        padding: 8px;
+        font-size: 0.85rem;
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .badge-visibility {
+        font-size: 0.7rem;
+        padding: 3px 8px;
+    }
+
+    .tag-chip {
+        font-size: 0.7rem;
+        padding: 3px 8px;
+    }
+
+    /* Większe przyciski akcji na very small screens */
+    .note-card-action-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+
+    .note-card h3 {
+        padding-right: 80px;
+    }
+
+    /* Modal na pełny ekran w small mobile */
+    .modal-card {
+        width: 100%;
+        max-width: 100%;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+
+    .modal-body {
+        padding: 12px;
+    }
+
+    .toast {
+        min-width: auto;
+        width: calc(100vw - 32px);
+        font-size: 0.85rem;
+    }
+
+    .toast-container {
+        right: 16px;
+        left: 16px;
+        bottom: 16px;
+    }
+}
+
+/* STYLE DLA WSPÓŁDZIELENIA I TAGÓW */
+
+/* Widoczność badge */
+.badge-visibility {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 10px;
+}
+
+.badge-visibility.private {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.badge-visibility.shared_with_users {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-visibility.group {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-visibility.public {
+    background: #e9d5ff;
+    color: #6b21a8;
+}
+
+/* Statystyki notatki */
+.note-meta {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.note-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.note-stat i {
+    font-size: 0.9rem;
+}
+
+/* Tagi */
+.note-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.tag-chip {
+    display: inline-block;
+    padding: 4px 10px;
+    background: var(--primary-light);
+    color: var(--primary);
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* Formularz - tagi */
+#formNoteTags {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-family: inherit;
+}
+
+#formNoteTags:focus {
+    outline: none;
+    border-color: var(--border-focus);
+}
+
+/* Formularz - widoczność */
+#formNoteVisibility {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    background: var(--bg-white);
+    cursor: pointer;
+}
+
+#formNoteVisibility:focus {
+    outline: none;
+    border-color: var(--border-focus);
+}
+
+#visibilityHelp {
+    display: block;
+    margin-top: 6px;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+/* Wyszukiwanie użytkowników */
+#shareWithUsersSection {
+    margin-top: 15px;
+    padding: 15px;
+    background: var(--bg-sidebar);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+}
+
+#userSearchInput {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+#userSearchInput:focus {
+    outline: none;
+    border-color: var(--border-focus);
+}
+
+#userSearchResults {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+}
+
+.user-search-result {
+    padding: 10px;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.user-search-result:hover {
+    background: var(--bg-sidebar);
+    border-color: var(--primary);
+}
+
+.user-search-result strong {
+    color: var(--text-main);
+}
+
+.user-search-result small {
+    color: var(--text-secondary);
+}
+
+/* Wybrani użytkownicy */
+#selectedUsersList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.user-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    font-size: 0.85rem;
+    color: var(--text-main);
+}
+
+.user-chip button {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+}
+
+.user-chip button:hover {
+    color: var(--danger);
+}
+
+.user-chip button i {
+    font-size: 0.75rem;
+}
+
+/* Dodatkowe akcje (Udostępnij, Kopiuj) */
+.note-actions .btn-action {
+    padding: 8px 12px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+}
+
+.note-actions .btn-action:hover {
+    background: var(--bg-sidebar);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.note-actions .btn-action.favorite-active {
+    color: #fbbf24;
+    border-color: #fbbf24;
+}
+
+.note-actions .btn-action.favorite-active:hover {
+    background: #fef3c7;
+}
+
+/* DARK MODE - MODAL FORMULARZA */
+
+[data-theme="dark"] .modal-card {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="dark"] .modal-header {
+    background: #1a1a1a;
+    border-bottom: 1px solid #333;
+    padding: 20px 25px;
+}
+
+[data-theme="dark"] .modal-header h3 {
+    color: #fff;
+}
+
+[data-theme="dark"] .modal-body {
+    background: #1a1a1a;
+    padding: 0;
+}
+
+[data-theme="dark"] .form-section-title {
+    background: #222;
+    border-bottom: none;
+    padding: 20px 25px 15px;
+    border-radius: 8px 8px 0 0;
+}
+
+[data-theme="dark"] .form-section-content {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    margin: 0;
+    padding: 20px 25px;
+}
+
+[data-theme="dark"] .form-input-title {
+    background: #111;
+    border-color: #333;
+    color: #fff;
+    font-size: 1.4rem;
+}
+
+[data-theme="dark"] .form-input-title:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+[data-theme="dark"] .form-input-title::placeholder {
+    color: #666;
+}
+
+[data-theme="dark"] .form-textarea {
+    background: #111;
+    border-color: #333;
+    color: #e5e5e5;
+    line-height: 1.7;
+}
+
+[data-theme="dark"] .form-textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+[data-theme="dark"] .form-textarea::placeholder {
+    color: #555;
+}
+
+[data-theme="dark"] .char-counter {
+    color: #666;
+}
+
+[data-theme="dark"] .form-group {
+    background: #222;
+    padding: 18px 25px;
+    border-top: 1px solid #333;
+}
+
+[data-theme="dark"] .form-group label {
+    color: #e5e5e5;
+    font-weight: 500;
+    margin-bottom: 10px;
+    display: block;
+}
+
+[data-theme="dark"] .form-control {
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: #e5e5e5;
+    padding: 12px 15px;
+}
+
+[data-theme="dark"] .form-control:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+[data-theme="dark"] .form-control::placeholder {
+    color: #555;
+}
+
+[data-theme="dark"] .form-text {
+    color: #777;
+    margin-top: 8px;
+}
+
+[data-theme="dark"] .modal-footer {
+    background: #1a1a1a;
+    border-top: 1px solid #333;
+    padding: 18px 25px;
+}
+
+[data-theme="dark"] #formNoteVisibility {
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: #e5e5e5;
+    padding: 12px 15px;
+    cursor: pointer;
+}
+
+[data-theme="dark"] #formNoteVisibility:focus {
+    border-color: #3b82f6;
+}
+
+[data-theme="dark"] #formNoteVisibility option {
+    background: #1a1a1a;
+    color: #e5e5e5;
+}
+
+[data-theme="dark"] #visibilityHelp {
+    color: #777;
+}
+
+/* DARK MODE - WALIDACJA FORMULARZA */
+
+[data-theme="dark"] .form-control:user-invalid {
+    border-color: #dc2626;
+}
+
+[data-theme="dark"] .form-control:user-invalid:focus {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+}
+
+/* DARK MODE - KOMUNIKAT BŁĘDU FORMULARZA */
+
+[data-theme="dark"] .form-error-msg {
+    background: rgba(127, 29, 29, 0.5);
+    border: 1px solid #dc2626;
+    color: #fca5a5;
+    padding: 12px 16px;
+    margin: 15px 25px;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+/* SEKCJA UDOSTĘPNIANIA UŻYTKOWNIKOM */
+
+#shareWithUsersSection {
+    background: var(--bg-sidebar);
+    border: none;
+    border-top: 1px solid var(--border);
+    border-radius: 0;
+    padding: 18px 25px;
+    margin: 0;
+}
+
+.user-search-result {
+    padding: 12px 15px;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.user-search-result:hover {
+    background: var(--bg-app);
+    border-color: var(--primary);
+}
+
+.user-search-result strong {
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+.user-search-result small {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+#shareWithUsersSection label {
+    display: block;
+    margin-bottom: 15px;
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+#shareWithUsersSection .form-control {
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+.user-search-results {
+    margin-bottom: 12px;
+    background: transparent;
+}
+
+.selected-users-list {
+    background: var(--bg-app);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    min-height: 44px;
+}
+
+/* DARK MODE - SEKCJA UDOSTĘPNIANIA */
+
+[data-theme="dark"] #shareWithUsersSection {
+    background: #222;
+    border: none;
+    border-top: 1px solid #333;
+}
+
+[data-theme="dark"] .user-search-result {
+    background: #222 !important;
+    border: 1px solid #444 !important;
+}
+
+[data-theme="dark"] .user-search-result:hover {
+    background: #333 !important;
+    border-color: #3b82f6 !important;
+    cursor: pointer;
+}
+
+[data-theme="dark"] .user-search-result strong {
+    color: #fff;
+}
+
+[data-theme="dark"] .user-search-result small {
+    color: #888;
+}
+
+[data-theme="dark"] .user-search-results {
+    background: #222 !important;
+}
+
+[data-theme="dark"] #shareWithUsersSection label {
+    color: #e5e5e5;
+}
+
+[data-theme="dark"] .selected-users-list {
+    background: #111;
+    border-color: #333;
+    color: #999;
+}
+
+[data-theme="dark"] #shareWithUsersSection .form-control {
+    background: #111;
+    border-color: #333;
+    color: #e5e5e5;
+}
+
+/* DARK MODE - MODAL USUWANIA */
+
+[data-theme="dark"] .modal-footer-centered {
+    background: #1a1a1a;
+    border-top: none;
+}
+
+[data-theme="dark"] .btn-text-gray {
+    background: #222;
+    border: 1px solid #333;
+    color: #e5e5e5;
+}
+
+[data-theme="dark"] .btn-text-gray:hover {
+    background: #333;
+}
+
+[data-theme="dark"] .btn-danger-block {
+    border: none;
+}
+
+
+[data-theme="dark"] #shareWithUsersSection .form-control::placeholder {
+    color: #666;
+}
+
+[data-theme="dark"] #shareWithUsersSection .form-control:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    outline: none;
+}
+
+/* Fullscreen Modal Styles */
+.modal-overlay.fullscreen {
+    padding: 0;
+    align-items: flex-start;
+}
+
+.modal-overlay.fullscreen .modal-card {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-overlay.fullscreen .modal-body {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding-bottom: 0;
+}
+
+.modal-overlay.fullscreen #noteForm {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.modal-overlay.fullscreen .form-section-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+    padding-bottom: 0;
+}
+
+.modal-overlay.fullscreen .form-textarea {
+    flex-grow: 1;
+    height: 100% !important;
+    min-height: 0;
+    max-height: none;
+    resize: none;
+    border-radius: 0;
+    margin-bottom: 0;
+}
+
+.modal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-icon-header {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 5px;
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-icon-header:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
 }

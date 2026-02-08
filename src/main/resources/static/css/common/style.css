@@ -602,10 +602,58 @@ body {
 }
 
 /* Linki pomocnicze */
-.recovery-password {
-    text-align: right;
-    margin-top: -12px;
+/* Modyfikacja inputa hasła */
+.input-password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-toggle-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: var(--transition);
+    z-index: 10;
+}
+
+.password-toggle-icon:hover {
+    color: var(--primary);
+}
+
+/* Opcje formularza (remember me + forgot password) */
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 24px;
+    font-size: 0.9rem;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+}
+
+.remember-me input[type="checkbox"] {
+    accent-color: var(--primary);
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.remember-me label {
+    cursor: pointer;
+    user-select: none;
+}
+
+.recovery-password {
+    margin: 0;
+    /* Reset marginesów z poprzedniej wersji */
 }
 
 .forgot-password {

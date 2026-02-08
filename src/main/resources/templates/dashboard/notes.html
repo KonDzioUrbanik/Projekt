@@ -28,8 +28,13 @@
                     </div>
                     <div class="notes-filters">
                         <button class="filter-chip active" data-filter="all">Wszystkie</button>
-                        <button class="filter-chip" data-filter="recent">Ostatnie</button>
-                        <button class="filter-chip" data-filter="edited">Edytowane</button>
+                        <button class="filter-chip" data-filter="my">Moje</button>
+                        <button class="filter-chip" data-filter="shared">Udostępnione</button>
+                        <button class="filter-chip" data-filter="group">Mój kierunek</button>
+                        <button class="filter-chip" data-filter="public">Publiczne</button>
+                        <button class="filter-chip" data-filter="favorites">
+                            <i class="fas fa-star"></i> Ulubione
+                        </button>
                     </div>
                     <div class="notes-list" id="notesList">
                         <div class="notes-loading">
@@ -54,14 +59,37 @@
                                 <div class="note-meta">
                                     <span id="noteCreatedAt">Data</span>
                                     <span id="noteEditedMeta" class="badge-edited" style="display:none;">Edytowano</span>
+                                    <span id="noteVisibilityBadge" class="badge-visibility"></span>
+                                    <span id="noteViewCount" class="note-stat">
+                                        <i class="fas fa-eye"></i> <span id="viewCountValue">0</span>
+                                    </span>
+                                    <span id="noteFavoriteCount" class="note-stat">
+                                        <i class="fas fa-heart"></i> <span id="favoriteCountValue">0</span>
+                                    </span>
                                 </div>
+                                <div id="noteTags" class="note-tags"></div>
                             </div>
-                            <div class="note-actions">
-                                <button class="btn-icon" id="btnEdit" title="Edytuj (Ctrl+E)">
+                            <div class="note-view-actions">
+                                <button class="btn-icon" id="btnTextInc" title="Powiększ tekst (A+)"><i class="fas fa-plus"></i></button>
+                                <button class="btn-icon" id="btnTextDec" title="Pomniejsz tekst (A-)"><i class="fas fa-minus"></i></button>
+                                <div class="divider-vertical"></div>
+                                <button class="btn-icon" id="btnExportPdf" title="Eksportuj do PDF"><i class="fas fa-file-pdf"></i></button>
+                                <button class="btn-icon" id="btnExportDocx" title="Eksportuj do DOCX"><i class="fas fa-file-word"></i></button>
+                                <div class="divider-vertical"></div>
+                                <button class="btn-icon" id="btnFavorite" title="Dodaj do ulubionych">
+                                    <i class="far fa-star"></i>
+                                </button>
+                                <button class="btn-icon" id="btnShare" title="Udostępnij">
+                                    <i class="fas fa-share-alt"></i>
+                                </button>
+                                <button class="btn-icon" id="btnCopy" title="Kopiuj treść">
+                                    <i class="far fa-copy"></i>
+                                </button>
+                                <button class="btn-icon" id="btnEdit" title="Edytuj">
                                     <i class="fas fa-pen"></i>
                                 </button>
-                                <button class="btn-icon btn-icon-danger" id="btnDelete" title="Usuń">
-                                    <i class="fas fa-trash-alt"></i>
+                                <button class="btn-icon danger" id="btnDelete" title="Usuń">
+                                    <i class="fas fa-trash"></i>
                                 </button>
                             </div>
                         </div>
@@ -79,7 +107,10 @@
                 <div class="modal-card">
                     <div class="modal-header">
                         <h3 id="formTitle">Nowa notatka</h3>
-                        <button class="btn-close" id="btnCloseModal"><i class="fas fa-times"></i></button>
+                        <div class="modal-header-actions">
+                            <button class="btn-icon-header" id="btnToggleFullscreen" title="Pełny ekran"><i class="fas fa-expand"></i></button>
+                            <button class="btn-close" id="btnCloseModal"><i class="fas fa-times"></i></button>
+                        </div>
                     </div>
                     <div class="modal-body">
                         <form id="noteForm">
@@ -87,10 +118,69 @@
                                 <input type="text" id="formNoteTitle" class="form-input-title" placeholder="Wpisz tytuł notatki" required maxlength="150">
                                 <div class="char-counter" id="titleCharCount">0/150</div>
                             </div>
+                            
                             <div class="form-section-content">
-                                <textarea id="formNoteContent" class="form-textarea" placeholder="Wprowadź treść notatki" required maxlength="4000"></textarea>
-                                <div class="char-counter" id="contentCharCount">0/4000</div>
+                                <div class="formatting-toolbar">
+                                    <button type="button" class="btn-format" data-format="bold" title="Pogrubienie (**)">
+                                        <i class="fas fa-bold"></i>
+                                    </button>
+                                    <button type="button" class="btn-format" data-format="italic" title="Kursywa (*)">
+                                        <i class="fas fa-italic"></i>
+                                    </button>
+                                    <button type="button" class="btn-format" data-format="underline" title="Podkreślenie (__)">
+                                        <i class="fas fa-underline"></i>
+                                    </button>
+                                    <div class="format-divider"></div>
+                                    <button type="button" class="btn-format" data-format="heading" title="Nagłówek (#)">
+                                        <i class="fas fa-heading"></i>
+                                    </button>
+                                    <button type="button" class="btn-format" data-format="list" title="Lista (-)">
+                                        <i class="fas fa-list-ul"></i>
+                                    </button>
+                                    <div class="format-divider"></div>
+                                    <button type="button" class="btn-format" data-format="link" title="Link ([tekst](url))">
+                                        <i class="fas fa-link"></i>
+                                    </button>
+                                    <button type="button" class="btn-format" data-format="code" title="Kod (`)">
+                                        <i class="fas fa-code"></i>
+                                    </button>
+                                </div>
+                                <textarea id="formNoteContent" class="form-textarea" placeholder="Wprowadź treść notatki" required></textarea>
+                                <div class="char-counter" id="contentCharCount">0</div>
                             </div>
+
+                            <div class="form-group">
+                                <label for="formNoteTags">
+                                    <i class="fas fa-tags"></i> Tagi (opcjonalnie)
+                                </label>
+                                <input type="text" id="formNoteTags" class="form-control" 
+                                       placeholder="np. matematyka, egzamin, wykład5" maxlength="200">
+                                <small class="form-text">Oddziel przecinkami. Pomogą w wyszukiwaniu.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="formNoteVisibility">
+                                    <i class="fas fa-eye"></i> Widoczność notatki
+                                </label>
+                                <select id="formNoteVisibility" class="form-control">
+                                    <option value="PRIVATE">Tylko ja</option>
+                                    <option value="SHARED_WITH_USERS">Wybrani użytkownicy</option>
+                                    <option value="GROUP">Mój kierunek</option>
+                                    <option value="PUBLIC">Publiczna (wszyscy)</option>
+                                </select>
+                                <small class="form-text" id="visibilityHelp">Notatka będzie widoczna tylko dla Ciebie.</small>
+                            </div>
+
+                            <div id="shareWithUsersSection" class="form-group" style="display: none;">
+                                <label>
+                                    <i class="fas fa-users"></i> Udostępnij dla użytkowników
+                                </label>
+                                <input type="text" id="userSearchInput" class="form-control" 
+                                       placeholder="Wyszukaj użytkownika po imieniu lub emailu...">
+                                <div id="userSearchResults" class="user-search-results"></div>
+                                <div id="selectedUsersList" class="selected-users-list"></div>
+                            </div>
+                            
                             <div id="formError" class="form-error-msg" style="display: none;"></div>
                         </form>
                     </div>

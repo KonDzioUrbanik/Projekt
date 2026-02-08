@@ -450,7 +450,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public User getAvatar(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
@@ -459,6 +459,8 @@ public class UserServiceImpl implements UserService {
             throw new org.springframework.web.server.ResponseStatusException(
                     org.springframework.http.HttpStatus.NOT_FOUND, "Użytkownik nie ma awatara");
         }
+        // Force load LOB data within transaction
+        int len = user.getAvatarData().length;
         return user;
     }
 
@@ -470,5 +472,14 @@ public class UserServiceImpl implements UserService {
         user.setAvatarData(null);
         user.setAvatarContentType(null);
         userRepository.save(user);
+    }
+
+    @Override
+    public List<UserResponseDto> searchUsers(String query) {
+        String searchPattern = "%" + query.toLowerCase() + "%";
+        List<User> users = userRepository.searchByNameOrEmail(searchPattern);
+        return users.stream()
+                .map(this::mapToResponseDto)
+                .toList();
     }
 }

@@ -125,4 +125,10 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Wyszukaj użytkowników po imieniu, nazwisku lub emailu")
+    @GetMapping("/search")
+    public List<UserResponseDto> searchUsers(@RequestParam("q") String query) {
+        return userService.searchUsers(query);
+    }
+
 }

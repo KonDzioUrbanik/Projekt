@@ -15,6 +15,9 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.RememberMeServices;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 
 @Configuration
 public class SecurityConfig {
@@ -54,8 +57,54 @@ public class SecurityConfig {
                 return config.getAuthenticationManager();
         }
 
+        @org.springframework.beans.factory.annotation.Value("${app.security.remember-me.key}")
+        private String rememberMeKey;
+
         @Bean
-        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        public PersistentTokenRepository persistentTokenRepository(
+                        javax.sql.DataSource dataSource) {
+                org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl tokenRepository = new org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl();
+                tokenRepository.setDataSource(dataSource);
+                return tokenRepository;
+        }
+
+        @Bean
+        public RememberMeServices rememberMeServices(UserDetailsService userDetailsService,
+                        PersistentTokenRepository tokenRepository) {
+                // Używamy własnej klasy, aby obsłużyć flagę przekazaną w atrybucie (dla
+                // logowania JSON)
+                CustomRememberMeServices services = new CustomRememberMeServices(
+                                rememberMeKey, userDetailsService, tokenRepository);
+                services.setTokenValiditySeconds(604800); // 7 dni
+                services.setParameter("remember-me");
+                return services;
+        }
+
+        /**
+         * Własna implementacja, która zagląda również do atrybutów żądania.
+         * Dzięki temu AuthController może ustawić flagę ręcznie dla żądań JSON.
+         */
+        public static class CustomRememberMeServices extends PersistentTokenBasedRememberMeServices {
+                public CustomRememberMeServices(String key, UserDetailsService userDetailsService,
+                                PersistentTokenRepository tokenRepository) {
+                        super(key, userDetailsService, tokenRepository);
+                }
+
+                @Override
+                protected boolean rememberMeRequested(jakarta.servlet.http.HttpServletRequest request,
+                                String parameter) {
+                        Object flag = request.getAttribute("REMEMBER_ME_FLAG");
+                        if (flag instanceof Boolean) {
+                                return (Boolean) flag;
+                        }
+                        return super.rememberMeRequested(request, parameter);
+                }
+        }
+
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http,
+                        RememberMeServices rememberMeServices)
+                        throws Exception {
 
                 http.csrf(AbstractHttpConfigurer::disable);
                 http.httpBasic(AbstractHttpConfigurer::disable);
@@ -100,7 +149,8 @@ public class SecurityConfig {
                                                 "/api/users/role/update/**",
                                                 "/api/users/assign-group/**")
                                 .hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/schedule/**", "/api/groups/**").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/schedule/**", "/api/groups/**")
+                                .hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.GET, "/api/groups", "/api/schedule/all").hasRole("ADMIN")
 
                                 // Widoki admin tylko dla ADMIN
@@ -127,6 +177,9 @@ public class SecurityConfig {
                                 ).authenticated()
 
                                 .anyRequest().authenticated());
+
+                http.rememberMe(rememberMe -> rememberMe
+                                .rememberMeServices(rememberMeServices));
 
                 return http.build();
         }
