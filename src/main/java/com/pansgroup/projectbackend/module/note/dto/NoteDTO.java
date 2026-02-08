@@ -23,6 +23,7 @@ public class NoteDTO {
     private Long authorId;
     private String authorName;
     private String authorEmail;
+    private String studentGroupName;
 
     // Współdzielenie
     private NoteVisibility visibility;
@@ -58,6 +59,11 @@ public class NoteDTO {
                     note.getSharedWith().stream()
                             .map(User::getId)
                             .collect(Collectors.toList()));
+        }
+
+        // Grupa studenta (dla widoczności GROUP)
+        if (note.getAuthor().getStudentGroup() != null) {
+            dto.setStudentGroupName(note.getAuthor().getStudentGroup().getName());
         }
 
         // Uprawnienia

@@ -630,6 +630,15 @@ function renderNoteView(note) {
         };
         DOM.noteVisibilityBadge.textContent = visibilityText[note.visibility] || 'Prywatna';
         DOM.noteVisibilityBadge.className = `badge-visibility ${note.visibility?.toLowerCase() || 'private'}`;
+
+        // Tooltip dla grupy
+        if (note.visibility === 'GROUP' && note.studentGroupName) {
+            DOM.noteVisibilityBadge.title = `Dostępne dla kierunku: ${note.studentGroupName}`;
+            DOM.noteVisibilityBadge.style.cursor = 'help';
+        } else {
+            DOM.noteVisibilityBadge.removeAttribute('title');
+            DOM.noteVisibilityBadge.style.cursor = 'default';
+        }
     }
 
     // Liczniki

@@ -300,6 +300,8 @@ public class NoteServiceImpl implements NoteService {
 
     private NoteResponseDto toResponse(Note n) {
         User u = n.getAuthor();
+        String groupName = u.getStudentGroup() != null ? u.getStudentGroup().getName() : null;
+
         return new NoteResponseDto(
                 n.getId(),
                 n.getTitle(),
@@ -309,7 +311,8 @@ public class NoteServiceImpl implements NoteService {
                 u.getLastName(),
                 n.getVisibility().name(),
                 n.getCreatedAt(),
-                n.getUpdatedAt());
+                n.getUpdatedAt(),
+                groupName);
     }
 
     private User getCurrentUser() {
