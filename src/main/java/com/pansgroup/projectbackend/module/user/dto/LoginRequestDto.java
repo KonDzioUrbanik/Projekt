@@ -8,9 +8,14 @@ import lombok.Setter;
 public class LoginRequestDto {
     private String email;
     private String password;
+    private boolean rememberMe;
 
-    public LoginRequestDto(String email, String password) {
+    public LoginRequestDto() {
+    }
+
+    public LoginRequestDto(String email, String password, boolean rememberMe) {
         this.email = email;
         this.password = password;
+        this.rememberMe = rememberMe;
     }
 }

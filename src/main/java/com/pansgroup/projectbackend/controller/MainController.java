@@ -31,12 +31,18 @@ public class MainController {
     }
 
     @GetMapping("/login")
-    public String loginView() {
+    public String loginView(Principal principal) {
+        if (principal != null) {
+            return "redirect:/dashboard";
+        }
         return "auth/login";
     }
 
     @GetMapping("/register")
-    public String registerView() {
+    public String registerView(Principal principal) {
+        if (principal != null) {
+            return "redirect:/dashboard";
+        }
         return "auth/register";
     }
 
