@@ -39,4 +39,6 @@ public interface UserService {
     User getAvatar(Long userId);
 
     void removeAvatar(Long userId);
+
+    List<UserResponseDto> searchUsers(String query);
 }
