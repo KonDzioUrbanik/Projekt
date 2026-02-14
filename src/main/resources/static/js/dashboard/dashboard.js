@@ -773,9 +773,64 @@ class DashboardHome {
 }
 
 // Inicjalizacja po załadowaniu DOM
-document.addEventListener('DOMContentLoaded', () => {
-    new DashboardHome();
 
+
+// Inicjalizacja po załadowaniu DOM
+document.addEventListener('DOMContentLoaded', () => {
+
+    if (window.OnboardingTour) {
+        try {
+            const tour = new window.OnboardingTour({
+                steps: [
+                    {
+                        target: '#sidebar',
+                        title: 'Nawigacja',
+                        description: 'Po lewej stronie znajdziesz dostęp do wszystkich funkcji: Strona Główna, Kalendarz, Harmonogram zajęć, Forum, Obecności, Notatki, Kalendarz akademicki.',
+                        placement: 'right'
+                    },
+                    {
+                        target: '.header',
+                        title: 'Panel użytkownika',
+                        description: 'Tutaj znajdziesz swój numer indeksu, zarządzanie profilem, powiadomienia oraz możliwość zmiany motywu i opcję wylogowania.',
+                        placement: 'bottom'
+                    },
+                    {
+                        target: '#welcome',
+                        title: 'Witaj w panelu!',
+                        description: 'To jest Twój główny pulpit. Tutaj zobaczysz najważniejsze informacje, nadchodzące zajęcia i wiele więcej.',
+                        placement: 'bottom'
+                    },
+                    {
+                        target: '#feedbackBtn',
+                        title: 'Zgłoś błąd',
+                        description: 'Jeśli coś nie działa, daj nam znać klikając tutaj. Cenimy Twoją opinię!',
+                        placement: 'left'
+                    }
+                ]
+            });
+
+
+            const path = window.location.pathname;
+            if (path === '/dashboard' || path === '/' || path === '/dashboard/') {
+                setTimeout(() => {
+                    if (tour.shouldRun()) {
+                        tour.start();
+                    }
+                }, 1000);
+            }
+        } catch (e) {
+            console.error('[Dashboard] Error initializing Onboarding:', e);
+        }
+    } else {
+        console.warn('[Dashboard] OnboardingTour module not found! Check script loading order.');
+    }
+
+    try {
+        new DashboardHome();
+    } catch (e) {
+        console.error('[Dashboard] Critical error in DashboardHome init:', e);
+    }
+    
     const days = [
         "Niedziela",
         "Poniedziałek",
