@@ -7,6 +7,7 @@
     <body>
         <th:block layout:fragment="page-styles">
             <link rel="stylesheet" th:href="@{/css/dashboard/notes.css}">
+            <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
         </th:block>
 
         <div layout:fragment="content">
@@ -15,7 +16,12 @@
             <div class="notes-container">
                 <aside class="notes-sidebar">
                     <div class="notes-sidebar-header">
-                        <h2 class="notes-sidebar-title">Moje notatki</h2>
+                        <div class="notes-sidebar-title-row">
+                            <h2 class="notes-sidebar-title">Moje notatki</h2>
+                            <button class="btn-toggle-sidebar" id="btnToggleSidebar" title="Zwiń panel">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                        </div>
                         <button class="btn-new-note" id="btnNewNote">
                             <i class="fas fa-plus"></i> Nowa notatka
                         </button>
@@ -120,32 +126,8 @@
                             </div>
                             
                             <div class="form-section-content">
-                                <div class="formatting-toolbar">
-                                    <button type="button" class="btn-format" data-format="bold" title="Pogrubienie (**)">
-                                        <i class="fas fa-bold"></i>
-                                    </button>
-                                    <button type="button" class="btn-format" data-format="italic" title="Kursywa (*)">
-                                        <i class="fas fa-italic"></i>
-                                    </button>
-                                    <button type="button" class="btn-format" data-format="underline" title="Podkreślenie (__)">
-                                        <i class="fas fa-underline"></i>
-                                    </button>
-                                    <div class="format-divider"></div>
-                                    <button type="button" class="btn-format" data-format="heading" title="Nagłówek (#)">
-                                        <i class="fas fa-heading"></i>
-                                    </button>
-                                    <button type="button" class="btn-format" data-format="list" title="Lista (-)">
-                                        <i class="fas fa-list-ul"></i>
-                                    </button>
-                                    <div class="format-divider"></div>
-                                    <button type="button" class="btn-format" data-format="link" title="Link ([tekst](url))">
-                                        <i class="fas fa-link"></i>
-                                    </button>
-                                    <button type="button" class="btn-format" data-format="code" title="Kod (`)">
-                                        <i class="fas fa-code"></i>
-                                    </button>
-                                </div>
-                                <textarea id="formNoteContent" class="form-textarea" placeholder="Wprowadź treść notatki" required></textarea>
+                                <div id="quillEditor"></div>
+                                <textarea id="formNoteContent" class="form-textarea" style="display:none;" required></textarea>
                                 <div class="char-counter" id="contentCharCount">0</div>
                             </div>
 
@@ -214,6 +196,7 @@
         </div>
 
         <th:block layout:fragment="page-scripts">
+            <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
             <script th:src="@{/js/dashboard/notes.js}"></script>
         </th:block>
     </body>

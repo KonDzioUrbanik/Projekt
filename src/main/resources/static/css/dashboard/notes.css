@@ -107,6 +107,36 @@ select {
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
+    transition: width 0.3s ease;
+    overflow: hidden;
+}
+
+/* Zwinięty sidebar */
+.notes-sidebar.collapsed {
+    width: 48px;
+}
+
+.notes-sidebar.collapsed .notes-sidebar-title,
+.notes-sidebar.collapsed .btn-new-note,
+.notes-sidebar.collapsed .notes-search,
+.notes-sidebar.collapsed .notes-filters,
+.notes-sidebar.collapsed .notes-list {
+    display: none;
+}
+
+.notes-sidebar.collapsed .notes-sidebar-header {
+    padding: 12px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.notes-sidebar.collapsed .notes-sidebar-title-row {
+    margin-bottom: 0;
+    justify-content: center;
+}
+
+.notes-sidebar.collapsed .btn-toggle-sidebar i {
+    transform: rotate(180deg);
 }
 
 .notes-sidebar-header {
@@ -114,11 +144,42 @@ select {
     background: var(--bg-sidebar);
 }
 
+.notes-sidebar-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
 .notes-sidebar-title {
     font-size: 1.25rem;
     font-weight: 700;
     color: var(--text-main);
-    margin-bottom: 15px;
+    margin-bottom: 0;
+}
+
+.btn-toggle-sidebar {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+}
+
+.btn-toggle-sidebar:hover {
+    background: var(--bg-hover);
+    color: var(--text-main);
+}
+
+.btn-toggle-sidebar i {
+    transition: transform 0.3s ease;
 }
 
 .btn-new-note {
@@ -797,79 +858,206 @@ select {
     color: var(--text-muted);
 }
 
-/* FORMATOWANIE TEKSTU (MARKDOWN LITE) */
+/* QUILL EDITOR  */
 
-.formatting-toolbar {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 6px;
-    background: var(--bg-hover);
-    border: 1px solid var(--border);
-    border-bottom: none;
+/* Toolbar */
+.ql-toolbar.ql-snow {
+    border: 1px solid var(--border) !important;
     border-radius: var(--radius-md) var(--radius-md) 0 0;
+    background: var(--bg-hover) !important;
+    font-family: 'Inter', sans-serif;
 }
 
-.btn-format {
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    background: transparent;
+/* Tooltips na przyciskach toolbara */
+.ql-toolbar.ql-snow button,
+.ql-toolbar.ql-snow .ql-picker-label {
+    position: relative;
+}
+
+.ql-toolbar.ql-snow .ql-stroke {
+    stroke: var(--text-secondary);
+}
+
+.ql-toolbar.ql-snow .ql-fill {
+    fill: var(--text-secondary);
+}
+
+.ql-toolbar.ql-snow .ql-picker-label {
     color: var(--text-secondary);
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    transition: all 0.2s;
 }
 
-.btn-format:hover {
-    background: rgba(0, 0, 0, 0.05);
-    color: var(--text-main);
+.ql-toolbar.ql-snow button:hover .ql-stroke,
+.ql-toolbar.ql-snow button.ql-active .ql-stroke {
+    stroke: var(--primary);
 }
 
-.format-divider {
-    width: 1px;
-    height: 16px;
-    background: var(--border);
-    margin: 0 4px;
+.ql-toolbar.ql-snow button:hover .ql-fill,
+.ql-toolbar.ql-snow button.ql-active .ql-fill {
+    fill: var(--primary);
 }
 
-/* Dostosowanie textarea do toolbara */
-.form-textarea {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    margin-top: 0;
-    resize: vertical;
-    /* Pozwala rozciągać w pionie */
+.ql-toolbar.ql-snow .ql-picker-label:hover,
+.ql-toolbar.ql-snow .ql-picker-label.ql-active {
+    color: var(--primary);
+}
+
+.ql-toolbar.ql-snow .ql-picker-options {
+    background: var(--bg-white);
+    border-color: var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+}
+
+/* Editor Container */
+.ql-container.ql-snow {
+    border: 1px solid var(--border) !important;
+    border-top: none !important;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    background: var(--bg-white) !important;
+}
+
+/* Editor Area */
+.ql-editor {
     min-height: 200px;
+    max-height: 50vh;
+    overflow-y: auto;
+    line-height: 1.6;
+    color: var(--text-main);
+    padding: 12px 15px;
+    resize: vertical;
+    overflow: auto;
 }
 
-/* DARK MODE - TOOLBAR */
+.ql-editor.ql-blank::before {
+    color: var(--text-muted);
+    font-style: italic;
+}
 
-[data-theme="dark"] .formatting-toolbar {
-    background: var(--bg-app);
+/* Fullscreen mode: Quill fills the available space */
+.fullscreen .ql-editor {
+    max-height: none;
+    flex: 1;
+}
+
+.fullscreen .ql-container.ql-snow {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.fullscreen .form-section-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* DARK MODE - QUILL */
+
+[data-theme="dark"] .ql-toolbar.ql-snow {
+    background: #111 !important;
+    border-color: #333 !important;
+}
+
+[data-theme="dark"] .ql-container.ql-snow {
+    border-color: #333 !important;
+    background: #111 !important;
+}
+
+[data-theme="dark"] .ql-editor {
+    color: #e5e5e5 !important;
+}
+
+[data-theme="dark"] .ql-editor.ql-blank::before {
+    color: #555 !important;
+}
+
+[data-theme="dark"] .ql-toolbar.ql-snow .ql-stroke {
+    stroke: var(--text-secondary);
+}
+
+[data-theme="dark"] .ql-toolbar.ql-snow .ql-fill {
+    fill: var(--text-secondary);
+}
+
+[data-theme="dark"] .ql-toolbar.ql-snow .ql-picker-label {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .ql-toolbar.ql-snow button:hover .ql-stroke,
+[data-theme="dark"] .ql-toolbar.ql-snow button.ql-active .ql-stroke {
+    stroke: var(--primary);
+}
+
+[data-theme="dark"] .ql-toolbar.ql-snow button:hover .ql-fill,
+[data-theme="dark"] .ql-toolbar.ql-snow button.ql-active .ql-fill {
+    fill: var(--primary);
+}
+
+[data-theme="dark"] .ql-toolbar.ql-snow .ql-picker-options {
+    background: var(--bg-white);
     border-color: var(--border);
 }
 
-[data-theme="dark"] .btn-format {
-    color: var(--text-secondary);
-}
-
-[data-theme="dark"] .btn-format:hover {
-    background: rgba(255, 255, 255, 0.1);
+[data-theme="dark"] .ql-toolbar.ql-snow .ql-picker-item {
     color: var(--text-main);
 }
 
-/* STYLES FOR RENDERED MARKDOWN CONTENT */
+[data-theme="dark"] .ql-toolbar.ql-snow .ql-picker-label:hover,
+[data-theme="dark"] .ql-toolbar.ql-snow .ql-picker-label.ql-active {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .ql-snow .ql-tooltip {
+    background: var(--bg-white);
+    border-color: var(--border);
+    color: var(--text-main);
+    box-shadow: var(--shadow-md);
+}
+
+[data-theme="dark"] .ql-snow .ql-tooltip input[type="text"] {
+    background: var(--bg-app);
+    border-color: var(--border);
+    color: var(--text-main);
+}
+
+/* Quill content styling inside editor */
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3 {
+    color: var(--text-main);
+}
+
+.ql-editor blockquote {
+    border-left: 3px solid var(--primary);
+    padding-left: 1em;
+    color: var(--text-secondary);
+}
+
+.ql-editor pre.ql-syntax {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: var(--radius-md);
+    padding: 0.8em;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.85em;
+    overflow-x: auto;
+}
+
+[data-theme="dark"] .ql-editor pre.ql-syntax {
+    background: rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
+}
+
+.ql-editor a {
+    color: var(--primary);
+}
+
+/* ================== RENDERED NOTE CONTENT ================== */
 
 .note-content-text {
     line-height: 1.6;
     font-size: 0.95rem;
-    white-space: pre-wrap;
-    /* Zachowuje podstawowe entery */
 }
 
 /* Podkreślenie */
@@ -894,14 +1082,25 @@ select {
 }
 
 /* Listy w treści notatki */
-.note-content-text ul {
+.note-content-text ul,
+.note-content-text ol {
     margin: 0.5em 0;
-    padding-left: 1.5em;
+    padding-left: 1.8em;
     list-style-type: disc;
+}
+
+.note-content-text ol {
+    list-style-type: decimal;
 }
 
 .note-content-text li {
     margin-bottom: 0.3em;
+}
+
+/* Quill ordered/bullet list items */
+.note-content-text li[data-list="ordered"],
+.note-content-text li[data-list="bullet"] {
+    padding-left: 0.5em;
 }
 
 /* Kod w treści notatki */
@@ -1607,6 +1806,12 @@ select {
         align-items: flex-start;
     }
 
+    .note-title-wrapper {
+        flex: 1 1 auto;
+        width: 100%;
+        margin-right: 0;
+    }
+
     .note-title {
         font-size: 1.3rem;
     }
@@ -1639,8 +1844,12 @@ select {
     }
 
     .note-body {
-        padding: 16px;
+        padding: 16px 20px;
         font-size: 0.95rem;
+    }
+
+    .btn-toggle-sidebar {
+        display: none !important;
     }
 
     .notes-sidebar-title {

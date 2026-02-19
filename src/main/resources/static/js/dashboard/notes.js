@@ -40,7 +40,8 @@ const AppState = {
     editingNoteId: null,
     selectedUsers: [],
     currentVisibility: 'PRIVATE',
-    searchTimeout: null
+    searchTimeout: null,
+    quill: null
 };
 
 const DOM = {
@@ -49,6 +50,8 @@ const DOM = {
     searchInput: document.getElementById('searchInput'),
     filterChips: document.querySelectorAll('.filter-chip'),
     btnNewNote: document.getElementById('btnNewNote'),
+    btnToggleSidebar: document.getElementById('btnToggleSidebar'),
+    notesSidebar: document.querySelector('.notes-sidebar'),
     
     // Widok notatki
     emptyState: document.getElementById('emptyState'),
@@ -111,8 +114,75 @@ const DOM = {
 document.addEventListener('DOMContentLoaded', initializeApp);
 
 function initializeApp() {
+    initQuillEditor();
     setupEventListeners();
     loadNotes();
+}
+
+function initQuillEditor() {
+    const editorContainer = document.getElementById('quillEditor');
+    if (!editorContainer) return;
+
+    AppState.quill = new Quill('#quillEditor', {
+        theme: 'snow',
+        placeholder: 'Wprowadź treść notatki...',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                ['blockquote', 'code-block'],
+                ['link'],
+                ['clean']
+            ]
+        }
+    });
+
+    // Aktualizacja licznika znaków przy zmianie tekstu
+    AppState.quill.on('text-change', () => {
+        const length = AppState.quill.getLength() - 1; // Quill liczy końcowy newline
+        if (DOM.contentCharCount) {
+            DOM.contentCharCount.textContent = `${length}`;
+            DOM.contentCharCount.classList.remove('warning', 'danger');
+        }
+    });
+
+    // Polskie tooltipy dla przycisków toolbara
+    setQuillTooltips();
+}
+
+function setQuillTooltips() {
+    const toolbar = document.querySelector('.ql-toolbar');
+    if (!toolbar) return;
+
+    const tooltips = {
+        '.ql-bold': 'Pogrubienie',
+        '.ql-italic': 'Pochylenie',
+        '.ql-underline': 'Podkreślenie',
+        '.ql-strike': 'Przekreślenie',
+        '.ql-link': 'Wstaw link',
+        '.ql-blockquote': 'Cytat',
+        '.ql-code-block': 'Blok kodu',
+        '.ql-clean': 'Wyczyść formatowanie',
+        '.ql-list[value="ordered"]': 'Lista numerowana',
+        '.ql-list[value="bullet"]': 'Lista punktowana'
+    };
+
+    for (const [selector, title] of Object.entries(tooltips)) {
+        const btn = toolbar.querySelector(selector);
+        if (btn) btn.setAttribute('title', title);
+    }
+
+    // Pickery (header, color, background)
+    const headerPicker = toolbar.querySelector('.ql-header .ql-picker-label');
+    if (headerPicker) headerPicker.setAttribute('title', 'Nagłówek');
+
+    const colorPicker = toolbar.querySelector('.ql-color .ql-picker-label');
+    if (colorPicker) colorPicker.setAttribute('title', 'Kolor tekstu');
+
+    const bgPicker = toolbar.querySelector('.ql-background .ql-picker-label');
+    if (bgPicker) bgPicker.setAttribute('title', 'Kolor tła');
 }
 
 function setupEventListeners() {
@@ -139,6 +209,7 @@ function setupEventListeners() {
     // Przyciski bocznego panelu
     if (DOM.btnNewNote) DOM.btnNewNote.addEventListener('click', openCreateModal);
     if (DOM.btnToggleFullscreen) DOM.btnToggleFullscreen.addEventListener('click', toggleFullscreenModal);
+    if (DOM.btnToggleSidebar) DOM.btnToggleSidebar.addEventListener('click', toggleNotesSidebar);
 
     // Akcje notatki
     if (DOM.btnEdit) DOM.btnEdit.addEventListener('click', openEditModal);
@@ -175,20 +246,7 @@ function setupEventListeners() {
     if (DOM.formNoteTitle) {
         DOM.formNoteTitle.addEventListener('input', () => updateCharCounter(DOM.formNoteTitle, DOM.titleCharCount, 150));
     }
-    if (DOM.formNoteContent) {
-        DOM.formNoteContent.addEventListener('input', () => updateCharCounter(DOM.formNoteContent, DOM.contentCharCount, null));
-    }
-
-    // Formatowanie tekstu (Markdown Lite)
-    const formatBtns = document.querySelectorAll('.btn-format');
-    formatBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault(); // Zapobiega submitowi formularza
-            const format = btn.dataset.format;
-            handleFormatting(format);
-        });
-    });
-
+    // Licznik treści obsługiwany jest przez event 'text-change' Quill w initQuillEditor()
 
     // Akcje usuwania
     if (DOM.btnCancelDelete) DOM.btnCancelDelete.addEventListener('click', closeDeleteConfirmation);
@@ -351,7 +409,15 @@ async function loadNotes() {
 async function handleFormSubmit(e) {
     e.preventDefault();
     const title = DOM.formNoteTitle.value.trim();
-    const content = DOM.formNoteContent.value.trim();
+    
+    // Pobranie treści z Quill (HTML)
+    let content = '';
+    if (AppState.quill) {
+        const quillText = AppState.quill.getText().trim();
+        content = quillText.length > 0 ? AppState.quill.root.innerHTML : '';
+    } else {
+        content = DOM.formNoteContent.value.trim();
+    }
     const tags = DOM.formNoteTags ? DOM.formNoteTags.value.trim() : '';
     const visibility = DOM.formNoteVisibility ? DOM.formNoteVisibility.value : 'PRIVATE';
 
@@ -528,7 +594,15 @@ function renderNotesList() {
         };
         
         const date = formatRelativeTime(note.updatedAt || note.createdAt);
-        const preview = note.content ? (note.content.substring(0, 60) + (note.content.length > 60 ? '...' : '')) : '';
+        
+        // Usunięcie tagów HTML z podglądu (Quill zapisuje treść jako HTML)
+        let plainContent = note.content || '';
+        if (plainContent.trim().startsWith('<')) {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = plainContent;
+            plainContent = tmp.textContent || tmp.innerText || '';
+        }
+        const preview = plainContent ? (plainContent.substring(0, 60) + (plainContent.length > 60 ? '...' : '')) : '';
         
         const visibilityIcons = {
             'PRIVATE': 'fa-lock',
@@ -604,8 +678,14 @@ function renderNoteView(note) {
 
     DOM.noteTitle.textContent = note.title;
     
-    // Renderowanie Markdown (bezpieczne)
-    DOM.noteContent.innerHTML = parseMarkdownLite(note.content);
+    // Renderowanie treści - wykrycie formatu (HTML vs Markdown-lite)
+    if (note.content && note.content.trim().startsWith('<')) {
+        // Nowy format: HTML z Quill
+        DOM.noteContent.innerHTML = note.content;
+    } else {
+        // Stary format: Markdown-lite (kompatybilność wsteczna)
+        DOM.noteContent.innerHTML = parseMarkdownLite(note.content);
+    }
 
     
     if (DOM.noteAuthor) DOM.noteAuthor.textContent = getNoteAuthorName(note);
@@ -755,64 +835,7 @@ function parseMarkdownLite(text) {
     return safeText;
 }
 
-function handleFormatting(formatType) {
-    const textarea = DOM.formNoteContent;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = textarea.value.substring(start, end);
-    let newText = '';
-    let cursorOffset = 0;
-
-    switch (formatType) {
-        case 'bold':
-            newText = `**${selectedText}**`;
-            cursorOffset = 2; // Pozycjonowanie wewnątrz gwiazdek
-            break;
-        case 'italic':
-            newText = `*${selectedText}*`;
-            cursorOffset = 1;
-            break;
-        case 'underline':
-            newText = `__${selectedText}__`;
-            cursorOffset = 2;
-            break;
-        case 'heading':
-            newText = `# ${selectedText}`;
-            cursorOffset = 2;
-            break;
-        case 'list':
-            newText = `- ${selectedText}`;
-            cursorOffset = 2;
-            break;
-        case 'code':
-            newText = `\`${selectedText}\``;
-            cursorOffset = 1;
-            break;
-        case 'link':
-            if (selectedText) {
-                newText = `[${selectedText}](url)`;
-            } else {
-                newText = `[tekst](url)`;
-            }
-            cursorOffset = 1; // Żeby edytować tekst
-            break;
-    }
-
-    // Wstawienie tekstu
-    textarea.setRangeText(newText, start, end, 'end');
-    
-    // Przywrócenie focusu i ustawienie kursora
-    textarea.focus();
-    
-    if (!selectedText && cursorOffset > 0) {
-        // Jeśli nie było zaznaczenia, wstawiamy kursor W ŚRODEK znaczników
-        textarea.setSelectionRange(start + cursorOffset, start + cursorOffset + (formatType === 'link' ? 5 : 0));
-    }
-    
-    // Wyzwolenie eventu input (żeby zaktualizować licznik znaków)
-    const event = new Event('input');
-    textarea.dispatchEvent(event);
-}
+// handleFormatting() — usunięto, zastąpiono przez Quill WYSIWYG toolbar
 
 function handleFilterChange(filter) {
 
@@ -845,14 +868,18 @@ function openCreateModal() {
     
     DOM.formTitle.textContent = 'Nowa notatka';
     DOM.formNoteTitle.value = '';
-    DOM.formNoteContent.value = '';
     DOM.formNoteTags.value = '';
     DOM.formNoteVisibility.value = 'PRIVATE';
     DOM.formError.style.display = 'none';
     
+    // Wyczyść Quill
+    if (AppState.quill) {
+        AppState.quill.setContents([]);
+        AppState.quill.enable();
+    }
+    
     // Włącz edycję
     DOM.formNoteTitle.disabled = false;
-    DOM.formNoteContent.disabled = false;
     DOM.formNoteTags.disabled = false;
     
     // Ukryj sekcję udostępniania
@@ -860,7 +887,7 @@ function openCreateModal() {
     if (DOM.visibilityHelp) DOM.visibilityHelp.textContent = 'Notatka będzie widoczna tylko dla Ciebie.';
     
     updateCharCounter(DOM.formNoteTitle, DOM.titleCharCount, 150);
-    updateCharCounter(DOM.formNoteContent, DOM.contentCharCount, null);
+    if (DOM.contentCharCount) DOM.contentCharCount.textContent = '0';
     
     DOM.noteFormOverlay.style.display = 'flex';
     setTimeout(() => DOM.formNoteTitle.focus(), 50);
@@ -881,14 +908,25 @@ async function openEditModal() {
     
     DOM.formTitle.textContent = 'Edycja notatki';
     DOM.formNoteTitle.value = AppState.selectedNote.title;
-    DOM.formNoteContent.value = AppState.selectedNote.content;
     DOM.formNoteTags.value = AppState.selectedNote.tags || '';
     DOM.formNoteVisibility.value = AppState.selectedNote.visibility || 'PRIVATE';
     DOM.formError.style.display = 'none';
     
+    // Wczytaj treść do Quill
+    if (AppState.quill) {
+        const content = AppState.selectedNote.content || '';
+        if (content.trim().startsWith('<')) {
+            // Treść HTML — wczytaj bezpośrednio
+            AppState.quill.root.innerHTML = content;
+        } else {
+            // Stara treść Markdown — konwertuj na HTML przez parser i wczytaj
+            AppState.quill.root.innerHTML = parseMarkdownLite(content);
+        }
+        AppState.quill.enable();
+    }
+    
     // Włącz edycję
     DOM.formNoteTitle.disabled = false;
-    DOM.formNoteContent.disabled = false;
     DOM.formNoteTags.disabled = false;
     
     // Załaduj użytkowników jeśli udostępniona
@@ -910,7 +948,9 @@ async function openEditModal() {
     renderSelectedUsers();
     
     updateCharCounter(DOM.formNoteTitle, DOM.titleCharCount, 150);
-    updateCharCounter(DOM.formNoteContent, DOM.contentCharCount, null);
+    if (DOM.contentCharCount && AppState.quill) {
+        DOM.contentCharCount.textContent = `${AppState.quill.getLength() - 1}`;
+    }
     
     DOM.noteFormOverlay.style.display = 'flex';
 }
@@ -942,6 +982,14 @@ function closeFormModal() {
         icon.classList.add('fa-expand');
     }
     DOM.btnToggleFullscreen.title = "Pełny ekran";
+}
+
+function toggleNotesSidebar() {
+    if (!DOM.notesSidebar) return;
+    const isCollapsed = DOM.notesSidebar.classList.toggle('collapsed');
+    if (DOM.btnToggleSidebar) {
+        DOM.btnToggleSidebar.title = isCollapsed ? 'Rozwiń panel' : 'Zwiń panel';
+    }
 }
 
 function openDeleteConfirmation() {
@@ -1039,14 +1087,22 @@ async function openShareModal() {
     
     DOM.formTitle.textContent = 'Udostępnij notatkę';
     DOM.formNoteTitle.value = AppState.selectedNote.title;
-    DOM.formNoteContent.value = AppState.selectedNote.content;
     DOM.formNoteTags.value = AppState.selectedNote.tags || '';
     DOM.formNoteVisibility.value = AppState.selectedNote.visibility || 'PRIVATE';
     
-    // Wyłącz edycję tytułu i treści
-    // Wyłącz edycję tytułu, treści i tagów
+    // Wczytaj treść do Quill (tylko do odczytu)
+    if (AppState.quill) {
+        const content = AppState.selectedNote.content || '';
+        if (content.trim().startsWith('<')) {
+            AppState.quill.root.innerHTML = content;
+        } else {
+            AppState.quill.root.innerHTML = parseMarkdownLite(content);
+        }
+        AppState.quill.disable();
+    }
+    
+    // Wyłącz edycję tytułu i tagów
     DOM.formNoteTitle.disabled = true;
-    DOM.formNoteContent.disabled = true;
     DOM.formNoteTags.disabled = true;
     
     // Pokaż sekcję udostępniania jeśli SHARED_WITH_USERS
