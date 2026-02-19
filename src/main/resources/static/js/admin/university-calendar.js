@@ -4,6 +4,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Konfiguracja przycisków panelu
+const deletionTimers = new Map();
+let currentEventToDelete = null;
+let allCalendarEvents = [];
+
 function setupManagementButtons() {
     // Guard against multiple executions to prevent duplicate listeners
     if (window.UNIVERSITY_CALENDAR_LOADED) return;
@@ -11,7 +15,7 @@ function setupManagementButtons() {
 
     const addEventBtn = document.getElementById('btnAddEvent');
     const exportPdfBtn = document.getElementById('btnExportPdf');
-    // const editYearBtn = document.getElementById('btnEditYear'); // Removed
+    // const editYearBtn = document.getElementById('btnEditYear');
 
     const modal = document.getElementById('addEventModal');
     const closeBtn = document.getElementById('closeModal');
@@ -117,10 +121,23 @@ function setupManagementButtons() {
                     markerColor = document.getElementById('event-color-picker').value;
                 }
 
+                const dateFrom = document.getElementById('eventDateFrom').value;
+                const dateTo = document.getElementById('eventDateTo').value;
+                const dateErrorMsg = document.getElementById('dateErrorMsg');
+
+                if (dateFrom && dateTo && dateFrom > dateTo) {
+                    if (dateErrorMsg) dateErrorMsg.style.display = 'block';
+                    document.getElementById('eventDateTo').style.borderColor = 'red';
+                    return; // Zatrzymaj wysyłanie
+                } else {
+                    if (dateErrorMsg) dateErrorMsg.style.display = 'none';
+                    document.getElementById('eventDateTo').style.borderColor = '';
+                }
+
                 const formData = {
                     title: document.getElementById('eventTitle').value,
-                    dateFrom: document.getElementById('eventDateFrom').value,
-                    dateTo: document.getElementById('eventDateTo').value,
+                    dateFrom: dateFrom,
+                    dateTo: dateTo,
                     type: typeSelectval,
                     markerColor: markerColor
                 };
@@ -140,8 +157,12 @@ function setupManagementButtons() {
                 .then(() => {
                     closeModal();
                     loadEvents(); // Reload all
+                    showToast(id ? 'Wydarzenie zaktualizowane pomyślnie' : 'Wydarzenie dodane pomyślnie', 'success');
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Wystąpił błąd', 'error');
+                });
             });
         }
     } 
@@ -151,25 +172,135 @@ function setupManagementButtons() {
 
     // Obsługa Usuwania
     if (deleteBtn && eventForm) {
+        const deleteConfirmOverlay = document.getElementById('deleteConfirmOverlay');
+        const btnCancelDelete = document.getElementById('btnCancelDelete');
+        const btnConfirmDelete = document.getElementById('btnConfirmDelete');
+
         deleteBtn.addEventListener('click', () => {
             const id = eventForm.dataset.eventId;
-            
-            if (id && confirm('Czy na pewno chcesz usunąć to wydarzenie?')) {
-                fetch(`/api/calendar/${id}`, {
-                    method: 'DELETE'
-                })
-                .then(response => {
-                    if (response.ok) {
-                        closeModal();
-                        loadEvents();
-                    } else {
-                        alert('Błąd podczas usuwania.');
-                    }
-                })
-                .catch(console.error);
+            if (id) {
+                currentEventToDelete = id;
+                if (deleteConfirmOverlay) deleteConfirmOverlay.style.display = 'flex';
             }
         });
+
+        if (btnCancelDelete) {
+            btnCancelDelete.addEventListener('click', () => {
+                currentEventToDelete = null;
+                if (deleteConfirmOverlay) deleteConfirmOverlay.style.display = 'none';
+            });
+        }
+
+        if (btnConfirmDelete) {
+            btnConfirmDelete.addEventListener('click', () => {
+                const eventId = currentEventToDelete;
+                if (!eventId) return;
+
+                if (deleteConfirmOverlay) deleteConfirmOverlay.style.display = 'none';
+                closeModal();
+
+                // Ukryj wydarzenie z widoku
+                renderCalendar();
+
+                // Pokaż Toast
+                const toastContainer = document.getElementById('toastContainer');
+                if (toastContainer) {
+                    const toast = document.createElement('div');
+                    toast.className = `toast success soft-undo-toast`;
+                    toast.innerHTML = `
+                        <i class="fas fa-trash-restore"></i>
+                        <span>
+                            Wydarzenie usunięte. 
+                            <button id="undo-btn-cal-${eventId}" class="btn-undo-toast">
+                                Cofnij
+                            </button>
+                        </span>
+                    `;
+                    toastContainer.appendChild(toast);
+
+                    // Odliczanie do finalnego DELETE
+                    const timer = setTimeout(() => {
+                        if (toast.parentNode) {
+                            toast.style.animation = 'fadeOut 0.3s forwards';
+                            setTimeout(() => toast.remove(), 300);
+                        }
+                        deletionTimers.delete(eventId.toString());
+                        sendActualEventDelete(eventId);
+                    }, 5000);
+                    
+                    deletionTimers.set(eventId.toString(), timer);
+
+                    // Obsługa cofnięcia
+                    const undoBtn = document.getElementById(`undo-btn-cal-${eventId}`);
+                    if (undoBtn) {
+                        undoBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            clearTimeout(timer);
+                            deletionTimers.delete(eventId.toString());
+                            renderCalendar();
+                            
+                            toast.style.animation = 'fadeOut 0.3s forwards';
+                            setTimeout(() => toast.remove(), 300);
+                            
+                            // Pomocniczy toast info
+                            const infoToast = document.createElement('div');
+                            infoToast.className = `toast info`;
+                            infoToast.innerHTML = `<i class="fas fa-info-circle"></i><span>Cofnięto usunięcie. Wydarzenie przywrócone.</span>`;
+                            toastContainer.appendChild(infoToast);
+                            setTimeout(() => {
+                                infoToast.style.animation = 'fadeOut 0.3s forwards';
+                                setTimeout(() => infoToast.remove(), 300);
+                            }, 3000);
+                        };
+                        undoBtn.addEventListener('mouseenter', () => undoBtn.style.background = 'rgba(255,255,255,0.4)');
+                        undoBtn.addEventListener('mouseleave', () => undoBtn.style.background = 'rgba(255,255,255,0.25)');
+                    }
+                } else {
+                    // Fallback jeśli toast kontenera nie ma, to kasuj od razu
+                    sendActualEventDelete(eventId);
+                }
+                
+                // Opóżniamy render tylko jeśli to usunięcie miało zajść od razu, ale render odbył się przed usunięciem timerów
+                 renderCalendar();
+            });
+        }
     }
+}
+
+async function sendActualEventDelete(eventId) {
+    try {
+        const response = await fetch(`/api/calendar/${eventId}`, { method: 'DELETE' });
+        if (response.ok) {
+            console.log('Wydarzenie trwale usunięte z serwera.');
+            allCalendarEvents = allCalendarEvents.filter(e => e.id.toString() !== eventId.toString());
+            renderCalendar();
+        } else {
+            showToast('Błąd podczas finalnego usuwania na serwerze.', 'error');
+        }
+    } catch (error) {
+        console.error('Błąd usuwania API:', error);
+        showToast('Błąd podczas finalnego usuwania na serwerze.', 'error');
+    }
+}
+
+function showToast(message, type = 'success') {
+    const toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    let icon = 'info-circle';
+    if (type === 'success') icon = 'check-circle';
+    if (type === 'error') icon = 'exclamation-circle';
+    if (type === 'warning') icon = 'exclamation-triangle';
+    
+    toast.innerHTML = `<i class="fas fa-${icon}"></i> <span>${message}</span>`;
+    toastContainer.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'fadeOut 0.3s forwards';
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
 }
 
 // Pobieranie i przetwarzanie danych
@@ -177,15 +308,21 @@ function loadEvents() {
     fetch('/api/calendar')
         .then(response => response.json())
         .then(events => {
-            renderReviewLists(events);
-            try {
-                applyCalendarMarkers(events);
-            } catch (e) {
-                console.error("Error applying markers:", e);
-            }
-            highlightCurrentDay();
+            allCalendarEvents = events;
+            renderCalendar();
         })
         .catch(console.error);
+}
+
+function renderCalendar() {
+    const visibleEvents = allCalendarEvents.filter(e => !deletionTimers.has(e.id.toString()));
+    renderReviewLists(visibleEvents);
+    try {
+        applyCalendarMarkers(visibleEvents);
+    } catch (e) {
+        console.error("Error applying markers:", e);
+    }
+    highlightCurrentDay();
 }
 
 // Helper do kolorów
@@ -332,7 +469,7 @@ function applyCalendarMarkers(events) {
                     style = `style="${cursorStyle}"`;
                 }
 
-                cell.innerHTML = `<span class="day-marker ${data.color}" ${style} title="${data.title}">${day}</span>`;
+                cell.innerHTML = `<span class="day-marker ${data.color}" ${style} data-tooltip="${data.title}">${day}</span>`;
                 
                 // Add click listener
                 if (isAdmin) {

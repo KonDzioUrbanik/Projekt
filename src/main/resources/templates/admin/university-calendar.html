@@ -288,6 +288,9 @@
                                     <input type="date" id="eventDateTo" required>
                                 </div>
                             </div>
+                            <div id="dateErrorMsg" class="form-error-msg" style="display: none; margin-top: -10px; margin-bottom: 20px;">
+                                <i class="fas fa-exclamation-circle"></i> Data "do" nie może być wcześniejsza niż data "od".
+                            </div>
                             <div class="form-group">
                                 <label for="event-type">Typ wydarzenia</label>
                                 <select id="event-type" required>
@@ -299,7 +302,7 @@
                                     <option value="OTHER">Inne (Wybierz kolor)</option>
                                 </select>
                             </div>
-                            <!-- Pole wyboru koloru (Tylko dla typu OTHER) -->
+                            <!-- Pole wyboru koloru -->
                             <div class="form-group" id="color-picker-container" style="display: none;">
                                 <label for="event-color-picker">Wybierz kolor tła</label>
                                 <input type="color" id="event-color-picker" class="color-input" value="#3b82f6" style="width: 100%; height: 40px; cursor: pointer;">
@@ -314,6 +317,25 @@
                             <button type="submit" class="btn-primary">Zapisz zmiany</button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- Delete Confirmation Modal -->
+            <div class="modal-overlay" id="deleteConfirmOverlay">
+                <div class="modal-card modal-sm modal-center-content">
+                    <div class="modal-body-centered">
+                        <div class="modal-icon-wrapper danger">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                        <h3>Uwaga</h3>
+                        <p class="text-muted">
+                            Czy na pewno chcesz usunąć to wydarzenie?<br>
+                        </p>
+                    </div>
+                    <div class="modal-footer-centered">
+                        <button class="btn-text-gray" id="btnCancelDelete">Anuluj</button>
+                        <button class="btn-danger-block" id="btnConfirmDelete">Usuń wydarzenie</button>
+                    </div>
                 </div>
             </div>
 
