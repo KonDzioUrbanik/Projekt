@@ -527,37 +527,100 @@ async function handleFormSubmit(e) {
     }
 }
 
-async function handleDeleteConfirm() {
+// Global map for deletion timers to allow soft-undo
+const deletionTimers = new Map();
+
+async function sendActualDelete(noteId) {
+    try {
+        const response = await fetch(CONFIG.API.NOTE_BY_ID(noteId), { method: 'DELETE' });
+        if (!response.ok) throw new Error(`Błąd HTTP: ${response.status}`);
+        console.log('Notatka', noteId, 'trwale usunięta z serwera.');
+    } catch (error) {
+        console.error('Błąd usuwania API:', error);
+        showToast('Błąd podczas usuwania notatki na serwerze', 'error');
+    }
+}
+
+function handleDeleteConfirm() {
     if (!AppState.selectedNote) return;
     
-    DOM.btnConfirmDelete.disabled = true;
-    DOM.btnConfirmDelete.textContent = 'Usuwanie...';
+    const noteToDelete = { ...AppState.selectedNote };
+    const noteId = noteToDelete.id;
 
-    try {
-        const response = await fetch(CONFIG.API.NOTE_BY_ID(AppState.selectedNote.id), { method: 'DELETE' });
+    // Usuń lokalnie natychmiastowo (Soft Delete)
+    AppState.notes = AppState.notes.filter(n => n.id !== noteId);
+    AppState.selectedNote = null;
+    
+    DOM.emptyState.style.display = 'flex';
+    DOM.noteView.style.display = 'none';
+    
+    // Wyczyść URL po usunięciu notatki
+    updateUrl(null);
+    
+    applyCurrentFilter();
+    renderNotesList();
+    closeDeleteConfirmation();
 
-        if (!response.ok) throw new Error(`Błąd HTTP: ${response.status}`);
+    // Pokaż Toast z przyciskiem Cofnij (Undo)
+    if (!DOM.toastContainer) return;
+    const toast = document.createElement('div');
+    toast.className = `toast success soft-undo-toast`;
+    toast.innerHTML = `
+        <i class="fas fa-trash-restore"></i>
+        <span>
+            Notatka usunięta. 
+            <button id="undo-btn-${noteId}" style="margin-left: 10px; padding: 4px 10px; background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; color: white; cursor: pointer; font-weight: bold; transition: background 0.2s;">
+                Cofnij
+            </button>
+        </span>
+    `;
+    DOM.toastContainer.appendChild(toast);
 
-        AppState.notes = AppState.notes.filter(n => n.id !== AppState.selectedNote.id);
-        AppState.selectedNote = null;
+    // Timeout dla ostatecznego usunięcia (w tym zniknięcia toasta) za 5s
+    const timer = setTimeout(() => {
+        if (toast.parentNode) {
+            toast.style.animation = 'fadeOut 0.3s forwards';
+            setTimeout(() => toast.remove(), 300);
+        }
+        deletionTimers.delete(noteId);
         
-        DOM.emptyState.style.display = 'flex';
-        DOM.noteView.style.display = 'none';
-        
-        // Wyczyść URL po usunięciu notatki
-        updateUrl(null);
-        
-        applyCurrentFilter();
-        renderNotesList();
-        closeDeleteConfirmation();
-        showToast('Notatka została trwale usunięta.', 'success');
+        // Finalne wykonanie DELETE przez API
+        sendActualDelete(noteId);
+    }, 5000);
+    
+    deletionTimers.set(noteId, timer);
 
-    } catch (error) {
-        console.error('Błąd usuwania:', error);
-        showToast('Nie udało się usunąć notatki. Sprawdź połączenie internetowe i spróbuj ponownie.', 'error');
-    } finally {
-        DOM.btnConfirmDelete.disabled = false;
-        DOM.btnConfirmDelete.textContent = 'Usuń notatkę';
+    // 3. Logika Cofania (Przywrócenie)
+    const undoBtn = document.getElementById(`undo-btn-${noteId}`);
+    if (undoBtn) {
+        undoBtn.onclick = (e) => {
+            e.stopPropagation();
+            // Anuluj serwerowe usunięcie
+            clearTimeout(timer);
+            deletionTimers.delete(noteId);
+            
+            // Przywróć notatkę wizualnie i w pamięci
+            AppState.notes.push(noteToDelete);
+            AppState.selectedNote = noteToDelete;
+            
+            applyCurrentFilter();
+            renderNotesList();
+            renderNoteView(noteToDelete);
+            
+            DOM.emptyState.style.display = 'none';
+            DOM.noteView.style.display = 'flex';
+            updateUrl(noteId);
+            
+            // Zwiń stary Toast i pokaż info o przywróceniu
+            toast.style.animation = 'fadeOut 0.3s forwards';
+            setTimeout(() => toast.remove(), 300);
+            
+            showToast('Cofnięto usunięcie. Notatka przywrócona.', 'info');
+        };
+        
+        // Efekty HOVER dla przycisku Cofnij
+        undoBtn.addEventListener('mouseenter', () => undoBtn.style.background = 'rgba(255,255,255,0.4)');
+        undoBtn.addEventListener('mouseleave', () => undoBtn.style.background = 'rgba(255,255,255,0.25)');
     }
 }
 
