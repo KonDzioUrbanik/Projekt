@@ -2273,3 +2273,50 @@ body,
 [data-theme="dark"] .status-dot {
     border-color: var(--bg-card);
 }
+
+/* VIEW TRANSITIONS */
+@view-transition {
+    navigation: auto;
+}
+
+main.navbar-middle {
+    view-transition-name: page-content;
+}
+
+/* Wyciszamy domyślną animację dla całego ekranu (root) */
+::view-transition-group(root) {
+    animation-duration: 0.2s;
+}
+
+/* Animujemy tylko główny kontener na środku */
+::view-transition-old(page-content) {
+    animation: fade-out 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+::view-transition-new(page-content) {
+    animation: fade-in 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fade-out {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}

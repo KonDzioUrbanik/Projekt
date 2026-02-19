@@ -6,6 +6,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <meta name="view-transition" content="same-origin" />
         
         <title>Panel Studenta</title>
 
@@ -34,6 +35,9 @@
                 <div layout:fragment="content"></div>
             </main>
         </div>
+
+        <!-- Main Toast Container -->
+        <div id="toastContainer" class="toast-container"></div>
 
         <!-- Floating Help Button -->
         <button class="floating-help-btn" id="feedbackBtn" title="Zgłoś problem lub sugestię">
