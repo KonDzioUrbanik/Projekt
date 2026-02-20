@@ -569,7 +569,7 @@ function handleDeleteConfirm() {
         <i class="fas fa-trash-restore"></i>
         <span>
             Notatka usunięta. 
-            <button id="undo-btn-${noteId}" style="margin-left: 10px; padding: 4px 10px; background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; color: white; cursor: pointer; font-weight: bold; transition: background 0.2s;">
+            <button id="undo-btn-${noteId}" class="btn-undo-toast">
                 Cofnij
             </button>
         </span>
@@ -618,9 +618,6 @@ function handleDeleteConfirm() {
             showToast('Cofnięto usunięcie. Notatka przywrócona.', 'info');
         };
         
-        // Efekty HOVER dla przycisku Cofnij
-        undoBtn.addEventListener('mouseenter', () => undoBtn.style.background = 'rgba(255,255,255,0.4)');
-        undoBtn.addEventListener('mouseleave', () => undoBtn.style.background = 'rgba(255,255,255,0.25)');
     }
 }
 
@@ -658,14 +655,10 @@ function renderNotesList() {
         
         const date = formatRelativeTime(note.updatedAt || note.createdAt);
         
-        // Usunięcie tagów HTML z podglądu (Quill zapisuje treść jako HTML)
-        let plainContent = note.content || '';
-        if (plainContent.trim().startsWith('<')) {
-            const tmp = document.createElement('div');
-            tmp.innerHTML = plainContent;
-            plainContent = tmp.textContent || tmp.innerText || '';
-        }
-        const preview = plainContent ? (plainContent.substring(0, 60) + (plainContent.length > 60 ? '...' : '')) : '';
+        // Usunięcie tagów HTML oraz znaczników Markdown z podglądu
+        const rawContent = note.content || '';
+        const cleanContent = Utils.stripMarkdown(Utils.stripHtml(rawContent));
+        const preview = cleanContent ? (cleanContent.substring(0, 60) + (cleanContent.length > 60 ? '...' : '')) : '';
         
         const visibilityIcons = {
             'PRIVATE': 'fa-lock',
@@ -694,7 +687,7 @@ function renderNotesList() {
                     <i class="fas fa-pen"></i>
                 </button>
             </div>
-            <h3>${escapeHtml(note.title)}</h3>
+            <h3>${escapeHtml(Utils.stripMarkdown(note.title))}</h3>
             <p>${escapeHtml(preview)}</p>
             <div class="note-card-footer">
                 <span>${date}</span>

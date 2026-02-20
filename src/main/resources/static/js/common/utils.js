@@ -71,6 +71,36 @@ const Utils = {
         return tmp.textContent || tmp.innerText || "";
     },
 
+    /* Usuwa znaczniki Markdown z tekstu (np. do czystego podglądu) */
+    stripMarkdown(text) {
+        if (!text) return '';
+        return String(text)
+            // Usuń nagłówki (#)
+            .replace(/^#{1,6}\s+/gm, '')
+            // Usuń pogrubienia i pochylenia (*, **, _, __)
+            .replace(/(\*\*|__)(.*?)\1/g, '$2')
+            .replace(/(\*|_)(.*?)\1/g, '$2')
+            // Usuń przekreślenia (~~)
+            .replace(/~~(.*?)~~/g, '$1')
+            // Usuń kody inline (`) oraz bloki kodu (```)
+            .replace(/```[\s\S]*?```/g, '')
+            .replace(/`([^`]+)`/g, '$1')
+            // Usuń linki [text](url) -> text
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+            // Usuń obrazki ![alt](url) -> alt
+            .replace(/!\[(.*?)\]\([^)]+\)/g, '$1')
+            // Usuń listy punktowane i numerowane
+            .replace(/^[\s]*[-+*]\s+/gm, '')
+            .replace(/^[\s]*\d+\.\s+/gm, '')
+            // Usuń cytaty (>)
+            .replace(/^>\s+/gm, '')
+            // Usuń linie poziome (---, ***, ___)
+            .replace(/^(-{3,}|\*{3,}|_{3,})$/gm, '')
+            // Pozbądź się nadmiaru białych znaków
+            .replace(/\n+/g, ' ')
+            .trim();
+    },
+
     /* Konwersja czasu do minut (wspólna funkcja) */
     timeToMinutes(timeObj) {
         if (!timeObj) return 0;

@@ -75,12 +75,14 @@ class ProfileModule {
             // Używamy Utils.formatDate (czas relatywny)
             const date = Utils.formatDate(note.updatedAt || note.createdAt);
             
-            const preview = Utils.stripHtml(note.content).substring(0, ProfileModule.CONFIG.LIMITS.PREVIEW_LENGTH) + 
-                           (note.content.length > ProfileModule.CONFIG.LIMITS.PREVIEW_LENGTH ? '...' : '');
+            // Najpierw usuwamy HTML, a potem składnię Markdown z treści przed ustaleniem podglądu
+            const cleanContent = Utils.stripMarkdown(Utils.stripHtml(note.content));
+            const preview = cleanContent.substring(0, ProfileModule.CONFIG.LIMITS.PREVIEW_LENGTH) + 
+                           (cleanContent.length > ProfileModule.CONFIG.LIMITS.PREVIEW_LENGTH ? '...' : '');
 
             html += `
                 <a href="/dashboard/notes?id=${note.id}" class="note-mini-card">
-                    <h4 class="note-mini-title">${Utils.escapeHtml(note.title)}</h4>
+                    <h4 class="note-mini-title">${Utils.stripMarkdown(Utils.escapeHtml(note.title))}</h4>
                     <p class="note-mini-content">${Utils.escapeHtml(preview)}</p>
                     <span class="note-mini-date">${date}</span>
                 </a>

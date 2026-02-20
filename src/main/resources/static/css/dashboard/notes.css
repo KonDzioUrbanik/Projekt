@@ -1675,6 +1675,25 @@ select {
     color: var(--danger);
 }
 
+/* Przycisk Cofnij w Toaście */
+.btn-undo-toast {
+    margin-left: 10px;
+    padding: 6px 12px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    color: #1d4ed8;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-undo-toast:hover {
+    background: #dbeafe;
+    border-color: #93c5fd;
+    color: #1e40af;
+}
+
 /* DARK MODE - TOASTY */
 
 [data-theme="dark"] .toast {
@@ -1697,6 +1716,18 @@ select {
 
 [data-theme="dark"] .toast.error i {
     color: #f87171;
+}
+
+[data-theme="dark"] .btn-undo-toast {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e8eaed;
+}
+
+[data-theme="dark"] .btn-undo-toast:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
 }
 
 @keyframes slideInRight {
