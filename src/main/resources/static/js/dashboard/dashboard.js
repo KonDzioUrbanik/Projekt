@@ -522,10 +522,15 @@ class DashboardHome {
     // PANEL ADMINISTRATORA
 
     // Inicjalizacja panelu administratora
-    initAdminPanel() {
+    async initAdminPanel() {
         this.loadAdminStats();
         this.loadRecentActivity();
-        this.loadAdminClasses();
+
+        if (this.activeSpecialPeriod === null) {
+            await this.loadActiveSpecialPeriod();
+        }
+        
+        await this.loadAdminClasses();
     }
 
     // Załadowanie statystyk dla administratora
@@ -672,6 +677,48 @@ class DashboardHome {
         if (!classList) return;
         
         try {
+            // Najpierw sprawdzamy okres specjalny - jeśli jest, pokazujemy zamiast zajęć
+            if (this.activeSpecialPeriod) {
+                const period = this.activeSpecialPeriod;
+                let icon, message, cssClass;
+                
+                switch (period.type) {
+                    case 'EXAM':
+                        icon = 'fa-file-signature';
+                        message = 'Powodzenia na egzaminach!';
+                        cssClass = 'special-exam';
+                        break;
+                    case 'BREAK':
+                        icon = 'fa-mug-hot';
+                        message = 'Odpoczynek od zajęć!';
+                        cssClass = 'special-break';
+                        break;
+                    case 'HOLIDAY':
+                        icon = 'fa-calendar-xmark';
+                        message = 'Dzień wolny od zajęć';
+                        cssClass = 'special-holiday';
+                        break;
+                    default:
+                        icon = 'fa-info-circle';
+                        message = 'Brak zajęć dydaktycznych';
+                        cssClass = 'special-other';
+                }
+                
+                classList.innerHTML = `
+                    <div class="special-period-card ${cssClass}" style="margin-top: 2rem;">
+                        <div class="special-period-icon">
+                            <i class="fas ${icon}"></i>
+                        </div>
+                        <div class="special-period-content">
+                            <h3>${period.title}</h3>
+                            <p>${message}</p>
+                            <span class="special-period-dates">${period.formattedDateRange || ''}</span>
+                        </div>
+                    </div>
+                `;
+                return; // Zakończ, nie pobieraj normalnych zajęć
+            }
+
             // Pobieranie wszystkich zajęć z API
             const response = await fetch(DashboardHome.CONFIG.API.SCHEDULE_ALL);
             
