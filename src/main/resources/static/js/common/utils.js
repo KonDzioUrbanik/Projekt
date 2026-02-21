@@ -184,8 +184,51 @@ const Utils = {
             console.warn('Utils.safeJsonParse: Invalid JSON', e);
             return fallback;
         }
+    },
+    
+    /* Inicjalizacja pływającego przycisku Go-To-Top (Płynny Przewijak) */
+    initGoToTop() {
+        const btn = document.getElementById('goToTopBtn');
+        if (!btn) return;
+
+        // Na dużych ekranach przewija się .navbar-middle, na komórkach zazwyczaj window.
+        const navbarMiddle = document.querySelector('.navbar-middle');
+        
+        // Funkcja sprawdzająca scroll niezależnie od tego kto scrolluje
+        const checkScroll = Utils.debounce(() => {
+            const scrollTop = (navbarMiddle && navbarMiddle.scrollTop) || window.scrollY || document.documentElement.scrollTop;
+            
+            if (scrollTop > 300) {
+                btn.classList.add('visible');
+            } else {
+                btn.classList.remove('visible');
+            }
+        }, 100);
+
+        // Nasłuchujemy na oba potencjalne "przewijaki"
+        window.addEventListener('scroll', checkScroll);
+        if (navbarMiddle) {
+            navbarMiddle.addEventListener('scroll', checkScroll);
+        }
+        
+        btn.addEventListener('click', () => {
+            // Skrolujemy płynnie oba
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (navbarMiddle) {
+                if (typeof navbarMiddle.scrollTo === 'function') {
+                    navbarMiddle.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    navbarMiddle.scrollTop = 0;
+                }
+            }
+        });
     }
 };
+
+// Automatyczne odpalenie przyjaznych globalnych skryptów interfejsu
+document.addEventListener('DOMContentLoaded', () => {
+    Utils.initGoToTop();
+});
 
 // Eksport dla kompatybilności (jeśli używasz modułów lub testów)
 if (typeof module !== 'undefined' && module.exports) {

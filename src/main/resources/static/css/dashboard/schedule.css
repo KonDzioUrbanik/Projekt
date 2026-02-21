@@ -16,14 +16,14 @@
 
 .schedule-grid {
     display: grid;
-    grid-template-columns: 120px repeat(5, 1fr);
+    grid-template-columns: 120px repeat(5, minmax(140px, 1fr));
     gap: 0;
     background: #e5e7eb;
     border-radius: 8px;
-    overflow: hidden;
-    overflow: hidden;
     margin-top: 1.5rem;
     min-height: 200px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .schedule-grid[style*="display: flex"] {

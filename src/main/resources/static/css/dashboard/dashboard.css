@@ -2152,3 +2152,59 @@ body {
 [data-theme="dark"] .special-period-content p {
     color: #a0aec0;
 }
+
+/* GO-TO-TOP BUTTON (Płynny Przewijak) */
+
+.go-to-top-btn {
+    position: fixed;
+    bottom: 110px;
+    right: 35px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: white;
+    font-size: 1.2rem;
+    border: none;
+    box-shadow: 0 10px 25px -5px rgba(0, 94, 250, 0.4);
+    cursor: pointer;
+    z-index: 1000;
+
+    /* Ukryte domyślnie */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px) scale(0.9);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.go-to-top-btn.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+.go-to-top-btn:hover {
+    transform: translateY(-5px) scale(1.05);
+    background: var(--color-primary-dark);
+    box-shadow: 0 15px 30px -5px rgba(0, 94, 250, 0.6);
+}
+
+.go-to-top-btn:active {
+    transform: translateY(-2px) scale(0.95);
+}
+
+/* Mniejszy ekran */
+@media (max-width: 768px) {
+    .go-to-top-btn {
+        bottom: 90px;
+        /* Help button ma mniejsze wymiary na mobilkach (bottom 20, wys 56), wiec tu dam 90 */
+        right: 25px;
+        width: 45px;
+        height: 45px;
+        font-size: 1rem;
+    }
+}
