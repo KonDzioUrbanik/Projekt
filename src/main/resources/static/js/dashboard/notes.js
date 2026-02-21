@@ -106,7 +106,10 @@ const DOM = {
     btnTextDec: document.getElementById('btnTextDec'),
     btnExportPdf: document.getElementById('btnExportPdf'),
     btnExportDocx: document.getElementById('btnExportDocx'),
-    btnToggleFullscreen: document.getElementById('btnToggleFullscreen')
+    btnToggleFullscreen: document.getElementById('btnToggleFullscreen'),
+
+    // Masonry Grid
+    notesMasonryGrid: document.getElementById('notesMasonryGrid')
 };
 
 // INICJALIZACJA
@@ -634,6 +637,9 @@ function renderNotesList() {
                 <p>${msg}</p>
             </div>
         `;
+        // Brak notatek - pokaż stan pustki, ukryj siatkę Masonry
+        if (DOM.notesMasonryGrid) DOM.notesMasonryGrid.style.display = 'none';
+        if (!AppState.selectedNote && DOM.emptyState) DOM.emptyState.style.display = 'flex';
         return;
     }
 
@@ -714,6 +720,15 @@ function renderNotesList() {
         
         DOM.notesList.appendChild(el);
     });
+
+    // Jeśli nr nota nie jest w tej chwili wybrany - pokaż Masonry Grid (zamiast stanu pustki)
+    if (!AppState.selectedNote) {
+        if (DOM.emptyState) DOM.emptyState.style.display = 'none';
+        renderMasonryGrid();
+    } else {
+        // Notatka jest właśnie otwarta - Masonry skryjmy
+        if (DOM.notesMasonryGrid) DOM.notesMasonryGrid.style.display = 'none';
+    }
 }
 
 function selectNote(id) {
@@ -726,10 +741,85 @@ function selectNote(id) {
     renderNotesList(); 
 }
 
+/* ===== MASONRY GRID ===== */
+
+function renderMasonryGrid() {
+    const grid = DOM.notesMasonryGrid;
+    if (!grid) return;
+
+    grid.innerHTML = '';
+
+    const visibilityIcons = {
+        'PRIVATE': 'fa-lock',
+        'SHARED_WITH_USERS': 'fa-user-friends',
+        'GROUP': 'fa-users',
+        'PUBLIC': 'fa-globe'
+    };
+
+    const colorPalette = [
+        '#fef9c3', // Yellow
+        '#dcfce7', // Green
+        '#dbeafe', // Blue
+        '#f3e8ff', // Purple
+        '#ffe4e6', // Red
+        '#fff7ed', // Orange
+        '#e0f2fe', // Cyan
+        '#f1f5f9'  // Gray (default)
+    ];
+
+    AppState.filteredNotes.forEach((note, index) => {
+        const rawContent = note.content || '';
+        const cleanContent = Utils.stripMarkdown(Utils.stripHtml(rawContent));
+        const preview = cleanContent ? cleanContent.substring(0, 200) + (cleanContent.length > 200 ? '...' : '') : '';
+        const date = formatRelativeTime(note.updatedAt || note.createdAt);
+        const bgColor = colorPalette[index % colorPalette.length];
+        const iconClass = visibilityIcons[note.visibility || 'PRIVATE'];
+
+        const card = document.createElement('div');
+        card.className = 'masonry-card';
+        card.setAttribute('data-note-id', note.id);
+        card.style.setProperty('--card-accent', bgColor);
+
+        card.innerHTML = `
+            <div class="masonry-card-inner">
+                <div class="masonry-card-header">
+                    <h3 class="masonry-card-title">${escapeHtml(Utils.stripMarkdown(note.title))}</h3>
+                    <span class="masonry-card-icon" title="${note.visibility || 'PRIVATE'}">
+                        <i class="fas ${iconClass}"></i>
+                    </span>
+                </div>
+                ${preview ? `<p class="masonry-card-preview">${escapeHtml(preview)}</p>` : '<p class="masonry-card-preview empty">Brak treści...</p>'}
+                ${
+                    note.tags ? `<div class="masonry-card-tags">${
+                        note.tags.split(',').map(t => t.trim()).filter(t => t)
+                            .slice(0, 3)
+                            .map(t => `<span class="masonry-tag">#${escapeHtml(t)}</span>`).join('')
+                    }</div>` : ''
+                }
+                <div class="masonry-card-footer">
+                    <span class="masonry-card-date">${date}</span>
+                    ${note.isFavorited ? '<i class="fas fa-star masonry-star"></i>' : ''}
+                </div>
+            </div>
+        `;
+
+        card.addEventListener('click', () => {
+            selectNote(note.id);
+            updateUrl(note.id);
+        });
+
+        grid.appendChild(card);
+    });
+
+    grid.style.display = 'block';
+}
+
 function renderNoteView(note) {
     if (!DOM.emptyState || !DOM.noteView) return;
     
     DOM.emptyState.style.display = 'none';
+    // Ukryj Masonry Grid, bo teraz wyświetlamy notatkę
+    if (DOM.notesMasonryGrid) DOM.notesMasonryGrid.style.display = 'none';
     DOM.noteView.style.display = 'flex';
 
     DOM.noteTitle.textContent = note.title;
@@ -838,13 +928,10 @@ function applyCurrentFilter() {
 function parseMarkdownLite(text) {
     if (!text) return '';
 
-    // 1. Sanityzacja HTML (XSS prevention)
-    // Najpierw zamieniamy niebezpieczne znaki na encje HTML
-    // WAŻNE: To musi być pierwszy krok!
+    // Sanityzacja HTML (XSS prevention)
     let safeText = escapeHtml(text);
 
-    // 2. Parsowanie Markdown
-    // Kolejność ma znaczenie (np. Code block przed innymi)
+    // Parsowanie Markdown
 
     // Kod Inline (`tekst`)
     safeText = safeText.replace(/`([^`]+)`/g, '<code>$1</code>');
@@ -859,45 +946,26 @@ function parseMarkdownLite(text) {
     safeText = safeText.replace(/__([^_]+)__/g, '<u>$1</u>');
 
     // Linki ([tekst](url))
-    // Uwaga: URL też może być niebezpieczny (javascript:...), ale escapeHtml zamienił już dwukropki? Nie.
-    // Dodatkowe zabezpieczenie dla linków: tylko http, https, mailto
     safeText = safeText.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+|mailto:[^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
 
-    // Nagłówki (# Tekst) - tylko na początku linii
-    // Używamy flagi 'm' (multiline)
+    // Nagłówki (# Tekst)
     safeText = safeText.replace(/^# (.*$)/gm, '<h3>$1</h3>');
 
-    // Listy (- element) - tylko na początku linii
-    // To jest uproszczone - zamienia myślniki na kropki unicode, 
-    // bo prawdziwa lista <ul> wymagałaby wrapowania wielu linii.
-    // Dla Markdown Lite zrobimy trick wizualny lub prostą listę.
-    
-    // Opcja A: Prosta zamiana na flex/grid w CSS (ale tu robimy HTML replacement)
-    // Zróbmy tak: każda linia zaczynająca się od "- " dostaje klasę list-item-line
-    // A w CSS (już dodane): ul/li. 
-    // Spróbujmy zamienić na <ul><li>...</li></ul> ? Trudne regexem.
-    // Prościej: "- tekst" -> "<li>tekst</li>" i wrapujemy całość w <ul>?
-    // Najprościej: "- tekst" -> "• tekst" (z wcięciem)
-    
-    // Lepsze podejście:
+    // Listy (- element)
     safeText = safeText.replace(/^- (.*$)/gm, '<ul><li>$1</li></ul>');
-    // Problem: to stworzy osobne <ul> dla każdego elementu.
-    // Fix: CSS merge margins? Albo zostawmy to. Dla prostych notatek OK.
-    
-    // Nowe linie -> <br> (ale nie wewnątrz tagów blokowych jak h3, ul)
-    // To jest trudne. Zostawmy white-space: pre-wrap w CSS (to już mamy).
-    // Jedynie musimy usunąć entery PO nagłówkach, żeby nie było dziur.
     
     return safeText;
 }
-
-// handleFormatting() — usunięto, zastąpiono przez Quill WYSIWYG toolbar
 
 function handleFilterChange(filter) {
 
     AppState.currentFilter = filter;
     
-    // Dla niektórych filtrów musimy przeładować dane z serwera
+    AppState.selectedNote = null;
+    if (DOM.noteView) DOM.noteView.style.display = 'none';
+    if (DOM.emptyState) DOM.emptyState.style.display = 'none';
+    updateUrl(null);
+    
     if (['my', 'shared', 'group', 'public', 'favorites', 'all'].includes(filter)) {
         loadNotes();
     } else {
