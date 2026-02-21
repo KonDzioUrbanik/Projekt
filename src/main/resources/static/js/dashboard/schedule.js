@@ -32,11 +32,39 @@ class ScheduleCalendar{
     }
     
     async loadData() {
-        await Promise.all([
-            this.loadCalendarEvents(),
-            this.loadSchedule()
-        ]);
-        this.renderSchedule();
+        // Pokaż ładowanie dla całej paczki danych
+        const loading = document.getElementById('loading');
+        const grid = document.getElementById('scheduleGrid');
+        
+        if (loading) loading.classList.add('active');
+        if (grid) grid.style.display = 'none';
+
+        try {
+            await Promise.all([
+                this.loadCalendarEvents(),
+                this.loadSchedule()
+            ]);
+            
+            this.renderSchedule();
+            this.updateControls(); // Aktualizacja etykiet daty
+            this.updateRealTimeFeatures(); // Dodaje DZIŚ pod nagłówkami
+        } catch(error) {
+            console.error('Błąd inicjalizacji harmonogramu:', error);
+            if (grid) {
+                grid.innerHTML = `
+                    <div class="error-message">
+                        <h3>Błąd inicjalizacji harmonogramu</h3>
+                        <p>${Utils.escapeHtml(error.message)}</p>
+                    </div>
+                `;
+                grid.style.display = 'block';
+            }
+        } finally {
+            if (loading) loading.classList.remove('active');
+            if (grid && grid.style.display === 'none') {
+                 grid.style.display = 'grid';
+            }
+        }
     }
 
     // Pobranie wydarzeń z kalendarza akademickiego
@@ -89,40 +117,15 @@ class ScheduleCalendar{
         return null;
     }
     
-    // zaladowanie harmonogramu zajec z API
+    // zaladowanie harmonogramu zajec z API (tylko pobranie danych)
     async loadSchedule(){
-        const loading = document.getElementById('loading');
-        const grid = document.getElementById('scheduleGrid');
+        const response = await fetch(this.apiEndpoint);
         
-        loading.classList.add('active');
-        grid.style.display = 'none';
-        
-        try{
-            const response = await fetch(this.apiEndpoint);
-            
-            if(!response.ok){
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            this.scheduleData = await response.json();
-            this.renderSchedule();
-            this.updateRealTimeFeatures();
-            this.updateControls(); // Aktualizacja etykiet daty
-        } 
-        catch(error){
-            console.error('Błąd ładowania harmonogramu:', error);
-            grid.innerHTML = `
-                <div class="error-message">
-                    <h3>Błąd ładowania harmonogramu zajęć</h3>
-                    <p>${Utils.escapeHtml(error.message)}</p>
-                </div>
-            `;
-            grid.style.display = 'block';
-        } 
-        finally{
-            loading.classList.remove('active');
-            grid.style.display = 'grid';
+        if(!response.ok){
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
+        this.scheduleData = await response.json();
     }
     
     // Obliczanie początku tygodnia (Poniedziałek)
