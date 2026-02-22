@@ -878,3 +878,383 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* MODAL CONFIRM (DELETE) */
+@keyframes fadeInOverlay {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUpOverlay {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#deleteConfirmOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeInOverlay 0.2s ease-out;
+}
+
+#deleteConfirmOverlay.active {
+    display: flex;
+}
+
+#deleteConfirmOverlay .modal-card {
+    background: #ffffff;
+    width: 100%;
+    max-width: 650px;
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    animation: slideUpOverlay 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#deleteConfirmOverlay .modal-sm {
+    max-width: 400px;
+}
+
+#deleteConfirmOverlay .modal-center-content {
+    text-align: center;
+    overflow: hidden;
+}
+
+#deleteConfirmOverlay .modal-body-centered {
+    padding: 30px 25px 10px 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#deleteConfirmOverlay .modal-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
+#deleteConfirmOverlay .modal-icon-wrapper.danger {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+#deleteConfirmOverlay .modal-body-centered h3 {
+    margin: 0 0 10px 0;
+    color: #111827;
+    font-size: 1.25rem;
+}
+
+#deleteConfirmOverlay .modal-body-centered p {
+    color: #4b5563;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+#deleteConfirmOverlay .modal-footer-centered {
+    padding: 20px 25px 25px 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #ffffff;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+}
+
+@media (min-width: 480px) {
+    #deleteConfirmOverlay .modal-footer-centered {
+        flex-direction: row;
+        justify-content: center;
+    }
+}
+
+#deleteConfirmOverlay .btn-danger-block {
+    background: #ef4444;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    flex: 1;
+    transition: background 0.2s;
+}
+
+#deleteConfirmOverlay .btn-danger-block:hover {
+    background: #dc2626;
+}
+
+#deleteConfirmOverlay .btn-text-gray,
+#deleteConfirmOverlay .btn-tertiary {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    color: #111827;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    flex: 1;
+    transition: background 0.2s;
+}
+
+#deleteConfirmOverlay .btn-text-gray:hover,
+#deleteConfirmOverlay .btn-tertiary:hover {
+    background: #f3f4f6;
+}
+
+[data-theme="dark"] #deleteConfirmOverlay {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="dark"] #deleteConfirmOverlay .modal-card {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="dark"] #deleteConfirmOverlay .modal-body-centered h3 {
+    color: #f8fafc;
+}
+
+[data-theme="dark"] #deleteConfirmOverlay .modal-body-centered p {
+    color: #9ca3af;
+}
+
+[data-theme="dark"] #deleteConfirmOverlay .modal-footer-centered {
+    background: #1a1a1a;
+    border-top: none;
+}
+
+[data-theme="dark"] #deleteConfirmOverlay .btn-text-gray,
+[data-theme="dark"] #deleteConfirmOverlay .btn-tertiary {
+    background: #222;
+    border: 1px solid #333;
+    color: #e5e5e5;
+}
+
+[data-theme="dark"] #deleteConfirmOverlay .btn-text-gray:hover,
+[data-theme="dark"] #deleteConfirmOverlay .btn-tertiary:hover {
+    background: #333;
+}
+
+[data-theme="dark"] #deleteConfirmOverlay .modal-icon-wrapper.danger {
+    background: rgba(220, 38, 38, 0.15);
+    color: #fca5a5;
+}
+
+[data-theme="dark"] #deleteConfirmOverlay .btn-danger-block {
+    border: none;
+}
+
+/* TOASTY (POWIADOMIENIA) */
+.toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 20000;
+}
+
+.toast {
+    background: #ffffff;
+    padding: 16px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border-left: 4px solid #005efa;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 300px;
+    animation: toastSlideInRight 0.3s ease;
+    font-size: 0.95rem;
+    color: #111827;
+}
+
+.toast.success {
+    border-color: #10b981;
+}
+
+.toast.error {
+    border-color: #ef4444;
+}
+
+.toast.info {
+    border-color: #3b82f6;
+}
+
+.toast.warning {
+    border-color: #f59e0b;
+}
+
+.toast i {
+    font-size: 1.2rem;
+}
+
+.toast.success i {
+    color: #10b981;
+}
+
+.toast.error i {
+    color: #ef4444;
+}
+
+.toast.info i {
+    color: #3b82f6;
+}
+
+.toast.warning i {
+    color: #f59e0b;
+}
+
+.toast span {
+    flex: 1;
+}
+
+.toast-undo-btn,
+.btn-undo-toast {
+    margin-left: 10px;
+    padding: 6px 12px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    color: #1d4ed8;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.toast-undo-btn:hover,
+.btn-undo-toast:hover {
+    background: #dbeafe;
+    border-color: #93c5fd;
+    color: #1e40af;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.toast-close:hover {
+    color: #4b5563;
+}
+
+.toast.fade-out {
+    animation: toastFadeOutRight 0.3s ease forwards;
+}
+
+[data-theme="dark"] .toast {
+    background: #1a1f26;
+    color: #e8eaed;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="dark"] .toast span,
+[data-theme="dark"] .toast>div:not(.toast-actions) {
+    color: #e8eaed;
+}
+
+[data-theme="dark"] .toast.success {
+    border-color: #10b981;
+}
+
+[data-theme="dark"] .toast.success i {
+    color: #34d399;
+}
+
+[data-theme="dark"] .toast.error {
+    border-color: #f87171;
+}
+
+[data-theme="dark"] .toast.error i {
+    color: #f87171;
+}
+
+[data-theme="dark"] .toast.info {
+    border-color: #3b82f6;
+}
+
+[data-theme="dark"] .toast.info i {
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .toast-undo-btn,
+[data-theme="dark"] .btn-undo-toast {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e8eaed;
+}
+
+[data-theme="dark"] .toast-undo-btn:hover,
+[data-theme="dark"] .btn-undo-toast:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+}
+
+[data-theme="dark"] .toast-close:hover {
+    color: #e5e5e5;
+}
+
+@keyframes toastSlideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes toastFadeOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}

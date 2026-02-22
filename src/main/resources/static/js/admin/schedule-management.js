@@ -132,10 +132,31 @@ class ScheduleManagement {
                 const deleteBtn = e.target.closest('.btn-delete');
                 if (deleteBtn) {
                     const id = deleteBtn.getAttribute('data-id');
-                    if(confirm('Czy na pewno chcesz usunąć te zajęcia?')) {
-                        this.deleteSchedule(id);
-                    }
+                    const schedTitle = deleteBtn.closest('tr').querySelector('strong') ? deleteBtn.closest('tr').querySelector('strong').innerText : 'te zajęcia';
+                    this.openDeleteConfirmModal(id, `Czy na pewno chcesz usunąć zajęcia <strong>${schedTitle}</strong>?`);
                     return;
+                }
+            });
+        }
+        
+        // Modal Confirmations
+        const btnCancelDelete = document.getElementById('btnCancelDelete');
+        if (btnCancelDelete) {
+            btnCancelDelete.addEventListener('click', () => {
+                document.getElementById('deleteConfirmOverlay').classList.remove('active');
+                this.pendingDeleteId = null;
+                this.pendingDeleteType = null;
+            });
+        }
+        
+        const btnConfirmDelete = document.getElementById('btnConfirmDelete');
+        if (btnConfirmDelete) {
+            btnConfirmDelete.addEventListener('click', () => {
+                document.getElementById('deleteConfirmOverlay').classList.remove('active');
+                if (this.pendingDeleteType === 'single') {
+                    this.deleteSchedule(this.pendingDeleteId);
+                } else if (this.pendingDeleteType === 'bulk') {
+                    this.executeBulkDelete(this.pendingDeleteId);
                 }
             });
         }
@@ -353,8 +374,8 @@ class ScheduleManagement {
 
         if(data.length === 0){
             tableBody.innerHTML = `
-                <tr>
-                    <td colspan="9" style="text-align: center; padding: 2rem;">
+                <tr class="empty-row">
+                    <td colspan="10" style="text-align: center; padding: 2rem;">
                         <div class="empty-state">
                             <h3>Brak zajęć</h3>
                             <p>Nie znaleziono żadnych zajęć spełniających kryteria.</p>
@@ -405,8 +426,8 @@ class ScheduleManagement {
     renderErrorState() {
         const tableBody = document.getElementById('scheduleTableBody');
         tableBody.innerHTML = `
-            <tr>
-                <td colspan="9" style="text-align: center; padding: 2rem;">
+            <tr class="empty-row">
+                <td colspan="10" style="text-align: center; padding: 2rem;">
                     <div style="color: #ef4444;">
                         <i class="fas fa-exclamation-triangle" style="font-size: 2rem;"></i>
                         <p style="margin-top: 1rem;">Nie udało się załadować danych. Sprawdź połączenie.</p>
@@ -495,10 +516,10 @@ class ScheduleManagement {
             const wasEditing = this.isEditing;
             this.closeModal();
             this.loadSchedule(); // Przeładuje dane i zaaplikuje filtry/paginację
-            this.showNotification(wasEditing ? 'Zajęcia zaktualizowane' : 'Zajęcia dodane', 'success');
+            this.showToast(wasEditing ? 'Zajęcia zaktualizowane.' : 'Zajęcia dodane.', 'success');
         } catch (error) {
             console.error('Błąd zapisu:', error);
-            this.showNotification('Wystąpił błąd podczas zapisywania.', 'error');
+            this.showToast('Wystąpił błąd podczas zapisywania.', 'error');
         }
     }
 
@@ -507,16 +528,87 @@ class ScheduleManagement {
         if(item) this.openModal(item);
     }
 
-    async deleteSchedule(id){
-        try {
-            const response = await fetch(`${ScheduleManagement.CONFIG.API.SCHEDULE}/${id}`, { method: 'DELETE' });
-            if(!response.ok) throw new Error(`Status: ${response.status}`);
-            this.loadSchedule();
-            this.showNotification('Usunięto pomyślnie.', 'success');
-        } catch (error) {
-            console.error('Błąd usuwania:', error);
-            this.showNotification('Błąd usuwania: ' + error.message, 'error');
+    openDeleteConfirmModal(id, message, type = 'single') {
+        const overlay = document.getElementById('deleteConfirmOverlay');
+        const textElem = document.getElementById('deleteModalText');
+        
+        if (!overlay || !textElem) {
+            if(confirm(message.replace(/<[^>]*>?/gm, ''))) {
+                this.pendingDeleteId = id;
+                this.pendingDeleteType = type;
+                if (type === 'single') this.deleteSchedule(id);
+                else this.executeBulkDelete(id);
+            }
+            return;
         }
+
+        this.pendingDeleteId = id;
+        this.pendingDeleteType = type;
+        
+        textElem.innerHTML = message;
+        overlay.classList.add('active');
+    }
+
+    async deleteSchedule(id) {
+        // Soft delete logic with toast undo
+        const itemToDelete = this.scheduleData.find(s => s.id.toString() === id.toString());
+        if (!itemToDelete) return;
+        
+        // Optimistically remove from UI
+        this.scheduleData = this.scheduleData.filter(s => s.id.toString() !== id.toString());
+        this.applyFilters();
+        
+        // Pokazujemy toast z opcją cofnij
+        const toastContainer = document.getElementById('toastContainer');
+        const toastId = 'toast-' + Date.now();
+        
+        const toast = document.createElement('div');
+        toast.className = 'toast success';
+        toast.id = toastId;
+        toast.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <span>Zajęcia usunięte</span>
+            <button class="toast-undo-btn" id="undo-${toastId}">COFNIJ</button>
+        `;
+        toastContainer.appendChild(toast);
+        
+        let isUndone = false;
+        
+        const undoBtn = document.getElementById(`undo-${toastId}`);
+        if(undoBtn) {
+            undoBtn.addEventListener('click', () => {
+                isUndone = true;
+                toast.style.animation = 'fadeOut 0.3s forwards';
+                setTimeout(() => toast.remove(), 300);
+                
+                // Przywracamy dane
+                this.scheduleData.push(itemToDelete);
+                this.applyFilters();
+                this.showToast('Cofnięto usunięcie. Zajęcia przywrócone.', 'info');
+            });
+        }
+        
+        // Oczekujemy 4 sekundy, potem request właściwy
+        setTimeout(async () => {
+            if (!isUndone) {
+                const liveToast = document.getElementById(toastId);
+                if (liveToast) {
+                    liveToast.style.animation = 'fadeOut 0.3s forwards';
+                    setTimeout(() => liveToast.remove(), 300);
+                }
+                
+                try {
+                    const response = await fetch(`${ScheduleManagement.CONFIG.API.SCHEDULE}/${id}`, { method: 'DELETE' });
+                    if(!response.ok) throw new Error(`Status: ${response.status}`);
+                } catch (error) {
+                    console.error('Błąd usuwania:', error);
+                    this.showToast('Błąd finalnego usuwania: ' + error.message, 'error');
+                    // Przywracamy w razie błędu serwera
+                    this.scheduleData.push(itemToDelete);
+                    this.applyFilters();
+                }
+            }
+        }, 4000);
     }
 
     async clearGroupSchedule() {
@@ -530,13 +622,17 @@ class ScheduleManagement {
 
         const count = this.filteredData.length;
         if (count === 0) {
-            this.showNotification('Brak zajęć do usunięcia dla tego kierunku.', 'info');
+            this.showToast('Brak zajęć do usunięcia dla tego kierunku.', 'info');
             return;
         }
 
-        const confirmMsg = `UWAGA! Czy na pewno chcesz usunąć WSZYSTKIE zajęcia (${count}) dla kierunku: ${groupName}?\n\nTej operacji nie można cofnąć.`;
-        
-        if (!confirm(confirmMsg)) return;
+        const confirmMsg = `Czy na pewno chcesz usunąć WSZYSTKIE zajęcia (<strong>${count}</strong>) dla kierunku: <strong>${groupName}</strong>?<br><br>Tej operacji nie można cofnąć.`;
+        this.openDeleteConfirmModal(groupId, confirmMsg, 'bulk');
+    }
+
+    async executeBulkDelete(groupId) {
+        const group = this.allGroups.find(g => g.id.toString() === groupId.toString());
+        const groupName = group ? group.name : 'tego kierunku';
 
         const loading = document.getElementById('loading');
         loading.classList.add('active');
@@ -548,11 +644,11 @@ class ScheduleManagement {
 
             if (!response.ok) throw new Error(`Status: ${response.status}`);
 
-            this.showNotification(`Pomyślnie wyczyszczono plan dla: ${groupName}`, 'success');
+            this.showToast(`Pomyślnie wyczyszczono plan zajęć dla: ${groupName}`, 'success');
             await this.loadSchedule();
         } catch (error) {
             console.error('Błąd masowego usuwania:', error);
-            this.showNotification('Wystąpił błąd podczas usuwania planu.', 'error');
+            this.showToast('Wystąpił błąd podczas usuwania planu.', 'error');
         } finally {
             loading.classList.remove('active');
         }
@@ -636,20 +732,25 @@ class ScheduleManagement {
 
     formatTimeForInput(timeObj){ return this.formatTime(timeObj); }
 
-    showNotification(message, type = 'info'){
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed; top: 20px; right: 20px; padding: 1rem 1.5rem;
-            background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
-            color: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            z-index: 10000; animation: slideIn 0.3s ease;
-        `;
-        notification.textContent = message;
-        document.body.appendChild(notification);
+    showToast(message, type = 'success') {
+        const toastContainer = document.getElementById('toastContainer');
+        if (!toastContainer) return;
+        
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        let icon = 'info-circle';
+        if (type === 'success') icon = 'check-circle';
+        if (type === 'error') icon = 'exclamation-circle';
+        if (type === 'warning') icon = 'exclamation-triangle';
+        
+        toast.innerHTML = `<i class="fas fa-${icon}"></i> <span>${message}</span>`;
+        toastContainer.appendChild(toast);
+        
         setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
+            toast.style.animation = 'fadeOut 0.3s forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
     }
 }
 

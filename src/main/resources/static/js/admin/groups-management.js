@@ -23,9 +23,33 @@ class GroupsManagement{
         this.yearFilter = '';
         this.fieldFilter = '';
         this.modeFilter = '';
+        this.pendingDeleteId = null;
 
         this.initializeEventListeners();
+        this.initDeleteModal();
         this.loadGroups();
+    }
+
+    initDeleteModal() {
+        const btnCancel = document.getElementById('btnCancelDelete');
+        const btnConfirm = document.getElementById('btnConfirmDelete');
+        const overlay = document.getElementById('deleteConfirmOverlay');
+
+        if (btnCancel && overlay) {
+            btnCancel.addEventListener('click', () => {
+                overlay.classList.remove('active');
+                this.pendingDeleteId = null;
+            });
+        }
+
+        if (btnConfirm && overlay) {
+            btnConfirm.addEventListener('click', () => {
+                overlay.classList.remove('active');
+                if (this.pendingDeleteId) {
+                    this.executeDelete(this.pendingDeleteId);
+                }
+            });
+        }
     }
 
     initializeEventListeners(){
@@ -311,7 +335,7 @@ class GroupsManagement{
         const groupName = document.getElementById('groupName').value.trim();
 
         if(!groupName){
-            alert('Pole nazwy kierunku jest wymagane.');
+            this.showToast('Pole nazwy kierunku jest wymagane.', 'warning');
             return;
         }
 
@@ -347,14 +371,14 @@ class GroupsManagement{
             this.closeModal();
             this.loadGroups();
             
-            this.showNotification(
-                wasEditing ? 'Kierunek został zaktualizowany' : 'Kierunek został dodany',
+            this.showToast(
+                wasEditing ? 'Kierunek został zaktualizowany.' : 'Kierunek został dodany.',
                 'success'
             );
         } 
         catch(error){
             console.error('Błąd zapisu:', error);
-            this.showNotification('Wystąpił błąd podczas zapisywania kierunku. Sprawdź poprawność danych i spróbuj ponownie.', 'error');
+            this.showToast('Wystąpił błąd podczas zapisywania kierunku. Sprawdź poprawność danych i spróbuj ponownie.', 'error');
         }
     }
 
@@ -365,52 +389,102 @@ class GroupsManagement{
         }
     }
 
-    async deleteGroup(id){
+    deleteGroup(id){
         const group = this.groups.find(g => g.id === id);
-        if(!confirm(`Czy na pewno chcesz usunąć kierunek "${group.name}"? Studenci przypisani do tego kierunku zostaną od niego odłączeni. Ta operacja jest nieodwracalna.`)){
+        const overlay = document.getElementById('deleteConfirmOverlay');
+        if (!overlay) {
+            if(confirm(`Czy na pewno chcesz usunąć kierunek "${group.name}"? Studenci przypisani do tego kierunku zostaną od niego odłączeni. Ta operacja jest nieodwracalna.`)){
+                this.executeDelete(id);
+            }
             return;
         }
 
-        try{
-            const response = await fetch(`${GroupsManagement.CONFIG.API_ENDPOINT}/${id}`, {
-                method: 'DELETE'
-            });
-
-            if(!response.ok){
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            this.loadGroups();
-            this.showNotification('Kierunek został usunięty', 'success');
-        } 
-        catch (error){
-            console.error('Błąd usuwania:', error);
-            this.showNotification('Błąd podczas usuwania: ' + error.message, 'error');
-        }
+        this.pendingDeleteId = id;
+        overlay.classList.add('active');
     }
 
-    showNotification(message, type = 'info'){
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 1rem 1.5rem;
-            background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
-            color: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            z-index: 10000;
-            animation: slideIn 0.3s ease;
+    executeDelete(id) {
+        // Soft delete logic with toast undo
+        const groupToDelete = this.groups.find(s => s.id === id);
+        if (!groupToDelete) return;
+
+        // Optimistically remove from UI
+        this.groups = this.groups.filter(item => item.id !== id);
+        this.applyFiltersAndSort();
+
+        // Pokazujemy toast z opcją cofnij
+        const toastContainer = document.getElementById('toastContainer');
+        const toastId = 'toast-' + Date.now();
+
+        const toast = document.createElement('div');
+        toast.className = 'toast success';
+        toast.id = toastId;
+        toast.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <span>Kierunek usunięty</span>
+            <button class="toast-undo-btn" id="undo-${toastId}">COFNIJ</button>
         `;
-        notification.textContent = message;
+        toastContainer.appendChild(toast);
 
-        document.body.appendChild(notification);
+        let isUndone = false;
 
+        const undoBtn = document.getElementById(`undo-${toastId}`);
+        if(undoBtn) {
+            undoBtn.addEventListener('click', () => {
+                isUndone = true;
+                toast.style.animation = 'fadeOut 0.3s forwards';
+                setTimeout(() => toast.remove(), 300);
+
+                // Przywracamy dane
+                this.groups.push(groupToDelete);
+                this.applyFiltersAndSort();
+                this.showToast('Cofnięto usunięcie. Kierunek przywrócony.', 'info');
+            });
+        }
+
+        // Oczekujemy 5 sekundy, potem request właściwy
+        setTimeout(async () => {
+            if (!isUndone) {
+                const liveToast = document.getElementById(toastId);
+                if (liveToast) {
+                    liveToast.style.animation = 'fadeOut 0.3s forwards';
+                    setTimeout(() => liveToast.remove(), 300);
+                }
+
+                try {
+                    const response = await fetch(`${GroupsManagement.CONFIG.API_ENDPOINT}/${id}`, { method: 'DELETE' });
+                    if (!response.ok) throw new Error('Network error');
+                    console.log('Kierunek trwale usunięty z serwera.');
+                } catch (error) {
+                    console.error('Błąd finalnego usuwania:', error);
+                    // Jeśli błąd, przywracamy po cichu do danych
+                    this.groups.push(groupToDelete);
+                    this.applyFiltersAndSort();
+                    this.showToast('Błąd finalnego usuwania z serwera.', 'error');
+                }
+            }
+        }, 5000);
+    }
+
+    showToast(message, type = 'success') {
+        const toastContainer = document.getElementById('toastContainer');
+        if (!toastContainer) return;
+        
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        let icon = 'info-circle';
+        if (type === 'success') icon = 'check-circle';
+        if (type === 'error') icon = 'exclamation-circle';
+        if (type === 'warning') icon = 'exclamation-triangle';
+        
+        toast.innerHTML = `<i class="fas fa-${icon}"></i> <span>${message}</span>`;
+        toastContainer.appendChild(toast);
+        
         setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
+            toast.style.animation = 'fadeOut 0.3s forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
     }
 }
 
@@ -419,28 +493,3 @@ let groupsManagement;
 document.addEventListener('DOMContentLoaded', () => {
     groupsManagement = new GroupsManagement();
 });
-
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn{
-        from{
-            transform: translateX(400px);
-            opacity: 0;
-        }
-        to{
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    @keyframes slideOut{
-        from{
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to{
-            transform: translateX(400px);
-            opacity: 0;
-        }
-    }
-`;
-document.head.appendChild(style);

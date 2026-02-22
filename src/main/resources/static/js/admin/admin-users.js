@@ -359,18 +359,17 @@ document.getElementById("editUserForm").addEventListener("submit", async functio
             throw new Error('Błąd podczas przypisywania do kierunku');
         }
 
-        alert("Zmiany zostały pomyślnie zapisane.");
+        showToast("Zmiany zostały pomyślnie zapisane. Odświeżanie okna...", "success");
         closeEditModal();
-        location.reload(); // przeladowanie strony aby zachowac kolejnosc z backendu
+        setTimeout(() => location.reload(), 1500); // przeladowanie strony aby zachowac kolejnosc z backendu
     } 
     catch (error){
         console.error('Błąd:', error);
-        alert("Wystąpił błąd podczas zapisywania zmian. Sprawdź połączenie i spróbuj ponownie. Szczegóły: " + error.message);
+        showToast("Wystąpił błąd podczas zapisywania zmian. Sprawdź połączenie i spróbuj ponownie.", "error");
     }
 });
 
 //  PAGINACJA
-
 let currentPage = 1;
 let pageSize = 50;  // domyślnie 50 użytkowników na stronę
 let filteredRows = []; // przechowuje przefiltrowane wiersze
@@ -536,7 +535,7 @@ function performExport() {
     const rowsToExport = filteredRows;
     
     if (rowsToExport.length === 0) {
-        alert('Brak danych do eksportu.');
+        showToast('Brak danych do eksportu.', 'warning');
         return;
     }
     
@@ -553,7 +552,7 @@ function performExport() {
     
     // sprawdź czy wybrano przynajmniej jedną kolumnę
     if (!Object.values(columns).some(v => v)) {
-        alert('Wybierz przynajmniej jedną kolumnę do eksportu.');
+        showToast('Wybierz przynajmniej jedną kolumnę do eksportu.', 'warning');
         return;
     }
     
@@ -640,4 +639,146 @@ document.getElementById('exportModal').addEventListener('click', function(e) {
         closeExportModal();
     }
 });
+
+/* TOAST NOTIFICATIONS & SOFT-UNDO DELETE */
+const deletionTimers = new Map();
+let currentDeleteUserId = null;
+let currentDeleteRow = null;
+
+function showToast(message, type = 'info', actionHtml = '', duration = 4000) {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    let icon = 'info-circle';
+    if (type === 'success') icon = 'check-circle';
+    if (type === 'error') icon = 'exclamation-circle';
+    if (type === 'warning') icon = 'exclamation-triangle';
+
+    toast.innerHTML = `
+        <i class="fas fa-${icon}"></i>
+        <div style="flex-grow: 1;">${message}</div>
+        ${actionHtml ? `<div class="toast-actions">${actionHtml}</div>` : ''}
+        <button class="toast-close" onclick="this.parentElement.classList.add('fade-out'); setTimeout(() => this.parentElement.remove(), 300);">&times;</button>
+    `;
+
+    container.appendChild(toast);
+
+    if (duration > 0 && !actionHtml) {
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.classList.add('fade-out');
+                setTimeout(() => {
+                    if (toast.parentElement) toast.remove();
+                }, 300);
+            }
+        }, duration);
+    }
+    return toast;
+}
+
+function openDeleteModal(btn) {
+    currentDeleteUserId = btn.getAttribute('data-id');
+    currentDeleteRow = btn.closest('tr');
+    
+    const overlay = document.getElementById('deleteConfirmOverlay');
+    if (overlay) overlay.classList.add('active');
+}
+
+function closeDeleteModal() {
+    const overlay = document.getElementById('deleteConfirmOverlay');
+    if (overlay) overlay.classList.remove('active');
+    currentDeleteUserId = null;
+    currentDeleteRow = null;
+}
+
+document.getElementById('btnCancelDelete')?.addEventListener('click', closeDeleteModal);
+
+document.getElementById('btnConfirmDelete')?.addEventListener('click', () => {
+    if (!currentDeleteUserId || !currentDeleteRow) return;
+    
+    const userId = currentDeleteUserId;
+    const rowToRemove = currentDeleteRow;
+    
+    closeDeleteModal();
+    
+    rowToRemove.style.display = 'none';
+    
+    const toastHtml = `<button class="btn-undo-toast" onclick="undoUserDelete('${userId}')">Cofnij</button>`;
+    const toast = showToast('Użytkownik usunięty.', 'success', toastHtml, 0);
+    
+    const timerId = setTimeout(() => {
+        sendActualDelete(userId, toast, rowToRemove);
+    }, 5000);
+    
+    deletionTimers.set(userId, { timerId, toast, row: rowToRemove });
+});
+
+function undoUserDelete(userId) {
+    const deleteData = deletionTimers.get(userId);
+    if (!deleteData) return;
+    
+    clearTimeout(deleteData.timerId);
+    
+    if (deleteData.row) {
+        deleteData.row.style.display = ''; 
+    }
+    
+    if (deleteData.toast && deleteData.toast.parentElement) {
+        deleteData.toast.classList.add('fade-out');
+        setTimeout(() => deleteData.toast.remove(), 300);
+    }
+    
+    showToast('Cofnięto usunięcie. Użytkownik przywrócony.', 'info');
+    deletionTimers.delete(userId);
+}
+
+async function sendActualDelete(userId, toast, rowElement) {
+    deletionTimers.delete(userId);
+    
+    try {
+        const response = await fetch(`/api/users/${userId}`, {
+            method: 'DELETE'
+        });
+        
+        if (toast && toast.parentElement) {
+            toast.classList.add('fade-out');
+            setTimeout(() => toast.remove(), 300);
+        }
+        
+        if (response.ok) {
+            if (rowElement && rowElement.parentElement) {
+                rowElement.remove();
+                
+                const index = originalOrder.indexOf(rowElement);
+                if (index > -1) originalOrder.splice(index, 1);
+                
+                const filterIndex = filteredRows.indexOf(rowElement);
+                if (filterIndex > -1) {
+                    filteredRows.splice(filterIndex, 1);
+                }
+                updateResultsCounter(filteredRows.length);
+                applyPagination();
+            }
+        } else {
+            if (rowElement) {
+                rowElement.style.display = '';
+            }
+            showToast('Nie udało się usunąć użytkownika z serwera.', 'error');
+        }
+    } catch (error) {
+        console.error('Błąd usuwania:', error);
+        if (rowElement) {
+            rowElement.style.display = '';
+        }
+        
+        if (toast && toast.parentElement) {
+            toast.classList.add('fade-out');
+            setTimeout(() => toast.remove(), 300);
+        }
+        showToast('Wystąpił błąd komunikacji z serwerem.', 'error');
+    }
+}
 

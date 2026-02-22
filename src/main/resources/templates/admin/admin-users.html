@@ -183,7 +183,9 @@
                                     </button>
 
                                     <button class="action-btn btn-delete" title="Usuń" 
-                                            th:if="${user.role != 'ADMIN'}">
+                                            th:if="${user.role != 'ADMIN'}"
+                                            th:data-id="${user.id}"
+                                            onclick="openDeleteModal(this)">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                     
@@ -320,11 +322,33 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Delete Confirmation Modal -->
+            <div class="modal-overlay" id="deleteConfirmOverlay">
+                <div class="modal-card modal-sm modal-center-content">
+                    <div class="modal-body-centered">
+                        <div class="modal-icon-wrapper danger">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                        <h3>Uwaga</h3>
+                        <p class="text-muted" id="deleteModalText">
+                            Czy na pewno chcesz usunąć tego użytkownika?<br><br>
+                        </p>
+                    </div>
+                    <div class="modal-footer-centered">
+                        <button class="btn btn-tertiary" id="btnCancelDelete">Anuluj</button>
+                        <button class="btn btn-danger-block" id="btnConfirmDelete">Usuń użytkownika</button>
+                    </div>
+                </div>
+            </div>
+
         </div> 
 
         <th:block layout:fragment="page-scripts">
             <script th:src="@{/js/admin/admin-users.js}"></script>
         </th:block>
 
+        <!-- Toasts Container -->
+        <div id="toastContainer" class="toast-container"></div>
     </body>
 </html>
