@@ -397,7 +397,7 @@ async function loadNotes() {
         }
     } catch (error) {
         console.error('Błąd ładowania:', error);
-        showToast('Nie udało się nawiązać połączenia z serwerem. Sprawdź swoje połączenie internetowe.', 'error');
+        Utils.showToast('Nie udało się nawiązać połączenia z serwerem. Sprawdź swoje połączenie internetowe.', 'error');
         
         DOM.notesList.innerHTML = `
             <div style="text-align:center; padding:30px; color:var(--danger);">
@@ -457,7 +457,7 @@ async function handleFormSubmit(e) {
 
             if (isShareOnlyMode) {
                 resultNote = await shareNoteData(AppState.editingNoteId, visibility);
-                showToast('Ustawienia udostępniania zostały zaktualizowane.', 'success');
+                Utils.showToast('Ustawienia udostępniania zostały zaktualizowane.', 'success');
             } else {
                 // Tryb pełnej edycji - najpierw aktualizujemy treść
                 const response = await fetch(CONFIG.API.NOTE_BY_ID(AppState.editingNoteId), {
@@ -481,7 +481,7 @@ async function handleFormSubmit(e) {
                 resultNote = await shareNoteData(resultNote.id, visibility);
             }
             
-            showToast('Notatka została pomyślnie zaktualizowana.', 'success');
+            Utils.showToast('Notatka została pomyślnie zaktualizowana.', 'success');
             } // Koniec bloku else
 
             const idx = AppState.notes.findIndex(n => n.id === resultNote.id);
@@ -510,7 +510,7 @@ async function handleFormSubmit(e) {
             // Aktualizacja URL po utworzeniu nowej notatki
             updateUrl(resultNote.id);
             
-            showToast('Notatka została pomyślnie utworzona.', 'success');
+            Utils.showToast('Notatka została pomyślnie utworzona.', 'success');
         }
 
         if (['my', 'shared', 'group', 'public', 'favorites'].includes(AppState.currentFilter)) {
@@ -540,7 +540,7 @@ async function sendActualDelete(noteId) {
         console.log('Notatka', noteId, 'trwale usunięta z serwera.');
     } catch (error) {
         console.error('Błąd usuwania API:', error);
-        showToast('Błąd podczas usuwania notatki na serwerze', 'error');
+        Utils.showToast('Błąd podczas usuwania notatki na serwerze', 'error');
     }
 }
 
@@ -618,7 +618,7 @@ function handleDeleteConfirm() {
             toast.style.animation = 'fadeOut 0.3s forwards';
             setTimeout(() => toast.remove(), 300);
             
-            showToast('Cofnięto usunięcie. Notatka przywrócona.', 'info');
+            Utils.showToast('Cofnięto usunięcie. Notatka przywrócona.', 'info');
         };
         
     }
@@ -1022,7 +1022,7 @@ async function openEditModal() {
     
     // Sprawdź uprawnienia do edycji (jeśli zdefiniowane)
     if (AppState.selectedNote.canEdit === false) {
-        showToast('Nie masz uprawnień do edycji tej notatki.', 'warning');
+        Utils.showToast('Nie masz uprawnień do edycji tej notatki.', 'warning');
         return;
     }
 
@@ -1064,7 +1064,7 @@ async function openEditModal() {
             }
         } catch (error) {
             console.error('Błąd pobierania użytkowników:', error);
-            showToast('Nie udało się pobrać listy użytkowników', 'error');
+            Utils.showToast('Nie udało się pobrać listy użytkowników', 'error');
         }
     }
     
@@ -1188,11 +1188,11 @@ async function toggleFavorite(noteId) {
         }
         
         const msg = updatedNote.isFavorited ? 'Dodano do ulubionych' : 'Usunięto z ulubionych';
-        showToast(msg, 'success');
+        Utils.showToast(msg, 'success');
         
     } catch (error) {
         console.error('Błąd:', error);
-        showToast('Nie udało się zmienić statusu ulubionej', 'error');
+        Utils.showToast('Nie udało się zmienić statusu ulubionej', 'error');
     }
 }
 
@@ -1201,7 +1201,7 @@ async function openShareModal() {
 
     // Sprawdź uprawnienia do edycji (wymagane też do udostępniania)
     if (AppState.selectedNote.canEdit === false) {
-        showToast('Tylko autor notatki może zarządzać jej udostępnianiem.', 'warning');
+        Utils.showToast('Tylko autor notatki może zarządzać jej udostępnianiem.', 'warning');
         return;
     }
     
@@ -1266,11 +1266,11 @@ async function handleCopyNote() {
              loadNotes();
         }
         
-        showToast('Notatka została skopiowana do Twojej kolekcji', 'success');
+        Utils.showToast('Notatka została skopiowana do Twojej kolekcji', 'success');
         
     } catch (error) {
         console.error('Błąd:', error);
-        showToast('Nie udało się skopiować notatki', 'error');
+        Utils.showToast('Nie udało się skopiować notatki', 'error');
     }
 }
 
@@ -1406,27 +1406,7 @@ async function shareNoteData(noteId, visibility) {
     return await response.json();
 }
 
-// NARZĘDZIA I POWIADOMIENIA
 
-function showToast(message, type = 'success') {
-    if (!DOM.toastContainer) return;
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    
-    const icon = type === 'success' ? 'check-circle' : 'exclamation-circle';
-    
-    toast.innerHTML = `
-        <i class="fas fa-${icon}"></i>
-        <span>${message}</span>
-    `;
-
-    DOM.toastContainer.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.animation = 'fadeOut 0.3s forwards';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
 
 function debounce(func, wait) {
     let timeout;
@@ -1493,14 +1473,14 @@ async function exportToPdf() {
     const element = document.getElementById('noteContent');
     if (!element) return;
 
-    showToast('Generowanie pliku PDF...', 'info');
+    Utils.showToast('Generowanie pliku PDF...', 'info');
 
     // Sprawdź czy biblioteka jest załadowana
     if (typeof html2pdf === 'undefined') {
         try {
             await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
         } catch (e) {
-            showToast('Błąd ładowania biblioteki PDF.', 'error');
+            Utils.showToast('Błąd ładowania biblioteki PDF.', 'error');
             return;
         }
     }
@@ -1544,10 +1524,10 @@ async function exportToPdf() {
     // Spróbujmy wygenerować prosto z kontenera.
     
     html2pdf().set(opt).from(container).save().then(() => {
-        showToast('Pobrano plik PDF.', 'success');
+        Utils.showToast('Pobrano plik PDF.', 'success');
     }).catch(err => {
         console.error(err);
-        showToast('Błąd generowania PDF.', 'error');
+        Utils.showToast('Błąd generowania PDF.', 'error');
     });
 }
 
@@ -1557,7 +1537,7 @@ async function exportToDocx() {
     const element = document.getElementById('noteContent');
     if (!element) return;
 
-    showToast('Generowanie pliku DOCX...', 'info');
+    Utils.showToast('Generowanie pliku DOCX...', 'info');
 
     // Sprawdź czy biblioteka jest załadowana
     if (typeof htmlDocx === 'undefined') {
@@ -1567,7 +1547,7 @@ async function exportToDocx() {
             await loadScript('https://unpkg.com/html-docx-js/dist/html-docx.js');
         } catch (e) {
             console.error(e);
-            showToast('Błąd ładowania biblioteki DOCX.', 'error');
+            Utils.showToast('Błąd ładowania biblioteki DOCX.', 'error');
             return;
         }
     }
@@ -1613,11 +1593,11 @@ async function exportToDocx() {
         a.click();
         document.body.removeChild(a);
         
-        showToast('Pobrano plik DOCX.', 'success');
+        Utils.showToast('Pobrano plik DOCX.', 'success');
 
     } catch (error) {
         console.error('DOCX Export Error:', error);
-        showToast('Błąd generowania pliku DOCX.', 'error');
+        Utils.showToast('Błąd generowania pliku DOCX.', 'error');
     }
 }
 

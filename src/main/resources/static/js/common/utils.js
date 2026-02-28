@@ -186,6 +186,63 @@ const Utils = {
         }
     },
     
+    /* Uniwersalna funkcja wyświetlania powiadomień Toast */
+    showToast(message, type = 'success', options = {}) {
+        const {
+            actionHtml = '',
+            duration = 4000,
+            closable = false,
+            containerId = 'toastContainer'
+        } = options;
+
+        const container = document.getElementById(containerId);
+        if (!container) return null;
+
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+
+        /* Mapowanie ikon */
+        const iconMap = {
+            success: 'check-circle',
+            error: 'exclamation-circle',
+            warning: 'exclamation-triangle',
+            info: 'info-circle'
+        };
+        const icon = iconMap[type] || 'info-circle';
+
+        /* Budowa HTML */
+        const closeBtnHtml = closable
+            ? `<button class="toast-close" onclick="this.parentElement.classList.add('fade-out'); setTimeout(() => this.parentElement.remove(), 300);">&times;</button>`
+            : '';
+
+        const actionBlock = actionHtml
+            ? `<div class="toast-actions">${actionHtml}</div>`
+            : '';
+
+        toast.innerHTML = `
+            <i class="fas fa-${icon}"></i>
+            <span style="flex:1;">${message}</span>
+            ${actionBlock}
+            ${closeBtnHtml}
+        `;
+
+        container.appendChild(toast);
+
+        /* Auto-ukrywanie (wyłączone gdy duration=0 lub jest przycisk akcji) */
+        if (duration > 0 && !actionHtml) {
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.classList.add('fade-out');
+                    setTimeout(() => {
+                        if (toast.parentElement) toast.remove();
+                    }, 300);
+                }
+            }, duration);
+        }
+
+        return toast;
+    },
+
     /* Inicjalizacja pływającego przycisku Go-To-Top (Płynny Przewijak) */
     initGoToTop() {
         const btn = document.getElementById('goToTopBtn');

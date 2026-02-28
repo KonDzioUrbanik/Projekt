@@ -335,7 +335,7 @@ class GroupsManagement{
         const groupName = document.getElementById('groupName').value.trim();
 
         if(!groupName){
-            this.showToast('Pole nazwy kierunku jest wymagane.', 'warning');
+            Utils.showToast('Pole nazwy kierunku jest wymagane.', 'warning');
             return;
         }
 
@@ -371,14 +371,14 @@ class GroupsManagement{
             this.closeModal();
             this.loadGroups();
             
-            this.showToast(
+            Utils.showToast(
                 wasEditing ? 'Kierunek został zaktualizowany.' : 'Kierunek został dodany.',
                 'success'
             );
         } 
         catch(error){
             console.error('Błąd zapisu:', error);
-            this.showToast('Wystąpił błąd podczas zapisywania kierunku. Sprawdź poprawność danych i spróbuj ponownie.', 'error');
+            Utils.showToast('Wystąpił błąd podczas zapisywania kierunku. Sprawdź poprawność danych i spróbuj ponownie.', 'error');
         }
     }
 
@@ -438,7 +438,7 @@ class GroupsManagement{
                 // Przywracamy dane
                 this.groups.push(groupToDelete);
                 this.applyFiltersAndSort();
-                this.showToast('Cofnięto usunięcie. Kierunek przywrócony.', 'info');
+                Utils.showToast('Cofnięto usunięcie. Kierunek przywrócony.', 'info');
             });
         }
 
@@ -456,34 +456,13 @@ class GroupsManagement{
                     if (!response.ok) throw new Error('Network error');
                     console.log('Kierunek trwale usunięty z serwera.');
                 } catch (error) {
-                    console.error('Błąd finalnego usuwania:', error);
+                    console.error('Błąd usuwania:', error);
                     // Jeśli błąd, przywracamy po cichu do danych
                     this.groups.push(groupToDelete);
                     this.applyFiltersAndSort();
-                    this.showToast('Błąd finalnego usuwania z serwera.', 'error');
+                    Utils.showToast('Błąd usuwania z serwera.', 'error');
                 }
             }
-        }, 5000);
-    }
-
-    showToast(message, type = 'success') {
-        const toastContainer = document.getElementById('toastContainer');
-        if (!toastContainer) return;
-        
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        
-        let icon = 'info-circle';
-        if (type === 'success') icon = 'check-circle';
-        if (type === 'error') icon = 'exclamation-circle';
-        if (type === 'warning') icon = 'exclamation-triangle';
-        
-        toast.innerHTML = `<i class="fas fa-${icon}"></i> <span>${message}</span>`;
-        toastContainer.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.style.animation = 'fadeOut 0.3s forwards';
-            setTimeout(() => toast.remove(), 300);
         }, 5000);
     }
 }

@@ -61,7 +61,7 @@ const FeedbackManager = {
         } catch (error) {
             console.error('Błąd:', error);
             this.elements.tableBody.innerHTML = `<tr><td colspan="7" class="text-center error-msg">Nie udało się pobrać zgłoszeń.</td></tr>`;
-            this.showToast('Nie udało się pobrać zgłoszeń.', 'error');
+            Utils.showToast('Nie udało się pobrać zgłoszeń.', 'error');
         }
     },
 
@@ -284,7 +284,7 @@ const FeedbackManager = {
             }
         } catch (error) {
             console.error('Błąd zapisu komentarza:', error);
-            this.showToast('Nie udało się zapisać notatki.', 'error');
+            Utils.showToast('Nie udało się zapisać notatki.', 'error');
             btn.innerHTML = originalText;
             btn.disabled = false;
         }
@@ -309,11 +309,11 @@ const FeedbackManager = {
                 // Odśwież widok
                 this.render();
                 document.getElementById('modalStatus').innerHTML = this.renderStatus(status);
-                this.showToast('Zaktualizowano status.', 'success');
+                Utils.showToast('Zaktualizowano status.', 'success');
             }
         } catch (error) {
             console.error('Błąd aktualizacji:', error);
-            this.showToast('Nie udało się zaktualizować statusu.', 'error');
+            Utils.showToast('Nie udało się zaktualizować statusu.', 'error');
         }
     },
 
@@ -370,7 +370,7 @@ const FeedbackManager = {
                 this.state.feedback.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
                 
                 this.applyFilters();
-                this.showToast('Cofnięto usunięcie. Zgłoszenie przywrócone.', 'info');
+                Utils.showToast('Cofnięto usunięcie. Zgłoszenie przywrócone.', 'info');
             });
         }
 
@@ -388,12 +388,12 @@ const FeedbackManager = {
                     if (!response.ok) throw new Error('Network error');
                     console.log('Zgłoszenie trwale usunięte z serwera.');
                 } catch (error) {
-                    console.error('Błąd finalnego usuwania:', error);
+                    console.error('Błąd usuwania:', error);
                     // Jeśli błąd, przywracamy po cichu do danych
                     this.state.feedback.push(itemToDelete);
                     this.state.feedback.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
                     this.applyFilters();
-                    this.showToast('Błąd finalnego usuwania z serwera.', 'error');
+                    Utils.showToast('Błąd usuwania z serwera.', 'error');
                 }
             }
         }, 5000);
@@ -433,26 +433,7 @@ const FeedbackManager = {
         return map[type] || type;
     },
 
-    showToast(message, type = 'success') {
-        const toastContainer = document.getElementById('toastContainer');
-        if (!toastContainer) return;
-        
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        
-        let icon = 'info-circle';
-        if (type === 'success') icon = 'check-circle';
-        if (type === 'error') icon = 'exclamation-circle';
-        if (type === 'warning') icon = 'exclamation-triangle';
-        
-        toast.innerHTML = `<i class="fas fa-${icon}"></i> <span>${message}</span>`;
-        toastContainer.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.style.animation = 'fadeOut 0.3s forwards';
-            setTimeout(() => toast.remove(), 300);
-        }, 5000);
-    }
+
 };
 
 // Start

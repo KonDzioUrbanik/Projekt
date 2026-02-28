@@ -516,10 +516,10 @@ class ScheduleManagement {
             const wasEditing = this.isEditing;
             this.closeModal();
             this.loadSchedule(); // Przeładuje dane i zaaplikuje filtry/paginację
-            this.showToast(wasEditing ? 'Zajęcia zaktualizowane.' : 'Zajęcia dodane.', 'success');
+            Utils.showToast(wasEditing ? 'Zajęcia zaktualizowane.' : 'Zajęcia dodane.', 'success');
         } catch (error) {
             console.error('Błąd zapisu:', error);
-            this.showToast('Wystąpił błąd podczas zapisywania.', 'error');
+            Utils.showToast('Wystąpił błąd podczas zapisywania.', 'error');
         }
     }
 
@@ -584,7 +584,7 @@ class ScheduleManagement {
                 // Przywracamy dane
                 this.scheduleData.push(itemToDelete);
                 this.applyFilters();
-                this.showToast('Cofnięto usunięcie. Zajęcia przywrócone.', 'info');
+                Utils.showToast('Cofnięto usunięcie. Zajęcia przywrócone.', 'info');
             });
         }
         
@@ -602,7 +602,7 @@ class ScheduleManagement {
                     if(!response.ok) throw new Error(`Status: ${response.status}`);
                 } catch (error) {
                     console.error('Błąd usuwania:', error);
-                    this.showToast('Błąd finalnego usuwania: ' + error.message, 'error');
+                    Utils.showToast('Błąd usuwania: ' + error.message, 'error');
                     // Przywracamy w razie błędu serwera
                     this.scheduleData.push(itemToDelete);
                     this.applyFilters();
@@ -622,7 +622,7 @@ class ScheduleManagement {
 
         const count = this.filteredData.length;
         if (count === 0) {
-            this.showToast('Brak zajęć do usunięcia dla tego kierunku.', 'info');
+            Utils.showToast('Brak zajęć do usunięcia dla tego kierunku.', 'info');
             return;
         }
 
@@ -644,11 +644,11 @@ class ScheduleManagement {
 
             if (!response.ok) throw new Error(`Status: ${response.status}`);
 
-            this.showToast(`Pomyślnie wyczyszczono plan zajęć dla: ${groupName}`, 'success');
+            Utils.showToast(`Pomyślnie wyczyszczono plan zajęć dla: ${groupName}`, 'success');
             await this.loadSchedule();
         } catch (error) {
             console.error('Błąd masowego usuwania:', error);
-            this.showToast('Wystąpił błąd podczas usuwania planu.', 'error');
+            Utils.showToast('Wystąpił błąd podczas usuwania planu.', 'error');
         } finally {
             loading.classList.remove('active');
         }
@@ -731,27 +731,6 @@ class ScheduleManagement {
     }
 
     formatTimeForInput(timeObj){ return this.formatTime(timeObj); }
-
-    showToast(message, type = 'success') {
-        const toastContainer = document.getElementById('toastContainer');
-        if (!toastContainer) return;
-        
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        
-        let icon = 'info-circle';
-        if (type === 'success') icon = 'check-circle';
-        if (type === 'error') icon = 'exclamation-circle';
-        if (type === 'warning') icon = 'exclamation-triangle';
-        
-        toast.innerHTML = `<i class="fas fa-${icon}"></i> <span>${message}</span>`;
-        toastContainer.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.style.animation = 'fadeOut 0.3s forwards';
-            setTimeout(() => toast.remove(), 300);
-        }, 5000);
-    }
 }
 
 // gloalna instancja

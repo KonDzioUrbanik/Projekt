@@ -157,11 +157,11 @@ function setupManagementButtons() {
                 .then(() => {
                     closeModal();
                     loadEvents(); // Reload all
-                    showToast(id ? 'Wydarzenie zaktualizowane pomyślnie' : 'Wydarzenie dodane pomyślnie', 'success');
+                    Utils.showToast(id ? 'Wydarzenie zaktualizowane pomyślnie' : 'Wydarzenie dodane pomyślnie', 'success');
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    showToast('Wystąpił błąd', 'error');
+                    Utils.showToast('Wystąpił błąd', 'error');
                 });
             });
         }
@@ -275,32 +275,12 @@ async function sendActualEventDelete(eventId) {
             allCalendarEvents = allCalendarEvents.filter(e => e.id.toString() !== eventId.toString());
             renderCalendar();
         } else {
-            showToast('Błąd podczas finalnego usuwania na serwerze.', 'error');
+            Utils.showToast('Błąd podczas usuwania na serwerze.', 'error');
         }
     } catch (error) {
         console.error('Błąd usuwania API:', error);
-        showToast('Błąd podczas finalnego usuwania na serwerze.', 'error');
+        Utils.showToast('Błąd podczas usuwania na serwerze.', 'error');
     }
-}
-
-function showToast(message, type = 'success') {
-    const toastContainer = document.getElementById('toastContainer');
-    if (!toastContainer) return;
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    
-    let icon = 'info-circle';
-    if (type === 'success') icon = 'check-circle';
-    if (type === 'error') icon = 'exclamation-circle';
-    if (type === 'warning') icon = 'exclamation-triangle';
-    
-    toast.innerHTML = `<i class="fas fa-${icon}"></i> <span>${message}</span>`;
-    toastContainer.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.animation = 'fadeOut 0.3s forwards';
-        setTimeout(() => toast.remove(), 300);
-    }, 5000);
 }
 
 // Pobieranie i przetwarzanie danych

@@ -359,13 +359,13 @@ document.getElementById("editUserForm").addEventListener("submit", async functio
             throw new Error('Błąd podczas przypisywania do kierunku');
         }
 
-        showToast("Zmiany zostały pomyślnie zapisane. Odświeżanie okna...", "success");
+        Utils.showToast("Zmiany zostały pomyślnie zapisane. Odświeżanie okna...", "success");
         closeEditModal();
         setTimeout(() => location.reload(), 1500); // przeladowanie strony aby zachowac kolejnosc z backendu
     } 
     catch (error){
         console.error('Błąd:', error);
-        showToast("Wystąpił błąd podczas zapisywania zmian. Sprawdź połączenie i spróbuj ponownie.", "error");
+        Utils.showToast("Wystąpił błąd podczas zapisywania zmian. Sprawdź połączenie i spróbuj ponownie.", "error");
     }
 });
 
@@ -535,7 +535,7 @@ function performExport() {
     const rowsToExport = filteredRows;
     
     if (rowsToExport.length === 0) {
-        showToast('Brak danych do eksportu.', 'warning');
+        Utils.showToast('Brak danych do eksportu.', 'warning');
         return;
     }
     
@@ -552,7 +552,7 @@ function performExport() {
     
     // sprawdź czy wybrano przynajmniej jedną kolumnę
     if (!Object.values(columns).some(v => v)) {
-        showToast('Wybierz przynajmniej jedną kolumnę do eksportu.', 'warning');
+        Utils.showToast('Wybierz przynajmniej jedną kolumnę do eksportu.', 'warning');
         return;
     }
     
@@ -645,39 +645,7 @@ const deletionTimers = new Map();
 let currentDeleteUserId = null;
 let currentDeleteRow = null;
 
-function showToast(message, type = 'info', actionHtml = '', duration = 4000) {
-    const container = document.getElementById('toastContainer');
-    if (!container) return;
 
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    
-    let icon = 'info-circle';
-    if (type === 'success') icon = 'check-circle';
-    if (type === 'error') icon = 'exclamation-circle';
-    if (type === 'warning') icon = 'exclamation-triangle';
-
-    toast.innerHTML = `
-        <i class="fas fa-${icon}"></i>
-        <div style="flex-grow: 1;">${message}</div>
-        ${actionHtml ? `<div class="toast-actions">${actionHtml}</div>` : ''}
-        <button class="toast-close" onclick="this.parentElement.classList.add('fade-out'); setTimeout(() => this.parentElement.remove(), 300);">&times;</button>
-    `;
-
-    container.appendChild(toast);
-
-    if (duration > 0 && !actionHtml) {
-        setTimeout(() => {
-            if (toast.parentElement) {
-                toast.classList.add('fade-out');
-                setTimeout(() => {
-                    if (toast.parentElement) toast.remove();
-                }, 300);
-            }
-        }, duration);
-    }
-    return toast;
-}
 
 function openDeleteModal(btn) {
     currentDeleteUserId = btn.getAttribute('data-id');
@@ -707,7 +675,7 @@ document.getElementById('btnConfirmDelete')?.addEventListener('click', () => {
     rowToRemove.style.display = 'none';
     
     const toastHtml = `<button class="btn-undo-toast" onclick="undoUserDelete('${userId}')">Cofnij</button>`;
-    const toast = showToast('Użytkownik usunięty.', 'success', toastHtml, 0);
+    const toast = Utils.showToast('Użytkownik usunięty.', 'success', { actionHtml: toastHtml, duration: 0, closable: true });
     
     const timerId = setTimeout(() => {
         sendActualDelete(userId, toast, rowToRemove);
@@ -731,7 +699,7 @@ function undoUserDelete(userId) {
         setTimeout(() => deleteData.toast.remove(), 300);
     }
     
-    showToast('Cofnięto usunięcie. Użytkownik przywrócony.', 'info');
+    Utils.showToast('Cofnięto usunięcie. Użytkownik przywrócony.', 'info');
     deletionTimers.delete(userId);
 }
 
@@ -766,7 +734,7 @@ async function sendActualDelete(userId, toast, rowElement) {
             if (rowElement) {
                 rowElement.style.display = '';
             }
-            showToast('Nie udało się usunąć użytkownika z serwera.', 'error');
+            Utils.showToast('Nie udało się usunąć użytkownika z serwera.', 'error');
         }
     } catch (error) {
         console.error('Błąd usuwania:', error);
@@ -778,7 +746,7 @@ async function sendActualDelete(userId, toast, rowElement) {
             toast.classList.add('fade-out');
             setTimeout(() => toast.remove(), 300);
         }
-        showToast('Wystąpił błąd komunikacji z serwerem.', 'error');
+        Utils.showToast('Wystąpił błąd komunikacji z serwerem.', 'error');
     }
 }
 
