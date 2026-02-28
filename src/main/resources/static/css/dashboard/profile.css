@@ -1,19 +1,9 @@
-:root {
-    --primary: #2563eb;
-    --primary-light: #eff6ff;
-    --text-main: #1e293b;
-    --text-muted: #64748b;
-    --bg-card: #ffffff;
-    --border: #e2e8f0;
-    --radius: 12px;
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-}
-
 .profile-container {
     width: 100%;
     margin: 0 auto;
     box-sizing: border-box;
-    padding: 20px;
+    border-radius: 12px;
+    padding: 30px;
 }
 
 @media (max-width: 768px) {
@@ -23,12 +13,13 @@
 }
 
 /* KARTY */
-.card {
-    background: var(--bg-card);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border);
+.profile-container .card {
+    background: var(--bg-card, #ffffff);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border, #e2e8f0);
     padding: 24px;
+    overflow: hidden;
 }
 
 /* HEADER PROFILU */
@@ -89,10 +80,10 @@
 }
 
 .stat-card {
-    background: var(--bg-card);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border);
+    background: var(--bg-card, #ffffff);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border, #e2e8f0);
     padding: 20px;
     display: flex;
     align-items: center;

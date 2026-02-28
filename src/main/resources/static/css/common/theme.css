@@ -2323,3 +2323,26 @@ main.navbar-middle {
         transform: translateY(-10px);
     }
 }
+
+/* BREADCRUMBS — ciemny motyw */
+[data-theme="dark"] .breadcrumbs {
+    background: var(--bg-card, #1e2530);
+    border-color: var(--border-color, #2d3748);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .breadcrumb-item {
+    color: var(--text-secondary, #9aa1ad);
+}
+
+[data-theme="dark"] a.breadcrumb-item:hover {
+    color: var(--color-primary, #4a9eff);
+}
+
+[data-theme="dark"] .breadcrumb-item.active {
+    color: var(--text-main, #e8eaed);
+}
+
+[data-theme="dark"] .breadcrumb-separator {
+    color: var(--border-color, #2d3748);
+}
