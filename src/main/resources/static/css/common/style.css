@@ -1152,17 +1152,12 @@ a.breadcrumb-item:hover {
 }
 
 /* Header i sidebar nie migają */
-.top-navbar {
+.header {
     view-transition-name: header;
 }
 
-.sidebar {
+.side-nav {
     view-transition-name: sidebar;
-}
-
-/* Tylko obszar treści się animuje */
-.navbar-middle {
-    view-transition-name: main-content;
 }
 
 ::view-transition-old(header),
@@ -1172,11 +1167,11 @@ a.breadcrumb-item:hover {
     animation: none;
 }
 
-::view-transition-old(main-content) {
+::view-transition-old(root) {
     animation: vt-fade-out 0.2s ease-out;
 }
 
-::view-transition-new(main-content) {
+::view-transition-new(root) {
     animation: vt-fade-in 0.25s ease-in;
 }
 

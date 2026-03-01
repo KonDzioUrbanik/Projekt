@@ -279,12 +279,43 @@ const Utils = {
                 }
             }
         });
+    },
+
+    /* Przenosi modale (.modal-overlay) z wnętrza .navbar-middle na document.body, żeby nie były przycinane przez overflow: hidden na .dashboard-container */
+    portalModals() {
+        const SELECTOR = '.navbar-middle .modal-overlay, .navbar-middle .modal';
+
+        const moveModals = () => {
+            document.querySelectorAll(SELECTOR).forEach(overlay => {
+                document.body.appendChild(overlay);
+            });
+        };
+
+        // Przenieś istniejące modale
+        moveModals();
+
+        // Obserwuj dynamicznie dodawane modale (np. z JS modułów)
+        const container = document.querySelector('.navbar-middle');
+        if (container) {
+            const observer = new MutationObserver(mutations => {
+                for (const mutation of mutations) {
+                    for (const node of mutation.addedNodes) {
+                        if (node.nodeType === 1 && node.classList &&
+                            (node.classList.contains('modal-overlay') || node.classList.contains('modal'))) {
+                            document.body.appendChild(node);
+                        }
+                    }
+                }
+            });
+            observer.observe(container, { childList: true, subtree: true });
+        }
     }
 };
 
 // Automatyczne odpalenie przyjaznych globalnych skryptów interfejsu
 document.addEventListener('DOMContentLoaded', () => {
     Utils.initGoToTop();
+    Utils.portalModals();
 });
 
 // Eksport dla kompatybilności (jeśli używasz modułów lub testów)
