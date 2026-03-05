@@ -232,8 +232,14 @@
 }
 
 [data-theme="dark"] .notification-btn:hover {
-    background-color: var(--navbar-btn-hover);
-    color: var(--text-dark);
+    background-color: rgba(255, 255, 255, 0.08);
+    color: white;
+}
+
+[data-theme="dark"] .notification-badge {
+    border-color: var(--navbar-bg);
+    /* Zapewnia właściwe wycięcie (cutout) tła w dark mode */
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
 }
 
 /* Sidebar */
@@ -258,6 +264,11 @@
 /* Główna treść strony */
 [data-theme="dark"] .navbar-middle {
     background-color: var(--bg-main);
+}
+
+/* Usunięto lokalne nadpisywanie scrollbara, dziedziczy globalny z Dark Mode */
+[data-theme="dark"] ::selection {
+    background: rgba(74, 158, 255, 0.25);
 }
 
 [data-theme="dark"] .navbar-middle h1 {
@@ -296,7 +307,8 @@
 
 [data-theme="dark"] .form-control:focus {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 4px rgba(74, 158, 255, 0.15);
+    background-color: #1e293b;
+    box-shadow: 0 4px 15px rgba(74, 158, 255, 0.1), 0 0 0 3px rgba(74, 158, 255, 0.15);
 }
 
 [data-theme="dark"] .form-control[readonly] {
@@ -614,6 +626,114 @@
     border-color: var(--border-color);
 }
 
+/* Kalendarz studenta — dark mode */
+[data-theme="dark"] .calendar-wrapper {
+    background: var(--bg-card);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .month-nav-btn,
+[data-theme="dark"] .today-btn {
+    background-color: var(--bg-step);
+    border-color: var(--border-color);
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .month-nav-btn:hover,
+[data-theme="dark"] .today-btn:hover {
+    background-color: var(--color-secondary-dark);
+}
+
+[data-theme="dark"] .fc-daygrid-day {
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .fc-daygrid-day-number {
+    background-color: var(--bg-step);
+    color: var(--color-primary);
+}
+
+[data-theme="dark"] .fc-day-other {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+[data-theme="dark"] .fc-day-today {
+    background-color: rgba(74, 158, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .fc-day-today .fc-daygrid-day-number {
+    background-color: var(--color-primary);
+    color: #ffffff;
+}
+
+[data-theme="dark"] .fc-event {
+    color: var(--text-dark) !important;
+}
+
+[data-theme="dark"] .spinner {
+    border-color: var(--border-color);
+    border-top-color: var(--color-primary);
+}
+
+[data-theme="dark"] .loading p {
+    color: var(--text-light);
+}
+
+[data-theme="dark"] .error-message {
+    background: var(--error-bg);
+    color: var(--error-text);
+}
+
+/* Schedule-management modale — dark mode */
+[data-theme="dark"] .modal .modal-content {
+    background: var(--bg-card);
+}
+
+[data-theme="dark"] .modal .modal-header {
+    background: var(--bg-step);
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal .modal-header h3 {
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .modal .close-btn {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .modal .close-btn:hover {
+    color: var(--error-text);
+}
+
+[data-theme="dark"] .modal .modal-body {
+    background: var(--bg-card);
+}
+
+[data-theme="dark"] .modal .modal-footer {
+    background: var(--bg-step);
+    border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal .form-group label {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .modal .form-group input,
+[data-theme="dark"] .modal .form-group select,
+[data-theme="dark"] .modal .form-group textarea {
+    background-color: var(--bg-main);
+    border-color: var(--border-color);
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .modal .form-group input:focus,
+[data-theme="dark"] .modal .form-group select:focus,
+[data-theme="dark"] .modal .form-group textarea:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.15);
+}
+
 /* Notatki */
 [data-theme="dark"] .note-card {
     background: var(--bg-card);
@@ -803,28 +923,29 @@
 }
 
 /* Custom Scrollbar dla Dark Mode */
+
 [data-theme="dark"] ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
 }
 
 [data-theme="dark"] ::-webkit-scrollbar-track {
-    background: var(--bg-main);
+    background: transparent;
 }
 
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
-    background: #3f4756;
-    border-radius: 5px;
-    border: 2px solid var(--bg-main);
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    border: 2px solid var(--bg-main, #0f172a);
 }
 
 [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
-    background: #566070;
+    background: #b91c1c;
+    /* Ciemny czerwony na życzenie */
 }
 
 [data-theme="dark"] .admin-section-label {
-    display: none;
-    /* Ukrywamy etykietę Admin w wersji mobilnej poziomej */
+    color: rgba(255, 255, 255, 0.5);
 }
 
 [data-theme="dark"] .admin-divider {
@@ -1069,8 +1190,13 @@
 }
 
 [data-theme="dark"] .day-header {
-    background: var(--color-primary);
-    border-bottom-color: var(--border-color);
+    background: #1e3a8a;
+    color: #e2e8f0;
+    border-bottom-color: var(--color-primary);
+}
+
+[data-theme="dark"] .day-header:hover {
+    background-color: #2563eb;
 }
 
 [data-theme="dark"] .time-slot {
@@ -1906,7 +2032,14 @@ body,
 
 /* Tabela użytkowników */
 [data-theme="dark"] .users-table th {
-    background-color: var(--color-primary);
+    background-color: #1a2332;
+    color: #e2e8f0;
+    border-bottom: 2px solid var(--color-primary);
+    transition: background-color 0.15s ease;
+}
+
+[data-theme="dark"] .users-table th:hover {
+    background-color: #243044;
 }
 
 [data-theme="dark"] .users-table td {
@@ -1915,7 +2048,11 @@ body,
 }
 
 [data-theme="dark"] .users-table tr:hover {
-    background-color: var(--bg-step);
+    background-color: rgba(74, 158, 255, 0.12);
+}
+
+[data-theme="dark"] .users-table tbody tr {
+    transition: background-color 0.15s ease;
 }
 
 /* Avatar użytkownika w tabeli */
@@ -2050,7 +2187,17 @@ body,
 }
 
 [data-theme="dark"] #scheduleTable thead {
-    background: var(--color-primary);
+    background: #1a2332;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] #scheduleTable th {
+    border-bottom: 2px solid var(--color-primary);
+    transition: background-color 0.15s ease;
+}
+
+[data-theme="dark"] #scheduleTable th:hover {
+    background-color: #243044;
 }
 
 [data-theme="dark"] #scheduleTable tbody tr {
@@ -2058,7 +2205,7 @@ body,
 }
 
 [data-theme="dark"] #scheduleTable tbody tr:hover {
-    background: var(--bg-step);
+    background: rgba(74, 158, 255, 0.12);
 }
 
 [data-theme="dark"] #scheduleTable td {
@@ -2345,4 +2492,11 @@ main.navbar-middle {
 
 [data-theme="dark"] .breadcrumb-separator {
     color: var(--border-color, #2d3748);
+}
+
+/* BADGE GRUPY - ADMIN (ciemny motyw) */
+[data-theme="dark"] .admin-group-badge {
+    background: rgba(16, 185, 129, 0.1);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.2);
 }

@@ -69,9 +69,18 @@
 .event-item {
     display: flex;
     justify-content: space-between;
-    padding: 0.8rem 0;
+    padding: 0.8rem 1rem;
     border-bottom: 1px solid #f1f1f1;
     font-size: 0.95rem;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    border-radius: 6px;
+    margin-bottom: 2px;
+}
+
+.event-item:hover {
+    background-color: var(--bg-hover, #f8f9fa);
+    /* Subtelny, szary kontrast w light mode */
+    transform: translateX(4px);
 }
 
 .event-item:last-child {
@@ -347,6 +356,86 @@
 [data-theme="dark"] .modal-content select option {
     background-color: #1f2937;
     color: #f3f4f6;
+}
+
+/* DARK MODE — university-calendar */
+[data-theme="dark"] .calendar-wrapper {
+    background: var(--bg-card);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .calendar-header {
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .calendar-header h2 {
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .calendar-header p {
+    color: var(--text-light);
+}
+
+[data-theme="dark"] .semester-card {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .semester-header {
+    background: var(--bg-step);
+    border-bottom-color: var(--border-color);
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .event-item {
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .event-item:hover {
+    background-color: var(--bg-step, #334155);
+    /* Szary, stonowany kontrast w dark mode */
+}
+
+[data-theme="dark"] .event-dates {
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .event-desc {
+    color: var(--text-light);
+}
+
+[data-theme="dark"] .schedule-section h3 {
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .month-card {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .month-header {
+    background: var(--bg-step);
+    color: var(--text-dark);
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .weeks-table th {
+    color: var(--text-light);
+    border-bottom-color: var(--border-color);
+    background: var(--bg-card);
+}
+
+[data-theme="dark"] .weeks-table td {
+    border-bottom-color: var(--border-color);
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .legend-box {
+    background: var(--bg-step);
+}
+
+[data-theme="dark"] .legend-item {
+    color: var(--text-light);
 }
 
 /* RESPONSYWNOSC */

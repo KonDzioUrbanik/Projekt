@@ -1,24 +1,23 @@
 /* ZMIENNE CSS */
 
 :root {
-    /* Kolory Wiodące (Brand) */
+    /* Kolory wiodące */
     --primary: #005efa;
     --primary-hover: #004acb;
     --primary-light: rgba(0, 94, 250, 0.08);
 
-    /* Kolory Tła */
+    /* Kolory tła */
     --bg-body: #f3f4f6;
     --bg-card: #ffffff;
     --bg-glass: rgba(255, 255, 255, 0.85);
-    /* Efekt szkła */
 
-    /* Kolory Tekstu */
+    /* Kolory tekstu */
     --text-main: #111827;
     --text-secondary: #4b5563;
     --text-muted: #9ca3af;
     --text-white: #ffffff;
 
-    /* Obramowania i Cienie */
+    /* Obramowania i cienie */
     --border: #e5e7eb;
     --border-focus: rgba(0, 94, 250, 0.4);
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -49,7 +48,6 @@
 body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background-color: var(--bg-body);
-    /* Subtelny gradient w tle dla nowoczesnego wyglądu */
     background-image:
         radial-gradient(at 0% 0%, rgba(0, 94, 250, 0.05) 0px, transparent 50%),
         radial-gradient(at 100% 100%, rgba(0, 94, 250, 0.05) 0px, transparent 50%);
@@ -59,6 +57,27 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+}
+
+/* CUSTOM SCROLLBAR GLOBAL */
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    border: 2px solid var(--bg-body, #f3f4f6);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.35);
 }
 
 /* UKŁAD STRONY STARTOWEJ (LANDING PAGE) */

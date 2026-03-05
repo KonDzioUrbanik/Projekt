@@ -152,6 +152,11 @@
     padding: 1.25rem 0.5rem;
     border-bottom: 2px solid #e5e7eb;
     border-left: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background-color 0.15s ease;
+}
+
+.day-header:hover {
+    background-color: #1a6bfb;
 }
 
 .time-slot {
@@ -343,8 +348,17 @@
 }
 
 .empty-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
+    width: 90px;
+    height: 90px;
+    background: linear-gradient(135deg, rgba(0, 94, 250, 0.1) 0%, rgba(0, 94, 250, 0.05) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: var(--color-primary, #005efa);
+    margin: 0 auto 1.5rem auto;
+    /* Scentrowane */
 }
 
 .empty-schedule h3 {

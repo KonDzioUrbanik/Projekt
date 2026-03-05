@@ -25,9 +25,9 @@
 
     /* Cienie */
     --shadow-color-btn: rgba(0, 94, 250, 0.2);
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px 5px rgba(0, 0, 0, 0.1);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.08);
 
     /* Przyciski nawigacji */
     --navbar-left-btn: #005efa;
@@ -151,17 +151,33 @@ body {
 }
 
 .user-avatar {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+    background: linear-gradient(135deg, var(--color-primary), #8b5cf6, var(--color-primary-dark));
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 1rem;
+    font-size: 1.1rem;
     flex-shrink: 0;
-    box-shadow: 0 2px 8px var(--shadow-color-btn);
+    box-shadow: 0 4px 10px rgba(0, 94, 250, 0.25);
+    padding: 2px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.user-avatar img {
+    border-radius: 50%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: var(--navbar-bg);
+}
+
+/* Hover effect dla avatara */
+.user-info:hover .user-avatar {
+    transform: scale(1.05);
+    box-shadow: 0 6px 14px rgba(0, 94, 250, 0.35);
 }
 
 .user-details {
@@ -256,35 +272,88 @@ body {
 }
 
 .notification-btn {
-    background: none;
+    background: transparent;
     border: none;
     cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 0.5rem;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
     color: var(--text-light);
     font-size: 1.25rem;
     position: relative;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
 }
 
 .notification-btn:hover {
-    padding: 0.75rem;
     background-color: var(--navbar-btn-hover);
     color: var(--text-dark);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Animacja wibrującego dzwoneczka */
+@keyframes bell-ring {
+    0% {
+        transform: rotate(0);
+    }
+
+    15% {
+        transform: rotate(15deg);
+    }
+
+    30% {
+        transform: rotate(-10deg);
+    }
+
+    45% {
+        transform: rotate(5deg);
+    }
+
+    60% {
+        transform: rotate(-5deg);
+    }
+
+    75% {
+        transform: rotate(2deg);
+    }
+
+    85% {
+        transform: rotate(-1deg);
+    }
+
+    100% {
+        transform: rotate(0);
+    }
+}
+
+.notification-btn:hover i {
+    animation: bell-ring 1s ease 1;
+    transform-origin: top center;
 }
 
 .notification-badge {
     position: absolute;
-    top: 0.25rem;
-    right: 0.25rem;
-    background-color: var(--danger-color);
+    top: 2px;
+    right: 2px;
+    background: linear-gradient(135deg, #f87171, #dc2626);
     color: white;
-    font-size: 0.625rem;
-    font-weight: 600;
-    padding: 0.125rem 0.375rem;
-    border-radius: 9999px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.15rem 0.35rem;
+    border-radius: 12px;
     min-width: 18px;
     text-align: center;
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);
+    border: 2px solid var(--navbar-bg);
+    /* Tworzy efekt wycięcia dla odznaki */
+    transform: scale(1);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.notification-btn:hover .notification-badge {
+    transform: scale(1.15);
 }
 
 /* LOGOUT BUTTON */
@@ -293,21 +362,21 @@ body {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.625rem 1rem;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-    color: var(--text-white);
+    padding: 0.5rem 1rem;
+    background: #4b5563;
+    color: #ffffff;
     text-decoration: none;
     border-radius: 0.5rem;
     font-weight: 500;
     font-size: 0.875rem;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
     border: none;
 }
 
 .logout-btn:hover {
-    background-color: var(--color-primary-dark);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    background: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
     cursor: pointer;
 }
 
@@ -388,6 +457,12 @@ body {
     padding: 2rem 3rem;
     overflow-y: auto;
     background-color: var(--bg-main);
+    scroll-behavior: smooth;
+}
+
+/* Branding zaznaczenia tekstu */
+::selection {
+    background: rgba(0, 94, 250, 0.15);
 }
 
 .navbar-middle h1 {
@@ -403,61 +478,9 @@ body {
     margin-bottom: 2rem;
 }
 
-.welcome {
-    display: flex;
-    flex-direction: column;
-    padding: 30px;
-    background-color: #3273d5;
-    border-radius: 10px;
-}
-
-.welcome-message {
-    margin-bottom: 20px;
-}
-
-.welcome-message h1 {
-    color: white;
-    font-size: 2rem;
-    margin-bottom: 10px;
-}
-
-.welcome-message p {
-    color: rgb(247, 245, 245);
-    font-size: 1rem;
-}
-
-.home-content {
-    display: flex;
-    gap: 20px;
-    margin-top: 10px;
-}
-
-.left-section,
-.right-section {
-    background-color: rgb(255, 255, 255);
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 5px 8px rgba(0, 0, 0, 0.5);
-    height: 50vh;
-}
-
-.left-section {
-    width: 70%;
-}
-
-.right-section {
-    width: 30%;
-}
-
-.left-section p,
-.right-section p {
-    margin-bottom: 15px;
-    color: var(--text-dark);
-}
-
 .admin-section {
     margin-top: 20px;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid var(--border-color);
     padding-top: 10px;
 }
 
@@ -604,25 +627,7 @@ body {
         font-size: 1.1rem;
     }
 
-    .home-content {
-        flex-direction: column;
-        gap: 20px;
-    }
 
-    .left-section,
-    .right-section {
-        width: 100%;
-        height: auto;
-        min-height: 200px;
-    }
-
-    .welcome {
-        padding: 20px;
-    }
-
-    .welcome-message h1 {
-        font-size: 1.5rem;
-    }
 
     @media (max-width: 380px) {
         .logo-text {
@@ -776,8 +781,13 @@ body {
     background: var(--bg-card);
     border-radius: 20px;
     border: 1px solid var(--border-color);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--shadow-md);
     overflow: hidden;
+    transition: box-shadow 0.3s ease;
+}
+
+.dashboard-card:hover {
+    box-shadow: var(--shadow-lg);
 }
 
 /* Nagłówek karty */
@@ -1350,6 +1360,7 @@ body {
     font-weight: 700;
     color: var(--text-dark);
     line-height: 1;
+    font-variant-numeric: tabular-nums;
 }
 
 .stat-change {
@@ -1412,7 +1423,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(to bottom, #fafbfc 0%, #ffffff 100%);
+    background: linear-gradient(to bottom, var(--bg-step) 0%, var(--bg-card) 100%);
 }
 
 .view-link-admin {
@@ -1523,6 +1534,7 @@ body {
     gap: 1rem;
     max-height: 400px;
     overflow-y: auto;
+    padding-right: 12px;
 }
 
 .activity-item {
@@ -1536,7 +1548,7 @@ body {
 }
 
 .activity-item:hover {
-    background: #f1f3f5;
+    background: var(--bg-step);
     transform: translateX(4px);
 }
 
@@ -1585,6 +1597,8 @@ body {
     gap: 0.875rem;
     max-height: 400px;
     overflow-y: auto;
+    padding-right: 12px;
+    /* Dystans od scrollbara */
 }
 
 .admin-class-item {
@@ -1599,7 +1613,7 @@ body {
 }
 
 .admin-class-item:hover {
-    background: #f1f3f5;
+    background: var(--bg-step);
     transform: translateX(4px);
 }
 
@@ -1900,21 +1914,16 @@ body {
     }
 }
 
-/* =DARK MODE FIXES FOR ADMIN DASHBOARD LISTS= */
 [data-theme="dark"] .admin-class-item:hover,
 [data-theme="dark"] .activity-item:hover {
     background-color: var(--color-secondary-dark);
-    /* #2a3441 */
-    /* Ensure text contrast on hover if not already set by child elements */
 }
 
-/* =SCROLLBAR STYLING FIX= */
 .admin-classes-preview,
 .activity-list {
     scrollbar-width: thin;
     scrollbar-color: var(--color-primary) transparent;
     overflow-x: hidden;
-    /* Hide horizontal scrollbar */
 }
 
 .admin-classes-preview::-webkit-scrollbar,
@@ -1928,7 +1937,6 @@ body {
     border-radius: 20px;
 }
 
-/* =ENHANCED ADMIN CLASS CARD STYLES (PHASE 24)= */
 .admin-class-item {
     flex-direction: column;
     align-items: stretch;
@@ -1944,15 +1952,15 @@ body {
 }
 
 .admin-group-badge {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
     padding: 0.25rem 0.75rem;
     border-radius: 6px;
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+    border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .admin-time-badge {

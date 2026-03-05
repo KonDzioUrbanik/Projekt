@@ -115,16 +115,24 @@
     border-collapse: collapse;
 }
 
+.feedback-table thead {
+    background: #005efa;
+    color: white;
+}
+
 .feedback-table th {
     text-align: left;
     padding: 1rem;
-    border-bottom: 2px solid var(--border-color);
-    color: var(--text-secondary);
     font-weight: 600;
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     white-space: nowrap;
+    transition: background-color 0.15s ease;
+}
+
+.feedback-table th:hover {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .feedback-table td {
@@ -136,6 +144,24 @@
 
 .feedback-table tr:hover {
     background-color: var(--bg-hover);
+}
+
+/* Dark mode — nagłówek tabeli */
+[data-theme="dark"] .feedback-table thead {
+    background: #1a2332;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .feedback-table th {
+    border-bottom: 2px solid var(--color-primary);
+}
+
+[data-theme="dark"] .feedback-table th:hover {
+    background-color: #243044;
+}
+
+[data-theme="dark"] .feedback-table tbody tr:hover {
+    background-color: rgba(74, 158, 255, 0.12);
 }
 
 /* Status Badges */
