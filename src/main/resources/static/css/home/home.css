@@ -1,0 +1,142 @@
+.home-panels-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.home-panel-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: 40px 30px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    color: var(--text-dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.home-panel-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(0, 94, 250, 0.15);
+    border-color: var(--color-primary);
+}
+
+.panel-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 24px;
+    transition: all 0.3s ease;
+}
+
+.student-icon {
+    background: rgba(0, 94, 250, 0.1);
+    color: var(--color-primary);
+}
+
+.starosta-icon {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.admin-icon {
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+}
+
+.home-panel-card:hover .student-icon {
+    background: var(--color-primary);
+    color: white;
+}
+
+.home-panel-card:hover .starosta-icon {
+    background: #10b981;
+    color: white;
+}
+
+.home-panel-card:hover .admin-icon {
+    background: #dc2626;
+    color: white;
+}
+
+.home-panel-card h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: var(--text-dark);
+}
+
+.home-panel-card p {
+    color: var(--text-light);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    flex-grow: 1;
+}
+
+.panel-arrow {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-step);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+    transition: all 0.3s ease;
+    margin-top: auto;
+}
+
+.home-panel-card:hover .panel-arrow {
+    background: var(--color-primary);
+    color: white;
+    transform: translateX(5px);
+}
+
+/* Dark Mode Overrides */
+[data-theme="dark"] .home-panel-card {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .home-panel-card:hover {
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+    border-color: var(--color-primary);
+}
+
+/* Home Welcome Banner */
+.home-welcome-banner {
+    background: #16358a !important;
+    border: none !important;
+}
+
+[data-theme="dark"] .home-welcome-banner {
+    background: #182c43 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Linki w sekcji informacyjnej na stronie głównej */
+.home-info-section a {
+    transition: all 0.3s ease !important;
+}
+
+.home-info-section a:hover {
+    background: var(--bg-step) !important;
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .home-info-section a:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}

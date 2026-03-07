@@ -12,44 +12,76 @@
         </div>
 
         <div class="sidebar-menu">
-            <a th:href="@{/dashboard}" class="btn-navbar-left" th:classappend="${activePage == 'home'} ? 'active'">
+            <!-- PORTAL HOME -->
+            <a th:href="@{/home}" class="btn-navbar-left" th:classappend="${activePage == 'home-portal'} ? 'active'">
                 <i class="fas fa-home"></i>
-                <span class="link-text">Strona główna</span>
-            </a>
-            
-            <a th:href="@{/dashboard/calendar}" class="btn-navbar-left" th:classappend="${activePage == 'calendar'} ? 'active'">
-                <i class="fas fa-calendar-alt"></i>
-                <span class="link-text">Kalendarz</span>
-            </a>
-            
-            <a th:href="@{/dashboard/schedule}" class="btn-navbar-left" th:classappend="${activePage == 'schedule'} ? 'active'">
-                <i class="fas fa-clock"></i>
-                <span class="link-text">Harmonogram zajęć</span>
+                <span class="link-text">Strona główna portalu</span>
             </a>
 
-            <a th:href="@{/dashboard/attendance}" class="btn-navbar-left" th:classappend="${activePage == 'attendance'} ? 'active'">
-                <i class="fas fa-check-circle"></i>
-                <span class="link-text">Obecności</span>
-            </a>
+            <!-- PANEL STUDENTA -->
+            <div class="admin-section" sec:authorize="hasAnyRole('STUDENT', 'STAROSTA')">
+                <p class="admin-section-label">Panel Studenta</p>
+                <div class="admin-divider"></div>
+                
+                <a th:href="@{/student/dashboard}" class="btn-navbar-left" th:classappend="${activePage == 'home'} ? 'active'">
+                    <i class="fas fa-desktop"></i>
+                    <span class="link-text">Dashboard</span>
+                </a>
+                
+                <a th:href="@{/student/calendar}" class="btn-navbar-left" th:classappend="${activePage == 'calendar'} ? 'active'">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span class="link-text">Kalendarz</span>
+                </a>
+                
+                <a th:href="@{/student/schedule}" class="btn-navbar-left" th:classappend="${activePage == 'schedule'} ? 'active'">
+                    <i class="fas fa-clock"></i>
+                    <span class="link-text">Harmonogram zajęć</span>
+                </a>
 
-            <a th:href="@{/dashboard/forum}" class="btn-navbar-left" th:classappend="${activePage == 'forum'} ? 'active'">
-                <i class="fas fa-comments"></i>
-                <span class="link-text">Forum</span>
-            </a>
+                <a th:href="@{/student/attendance}" class="btn-navbar-left" th:classappend="${activePage == 'attendance'} ? 'active'">
+                    <i class="fas fa-check-circle"></i>
+                    <span class="link-text">Obecności</span>
+                </a>
 
-            <a th:href="@{/dashboard/notes}" class="btn-navbar-left" th:classappend="${activePage == 'notes'} ? 'active'">
-                <i class="fas fa-sticky-note"></i>
-                <span class="link-text">Notatki</span>
-            </a>
+                <a th:href="@{/student/forum}" class="btn-navbar-left" th:classappend="${activePage == 'forum'} ? 'active'">
+                    <i class="fas fa-comments"></i>
+                    <span class="link-text">Forum</span>
+                </a>
 
-            <a th:href="@{/dashboard/university-calendar}" class="btn-navbar-left" th:classappend="${activePage == 'university-calendar-public'} ? 'active'">
-                <i class="fas fa-university"></i>
-                <span class="link-text">Kalendarz akademicki</span>
-            </a>
+                <a th:href="@{/student/notes}" class="btn-navbar-left" th:classappend="${activePage == 'notes'} ? 'active'">
+                    <i class="fas fa-sticky-note"></i>
+                    <span class="link-text">Notatki</span>
+                </a>
 
+                <a th:href="@{/student/university-calendar}" class="btn-navbar-left" th:classappend="${activePage == 'university-calendar-public'} ? 'active'">
+                    <i class="fas fa-university"></i>
+                    <span class="link-text">Kalendarz uczelni</span>
+                </a>
+            </div>
+
+            <!-- PANEL STAROSTY -->
+            <div sec:authorize="hasRole('STAROSTA')" class="admin-section">
+                <p class="admin-section-label">Panel Starosty</p>
+                <div class="admin-divider"></div>
+                
+                <a th:href="@{/starosta/dashboard}" class="btn-navbar-left" th:classappend="${activePage == 'starosta-home'} ? 'active'">
+                    <i class="fas fa-users"></i>
+                    <span class="link-text">Dashboard</span>
+                </a>
+                <!-- Na razie jedno, reszta w przyszłości -->
+            </div>
+
+            <!-- PANEL ADMINISTRACYJNY -->
             <div sec:authorize="hasRole('ADMIN')" class="admin-section">
-                <p class="admin-section-label">Admin</p>
-                <div class="admin-divider"></div> <a th:href="@{/admin/users}" class="btn-navbar-left" th:classappend="${activePage == 'users'} ? 'active'">
+                <p class="admin-section-label">Panel Administracyjny</p>
+                <div class="admin-divider"></div> 
+                
+                <a th:href="@{/admin/dashboard}" class="btn-navbar-left" th:classappend="${activePage == 'admin-home'} ? 'active'">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span class="link-text">Dashboard</span>
+                </a>
+                
+                <a th:href="@{/admin/users}" class="btn-navbar-left" th:classappend="${activePage == 'users'} ? 'active'">
                     <i class="fas fa-users-cog"></i>
                     <span class="link-text">Użytkownicy</span>
                 </a>

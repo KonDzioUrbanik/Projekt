@@ -114,7 +114,7 @@ public class SecurityConfig {
                 http.formLogin(form -> form
                                 .loginPage("/login") // Adres widoku logowania
                                 .loginProcessingUrl("/login") // Adres POST formularza
-                                .defaultSuccessUrl("/dashboard", true) // Gdzie przekierować po sukcesie
+                                .defaultSuccessUrl("/home", true) // Gdzie przekierować po sukcesie
                                 .permitAll() // Strona logowania dostępna dla każdego
                 );
 
@@ -156,6 +156,9 @@ public class SecurityConfig {
                                 // Widoki admin tylko dla ADMIN
                                 .requestMatchers("/admin/**").hasRole("ADMIN")
 
+                                // Widoki starosty tylko dla STAROSTA
+                                .requestMatchers("/starosta/**").hasRole("STAROSTA")
+
                                 .requestMatchers(HttpMethod.GET,
                                                 "/api/schedule",
                                                 "/api/schedule/{id}",
@@ -170,10 +173,10 @@ public class SecurityConfig {
 
                                 // to dla stron widokow
                                 .requestMatchers(
-                                                "/dashboard",
-                                                "/schedule", // dodalem dla planu zajec
+                                                "/home",
+                                                "/student/**", // cała strefa studenta
                                                 "/profile", // dodalem dla edycji profilu
-                                                "/change-password" // dodalem dla zmiany hasla
+                                                "/settings" // formularz ustawien
                                 ).authenticated()
 
                                 .anyRequest().authenticated());

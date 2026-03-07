@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function(){
     // Obsługa przycisku Anuluj
     cancelButton.addEventListener('click', function(){
         if (confirm('Czy na pewno chcesz anulować? Wszystkie niezapisane dane zostaną trwale utracone.')){
-            window.location.href = '/dashboard';
+            window.location.href = '/home';
         }
     });
 
@@ -806,7 +806,7 @@ document.addEventListener('DOMContentLoaded', function(){
             }, 2500);
 
             setTimeout(() => {
-                window.location.href = '/dashboard';
+                window.location.href = '/home';
             }, 2500);
         };
     }

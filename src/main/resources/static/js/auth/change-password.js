@@ -49,8 +49,10 @@ document.querySelector('form').addEventListener('submit', async function(e) {
         });
         
         if(response.ok){
-            displayMessage(messageContainer, 'Hasło zostało pomyślnie zmienione. Za chwilę zostaniesz przekierowany do panelu.', true);
-            redirectAfterDelay('/dashboard');
+            displayMessage(messageContainer, 'Hasło zostało pomyślnie zmienione! Zostaniesz przekierowany za chwilę...', true);
+            
+            // Przeniesienie użytkownika po 2 sekundach (daje czas na przeczytanie komunikatu)
+            redirectAfterDelay('/home');
         } else {
             const error = await response.text();
             displayMessage(messageContainer, error || 'Wystąpił błąd podczas zmiany hasła.');

@@ -56,7 +56,7 @@ class ProfileModule {
         }
 
         if (!notes || notes.length === 0) {
-            this.showEmptyState(this.notesContainer, 'fa-sticky-note', 'Brak notatek.', '/dashboard/notes', 'Utwórz notatkę');
+            this.showEmptyState(this.notesContainer, 'fa-sticky-note', 'Brak notatek.', '/student/notes', 'Utwórz notatkę');
             return;
         }
 
@@ -81,7 +81,7 @@ class ProfileModule {
                            (cleanContent.length > ProfileModule.CONFIG.LIMITS.PREVIEW_LENGTH ? '...' : '');
 
             html += `
-                <a href="/dashboard/notes?id=${note.id}" class="note-mini-card">
+                <a href="/student/notes?id=${note.id}" class="note-mini-card">
                     <h4 class="note-mini-title">${Utils.stripMarkdown(Utils.escapeHtml(note.title))}</h4>
                     <p class="note-mini-content">${Utils.escapeHtml(preview)}</p>
                     <span class="note-mini-date">${date}</span>
@@ -106,7 +106,7 @@ class ProfileModule {
 
     renderPosts(posts) {
         if (!posts || posts.length === 0) {
-            this.showEmptyState(this.postsContainer, 'fa-comments', 'Nie dodałeś jeszcze żadnych postów.', '/dashboard/forum', 'Przejdź do forum');
+            this.showEmptyState(this.postsContainer, 'fa-comments', 'Nie dodałeś jeszcze żadnych postów.', '/student/forum', 'Przejdź do forum');
             return;
         }
         // logika renderowania postów ...

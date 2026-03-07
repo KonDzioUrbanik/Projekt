@@ -16,7 +16,7 @@ class DashboardHome {
         ANIMATION_FPS: 60,
         MILLIS_PER_DAY: 24 * 60 * 60 * 1000,
         GREETING_TIMES: {
-            NIGHT_END: 6,
+            NIGHT_END: 5,
             MORNING_END: 12,
             AFTERNOON_END: 18,
             EVENING_END: 22
@@ -216,11 +216,11 @@ class DashboardHome {
         const noClassesDiv = document.getElementById('noClasses');
         const specialPeriodDiv = document.getElementById('specialPeriodInfo');
         
-        // Ukryj wszystkie kontenery na początku
-        currentContainer.style.display = 'none';
-        todayContainer.style.display = 'none';
-        tomorrowContainer.style.display = 'none';
-        noClassesDiv.style.display = 'none';
+        // Ukryj wszystkie kontenery na początku, jeśli istnieją
+        if(currentContainer) currentContainer.style.display = 'none';
+        if(todayContainer) todayContainer.style.display = 'none';
+        if(tomorrowContainer) tomorrowContainer.style.display = 'none';
+        if(noClassesDiv) noClassesDiv.style.display = 'none';
         if (specialPeriodDiv) specialPeriodDiv.style.display = 'none';
         
         // Sprawdź czy jest aktywny okres specjalny
@@ -230,13 +230,13 @@ class DashboardHome {
         }
         
         // Wyświetlenie aktualnych zajęć
-        if (currentClasses.length > 0) {
+        if (currentClasses.length > 0 && currentContainer) {
             currentContainer.style.display = 'block';
             this.renderClasses('currentClassesList', currentClasses, now, true);
         }
         
         // Wyświetlenie zajęć dzisiaj (nadchodzące)
-        if (todayUpcomingClasses.length > 0) {
+        if (todayUpcomingClasses.length > 0 && todayContainer) {
             todayContainer.style.display = 'block';
             this.renderClasses('todayClassesList', todayUpcomingClasses, now);
         }
@@ -244,7 +244,7 @@ class DashboardHome {
         // Wyświetlenie zajęć jutro - tylko jeśli nie ma już dzisiejszych zajęć
         // lub jeśli jest bardzo późno (po 22:00) i dzisiejsze zajęcia się skończyły
         const showTomorrow = todayUpcomingClasses.length === 0 && currentClasses.length === 0;
-        if (showTomorrow && tomorrowClasses.length > 0) {
+        if (showTomorrow && tomorrowClasses.length > 0 && tomorrowContainer) {
             tomorrowContainer.style.display = 'block';
             const tomorrowDate = new Date(now.getTime() + DashboardHome.CONFIG.MILLIS_PER_DAY);
             this.renderClasses('tomorrowClassesList', tomorrowClasses, tomorrowDate);
@@ -252,7 +252,7 @@ class DashboardHome {
         
         // Pokaż komunikat jeśli brak zajęć
         if (currentClasses.length === 0 && todayUpcomingClasses.length === 0 && (!showTomorrow || tomorrowClasses.length === 0)) {
-            noClassesDiv.style.display = 'flex';
+            if (noClassesDiv) noClassesDiv.style.display = 'flex';
         }
     }
     
@@ -858,7 +858,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
             const path = window.location.pathname;
-            if (path === '/dashboard' || path === '/' || path === '/dashboard/') {
+            if (path === '/home' || path === '/student/dashboard' || path === '/') {
                 setTimeout(() => {
                     if (tour.shouldRun()) {
                         tour.start();

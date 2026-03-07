@@ -7,8 +7,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <meta name="view-transition" content="same-origin" />
-        
-        <title>Panel Studenta</title>
+        <title layout:title-pattern="$CONTENT_TITLE - PANSportal">PANSportal</title>
 
         <link rel="icon" th:href="@{/favicon.png}" type="image/png">
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -164,8 +163,8 @@
         <script th:src="@{/js/common/user-menu.js}"></script> 
         <script th:src="@{/js/dashboard/sidebar.js}" defer></script>
         <script th:src="@{/js/common/feedback-modal.js}" defer></script>
-        <script th:src="@{/js/common/onboarding.js}" defer></script>
-        <script th:src="@{/js/common/breadcrumbs.js}" defer></script>
+        <script th:src="@{/js/common/onboarding.js(v=${#dates.createNow().getTime()})}" defer></script>
+        <script th:src="@{/js/common/breadcrumbs.js(v=${#dates.createNow().getTime()})}" defer></script>
         <link rel="stylesheet" th:href="@{/css/common/onboarding.css(v=${#dates.createNow().getTime()})}" />
 
         <th:block layout:fragment="page-scripts"></th:block>

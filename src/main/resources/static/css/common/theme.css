@@ -279,9 +279,9 @@
     color: var(--text-light);
 }
 
-/* Baner powitalny - ciemne tło */
+/* Baner powitalny - ciemne tło (dla Panelu Studenta) */
 [data-theme="dark"] .welcome-banner {
-    background: #1a2635;
+    background: #13285f;
 }
 
 /* Karty dashboardu */

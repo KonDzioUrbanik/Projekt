@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/main-layout}">
+    <head>
+        <title>Panel Starosty</title>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div id="welcome" class="welcome content-section active">
+                <div class="welcome-banner" style="background: linear-gradient(135deg, #022c22 0%, #064e3b 100%);">
+                    <div class="banner-content">
+                        <div class="welcome-text">
+                            <h1>
+                                <span class="greeting" id="greetingText">Dzień dobry</span>, 
+                                <span class="username" th:text="${currentUser.firstName}">Użytkowniku</span>!
+                            </h1>
+                            <p class="welcome-subtitle">Centrum dowodzenia. Zarządzaj grupą.</p>
+                        </div>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: stretch;">
+                            
+                            <div class="date-card">
+                                <div class="icon-badge secondary">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="date-info">
+                                    <span class="date-label">Moja grupa</span>
+                                    <span class="date-value" th:text="${currentUser.groupName != null ? currentUser.groupName : 'Brak przypisanej grupy'}">Wszyscy</span>
+                                </div>
+                            </div>
+                            <div class="date-card">
+                                <div class="icon-badge secondary">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                <div class="date-info">
+                                    <span class="date-label">Uprawnienia</span>
+                                    <span class="date-value">Starosta</span>
+                                </div>
+                            </div>
+
+                            <div class="date-card">
+                                <div class="icon-badge secondary">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                <div class="date-info">
+                                    <span class="date-label">
+                                        Dzisiaj, <span id="dayName"></span>
+                                    </span>
+                                    <span class="date-value" id="currentDate"></span>
+                                    <span class="time-value" id="currentTime"></span>
+                                    <span class="week-badge" id="currentWeekType" style="margin-left: 10px; font-size: 0.8rem; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; color: white;"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid mt-4">
+                    <div class="dashboard-card primary-card">
+                        <div class="card-header">
+                            <div class="header-left">
+                                <div class="icon-badge secondary">
+                                    <i class="fas fa-bullhorn"></i>
+                                </div>
+                                <div class="header-text">
+                                    <h2>Wyślij ogłoszenie</h2>
+                                    <p>Powiadomienia dla grupy</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="coming-soon">
+                                <div class="coming-icon secondary">
+                                    <i class="fas fa-tools"></i>
+                                </div>
+                                <h3>Moduł w budowie</h3>
+                                <p>Wysyłanie ogłoszeń do grupy wkrótce.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <th:block layout:fragment="page-scripts">
+            <script th:src="@{/js/dashboard/dashboard.js}" defer></script>
+        </th:block>
+    </body>
+</html>

@@ -648,35 +648,13 @@ body {
 
 /* Banner powitalny */
 .welcome-banner {
-    background: linear-gradient(135deg, #005efa 0%, #0047d1 50%, #003ba8 100%);
+    background: #172e6f;
     border-radius: 20px;
     padding: 2.5rem;
     margin-bottom: 2rem;
     box-shadow: 0 10px 40px rgba(0, 94, 250, 0.25);
     position: relative;
     overflow: hidden;
-}
-
-.welcome-banner::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -10%;
-    width: 400px;
-    height: 400px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-    border-radius: 50%;
-}
-
-.welcome-banner::after {
-    content: '';
-    position: absolute;
-    bottom: -30%;
-    left: -5%;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
-    border-radius: 50%;
 }
 
 .banner-content {
@@ -722,9 +700,13 @@ body {
     padding: 1.25rem 1.75rem;
     background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 16px;
     min-width: 240px;
+}
+
+.welcome-banner .date-card {
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
 .date-icon {
@@ -737,6 +719,12 @@ body {
     justify-content: center;
     font-size: 1.5rem;
     color: #ffffff;
+}
+
+.welcome-banner .icon-badge,
+.welcome-banner .date-icon {
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .date-info {
@@ -820,9 +808,15 @@ body {
 }
 
 .icon-badge.secondary {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
 }
+
+.icon-badge.warning {
+    background: linear-gradient(135deg, #902828 0%, #881d1d 100%);
+    box-shadow: 0 2px 15px rgba(220, 38, 38, 0.3);
+}
+
 
 .header-text h2 {
     font-size: 1.35rem;
@@ -842,7 +836,7 @@ body {
     align-items: center;
     gap: 0.5rem;
     padding: 0.65rem 1.25rem;
-    background: var(--color-primary);
+    background-color: #1e3a8a;
     color: #ffffff;
     text-decoration: none;
     border-radius: 10px;
@@ -853,7 +847,7 @@ body {
 }
 
 .view-link:hover {
-    background: var(--color-primary-dark);
+    background-color: #2e4c9d;
     transform: translateX(4px);
     box-shadow: 0 6px 16px rgba(0, 94, 250, 0.35);
 }
@@ -1161,6 +1155,19 @@ body {
     color: var(--color-primary);
 }
 
+.empty-icon.secondary,
+.coming-icon.secondary {
+    background: linear-gradient(135deg, rgba(5, 150, 105, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+    color: #059669;
+}
+
+.empty-icon.warning,
+.coming-icon.warning {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%);
+    color: #dc2626;
+}
+
+/* coming-icon style replaced by the global definition above if un-modified, wait, actually let's just make sure default coming-icon is also styled if not modified */
 .coming-icon {
     background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
     color: #10b981;

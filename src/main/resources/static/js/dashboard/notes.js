@@ -276,7 +276,7 @@ function setupEventListeners() {
             const targetNote = AppState.notes.find(n => n.id == noteIdParam);
             if (targetNote) selectNote(targetNote.id);
         } else {
-            // Jeśli wróciliśmy do czystego /dashboard/notes (bez ID), zamykamy podgląd
+            // Jeśli wróciliśmy do czystego /student/notes (bez ID), zamykamy podgląd
             AppState.selectedNote = null;
             if (DOM.emptyState) DOM.emptyState.style.display = 'flex';
             if (DOM.noteView) DOM.noteView.style.display = 'none';
