@@ -16,15 +16,15 @@
                             </h1>
                             <p class="welcome-subtitle">Witaj w PANSportal. Wybierz panel, do którego chcesz przejść.</p>
                         </div>
-                        <div class="date-card">
+                        <a th:href="@{/changelog}" class="date-card" style="text-decoration: none; cursor: pointer; transition: transform 0.2s, background 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                             <div class="date-icon">
                                 <i class="fas fa-university"></i>
                             </div>
                             <div class="date-info">
                                 <span class="date-label">PANSportal</span>
-                                <span class="date-value">Wersja v1.0</span>
+                                <span class="date-value">Wersja v1.2</span>
                             </div>
-                        </div>
+                        </a>
                     </div>
                 </div>
 
