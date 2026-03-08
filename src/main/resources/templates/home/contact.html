@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Zgłoś problem - PANSportal</title>
+
+    <!-- Import czcionek oraz ikon -->
+    <link rel="icon" th:href="@{/favicon.png}" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Główne style aplikacji -->
+    <link rel="stylesheet" th:href="@{/css/common/style.css}">
+    <link rel="stylesheet" th:href="@{/css/common/theme.css}">
+    
+    <!-- Dedykowane style strony kontaktowej -->
+    <link rel="stylesheet" th:href="@{/css/home/contact.css}">
+
+    <!-- System motywów -->
+    <script th:src="@{/js/common/theme.js}"></script>
+</head>
+<body>
+    <!-- Przycisk zmiany motywu -->
+    <button class="theme-toggle-btn" id="themeToggleBtn" title="Zmień motyw">
+        <i class="fas fa-moon"></i>
+        <i class="fas fa-sun"></i>
+    </button>
+    
+    <div class="main-container">
+        <div class="contact-page-container">
+            
+            <div class="contact-header">
+                <h1 class="contact-title"><i class="fas fa-headset text-primary"></i> Zgłoś problem</h1>
+                <p class="contact-subtitle">Wypełnij poniższy formularz, aby skontaktować się z administracją serwisu. Postaramy się odpowiedzieć najszybciej jak to możliwe.</p>
+            </div>
+
+            <div class="contact-card">
+                <form id="publicContactForm" class="contact-form">
+                    
+                    <!-- Honeypot field (hidden from users) -->
+                    <div class="honeypot-group" style="display:none;" aria-hidden="true">
+                        <label for="website">Strona internetowa</label>
+                        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contactType" class="form-label">Czego dotyczy zgłoszenie? <span class="text-danger">*</span></label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-tag input-icon"></i>
+                            <select id="contactType" name="type" class="form-control" required>
+                                <option value="BUG">Zgłoszenie błędu technicznego</option>
+                                <option value="SUGGESTION">Sugestia ulepszenia platformy</option>
+                                <option value="OTHER" selected>Inne zapytanie</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contactEmail" class="form-label">Twój adres e-mail <span class="text-danger">*</span></label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="contactEmail" name="email" class="form-control" placeholder="np. jan.kowalski@student.kpu.krosno.pl" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contactTitle" class="form-label">Tytuł wiadomości <span class="text-danger">*</span></label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-heading input-icon"></i>
+                            <input type="text" id="contactTitle" name="title" class="form-control" placeholder="Krótki tytuł problemu" maxlength="100" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contactDescription" class="form-label">Opis <span class="text-danger">*</span></label>
+                        <div class="textarea-wrapper">
+                            <textarea id="contactDescription" name="description" class="form-control" rows="5" placeholder="Opisz dokładnie swój problem lub pytanie..." required maxlength="2000"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <a th:href="@{/}" class="btn btn-outline">
+                            <i class="fas fa-arrow-left"></i> Wróć
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="submitContactBtn">
+                            <span class="btn-text"><i class="fas fa-paper-plane"></i> Wyślij zgłoszenie</span>
+                            <div class="spinner d-none" id="submitSpinner"></div>
+                        </button>
+                    </div>
+
+                    <!-- Pusty kontener usunięty na rzecz Modala -->
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Centralny Modal Komunikatów Formularza -->
+    <div id="statusModal" class="contact-modal-overlay d-none">
+        <div class="contact-modal-box">
+            <div id="modalIconWrap" class="modal-icon-wrap">
+                <i id="modalIcon" class="fas fa-check"></i>
+            </div>
+            <h2 id="modalTitle" class="modal-title">Sukces</h2>
+            <p id="modalMessage" class="modal-text">Dziękujemy za zgłoszenie.</p>
+            <button id="modalCloseBtn" class="btn btn-primary btn-modal-close">Rozumiem</button>
+        </div>
+    </div>
+
+    <!-- Skrypty JS -->
+    <script th:src="@{/js/home/contact.js}" defer></script>
+</body>
+</html>

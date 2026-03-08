@@ -138,8 +138,12 @@ public class SecurityConfig {
                                                 "/reset-password",
                                                 "/forgot-password",
                                                 "/password-reset-expired",
-                                                "/token-error")
+                                                "/token-error",
+                                                "/contact")
                                 .permitAll()
+
+                                // API feedback dla niezalogowanych
+                                .requestMatchers(HttpMethod.POST, "/api/feedback").permitAll()
 
                                 // API endpoints tylko dla ADMIN
                                 .requestMatchers(HttpMethod.POST, "/api/schedule/**", "/api/groups").hasRole("ADMIN")

@@ -107,6 +107,12 @@ public class MainController {
         return "home/changelog";
     }
 
+    @GetMapping("/contact")
+    public String contactView(Model model) {
+        model.addAttribute("activePage", "home-portal");
+        return "home/contact";
+    }
+
     @GetMapping("/student/dashboard")
     public String studentDashboardView(Model model, Principal principal) {
         model.addAttribute("activePage", "home"); // utrzymujemy tożsamość 'home' dla sidebaru studenta
