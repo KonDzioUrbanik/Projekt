@@ -139,7 +139,8 @@ public class SecurityConfig {
                                                 "/forgot-password",
                                                 "/password-reset-expired",
                                                 "/token-error",
-                                                "/contact")
+                                                "/contact",
+                                                "/error/**")
                                 .permitAll()
 
                                 // API feedback dla niezalogowanych
@@ -176,12 +177,12 @@ public class SecurityConfig {
                                 .authenticated()
 
                                 // to dla stron widokow
+                                .requestMatchers("/home").authenticated()
                                 .requestMatchers(
-                                                "/home",
                                                 "/student/**", // cała strefa studenta
-                                                "/profile", // dodalem dla edycji profilu
+                                                "/profile", // edycja profilu
                                                 "/settings" // formularz ustawien
-                                ).authenticated()
+                                ).hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
 
                                 .anyRequest().authenticated());
 

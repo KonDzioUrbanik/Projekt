@@ -38,6 +38,7 @@
                                     <li><strong>Nowa Strona Główna:</strong> Zaimplementowano wspólny ekran powitalny (/home) zawierający kafelki przekierowujące do dedykowanych przestrzeni roboczych oraz moduł integracyjny z linkami do zewnętrznych systemów uczelnianych PANS.</li>
                                     <li><strong>Rozdzielenie Przestrzeni Ról:</strong> Utworzono odrębne widoki o zdefiniowanych ścieżkach URL dla głównych ról systemu (np. <i>/student/dashboard</i>, <i>/starosta/dashboard</i>, <i>/admin/dashboard</i>) wraz z walidacją dostępu na poziomie kontrolerów.</li>
                                     <li><strong>Rozbudowa Menu Bocznego:</strong> Zaimplementowano sekcjonowanie listy nawigacyjnej za pomocą nagłówków kategoryzujących (Sidebar List Headers), odseparowując narzędzia dla studentów od tych przeznaczonych dla administratorów.</li>
+                                    <li><strong>Publiczny Formularz Kontaktowy:</strong> Wdrożono niezależną, estetyczną podstronę <i>/contact</i> dla niezalogowanych interesantów zintegrowaną z modułem Feedback. Zabezpieczono punkt wejścia zabezpieczeniem mechanizmu limitującego ruch (Rate-Limiter) i parametrem anti-bothoneypot.</li>
                                 </ul>
                             </div>
 
@@ -46,6 +47,7 @@
                                 <ul class="change-list changed">
                                     <li><strong>Aktualizacja Interfejsu Widoków:</strong> Zmodyfikowano paletę kolorystyczną banerów użytkowników na ujednolicony niebieski, dostosowując dynamiczne powitania do pory dnia. Przywrócono gradient kolorów firmowych uczelni na okładce strony głównej.</li>
                                     <li><strong>Przebudowa Profilu Administratora:</strong> Usunięto zbędne dla funkcjonalności wglądu administracyjnego widoki (sekcje aktywności i notatek), zwalniając obszar interfejsu pod planowane operacje techniczne uwierzytelnień i logów działania.</li>
+                                    <li><strong>Zastąpienie Powiadomień Okienkami Modal:</strong> Komunikaty potwierdzające operacje oraz błędy (np. dla formularza wsparcia) przebudowano na responsywne, estetyczne okna typu "Modal" przystosowane poprawnie do standardów obu rzutowań wizualnych (Trybu Jasnego i Ciemnego).</li>
                                 </ul>
                             </div>
 
@@ -53,6 +55,7 @@
                                 <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
                                 <ul class="change-list fixed">
                                     <li><strong>Aktualizacja Ścieżek Breadcrumbs:</strong> Dostosowano wskazywane ścieżki i lokalizacje routingu komponentu na wszystkich podstronach nawigacji w celu spójności ze zaktualizowanym drzewem infrastruktury plików.</li>
+                                    <li><strong>Ograniczenia Dostępu do Modułów na podstawie Ról (Routing):</strong> Usunięto powtarzającą się lukę autoryzacyjną umożliwiającą wstęp do wrażliwych widoków <i>/student/**</i> każdemu nowo uwierzytelnionemu profilowi bez określonej jeszcze przestrzeni docelowej, implementując do łańcucha Security weryfikację na podstawie odgórnie przypisanych uprawnień (`hasAnyRole`). Pomyślnie dopracowano także styl i grafiki wejść pól 'select' psujących się na niektórych przeglądarkach w trybie Ciemnym.</li>
                                 </ul>
                             </div>
                         </div>
