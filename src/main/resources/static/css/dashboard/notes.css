@@ -1262,7 +1262,7 @@ select {
     flex: 1;
     /* Wypełnia resztę wysokości kontenera */
     padding: 30px 40px;
-    /* Margines wewnętrzny dla tekstu */
+    /* Margines wewnętrzny */
 
     /* Pasek przewijania tylko w tej sekcji */
     overflow-y: auto;
@@ -1274,17 +1274,134 @@ select {
 
 .note-content-text {
     font-size: 1.1rem;
-    line-height: 1.8;
+    line-height: 1.7;
     color: var(--text-main);
-    white-space: pre-wrap;
-    /* Zachowuje entery i spacje */
 
-    /* ŁAMANIE DŁUGIEJ TREŚCI */
+    /* Zezwala na łamanie długich słów, np. linków */
     overflow-wrap: break-word;
     word-wrap: break-word;
     word-break: break-word;
 
     width: 100%;
+}
+
+/* Zabezpieczenie przed własnym resize i scrollem z domyślnego css Quilla */
+.note-body.ql-snow .note-content-text.ql-editor {
+    min-height: fit-content !important;
+    height: auto !important;
+    overflow-y: visible !important;
+    padding: 0 !important;
+    resize: none !important;
+    box-sizing: border-box !important;
+}
+
+.note-content-text p {
+    margin-bottom: 0.8em;
+    min-height: 1em;
+}
+
+.note-content-text h1,
+.note-content-text h2,
+.note-content-text h3 {
+    margin-top: 1.2em;
+    margin-bottom: 0.6em;
+    font-weight: 700;
+    color: var(--text-main);
+    line-height: 1.3;
+}
+
+.note-content-text i,
+.note-content-text em {
+    font-style: italic;
+    color: inherit;
+    line-height: inherit;
+}
+
+/* Podkreślenia i pogrubienia */
+.note-content-text b,
+.note-content-text strong {
+    font-weight: 700;
+    color: inherit;
+}
+
+/* Bloki kodu (Quill syntax) */
+.note-content-text pre,
+.note-content-text pre.ql-syntax {
+    background-color: #1e1e1e !important;
+    color: #e4e4e4 !important;
+    padding: 16px 20px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-size: 0.9em;
+    line-height: 1.5;
+    overflow-x: auto;
+    margin: 1.2em 0;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    white-space: pre;
+    /* Zachowuje wcięcia w kodzie */
+    tab-size: 4;
+}
+
+[data-theme="dark"] .note-content-text pre,
+[data-theme="dark"] .note-content-text pre.ql-syntax {
+    background-color: #0d1117 !important;
+    border: 1px solid var(--border);
+}
+
+/* Inline Code */
+.note-content-text code {
+    background-color: var(--bg-hover);
+    color: var(--primary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+[data-theme="dark"] .note-content-text code {
+    background-color: rgba(59, 130, 246, 0.15);
+}
+
+/* Cytaty (Blockquote) */
+.note-content-text blockquote {
+    border-left: 4px solid var(--primary);
+    background: var(--bg-hover);
+    padding: 12px 20px;
+    margin: 1.5em 0;
+    color: var(--text-secondary);
+    font-style: italic;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+[data-theme="dark"] .note-content-text blockquote {
+    background: rgba(59, 130, 246, 0.05);
+}
+
+/* Listy */
+.note-content-text ul,
+.note-content-text ol {
+    margin-bottom: 1.2em;
+    padding-left: 24px;
+}
+
+.note-content-text li {
+    margin-bottom: 0.4em;
+}
+
+.note-content-text li::marker {
+    color: var(--text-muted);
+}
+
+/* Linki w notatce */
+.note-content-text a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.note-content-text a:hover {
+    text-decoration: underline;
 }
 
 .note-footer-info {
