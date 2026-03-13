@@ -1,4 +1,3 @@
-
 package com.pansgroup.projectbackend.security;
 
 import com.pansgroup.projectbackend.module.user.User;
@@ -157,6 +156,11 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.DELETE, "/api/schedule/**", "/api/groups/**")
                                 .hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.GET, "/api/groups", "/api/schedule/all").hasRole("ADMIN")
+
+                                // API ogłoszeń grupowych
+                                .requestMatchers(HttpMethod.POST, "/api/announcements").hasRole("STAROSTA")
+                                .requestMatchers(HttpMethod.GET, "/api/announcements/group")
+                                .hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
 
                                 // Widoki admin tylko dla ADMIN
                                 .requestMatchers("/admin/**").hasRole("ADMIN")

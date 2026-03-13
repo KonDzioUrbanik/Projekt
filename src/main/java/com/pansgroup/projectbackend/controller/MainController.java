@@ -188,6 +188,12 @@ public class MainController {
         return "dashboard/notes";
     }
 
+    @GetMapping("/student/announcements")
+    public String studentAnnouncementsView(Model model) {
+        model.addAttribute("activePage", "student-announcements");
+        return "dashboard/announcements";
+    }
+
     // zarządzanie harmonogramem zajęć
     @GetMapping("/admin/schedule-management")
     public String scheduleManagementView(Model model) {
