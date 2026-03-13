@@ -14,7 +14,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/admin") // Wszystkie metody bbeda zaczynac sis od /admin
-@PreAuthorize("hasRole('ADMIN')") // Zabezpieczenie: Tylko admin wejdzie do tej klasy
+@PreAuthorize("hasRole('ADMIN')") // Zabezpieczenie: Tylko admin wejdzie do tej klasy tak
 public class AdminController{
 
     private final UserService userService;
