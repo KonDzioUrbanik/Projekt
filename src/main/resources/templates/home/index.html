@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/main-layout}">
+    <head>
+        <title>Strona główna portalu</title>
+        <link rel="stylesheet" th:href="@{/css/home/home.css}">
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div id="welcome" class="welcome content-section active">
+                <div class="welcome-banner home-welcome-banner">
+                    <div class="banner-content">
+                        <div class="welcome-text">
+                            <h1>
+                                <span class="greeting" id="greetingText">Dzień dobry</span>, 
+                                <span class="username" th:text="${currentUser.firstName}">Użytkowniku</span>!
+                            </h1>
+                            <p class="welcome-subtitle">Witaj w PANSportal. Wybierz panel, do którego chcesz przejść.</p>
+                        </div>
+                        <a th:href="@{/changelog}" class="date-card" style="text-decoration: none; cursor: pointer; transition: transform 0.2s, background 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                            <div class="date-icon">
+                                <i class="fas fa-university"></i>
+                            </div>
+                            <div class="date-info">
+                                <span class="date-label">PANSportal</span>
+                                <span class="date-value">Wersja v1.2</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="home-panels-grid">
+                    <!-- Panel Studenta -->
+                    <a th:href="@{/student/dashboard}" class="home-panel-card" sec:authorize="hasAnyRole('STUDENT', 'STAROSTA')">
+                        <div class="panel-icon student-icon"><i class="fas fa-user-graduate"></i></div>
+                        <h3>Panel Studenta</h3>
+                        <p>Zarządzaj swoim tokiem studiów, sprawdzaj plany zajęć, przeglądaj notatki i ogłoszenia, komunikuj się z innymi.</p>
+                        <div class="panel-arrow"><i class="fas fa-arrow-right"></i></div>
+                    </a>
+
+                    <!-- Panel Starosty -->
+                    <a th:href="@{/starosta/dashboard}" class="home-panel-card" sec:authorize="hasRole('STAROSTA')">
+                        <div class="panel-icon starosta-icon"><i class="fas fa-users"></i></div>
+                        <h3>Panel Starosty</h3>
+                        <p>Dedykowane narzędzia do zarządzania Twoją grupą.</p>
+                        <div class="panel-arrow"><i class="fas fa-arrow-right"></i></div>
+                    </a>
+
+                    <!-- Panel Admina -->
+                    <a th:href="@{/admin/dashboard}" class="home-panel-card" sec:authorize="hasRole('ADMIN')">
+                        <div class="panel-icon admin-icon"><i class="fas fa-tachometer-alt"></i></div>
+                        <h3>Panel Administracyjny</h3>
+                        <p>Centrum zarządzania systemem PANSportal, użytkownikami i konfiguracją modułów.</p>
+                        <div class="panel-arrow"><i class="fas fa-arrow-right"></i></div>
+                    </a>
+                </div>
+                </div>
+
+                <!-- Moduł informacyjny poniżej paneli -->
+                <div class="home-info-section" style="margin-top: 50px;">
+                    <div class="section-header" style="margin-bottom: 25px;">
+                        <h2 style="font-size: 1.5rem; color: var(--text-dark); display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-info-circle" style="color: var(--color-primary);"></i> Informacje dla Społeczności
+                        </h2>
+                    </div>
+                    
+                    <div class="dashboard-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                        <!-- Wydarzenia ogólnouczelniane -->
+                        <div class="dashboard-card" style="box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 12px; height: 100%;">
+                            <div class="card-header" style="background: var(--bg-step); padding: 1.25rem;">
+                                <div class="header-left">
+                                    <div class="header-text">
+                                        <h3 style="font-size: 1.1rem; font-weight: 600; margin: 0; color: var(--text-dark);">
+                                            <i class="fas fa-bullhorn" style="color: var(--color-primary); margin-right: 8px;"></i> Aktualności i Komunikaty
+                                        </h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body" style="padding: 1.5rem;">
+                                <p style="color: var(--text-light); font-size: 0.95rem; margin-bottom: 1rem; line-height: 1.5;">
+                                    Bądź na bieżąco z najnowszymi informacjami, zmianami w regulaminach i wydarzeniami na uczelni.
+                                </p>
+                                <div class="empty-state-small" style="padding: 1rem 0; text-align: center;">
+                                    <i class="fas fa-newspaper" style="font-size: 2rem; color: var(--text-placeholder); margin-bottom: 1rem; opacity: 0.5;"></i>
+                                    <p style="font-size: 0.9rem; color: var(--text-light); margin: 0;">Obecnie brak nowych komunikatów.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Szybkie linki -->
+                        <div class="dashboard-card" style="box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 12px; height: 100%;">
+                            <div class="card-header" style="background: var(--bg-step); padding: 1.25rem;">
+                                <div class="header-left">
+                                    <div class="header-text">
+                                        <h3 style="font-size: 1.1rem; font-weight: 600; margin: 0; color: var(--text-dark);">
+                                            <i class="fas fa-external-link-alt" style="color: var(--color-primary); margin-right: 8px;"></i> Przydatne Linki
+                                        </h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body" style="padding: 1.5rem;">
+                                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                    <a href="https://pans.krosno.pl" target="_blank" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background: var(--bg-secondary); border-radius: 8px; color: var(--text-dark); text-decoration: none; transition: background 0.2s;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <i class="fas fa-university" style="color: var(--color-primary); width: 20px; text-align: center;"></i> Strona główna PANS
+                                        </div>
+                                        <i class="fas fa-external-link-alt" style="font-size: 0.8rem; color: var(--text-light);"></i>
+                                    </a>
+                                    <a href="https://biblioteka.pans.krosno.pl" target="_blank" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background: var(--bg-secondary); border-radius: 8px; color: var(--text-dark); text-decoration: none; transition: background 0.2s;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <i class="fas fa-book" style="color: var(--color-primary); width: 20px; text-align: center;"></i> Biblioteka uczelniana
+                                        </div>
+                                        <i class="fas fa-external-link-alt" style="font-size: 0.8rem; color: var(--text-light);"></i>
+                                    </a>
+                                    <a href="https://e-learning.kpu.krosno.pl/" target="_blank" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background: var(--bg-secondary); border-radius: 8px; color: var(--text-dark); text-decoration: none; transition: background 0.2s;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <i class="fas fa-laptop-code" style="color: var(--color-primary); width: 20px; text-align: center;"></i> E-Student
+                                        </div>
+                                        <i class="fas fa-external-link-alt" style="font-size: 0.8rem; color: var(--text-light);"></i>
+                                    </a>
+                                    <a href="https://usos.kpu.krosno.pl/" target="_blank" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background: var(--bg-secondary); border-radius: 8px; color: var(--text-dark); text-decoration: none; transition: background 0.2s;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <i class="fas fa-server" style="color: var(--color-primary); width: 20px; text-align: center;"></i> USOSWeb
+                                        </div>
+                                        <i class="fas fa-external-link-alt" style="font-size: 0.8rem; color: var(--text-light);"></i>
+                                    </a>
+                                    <a href="https://poczta.student.kpu.krosno.pl/" target="_blank" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background: var(--bg-secondary); border-radius: 8px; color: var(--text-dark); text-decoration: none; transition: background 0.2s;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <i class="fas fa-envelope" style="color: var(--color-primary); width: 20px; text-align: center;"></i> Poczta PANS
+                                        </div>
+                                        <i class="fas fa-external-link-alt" style="font-size: 0.8rem; color: var(--text-light);"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <th:block layout:fragment="page-scripts">
+            <script>
+                (function() {
+                    const hour = new Date().getHours();
+                    const greetingEl = document.getElementById('greetingText');
+                    if(greetingEl) {
+                        if (hour < 5 || hour >= 22) greetingEl.textContent = 'Dobranoc';
+                        else if (hour >= 5 && hour < 18) greetingEl.textContent = 'Dzień dobry';
+                        else if (hour >= 18 && hour < 22) greetingEl.textContent = 'Dobry wieczór';
+                    }
+                })();
+            </script>
+        </th:block>
+    </body>
+</html>

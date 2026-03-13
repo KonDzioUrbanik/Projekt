@@ -33,7 +33,7 @@ public class MainController {
     @GetMapping("/login")
     public String loginView(Principal principal) {
         if (principal != null) {
-            return "redirect:/dashboard";
+            return "redirect:/home";
         }
         return "auth/login";
     }
@@ -41,7 +41,7 @@ public class MainController {
     @GetMapping("/register")
     public String registerView(Principal principal) {
         if (principal != null) {
-            return "redirect:/dashboard";
+            return "redirect:/home";
         }
         return "auth/register";
     }
@@ -95,79 +95,96 @@ public class MainController {
         return null;
     }
 
-    @GetMapping("/dashboard")
-    public String dashboardView(Model model, Principal principal) {
-        // ActivePage potrzebne do Sidebara
-        model.addAttribute("activePage", "home");
+    @GetMapping("/home")
+    public String homeView(Model model, Principal principal) {
+        model.addAttribute("activePage", "home-portal");
+        return "home/index";
+    }
 
-        // dodatkowe dane specyficzne dla dashboardu (np. notatki)
+    @GetMapping("/changelog")
+    public String changelogView(Model model) {
+        model.addAttribute("activePage", "home-portal");
+        return "home/changelog";
+    }
+
+    @GetMapping("/contact")
+    public String contactView(Model model) {
+        model.addAttribute("activePage", "home-portal");
+        return "home/contact";
+    }
+
+    @GetMapping("/student/dashboard")
+    public String studentDashboardView(Model model, Principal principal) {
+        model.addAttribute("activePage", "home"); // utrzymujemy tożsamość 'home' dla sidebaru studenta
         DashboardResponseDto data = dashboardService.getDashboardData(principal.getName());
         model.addAttribute("notes", data.notes());
-
         return "dashboard/index";
     }
 
-    @GetMapping("/dashboard/calendar")
+    @GetMapping("/starosta/dashboard")
+    public String starostaDashboardView(Model model) {
+        model.addAttribute("activePage", "starosta-home");
+        return "starosta/dashboard";
+    }
+
+    @GetMapping("/admin/dashboard")
+    public String adminDashboardView(Model model) {
+        model.addAttribute("activePage", "admin-home");
+        return "admin/dashboard";
+    }
+
+    @GetMapping("/student/calendar")
     public String calendarView(Model model) {
         model.addAttribute("activePage", "calendar");
-
         return "dashboard/calendar";
     }
 
-    @GetMapping("/dashboard/schedule")
+    @GetMapping("/student/schedule")
     public String scheduleView(Model model) {
         model.addAttribute("activePage", "schedule");
-
         return "dashboard/schedule";
     }
 
     @GetMapping("/profile")
     public String profileView(Model model) {
         model.addAttribute("activePage", "profile");
-
         return "dashboard/profile";
     }
 
     @GetMapping("/settings")
     public String settingsView(Model model) {
         model.addAttribute("activePage", "settings");
-
         return "dashboard/settings";
     }
 
     @GetMapping("/change-password")
     public String changePasswordView(Model model) {
         model.addAttribute("activePage", "settings");
-
         return "auth/change-password";
     }
 
-    @GetMapping("/dashboard/attendance")
+    @GetMapping("/student/attendance")
     public String attendanceView(Model model) {
         model.addAttribute("activePage", "attendance");
-
         return "dashboard/attendance";
     }
 
-    @GetMapping("/dashboard/university-calendar")
+    @GetMapping("/student/university-calendar")
     public String universityCalendarView(Model model) {
         model.addAttribute("activePage", "university-calendar-public");
         model.addAttribute("currentDate", java.time.LocalDate.now());
-
         return "admin/university-calendar";
     }
 
-    @GetMapping("/dashboard/forum")
+    @GetMapping("/student/forum")
     public String forumView(Model model) {
         model.addAttribute("activePage", "forum");
-
         return "dashboard/forum";
     }
 
-    @GetMapping("/dashboard/notes")
+    @GetMapping("/student/notes")
     public String notesView(Model model) {
         model.addAttribute("activePage", "notes");
-
         return "dashboard/notes";
     }
 

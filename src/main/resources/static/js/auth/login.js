@@ -101,8 +101,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 displayMessage(errorMessageContainer, "Logowanie przebiegło pomyślnie. Przekierowywanie...", true);
                 
-                // przekierowanie na strone dashboard
-                redirectAfterDelay("/dashboard");
+                // przekierowanie na strone główną portalu
+                redirectAfterDelay("/home");
             } 
             else{
                 // BŁĘDY

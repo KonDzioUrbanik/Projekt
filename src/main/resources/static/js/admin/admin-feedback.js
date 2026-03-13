@@ -5,6 +5,7 @@ const FeedbackManager = {
         feedback: [],
         filteredFeedback: [],
         currentId: null,
+        pendingDeleteId: null,
         filters: {
             search: '',
             status: '',
@@ -25,6 +26,29 @@ const FeedbackManager = {
     init() {
         this.fetchFeedback();
         this.attachEventListeners();
+        this.initDeleteModal();
+    },
+
+    initDeleteModal() {
+        const btnCancel = document.getElementById('btnCancelDelete');
+        const btnConfirm = document.getElementById('btnConfirmDelete');
+        const overlay = document.getElementById('deleteConfirmOverlay');
+
+        if (btnCancel && overlay) {
+            btnCancel.addEventListener('click', () => {
+                overlay.classList.remove('active');
+                this.state.pendingDeleteId = null;
+            });
+        }
+
+        if (btnConfirm && overlay) {
+            btnConfirm.addEventListener('click', () => {
+                overlay.classList.remove('active');
+                if (this.state.pendingDeleteId) {
+                    this.executeDelete(this.state.pendingDeleteId);
+                }
+            });
+        }
     },
 
     // Pobieranie danych
@@ -37,6 +61,7 @@ const FeedbackManager = {
         } catch (error) {
             console.error('Błąd:', error);
             this.elements.tableBody.innerHTML = `<tr><td colspan="7" class="text-center error-msg">Nie udało się pobrać zgłoszeń.</td></tr>`;
+            Utils.showToast('Nie udało się pobrać zgłoszeń.', 'error');
         }
     },
 
@@ -259,7 +284,7 @@ const FeedbackManager = {
             }
         } catch (error) {
             console.error('Błąd zapisu komentarza:', error);
-            alert('Nie udało się zapisać notatki.');
+            Utils.showToast('Nie udało się zapisać notatki.', 'error');
             btn.innerHTML = originalText;
             btn.disabled = false;
         }
@@ -284,32 +309,94 @@ const FeedbackManager = {
                 // Odśwież widok
                 this.render();
                 document.getElementById('modalStatus').innerHTML = this.renderStatus(status);
+                Utils.showToast('Zaktualizowano status.', 'success');
             }
         } catch (error) {
             console.error('Błąd aktualizacji:', error);
-            alert('Nie udało się zaktualizować statusu.');
+            Utils.showToast('Nie udało się zaktualizować statusu.', 'error');
         }
     },
 
     // Usuwanie
-    async deleteFeedback(id) {
-        if (!confirm('Czy na pewno chcesz usunąć to zgłoszenie? Ta operacja jest nieodwracalna.')) return;
-
-        try {
-            const response = await fetch(`/api/feedback/${id}`, {
-                method: 'DELETE'
-            });
-
-            if (response.ok) {
-                this.state.feedback = this.state.feedback.filter(item => item.id !== id);
-                this.applyFilters();
-                // Jeśli modal był otwarty dla tego elementu
-                if (this.state.currentId === id) this.closeModal();
+    deleteFeedback(id) {
+        const overlay = document.getElementById('deleteConfirmOverlay');
+        if (!overlay) {
+            if (confirm('Czy na pewno chcesz usunąć to zgłoszenie? Ta operacja jest nieodwracalna.')) {
+                this.executeDelete(id);
             }
-        } catch (error) {
-            console.error('Błąd usuwania:', error);
-            alert('Nie udało się usunąć zgłoszenia.');
+            return;
         }
+
+        this.state.pendingDeleteId = id;
+        overlay.classList.add('active');
+    },
+
+    executeDelete(id) {
+        // Soft delete logic with toast undo
+        const itemToDelete = this.state.feedback.find(s => s.id === id);
+        if (!itemToDelete) return;
+
+        // Optimistically remove from UI
+        this.state.feedback = this.state.feedback.filter(item => item.id !== id);
+        this.applyFilters();
+        if (this.state.currentId === id) this.closeModal();
+
+        // Pokazujemy toast z opcją cofnij
+        const toastContainer = document.getElementById('toastContainer');
+        const toastId = 'toast-' + Date.now();
+
+        const toast = document.createElement('div');
+        toast.className = 'toast success';
+        toast.id = toastId;
+        toast.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <span>Zgłoszenie usunięte</span>
+            <button class="toast-undo-btn" id="undo-${toastId}">COFNIJ</button>
+        `;
+        toastContainer.appendChild(toast);
+
+        let isUndone = false;
+
+        const undoBtn = document.getElementById(`undo-${toastId}`);
+        if(undoBtn) {
+            undoBtn.addEventListener('click', () => {
+                isUndone = true;
+                toast.style.animation = 'fadeOut 0.3s forwards';
+                setTimeout(() => toast.remove(), 300);
+
+                // Przywracamy dane
+                this.state.feedback.push(itemToDelete);
+                // Sortujemy po dacie malejąco żeby utrzymać porządek (najnowsze u góry)
+                this.state.feedback.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                
+                this.applyFilters();
+                Utils.showToast('Cofnięto usunięcie. Zgłoszenie przywrócone.', 'info');
+            });
+        }
+
+        // Oczekujemy 5 sekundy, potem request właściwy
+        setTimeout(async () => {
+            if (!isUndone) {
+                const liveToast = document.getElementById(toastId);
+                if (liveToast) {
+                    liveToast.style.animation = 'fadeOut 0.3s forwards';
+                    setTimeout(() => liveToast.remove(), 300);
+                }
+
+                try {
+                    const response = await fetch(`/api/feedback/${id}`, { method: 'DELETE' });
+                    if (!response.ok) throw new Error('Network error');
+                    console.log('Zgłoszenie trwale usunięte z serwera.');
+                } catch (error) {
+                    console.error('Błąd usuwania:', error);
+                    // Jeśli błąd, przywracamy po cichu do danych
+                    this.state.feedback.push(itemToDelete);
+                    this.state.feedback.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    this.applyFilters();
+                    Utils.showToast('Błąd usuwania z serwera.', 'error');
+                }
+            }
+        }, 5000);
     },
 
     // Helpery
@@ -344,7 +431,9 @@ const FeedbackManager = {
             'OTHER': 'Inne zgłoszenie'
         };
         return map[type] || type;
-    }
+    },
+
+
 };
 
 // Start

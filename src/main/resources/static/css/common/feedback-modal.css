@@ -47,6 +47,7 @@
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
     z-index: 1000;
     animation: fadeIn 0.2s ease;
 }
@@ -62,9 +63,11 @@
     background: white;
     border-radius: 12px;
     width: 90%;
-    max-width: 500px;
+    max-width: 600px;
     max-height: 90vh;
-    overflow-y: auto;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     animation: slideUp 0.3s ease;
 }
@@ -107,6 +110,8 @@
 /* MODAL BODY */
 .feedback-modal-body {
     padding: 24px;
+    flex: 1;
+    overflow-y: auto;
 }
 
 .feedback-form-group {
@@ -154,7 +159,7 @@
     background: white;
 }
 
-.feedback-type-option input[type="radio"]:checked + .feedback-type-label {
+.feedback-type-option input[type="radio"]:checked+.feedback-type-label {
     border-color: #2563eb;
     background: #eff6ff;
 }
@@ -167,7 +172,7 @@
     font-size: 1.2rem;
 }
 
-.feedback-type-option input[type="radio"]:checked + .feedback-type-label i {
+.feedback-type-option input[type="radio"]:checked+.feedback-type-label i {
     color: #2563eb;
 }
 
@@ -268,16 +273,22 @@
 
 /* ANIMATIONS */
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes slideUp {
-    from { 
+    from {
         opacity: 0;
         transform: translateY(30px);
     }
-    to { 
+
+    to {
         opacity: 1;
         transform: translateY(0);
     }

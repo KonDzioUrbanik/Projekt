@@ -167,7 +167,7 @@
                                     <select id="classType" required>
                                         <option value="WYKLAD">Wykład</option>
                                         <option value="CWICZENIA">Ćwiczenia laboratoryjne</option>
-                                        <option value="LABORATORIUM">Laboratorium</option>
+                                        <!-- <option value="LABORATORIUM">Laboratorium</option> -->
                                         <option value="PROJEKT">Projekt zespołowy</option>
                                         <option value="SEMINARIUM">Seminarium</option>
                                         <option value="KONSULTACJE">Konsultacje</option>
@@ -270,11 +270,32 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Delete Confirmation Modal -->
+            <div class="modal-overlay" id="deleteConfirmOverlay">
+                <div class="modal-card modal-sm modal-center-content">
+                    <div class="modal-body-centered">
+                        <div class="modal-icon-wrapper danger">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                        <h3>Uwaga</h3>
+                        <p class="text-muted" id="deleteModalText">
+                            Czy na pewno chcesz usunąć te zajęcia?<br>
+                        </p>
+                    </div>
+                    <div class="modal-footer-centered">
+                        <button class="btn-text-gray" id="btnCancelDelete">Anuluj</button>
+                        <button class="btn-danger-block" id="btnConfirmDelete">Usuń zajęcia</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <th:block layout:fragment="page-scripts">
             <script th:src="@{/js/admin/schedule-management.js}"></script>
         </th:block>
 
+        <!-- Kontener na toasty -->
+        <div id="toastContainer" class="toast-container"></div>
     </body>
 </html>

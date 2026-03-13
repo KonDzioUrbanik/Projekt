@@ -22,6 +22,7 @@ class ScheduleCalendar{
         
         this.dayNames = ScheduleCalendar.CONFIG.DAY_NAMES;
         this.classTypeNames = ScheduleCalendar.CONFIG.CLASS_TYPES;
+        this.activeFilters = new Set(); // Przechowuje aktualnie wybrane filtry typów zajęć
         
         // Stan kalendarza
         this.currentDate = new Date();
@@ -32,11 +33,42 @@ class ScheduleCalendar{
     }
     
     async loadData() {
-        await Promise.all([
-            this.loadCalendarEvents(),
-            this.loadSchedule()
-        ]);
-        this.renderSchedule();
+        // Pokaż ładowanie dla całej paczki danych
+        const loading = document.getElementById('loading');
+        const grid = document.getElementById('scheduleGrid');
+        
+        if (loading) loading.classList.add('active');
+        if (grid) grid.style.display = 'none';
+
+        try {
+            await Promise.all([
+                this.loadCalendarEvents(),
+                this.loadSchedule()
+            ]);
+            
+            this.renderFilters(); // Wygenerowanie przycisków filtrujących
+            this.renderSchedule();
+            this.updateControls(); // Aktualizacja etykiet daty
+            this.updateRealTimeFeatures(); // Dodaje DZIŚ pod nagłówkami
+        } catch(error) {
+            console.error('Błąd inicjalizacji harmonogramu:', error);
+            if (grid) {
+                grid.innerHTML = `
+                    <div class="error-message">
+                        <h3>Błąd inicjalizacji harmonogramu</h3>
+                        <p>${Utils.escapeHtml(error.message)}</p>
+                    </div>
+                `;
+                grid.style.display = 'block';
+            }
+        } finally {
+            if (loading) loading.classList.remove('active');
+            if (grid && grid.style.display === 'none') {
+                 grid.style.display = 'grid';
+            }
+            // Add a small delay for DOM layout calc before scrolling
+            setTimeout(() => this.scrollToCurrentTime(), 150);
+        }
     }
 
     // Pobranie wydarzeń z kalendarza akademickiego
@@ -89,40 +121,15 @@ class ScheduleCalendar{
         return null;
     }
     
-    // zaladowanie harmonogramu zajec z API
+    // zaladowanie harmonogramu zajec z API (tylko pobranie danych)
     async loadSchedule(){
-        const loading = document.getElementById('loading');
-        const grid = document.getElementById('scheduleGrid');
+        const response = await fetch(this.apiEndpoint);
         
-        loading.classList.add('active');
-        grid.style.display = 'none';
-        
-        try{
-            const response = await fetch(this.apiEndpoint);
-            
-            if(!response.ok){
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            this.scheduleData = await response.json();
-            this.renderSchedule();
-            this.updateRealTimeFeatures();
-            this.updateControls(); // Aktualizacja etykiet daty
-        } 
-        catch(error){
-            console.error('Błąd ładowania harmonogramu:', error);
-            grid.innerHTML = `
-                <div class="error-message">
-                    <h3>Błąd ładowania harmonogramu zajęć</h3>
-                    <p>${Utils.escapeHtml(error.message)}</p>
-                </div>
-            `;
-            grid.style.display = 'block';
-        } 
-        finally{
-            loading.classList.remove('active');
-            grid.style.display = 'grid';
+        if(!response.ok){
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
+        this.scheduleData = await response.json();
     }
     
     // Obliczanie początku tygodnia (Poniedziałek)
@@ -151,6 +158,7 @@ class ScheduleCalendar{
         this.renderSchedule();
         this.updateControls();
         this.updateRealTimeFeatures();
+        setTimeout(() => this.scrollToCurrentTime(), 150);
     }
 
     // Aktualizacja kontrolek (daty, typ tygodnia)
@@ -233,7 +241,24 @@ class ScheduleCalendar{
         
         // grupowanie zajec wedlug dni (używamy przefiltrowanych danych)
         const grouped = this.groupByDay(weekFilteredData);
+
+        // Obliczanie kolizji (nachodzących na siebie zajęć) dla każdego dnia
+        const dayOverlaps = {};
+        const dayMaxCols = {};
         
+        workDays.forEach(dayKey => {
+            const overlapResult = this.calculateOverlaps(grouped[dayKey] || [], dayKey);
+            dayOverlaps[dayKey] = overlapResult.positions || {};
+            dayMaxCols[dayKey] = overlapResult.maxCols || 1;
+        });
+        
+        let gridTemplateCols = '120px '; // Pierwsza kolumna na godziny
+        workDays.forEach(dayKey => {
+            const cols = dayMaxCols[dayKey];
+            gridTemplateCols += `minmax(${140 * cols}px, ${cols}fr) `;
+        });
+        grid.style.gridTemplateColumns = gridTemplateCols.trim();
+
         // pobranie posortowanych przedzialow czasowych
         const timeSlots = this.getTimeSlotsObjects();
         
@@ -263,13 +288,21 @@ class ScheduleCalendar{
                 if (specialDaysMap[dayKey]) {
                      const cell = document.createElement('div');
                      cell.className = 'class-cell special-day-cell';
-                     // cell.textContent = "Wolne"; // Opcjonalnie
                      cell.title = specialDaysMap[dayKey].name;
                      cell.style.gridRow = rowIndex;
                      cell.style.gridColumn = columnIndex;
+                     cell.setAttribute('data-col', columnIndex);
                      grid.appendChild(cell);
                      return; // SKIP rendering classes
                 }
+
+                // Zawsze renderujemy pustą komórkę tła, by zachować ułożenie kratek siatki i uniknąć szarego tła pod zajęciami
+                const bgCell = document.createElement('div');
+                bgCell.className = 'class-cell empty';
+                bgCell.style.gridRow = rowIndex;
+                bgCell.style.gridColumn = columnIndex;
+                bgCell.setAttribute('data-col', columnIndex);
+                grid.appendChild(bgCell);
 
                 const classes = this.getClassesForTimeSlot(dayKey, slotObj, grouped);
                 
@@ -299,6 +332,14 @@ class ScheduleCalendar{
                         classItem.className = `class-item ${typeClass}`;
                         classItem.style.gridRow = `${rowIndex} / span ${rowSpan}`;
                         classItem.style.gridColumn = columnIndex;
+                        classItem.setAttribute('data-col', columnIndex);
+
+                        // Aplikowanie logiki kolizji zajęć
+                        const overlapInfo = dayOverlaps[dayKey][classId];
+                        if (overlapInfo) {
+                            classItem.style.width = `calc(${overlapInfo.width}% - 4px)`;
+                            classItem.style.marginLeft = `calc(${overlapInfo.left}% + 2px)`; // +2px overrides default margin
+                        }
                         
                         // Store data for modal
                         classItem.setAttribute('data-class-json', JSON.stringify(c));
@@ -321,24 +362,12 @@ class ScheduleCalendar{
                         `;
                         grid.appendChild(classItem);
                     });
-                } else {
-                    // sprawdź czy w tym slotcie trwają jakieś zajęcia (ale nie rozpoczynają się)
-                    const ongoingClasses = classes.filter(c => {
-                        const classId = `${dayKey}-${c.id || c.title}-${this.formatTime(c.startTime)}`;
-                        return renderedClasses.has(classId);
-                    });
-                    
-                    // dodaj pustą komórkę tylko jeśli nie ma trwających zajęć
-                    if(ongoingClasses.length === 0){
-                        const cell = document.createElement('div');
-                        cell.className = 'class-cell empty';
-                        cell.style.gridRow = rowIndex;
-                        cell.style.gridColumn = columnIndex;
-                        grid.appendChild(cell);
-                    }
                 }
             });
         });
+
+        // Po wyrenderowaniu wszystkich zajęć, upewniamy się, że zastosowane są aktywne filtry
+        this.applyFilters();
     }
     
     // grupowanie zajec wedlug dni
@@ -410,6 +439,80 @@ class ScheduleCalendar{
                    (itemStartNum <= slotStartNum && itemEndNum > slotStartNum);
         });
     }
+
+    // Obliczanie kolizji dla nałożonych na siebie zajęć
+    calculateOverlaps(classesForDay, dayKey) {
+        if (!classesForDay || classesForDay.length === 0) return { positions: {}, maxCols: 1 };
+
+        // Sortujemy po czasie rozpoczęcia, potem po czasie zakończenia
+        const sorted = [...classesForDay].sort((a,b) => {
+            const startA = this.timeToNumber(a.startTime);
+            const startB = this.timeToNumber(b.startTime);
+            if (startA !== startB) return startA - startB;
+            return this.timeToNumber(b.endTime) - this.timeToNumber(a.endTime);
+        });
+
+        const positions = {}; // Map: classId -> { width, left }
+        let currentCluster = [];
+        let clusterEnd = 0;
+        let absoluteMaxCols = 1; // Przechowuje max nakładających się zajęć w ciągu całego dnia
+
+        const processCluster = (cluster) => {
+            const columns = []; // przechowuje czas zakończenia ostatniego zajęcia w danej podkolumnie
+            
+            cluster.forEach(cls => {
+                const start = this.timeToNumber(cls.startTime);
+                const end = this.timeToNumber(cls.endTime);
+                
+                let placed = false;
+                for (let i = 0; i < columns.length; i++) {
+                    if (columns[i] <= start) {
+                        columns[i] = end;
+                        cls._colIdx = i;
+                        placed = true;
+                        break;
+                    }
+                }
+                
+                if (!placed) {
+                    columns.push(end);
+                    cls._colIdx = columns.length - 1;
+                }
+            });
+
+            const numCols = columns.length;
+            if (numCols > absoluteMaxCols) absoluteMaxCols = numCols; // Aktualizuj max kolumn dla całego dnia
+            
+            cluster.forEach(cls => {
+                const classId = `${dayKey}-${cls.id || cls.title}-${this.formatTime(cls.startTime)}`;
+                positions[classId] = {
+                    width: 100 / numCols,
+                    left: (100 / numCols) * cls._colIdx
+                };
+            });
+        };
+
+        sorted.forEach(cls => {
+            const start = this.timeToNumber(cls.startTime);
+            const end = this.timeToNumber(cls.endTime);
+
+            if (currentCluster.length > 0 && start >= clusterEnd) {
+                // Koniec klastra, przetwarzamy
+                processCluster(currentCluster);
+                currentCluster = [];
+                clusterEnd = 0;
+            }
+
+            currentCluster.push(cls);
+            if (end > clusterEnd) clusterEnd = end;
+        });
+
+        if (currentCluster.length > 0) {
+            processCluster(currentCluster);
+        }
+
+        return { positions, maxCols: absoluteMaxCols };
+    }
     
     // formatowanie czasu - używa Utils
     formatTime(timeObj) {
@@ -454,7 +557,7 @@ class ScheduleCalendar{
 
         // Reset highlight
         document.querySelectorAll('.day-header').forEach(el => el.classList.remove('current-day'));
-        document.querySelectorAll('.class-cell').forEach(el => el.classList.remove('current-day-col'));
+        document.querySelectorAll('.current-day-col').forEach(el => el.classList.remove('current-day-col'));
 
         // Znajdź nagłówek z dzisiejszą datą
         const todayHeader = document.querySelector(`.day-header[data-date="${todayStr}"]`);
@@ -462,14 +565,15 @@ class ScheduleCalendar{
         if (todayHeader) {
             todayHeader.classList.add('current-day');
             
-            // Opcjonalnie: podświetlenie całej kolumny
+            // Podświetlenie całej kolumny
             // Musimy sprawdzić który to numer kolumny
             const headers = Array.from(document.querySelectorAll('.day-header'));
             const colIndex = headers.indexOf(todayHeader);
             
             if (colIndex !== -1) {
                 const columnIndex = colIndex + 2; // +2 bo pierwsza kolumna to godziny
-                document.querySelectorAll(`.class-cell[style*="grid-column: ${columnIndex}"]`).forEach(cell => {
+                // Szukamy tylko komórek siatki (class-cell), omijając bloki zajęć (class-item)
+                document.querySelectorAll(`.class-cell[data-col="${columnIndex}"]`).forEach(cell => {
                     cell.classList.add('current-day-col');
                 });
             }
@@ -658,6 +762,104 @@ class ScheduleCalendar{
         strip.className = 'modal-header-strip ' + colorClass;
 
         modal.classList.add('active');
+    }
+
+    // --- LOGIKA FILTRÓW TYPÓW ZAJĘĆ ---
+    
+    renderFilters() {
+        const filtersContainer = document.getElementById('classFilters');
+        if (!filtersContainer) return;
+        
+        filtersContainer.innerHTML = '';
+        
+        // Zbieramy unikalne typy zajęć z danych
+        const types = new Set();
+        this.scheduleData.forEach(item => {
+            if (item.classType) types.add(item.classType);
+        });
+
+        if (types.size === 0) return;
+
+        types.forEach(type => {
+            const btn = document.createElement('button');
+            btn.className = 'class-type-filter-btn';
+            btn.dataset.type = type;
+            
+            // Kolorowy znacznik zapożyczający kolor z klasy
+            const typeClass = `class-type-${type.toLowerCase()}`;
+            const dot = document.createElement('span');
+            dot.style.display = 'inline-block';
+            dot.style.width = '10px';
+            dot.style.height = '10px';
+            dot.style.borderRadius = '50%';
+            dot.classList.add(typeClass); 
+            
+            const text = document.createTextNode(` ${this.classTypeNames[type] || type}`);
+            
+            btn.appendChild(dot);
+            btn.appendChild(text);
+            
+            btn.addEventListener('click', () => this.toggleFilter(type, btn));
+            filtersContainer.appendChild(btn);
+        });
+    }
+
+    toggleFilter(type, btn) {
+        if (this.activeFilters.has(type)) {
+            this.activeFilters.delete(type);
+            btn.classList.remove('active');
+        } else {
+            this.activeFilters.add(type);
+            btn.classList.add('active');
+        }
+        this.applyFilters();
+    }
+
+    applyFilters() {
+        const items = document.querySelectorAll('.class-item');
+        
+        if (this.activeFilters.size === 0) {
+            // Brak wyfiltrowanych elementów -> pokazujemy wszystko
+            items.forEach(item => item.classList.remove('dimmed-class'));
+            return;
+        }
+
+        items.forEach(item => {
+            const dataStr = item.getAttribute('data-class-json');
+            if (!dataStr) return;
+            try {
+                const classData = JSON.parse(dataStr);
+                const type = classData.classType;
+                
+                if (this.activeFilters.has(type)) {
+                    item.classList.remove('dimmed-class');
+                } else {
+                    item.classList.add('dimmed-class');
+                }
+            } catch (e) {
+                console.error("Błąd parsowania danych dla filtru", e);
+            }
+        });
+    }
+
+    // Auto-Scroll do aktualnej godziny (Płynne przewijanie)
+    scrollToCurrentTime() {
+        const timeLine = document.getElementById('currentTimeLine');
+        if (timeLine) {
+            timeLine.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+        } else {
+            // Jeśli nie ma linii (np. poza godzinami 8-20 dzisiaj), znajdź najwcześniejsze dzisiejsze zajęcia
+            const todayClasses = document.querySelectorAll('.current-day-col.class-item');
+            if (todayClasses.length > 0) {
+                todayClasses[0].scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+            } else {
+                // Jeśli w ogóle nie ma dzisiaj zajęć, zjedź chociaż do nagłówka
+                const todayHeader = document.querySelector('.day-header.current-day');
+                if (todayHeader) {
+                    todayHeader.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'center' });
+                }
+            }
+        }
     }
 }
 

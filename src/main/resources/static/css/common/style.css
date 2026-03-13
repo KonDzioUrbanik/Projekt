@@ -1,24 +1,23 @@
 /* ZMIENNE CSS */
 
 :root {
-    /* Kolory Wiodące (Brand) */
+    /* Kolory wiodące */
     --primary: #005efa;
     --primary-hover: #004acb;
     --primary-light: rgba(0, 94, 250, 0.08);
 
-    /* Kolory Tła */
+    /* Kolory tła */
     --bg-body: #f3f4f6;
     --bg-card: #ffffff;
     --bg-glass: rgba(255, 255, 255, 0.85);
-    /* Efekt szkła */
 
-    /* Kolory Tekstu */
+    /* Kolory tekstu */
     --text-main: #111827;
     --text-secondary: #4b5563;
     --text-muted: #9ca3af;
     --text-white: #ffffff;
 
-    /* Obramowania i Cienie */
+    /* Obramowania i cienie */
     --border: #e5e7eb;
     --border-focus: rgba(0, 94, 250, 0.4);
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -49,7 +48,6 @@
 body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background-color: var(--bg-body);
-    /* Subtelny gradient w tle dla nowoczesnego wyglądu */
     background-image:
         radial-gradient(at 0% 0%, rgba(0, 94, 250, 0.05) 0px, transparent 50%),
         radial-gradient(at 100% 100%, rgba(0, 94, 250, 0.05) 0px, transparent 50%);
@@ -59,6 +57,27 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+}
+
+/* CUSTOM SCROLLBAR GLOBAL */
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    border: 2px solid var(--bg-body, #f3f4f6);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.35);
 }
 
 /* UKŁAD STRONY STARTOWEJ (LANDING PAGE) */
@@ -1102,4 +1121,95 @@ body {
     color: var(--text-secondary);
     margin-bottom: 15px;
     line-height: 1.6;
+}
+
+/* BREADCRUMBS */
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    margin: 16px 24px 20px;
+    padding: 10px 18px;
+    font-size: 0.82rem;
+    letter-spacing: 0.01em;
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
+}
+
+.breadcrumbs:empty {
+    display: none;
+}
+
+.breadcrumb-item {
+    color: var(--text-muted, #9ca3af);
+    text-decoration: none;
+    transition: color 0.15s ease;
+    white-space: nowrap;
+}
+
+a.breadcrumb-item:hover {
+    color: var(--primary, #005efa);
+}
+
+.breadcrumb-item.active {
+    color: var(--text-main, #111827);
+    font-weight: 600;
+    pointer-events: none;
+}
+
+.breadcrumb-separator {
+    margin: 0 8px;
+    color: var(--border, #e5e7eb);
+    font-size: 0.85rem;
+    user-select: none;
+}
+
+/* VIEW TRANSITIONS API - płynne przejścia między stronami */
+@view-transition {
+    navigation: auto;
+}
+
+/* Header i sidebar nie migają */
+.header {
+    view-transition-name: header;
+}
+
+.side-nav {
+    view-transition-name: sidebar;
+}
+
+::view-transition-old(header),
+::view-transition-new(header),
+::view-transition-old(sidebar),
+::view-transition-new(sidebar) {
+    animation: none;
+}
+
+::view-transition-old(root) {
+    animation: vt-fade-out 0.2s ease-out;
+}
+
+::view-transition-new(root) {
+    animation: vt-fade-in 0.25s ease-in;
+}
+
+@keyframes vt-fade-out {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes vt-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }

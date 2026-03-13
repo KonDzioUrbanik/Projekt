@@ -16,7 +16,7 @@ class DashboardHome {
         ANIMATION_FPS: 60,
         MILLIS_PER_DAY: 24 * 60 * 60 * 1000,
         GREETING_TIMES: {
-            NIGHT_END: 6,
+            NIGHT_END: 5,
             MORNING_END: 12,
             AFTERNOON_END: 18,
             EVENING_END: 22
@@ -216,11 +216,11 @@ class DashboardHome {
         const noClassesDiv = document.getElementById('noClasses');
         const specialPeriodDiv = document.getElementById('specialPeriodInfo');
         
-        // Ukryj wszystkie kontenery na początku
-        currentContainer.style.display = 'none';
-        todayContainer.style.display = 'none';
-        tomorrowContainer.style.display = 'none';
-        noClassesDiv.style.display = 'none';
+        // Ukryj wszystkie kontenery na początku, jeśli istnieją
+        if(currentContainer) currentContainer.style.display = 'none';
+        if(todayContainer) todayContainer.style.display = 'none';
+        if(tomorrowContainer) tomorrowContainer.style.display = 'none';
+        if(noClassesDiv) noClassesDiv.style.display = 'none';
         if (specialPeriodDiv) specialPeriodDiv.style.display = 'none';
         
         // Sprawdź czy jest aktywny okres specjalny
@@ -230,13 +230,13 @@ class DashboardHome {
         }
         
         // Wyświetlenie aktualnych zajęć
-        if (currentClasses.length > 0) {
+        if (currentClasses.length > 0 && currentContainer) {
             currentContainer.style.display = 'block';
             this.renderClasses('currentClassesList', currentClasses, now, true);
         }
         
         // Wyświetlenie zajęć dzisiaj (nadchodzące)
-        if (todayUpcomingClasses.length > 0) {
+        if (todayUpcomingClasses.length > 0 && todayContainer) {
             todayContainer.style.display = 'block';
             this.renderClasses('todayClassesList', todayUpcomingClasses, now);
         }
@@ -244,7 +244,7 @@ class DashboardHome {
         // Wyświetlenie zajęć jutro - tylko jeśli nie ma już dzisiejszych zajęć
         // lub jeśli jest bardzo późno (po 22:00) i dzisiejsze zajęcia się skończyły
         const showTomorrow = todayUpcomingClasses.length === 0 && currentClasses.length === 0;
-        if (showTomorrow && tomorrowClasses.length > 0) {
+        if (showTomorrow && tomorrowClasses.length > 0 && tomorrowContainer) {
             tomorrowContainer.style.display = 'block';
             const tomorrowDate = new Date(now.getTime() + DashboardHome.CONFIG.MILLIS_PER_DAY);
             this.renderClasses('tomorrowClassesList', tomorrowClasses, tomorrowDate);
@@ -252,7 +252,7 @@ class DashboardHome {
         
         // Pokaż komunikat jeśli brak zajęć
         if (currentClasses.length === 0 && todayUpcomingClasses.length === 0 && (!showTomorrow || tomorrowClasses.length === 0)) {
-            noClassesDiv.style.display = 'flex';
+            if (noClassesDiv) noClassesDiv.style.display = 'flex';
         }
     }
     
@@ -522,10 +522,15 @@ class DashboardHome {
     // PANEL ADMINISTRATORA
 
     // Inicjalizacja panelu administratora
-    initAdminPanel() {
+    async initAdminPanel() {
         this.loadAdminStats();
         this.loadRecentActivity();
-        this.loadAdminClasses();
+
+        if (this.activeSpecialPeriod === null) {
+            await this.loadActiveSpecialPeriod();
+        }
+        
+        await this.loadAdminClasses();
     }
 
     // Załadowanie statystyk dla administratora
@@ -672,6 +677,48 @@ class DashboardHome {
         if (!classList) return;
         
         try {
+            // Najpierw sprawdzamy okres specjalny - jeśli jest, pokazujemy zamiast zajęć
+            if (this.activeSpecialPeriod) {
+                const period = this.activeSpecialPeriod;
+                let icon, message, cssClass;
+                
+                switch (period.type) {
+                    case 'EXAM':
+                        icon = 'fa-file-signature';
+                        message = 'Powodzenia na egzaminach!';
+                        cssClass = 'special-exam';
+                        break;
+                    case 'BREAK':
+                        icon = 'fa-mug-hot';
+                        message = 'Odpoczynek od zajęć!';
+                        cssClass = 'special-break';
+                        break;
+                    case 'HOLIDAY':
+                        icon = 'fa-calendar-xmark';
+                        message = 'Dzień wolny od zajęć';
+                        cssClass = 'special-holiday';
+                        break;
+                    default:
+                        icon = 'fa-info-circle';
+                        message = 'Brak zajęć dydaktycznych';
+                        cssClass = 'special-other';
+                }
+                
+                classList.innerHTML = `
+                    <div class="special-period-card ${cssClass}" style="margin-top: 2rem;">
+                        <div class="special-period-icon">
+                            <i class="fas ${icon}"></i>
+                        </div>
+                        <div class="special-period-content">
+                            <h3>${period.title}</h3>
+                            <p>${message}</p>
+                            <span class="special-period-dates">${period.formattedDateRange || ''}</span>
+                        </div>
+                    </div>
+                `;
+                return; // Zakończ, nie pobieraj normalnych zajęć
+            }
+
             // Pobieranie wszystkich zajęć z API
             const response = await fetch(DashboardHome.CONFIG.API.SCHEDULE_ALL);
             
@@ -773,9 +820,64 @@ class DashboardHome {
 }
 
 // Inicjalizacja po załadowaniu DOM
-document.addEventListener('DOMContentLoaded', () => {
-    new DashboardHome();
 
+
+// Inicjalizacja po załadowaniu DOM
+document.addEventListener('DOMContentLoaded', () => {
+
+    if (window.OnboardingTour) {
+        try {
+            const tour = new window.OnboardingTour({
+                steps: [
+                    {
+                        target: '#sidebar',
+                        title: 'Nawigacja',
+                        description: 'Po lewej stronie znajdziesz dostęp do wszystkich funkcji: Strona Główna, Kalendarz, Harmonogram zajęć, Forum, Obecności, Notatki, Kalendarz akademicki.',
+                        placement: 'right'
+                    },
+                    {
+                        target: '.header',
+                        title: 'Panel użytkownika',
+                        description: 'Tutaj znajdziesz swój numer indeksu, zarządzanie profilem, powiadomienia oraz możliwość zmiany motywu i opcję wylogowania.',
+                        placement: 'bottom'
+                    },
+                    {
+                        target: '#welcome',
+                        title: 'Witaj w panelu!',
+                        description: 'To jest Twój główny pulpit. Tutaj zobaczysz najważniejsze informacje, nadchodzące zajęcia i wiele więcej.',
+                        placement: 'bottom'
+                    },
+                    {
+                        target: '#feedbackBtn',
+                        title: 'Zgłoś błąd',
+                        description: 'Jeśli coś nie działa, daj nam znać klikając tutaj. Cenimy Twoją opinię!',
+                        placement: 'left'
+                    }
+                ]
+            });
+
+
+            const path = window.location.pathname;
+            if (path === '/home' || path === '/student/dashboard' || path === '/') {
+                setTimeout(() => {
+                    if (tour.shouldRun()) {
+                        tour.start();
+                    }
+                }, 1000);
+            }
+        } catch (e) {
+            console.error('[Dashboard] Error initializing Onboarding:', e);
+        }
+    } else {
+        console.warn('[Dashboard] OnboardingTour module not found! Check script loading order.');
+    }
+
+    try {
+        new DashboardHome();
+    } catch (e) {
+        console.error('[Dashboard] Critical error in DashboardHome init:', e);
+    }
+    
     const days = [
         "Niedziela",
         "Poniedziałek",

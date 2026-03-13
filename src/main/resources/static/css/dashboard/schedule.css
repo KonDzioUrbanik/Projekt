@@ -16,14 +16,14 @@
 
 .schedule-grid {
     display: grid;
-    grid-template-columns: 120px repeat(5, 1fr);
+    grid-template-columns: 120px repeat(7, minmax(140px, 1fr));
     gap: 0;
     background: #e5e7eb;
     border-radius: 8px;
-    overflow: hidden;
-    overflow: hidden;
     margin-top: 1.5rem;
     min-height: 200px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .schedule-grid[style*="display: flex"] {
@@ -36,6 +36,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
     background: #f8f9fa;
     padding: 1rem;
     border-radius: 8px;
@@ -150,6 +152,11 @@
     padding: 1.25rem 0.5rem;
     border-bottom: 2px solid #e5e7eb;
     border-left: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background-color 0.15s ease;
+}
+
+.day-header:hover {
+    background-color: #1a6bfb;
 }
 
 .time-slot {
@@ -204,7 +211,8 @@
     border-left: 1px solid #e5e7eb;
     border-top: 1px solid #e5e7eb;
     overflow: hidden;
-    /* border: 1px solid black; */
+    position: relative;
+    z-index: 10;
 }
 
 .class-item:hover {
@@ -340,8 +348,17 @@
 }
 
 .empty-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
+    width: 90px;
+    height: 90px;
+    background: linear-gradient(135deg, rgba(0, 94, 250, 0.1) 0%, rgba(0, 94, 250, 0.05) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: var(--color-primary, #005efa);
+    margin: 0 auto 1.5rem auto;
+    /* Scentrowane */
 }
 
 .empty-schedule h3 {
@@ -535,6 +552,19 @@
     border-radius: 3px;
 }
 
+/* Podświetlenie komórek w kolumnie bieżącego dnia */
+.current-day-col {
+    background: rgba(37, 99, 235, 0.06) !important;
+    border-left: 2px solid rgba(37, 99, 235, 0.2) !important;
+    border-right: 2px solid rgba(37, 99, 235, 0.2) !important;
+}
+
+[data-theme="dark"] .current-day-col {
+    background: rgba(59, 130, 246, 0.08) !important;
+    border-left: 2px solid rgba(59, 130, 246, 0.2) !important;
+    border-right: 2px solid rgba(59, 130, 246, 0.2) !important;
+}
+
 /* Class Details Modal */
 .modal {
     display: none;
@@ -545,7 +575,7 @@
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(4px);
     align-items: center;
     justify-content: center;
 }
@@ -772,15 +802,13 @@
 }
 
 .special-day-cell {
-    background: #fef2f2;
-    /* Bardzo jasny czerwony */
-    border-color: #fee2e2;
-    /* Hatch pattern or simpler indication */
+    background: #fee2e2;
+    border-color: #fca5a5;
     background-image: repeating-linear-gradient(45deg,
-            #fef2f2,
-            #fef2f2 10px,
+            #fee2e2,
             #fee2e2 10px,
-            #fee2e2 20px);
+            #fecaca 10px,
+            #fecaca 20px);
 }
 
 [data-theme="dark"] .special-day-header {
@@ -803,4 +831,64 @@
 
 [data-theme="dark"] .empty-schedule h3 {
     color: white;
+}
+
+/* --- Class Type Filters --- */
+.schedule-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.class-type-filter-btn {
+    border: none;
+    background: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #4b5563;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    border: 1px solid transparent;
+}
+
+.class-type-filter-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.class-type-filter-btn.active {
+    background: #1f2937;
+    color: white;
+}
+
+.class-item.dimmed-class {
+    opacity: 0.15 !important;
+    transform: scale(0.98);
+    pointer-events: none;
+    filter: grayscale(80%);
+}
+
+/* Dark Mode dla filtrów */
+[data-theme="dark"] .class-type-filter-btn {
+    background: #374151;
+    color: #d1d5db;
+    border-color: #4b5563;
+}
+
+[data-theme="dark"] .class-type-filter-btn:hover {
+    background: #4b5563;
+    color: white;
+}
+
+[data-theme="dark"] .class-type-filter-btn.active {
+    background: #60a5fa;
+    color: #111827;
+    border-color: #60a5fa;
 }

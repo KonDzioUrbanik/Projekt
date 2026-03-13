@@ -71,6 +71,36 @@ const Utils = {
         return tmp.textContent || tmp.innerText || "";
     },
 
+    /* Usuwa znaczniki Markdown z tekstu (np. do czystego podglądu) */
+    stripMarkdown(text) {
+        if (!text) return '';
+        return String(text)
+            // Usuń nagłówki (#)
+            .replace(/^#{1,6}\s+/gm, '')
+            // Usuń pogrubienia i pochylenia (*, **, _, __)
+            .replace(/(\*\*|__)(.*?)\1/g, '$2')
+            .replace(/(\*|_)(.*?)\1/g, '$2')
+            // Usuń przekreślenia (~~)
+            .replace(/~~(.*?)~~/g, '$1')
+            // Usuń kody inline (`) oraz bloki kodu (```)
+            .replace(/```[\s\S]*?```/g, '')
+            .replace(/`([^`]+)`/g, '$1')
+            // Usuń linki [text](url) -> text
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+            // Usuń obrazki ![alt](url) -> alt
+            .replace(/!\[(.*?)\]\([^)]+\)/g, '$1')
+            // Usuń listy punktowane i numerowane
+            .replace(/^[\s]*[-+*]\s+/gm, '')
+            .replace(/^[\s]*\d+\.\s+/gm, '')
+            // Usuń cytaty (>)
+            .replace(/^>\s+/gm, '')
+            // Usuń linie poziome (---, ***, ___)
+            .replace(/^(-{3,}|\*{3,}|_{3,})$/gm, '')
+            // Pozbądź się nadmiaru białych znaków
+            .replace(/\n+/g, ' ')
+            .trim();
+    },
+
     /* Konwersja czasu do minut (wspólna funkcja) */
     timeToMinutes(timeObj) {
         if (!timeObj) return 0;
@@ -154,8 +184,139 @@ const Utils = {
             console.warn('Utils.safeJsonParse: Invalid JSON', e);
             return fallback;
         }
+    },
+    
+    /* Uniwersalna funkcja wyświetlania powiadomień Toast */
+    showToast(message, type = 'success', options = {}) {
+        const {
+            actionHtml = '',
+            duration = 4000,
+            closable = false,
+            containerId = 'toastContainer'
+        } = options;
+
+        const container = document.getElementById(containerId);
+        if (!container) return null;
+
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+
+        /* Mapowanie ikon */
+        const iconMap = {
+            success: 'check-circle',
+            error: 'exclamation-circle',
+            warning: 'exclamation-triangle',
+            info: 'info-circle'
+        };
+        const icon = iconMap[type] || 'info-circle';
+
+        /* Budowa HTML */
+        const closeBtnHtml = closable
+            ? `<button class="toast-close" onclick="this.parentElement.classList.add('fade-out'); setTimeout(() => this.parentElement.remove(), 300);">&times;</button>`
+            : '';
+
+        const actionBlock = actionHtml
+            ? `<div class="toast-actions">${actionHtml}</div>`
+            : '';
+
+        toast.innerHTML = `
+            <i class="fas fa-${icon}"></i>
+            <span style="flex:1;">${message}</span>
+            ${actionBlock}
+            ${closeBtnHtml}
+        `;
+
+        container.appendChild(toast);
+
+        /* Auto-ukrywanie (wyłączone gdy duration=0 lub jest przycisk akcji) */
+        if (duration > 0 && !actionHtml) {
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.classList.add('fade-out');
+                    setTimeout(() => {
+                        if (toast.parentElement) toast.remove();
+                    }, 300);
+                }
+            }, duration);
+        }
+
+        return toast;
+    },
+
+    /* Inicjalizacja pływającego przycisku Go-To-Top (Płynny Przewijak) */
+    initGoToTop() {
+        const btn = document.getElementById('goToTopBtn');
+        if (!btn) return;
+
+        // Na dużych ekranach przewija się .navbar-middle, na komórkach zazwyczaj window.
+        const navbarMiddle = document.querySelector('.navbar-middle');
+        
+        // Funkcja sprawdzająca scroll niezależnie od tego kto scrolluje
+        const checkScroll = Utils.debounce(() => {
+            const scrollTop = (navbarMiddle && navbarMiddle.scrollTop) || window.scrollY || document.documentElement.scrollTop;
+            
+            if (scrollTop > 300) {
+                btn.classList.add('visible');
+            } else {
+                btn.classList.remove('visible');
+            }
+        }, 100);
+
+        // Nasłuchujemy na oba potencjalne "przewijaki"
+        window.addEventListener('scroll', checkScroll);
+        if (navbarMiddle) {
+            navbarMiddle.addEventListener('scroll', checkScroll);
+        }
+        
+        btn.addEventListener('click', () => {
+            // Skrolujemy płynnie oba
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (navbarMiddle) {
+                if (typeof navbarMiddle.scrollTo === 'function') {
+                    navbarMiddle.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    navbarMiddle.scrollTop = 0;
+                }
+            }
+        });
+    },
+
+    /* Przenosi modale (.modal-overlay) z wnętrza .navbar-middle na document.body, żeby nie były przycinane przez overflow: hidden na .dashboard-container */
+    portalModals() {
+        const SELECTOR = '.navbar-middle .modal-overlay, .navbar-middle .modal';
+
+        const moveModals = () => {
+            document.querySelectorAll(SELECTOR).forEach(overlay => {
+                document.body.appendChild(overlay);
+            });
+        };
+
+        // Przenieś istniejące modale
+        moveModals();
+
+        // Obserwuj dynamicznie dodawane modale (np. z JS modułów)
+        const container = document.querySelector('.navbar-middle');
+        if (container) {
+            const observer = new MutationObserver(mutations => {
+                for (const mutation of mutations) {
+                    for (const node of mutation.addedNodes) {
+                        if (node.nodeType === 1 && node.classList &&
+                            (node.classList.contains('modal-overlay') || node.classList.contains('modal'))) {
+                            document.body.appendChild(node);
+                        }
+                    }
+                }
+            });
+            observer.observe(container, { childList: true, subtree: true });
+        }
     }
 };
+
+// Automatyczne odpalenie przyjaznych globalnych skryptów interfejsu
+document.addEventListener('DOMContentLoaded', () => {
+    Utils.initGoToTop();
+    Utils.portalModals();
+});
 
 // Eksport dla kompatybilności (jeśli używasz modułów lub testów)
 if (typeof module !== 'undefined' && module.exports) {

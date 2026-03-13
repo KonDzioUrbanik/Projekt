@@ -40,7 +40,8 @@ const AppState = {
     editingNoteId: null,
     selectedUsers: [],
     currentVisibility: 'PRIVATE',
-    searchTimeout: null
+    searchTimeout: null,
+    quill: null
 };
 
 const DOM = {
@@ -49,6 +50,8 @@ const DOM = {
     searchInput: document.getElementById('searchInput'),
     filterChips: document.querySelectorAll('.filter-chip'),
     btnNewNote: document.getElementById('btnNewNote'),
+    btnToggleSidebar: document.getElementById('btnToggleSidebar'),
+    notesSidebar: document.querySelector('.notes-sidebar'),
     
     // Widok notatki
     emptyState: document.getElementById('emptyState'),
@@ -103,7 +106,10 @@ const DOM = {
     btnTextDec: document.getElementById('btnTextDec'),
     btnExportPdf: document.getElementById('btnExportPdf'),
     btnExportDocx: document.getElementById('btnExportDocx'),
-    btnToggleFullscreen: document.getElementById('btnToggleFullscreen')
+    btnToggleFullscreen: document.getElementById('btnToggleFullscreen'),
+
+    // Masonry Grid
+    notesMasonryGrid: document.getElementById('notesMasonryGrid')
 };
 
 // INICJALIZACJA
@@ -111,8 +117,75 @@ const DOM = {
 document.addEventListener('DOMContentLoaded', initializeApp);
 
 function initializeApp() {
+    initQuillEditor();
     setupEventListeners();
     loadNotes();
+}
+
+function initQuillEditor() {
+    const editorContainer = document.getElementById('quillEditor');
+    if (!editorContainer) return;
+
+    AppState.quill = new Quill('#quillEditor', {
+        theme: 'snow',
+        placeholder: 'Wprowadź treść notatki...',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                ['blockquote', 'code-block'],
+                ['link'],
+                ['clean']
+            ]
+        }
+    });
+
+    // Aktualizacja licznika znaków przy zmianie tekstu
+    AppState.quill.on('text-change', () => {
+        const length = AppState.quill.getLength() - 1; // Quill liczy końcowy newline
+        if (DOM.contentCharCount) {
+            DOM.contentCharCount.textContent = `${length}`;
+            DOM.contentCharCount.classList.remove('warning', 'danger');
+        }
+    });
+
+    // Polskie tooltipy dla przycisków toolbara
+    setQuillTooltips();
+}
+
+function setQuillTooltips() {
+    const toolbar = document.querySelector('.ql-toolbar');
+    if (!toolbar) return;
+
+    const tooltips = {
+        '.ql-bold': 'Pogrubienie',
+        '.ql-italic': 'Pochylenie',
+        '.ql-underline': 'Podkreślenie',
+        '.ql-strike': 'Przekreślenie',
+        '.ql-link': 'Wstaw link',
+        '.ql-blockquote': 'Cytat',
+        '.ql-code-block': 'Blok kodu',
+        '.ql-clean': 'Wyczyść formatowanie',
+        '.ql-list[value="ordered"]': 'Lista numerowana',
+        '.ql-list[value="bullet"]': 'Lista punktowana'
+    };
+
+    for (const [selector, title] of Object.entries(tooltips)) {
+        const btn = toolbar.querySelector(selector);
+        if (btn) btn.setAttribute('title', title);
+    }
+
+    // Pickery (header, color, background)
+    const headerPicker = toolbar.querySelector('.ql-header .ql-picker-label');
+    if (headerPicker) headerPicker.setAttribute('title', 'Nagłówek');
+
+    const colorPicker = toolbar.querySelector('.ql-color .ql-picker-label');
+    if (colorPicker) colorPicker.setAttribute('title', 'Kolor tekstu');
+
+    const bgPicker = toolbar.querySelector('.ql-background .ql-picker-label');
+    if (bgPicker) bgPicker.setAttribute('title', 'Kolor tła');
 }
 
 function setupEventListeners() {
@@ -139,6 +212,7 @@ function setupEventListeners() {
     // Przyciski bocznego panelu
     if (DOM.btnNewNote) DOM.btnNewNote.addEventListener('click', openCreateModal);
     if (DOM.btnToggleFullscreen) DOM.btnToggleFullscreen.addEventListener('click', toggleFullscreenModal);
+    if (DOM.btnToggleSidebar) DOM.btnToggleSidebar.addEventListener('click', toggleNotesSidebar);
 
     // Akcje notatki
     if (DOM.btnEdit) DOM.btnEdit.addEventListener('click', openEditModal);
@@ -175,20 +249,7 @@ function setupEventListeners() {
     if (DOM.formNoteTitle) {
         DOM.formNoteTitle.addEventListener('input', () => updateCharCounter(DOM.formNoteTitle, DOM.titleCharCount, 150));
     }
-    if (DOM.formNoteContent) {
-        DOM.formNoteContent.addEventListener('input', () => updateCharCounter(DOM.formNoteContent, DOM.contentCharCount, null));
-    }
-
-    // Formatowanie tekstu (Markdown Lite)
-    const formatBtns = document.querySelectorAll('.btn-format');
-    formatBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault(); // Zapobiega submitowi formularza
-            const format = btn.dataset.format;
-            handleFormatting(format);
-        });
-    });
-
+    // Licznik treści obsługiwany jest przez event 'text-change' Quill w initQuillEditor()
 
     // Akcje usuwania
     if (DOM.btnCancelDelete) DOM.btnCancelDelete.addEventListener('click', closeDeleteConfirmation);
@@ -215,7 +276,7 @@ function setupEventListeners() {
             const targetNote = AppState.notes.find(n => n.id == noteIdParam);
             if (targetNote) selectNote(targetNote.id);
         } else {
-            // Jeśli wróciliśmy do czystego /dashboard/notes (bez ID), zamykamy podgląd
+            // Jeśli wróciliśmy do czystego /student/notes (bez ID), zamykamy podgląd
             AppState.selectedNote = null;
             if (DOM.emptyState) DOM.emptyState.style.display = 'flex';
             if (DOM.noteView) DOM.noteView.style.display = 'none';
@@ -336,7 +397,7 @@ async function loadNotes() {
         }
     } catch (error) {
         console.error('Błąd ładowania:', error);
-        showToast('Nie udało się nawiązać połączenia z serwerem. Sprawdź swoje połączenie internetowe.', 'error');
+        Utils.showToast('Nie udało się nawiązać połączenia z serwerem. Sprawdź swoje połączenie internetowe.', 'error');
         
         DOM.notesList.innerHTML = `
             <div style="text-align:center; padding:30px; color:var(--danger);">
@@ -351,7 +412,15 @@ async function loadNotes() {
 async function handleFormSubmit(e) {
     e.preventDefault();
     const title = DOM.formNoteTitle.value.trim();
-    const content = DOM.formNoteContent.value.trim();
+    
+    // Pobranie treści z Quill (HTML)
+    let content = '';
+    if (AppState.quill) {
+        const quillText = AppState.quill.getText().trim();
+        content = quillText.length > 0 ? AppState.quill.root.innerHTML : '';
+    } else {
+        content = DOM.formNoteContent.value.trim();
+    }
     const tags = DOM.formNoteTags ? DOM.formNoteTags.value.trim() : '';
     const visibility = DOM.formNoteVisibility ? DOM.formNoteVisibility.value : 'PRIVATE';
 
@@ -388,7 +457,7 @@ async function handleFormSubmit(e) {
 
             if (isShareOnlyMode) {
                 resultNote = await shareNoteData(AppState.editingNoteId, visibility);
-                showToast('Ustawienia udostępniania zostały zaktualizowane.', 'success');
+                Utils.showToast('Ustawienia udostępniania zostały zaktualizowane.', 'success');
             } else {
                 // Tryb pełnej edycji - najpierw aktualizujemy treść
                 const response = await fetch(CONFIG.API.NOTE_BY_ID(AppState.editingNoteId), {
@@ -412,7 +481,7 @@ async function handleFormSubmit(e) {
                 resultNote = await shareNoteData(resultNote.id, visibility);
             }
             
-            showToast('Notatka została pomyślnie zaktualizowana.', 'success');
+            Utils.showToast('Notatka została pomyślnie zaktualizowana.', 'success');
             } // Koniec bloku else
 
             const idx = AppState.notes.findIndex(n => n.id === resultNote.id);
@@ -441,7 +510,7 @@ async function handleFormSubmit(e) {
             // Aktualizacja URL po utworzeniu nowej notatki
             updateUrl(resultNote.id);
             
-            showToast('Notatka została pomyślnie utworzona.', 'success');
+            Utils.showToast('Notatka została pomyślnie utworzona.', 'success');
         }
 
         if (['my', 'shared', 'group', 'public', 'favorites'].includes(AppState.currentFilter)) {
@@ -461,37 +530,97 @@ async function handleFormSubmit(e) {
     }
 }
 
-async function handleDeleteConfirm() {
+// Global map for deletion timers to allow soft-undo
+const deletionTimers = new Map();
+
+async function sendActualDelete(noteId) {
+    try {
+        const response = await fetch(CONFIG.API.NOTE_BY_ID(noteId), { method: 'DELETE' });
+        if (!response.ok) throw new Error(`Błąd HTTP: ${response.status}`);
+        console.log('Notatka', noteId, 'trwale usunięta z serwera.');
+    } catch (error) {
+        console.error('Błąd usuwania API:', error);
+        Utils.showToast('Błąd podczas usuwania notatki na serwerze', 'error');
+    }
+}
+
+function handleDeleteConfirm() {
     if (!AppState.selectedNote) return;
     
-    DOM.btnConfirmDelete.disabled = true;
-    DOM.btnConfirmDelete.textContent = 'Usuwanie...';
+    const noteToDelete = { ...AppState.selectedNote };
+    const noteId = noteToDelete.id;
 
-    try {
-        const response = await fetch(CONFIG.API.NOTE_BY_ID(AppState.selectedNote.id), { method: 'DELETE' });
+    // Usuń lokalnie natychmiastowo (Soft Delete)
+    AppState.notes = AppState.notes.filter(n => n.id !== noteId);
+    AppState.selectedNote = null;
+    
+    DOM.emptyState.style.display = 'flex';
+    DOM.noteView.style.display = 'none';
+    
+    // Wyczyść URL po usunięciu notatki
+    updateUrl(null);
+    
+    applyCurrentFilter();
+    renderNotesList();
+    closeDeleteConfirmation();
 
-        if (!response.ok) throw new Error(`Błąd HTTP: ${response.status}`);
+    // Pokaż Toast z przyciskiem Cofnij (Undo)
+    if (!DOM.toastContainer) return;
+    const toast = document.createElement('div');
+    toast.className = `toast success soft-undo-toast`;
+    toast.innerHTML = `
+        <i class="fas fa-trash-restore"></i>
+        <span>
+            Notatka usunięta. 
+            <button id="undo-btn-${noteId}" class="btn-undo-toast">
+                Cofnij
+            </button>
+        </span>
+    `;
+    DOM.toastContainer.appendChild(toast);
 
-        AppState.notes = AppState.notes.filter(n => n.id !== AppState.selectedNote.id);
-        AppState.selectedNote = null;
+    // Timeout dla ostatecznego usunięcia (w tym zniknięcia toasta) za 5s
+    const timer = setTimeout(() => {
+        if (toast.parentNode) {
+            toast.style.animation = 'fadeOut 0.3s forwards';
+            setTimeout(() => toast.remove(), 300);
+        }
+        deletionTimers.delete(noteId);
         
-        DOM.emptyState.style.display = 'flex';
-        DOM.noteView.style.display = 'none';
-        
-        // Wyczyść URL po usunięciu notatki
-        updateUrl(null);
-        
-        applyCurrentFilter();
-        renderNotesList();
-        closeDeleteConfirmation();
-        showToast('Notatka została trwale usunięta.', 'success');
+        // Finalne wykonanie DELETE przez API
+        sendActualDelete(noteId);
+    }, 5000);
+    
+    deletionTimers.set(noteId, timer);
 
-    } catch (error) {
-        console.error('Błąd usuwania:', error);
-        showToast('Nie udało się usunąć notatki. Sprawdź połączenie internetowe i spróbuj ponownie.', 'error');
-    } finally {
-        DOM.btnConfirmDelete.disabled = false;
-        DOM.btnConfirmDelete.textContent = 'Usuń notatkę';
+    // 3. Logika Cofania (Przywrócenie)
+    const undoBtn = document.getElementById(`undo-btn-${noteId}`);
+    if (undoBtn) {
+        undoBtn.onclick = (e) => {
+            e.stopPropagation();
+            // Anuluj serwerowe usunięcie
+            clearTimeout(timer);
+            deletionTimers.delete(noteId);
+            
+            // Przywróć notatkę wizualnie i w pamięci
+            AppState.notes.push(noteToDelete);
+            AppState.selectedNote = noteToDelete;
+            
+            applyCurrentFilter();
+            renderNotesList();
+            renderNoteView(noteToDelete);
+            
+            DOM.emptyState.style.display = 'none';
+            DOM.noteView.style.display = 'flex';
+            updateUrl(noteId);
+            
+            // Zwiń stary Toast i pokaż info o przywróceniu
+            toast.style.animation = 'fadeOut 0.3s forwards';
+            setTimeout(() => toast.remove(), 300);
+            
+            Utils.showToast('Cofnięto usunięcie. Notatka przywrócona.', 'info');
+        };
+        
     }
 }
 
@@ -508,6 +637,9 @@ function renderNotesList() {
                 <p>${msg}</p>
             </div>
         `;
+        // Brak notatek - pokaż stan pustki, ukryj siatkę Masonry
+        if (DOM.notesMasonryGrid) DOM.notesMasonryGrid.style.display = 'none';
+        if (!AppState.selectedNote && DOM.emptyState) DOM.emptyState.style.display = 'flex';
         return;
     }
 
@@ -528,7 +660,11 @@ function renderNotesList() {
         };
         
         const date = formatRelativeTime(note.updatedAt || note.createdAt);
-        const preview = note.content ? (note.content.substring(0, 60) + (note.content.length > 60 ? '...' : '')) : '';
+        
+        // Usunięcie tagów HTML oraz znaczników Markdown z podglądu
+        const rawContent = note.content || '';
+        const cleanContent = Utils.stripMarkdown(Utils.stripHtml(rawContent));
+        const preview = cleanContent ? (cleanContent.substring(0, 60) + (cleanContent.length > 60 ? '...' : '')) : '';
         
         const visibilityIcons = {
             'PRIVATE': 'fa-lock',
@@ -557,7 +693,7 @@ function renderNotesList() {
                     <i class="fas fa-pen"></i>
                 </button>
             </div>
-            <h3>${escapeHtml(note.title)}</h3>
+            <h3>${escapeHtml(Utils.stripMarkdown(note.title))}</h3>
             <p>${escapeHtml(preview)}</p>
             <div class="note-card-footer">
                 <span>${date}</span>
@@ -584,6 +720,15 @@ function renderNotesList() {
         
         DOM.notesList.appendChild(el);
     });
+
+    // Jeśli nr nota nie jest w tej chwili wybrany - pokaż Masonry Grid (zamiast stanu pustki)
+    if (!AppState.selectedNote) {
+        if (DOM.emptyState) DOM.emptyState.style.display = 'none';
+        renderMasonryGrid();
+    } else {
+        // Notatka jest właśnie otwarta - Masonry skryjmy
+        if (DOM.notesMasonryGrid) DOM.notesMasonryGrid.style.display = 'none';
+    }
 }
 
 function selectNote(id) {
@@ -596,16 +741,97 @@ function selectNote(id) {
     renderNotesList(); 
 }
 
+/* ===== MASONRY GRID ===== */
+
+function renderMasonryGrid() {
+    const grid = DOM.notesMasonryGrid;
+    if (!grid) return;
+
+    grid.innerHTML = '';
+
+    const visibilityIcons = {
+        'PRIVATE': 'fa-lock',
+        'SHARED_WITH_USERS': 'fa-user-friends',
+        'GROUP': 'fa-users',
+        'PUBLIC': 'fa-globe'
+    };
+
+    const colorPalette = [
+        '#fef9c3', // Yellow
+        '#dcfce7', // Green
+        '#dbeafe', // Blue
+        '#f3e8ff', // Purple
+        '#ffe4e6', // Red
+        '#fff7ed', // Orange
+        '#e0f2fe', // Cyan
+        '#f1f5f9'  // Gray (default)
+    ];
+
+    AppState.filteredNotes.forEach((note, index) => {
+        const rawContent = note.content || '';
+        const cleanContent = Utils.stripMarkdown(Utils.stripHtml(rawContent));
+        const preview = cleanContent ? cleanContent.substring(0, 200) + (cleanContent.length > 200 ? '...' : '') : '';
+        const date = formatRelativeTime(note.updatedAt || note.createdAt);
+        const bgColor = colorPalette[index % colorPalette.length];
+        const iconClass = visibilityIcons[note.visibility || 'PRIVATE'];
+
+        const card = document.createElement('div');
+        card.className = 'masonry-card';
+        card.setAttribute('data-note-id', note.id);
+        card.style.setProperty('--card-accent', bgColor);
+
+        card.innerHTML = `
+            <div class="masonry-card-inner">
+                <div class="masonry-card-header">
+                    <h3 class="masonry-card-title">${escapeHtml(Utils.stripMarkdown(note.title))}</h3>
+                    <span class="masonry-card-icon" title="${note.visibility || 'PRIVATE'}">
+                        <i class="fas ${iconClass}"></i>
+                    </span>
+                </div>
+                ${preview ? `<p class="masonry-card-preview">${escapeHtml(preview)}</p>` : '<p class="masonry-card-preview empty">Brak treści...</p>'}
+                ${
+                    note.tags ? `<div class="masonry-card-tags">${
+                        note.tags.split(',').map(t => t.trim()).filter(t => t)
+                            .slice(0, 3)
+                            .map(t => `<span class="masonry-tag">#${escapeHtml(t)}</span>`).join('')
+                    }</div>` : ''
+                }
+                <div class="masonry-card-footer">
+                    <span class="masonry-card-date">${date}</span>
+                    ${note.isFavorited ? '<i class="fas fa-star masonry-star"></i>' : ''}
+                </div>
+            </div>
+        `;
+
+        card.addEventListener('click', () => {
+            selectNote(note.id);
+            updateUrl(note.id);
+        });
+
+        grid.appendChild(card);
+    });
+
+    grid.style.display = 'block';
+}
+
 function renderNoteView(note) {
     if (!DOM.emptyState || !DOM.noteView) return;
     
     DOM.emptyState.style.display = 'none';
+    // Ukryj Masonry Grid, bo teraz wyświetlamy notatkę
+    if (DOM.notesMasonryGrid) DOM.notesMasonryGrid.style.display = 'none';
     DOM.noteView.style.display = 'flex';
 
     DOM.noteTitle.textContent = note.title;
     
-    // Renderowanie Markdown (bezpieczne)
-    DOM.noteContent.innerHTML = parseMarkdownLite(note.content);
+    // Renderowanie treści - wykrycie formatu (HTML vs Markdown-lite)
+    if (note.content && note.content.trim().startsWith('<')) {
+        // Nowy format: HTML z Quill
+        DOM.noteContent.innerHTML = note.content;
+    } else {
+        // Stary format: Markdown-lite (kompatybilność wsteczna)
+        DOM.noteContent.innerHTML = parseMarkdownLite(note.content);
+    }
 
     
     if (DOM.noteAuthor) DOM.noteAuthor.textContent = getNoteAuthorName(note);
@@ -702,13 +928,10 @@ function applyCurrentFilter() {
 function parseMarkdownLite(text) {
     if (!text) return '';
 
-    // 1. Sanityzacja HTML (XSS prevention)
-    // Najpierw zamieniamy niebezpieczne znaki na encje HTML
-    // WAŻNE: To musi być pierwszy krok!
+    // Sanityzacja HTML (XSS prevention)
     let safeText = escapeHtml(text);
 
-    // 2. Parsowanie Markdown
-    // Kolejność ma znaczenie (np. Code block przed innymi)
+    // Parsowanie Markdown
 
     // Kod Inline (`tekst`)
     safeText = safeText.replace(/`([^`]+)`/g, '<code>$1</code>');
@@ -723,102 +946,26 @@ function parseMarkdownLite(text) {
     safeText = safeText.replace(/__([^_]+)__/g, '<u>$1</u>');
 
     // Linki ([tekst](url))
-    // Uwaga: URL też może być niebezpieczny (javascript:...), ale escapeHtml zamienił już dwukropki? Nie.
-    // Dodatkowe zabezpieczenie dla linków: tylko http, https, mailto
     safeText = safeText.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+|mailto:[^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
 
-    // Nagłówki (# Tekst) - tylko na początku linii
-    // Używamy flagi 'm' (multiline)
+    // Nagłówki (# Tekst)
     safeText = safeText.replace(/^# (.*$)/gm, '<h3>$1</h3>');
 
-    // Listy (- element) - tylko na początku linii
-    // To jest uproszczone - zamienia myślniki na kropki unicode, 
-    // bo prawdziwa lista <ul> wymagałaby wrapowania wielu linii.
-    // Dla Markdown Lite zrobimy trick wizualny lub prostą listę.
-    
-    // Opcja A: Prosta zamiana na flex/grid w CSS (ale tu robimy HTML replacement)
-    // Zróbmy tak: każda linia zaczynająca się od "- " dostaje klasę list-item-line
-    // A w CSS (już dodane): ul/li. 
-    // Spróbujmy zamienić na <ul><li>...</li></ul> ? Trudne regexem.
-    // Prościej: "- tekst" -> "<li>tekst</li>" i wrapujemy całość w <ul>?
-    // Najprościej: "- tekst" -> "• tekst" (z wcięciem)
-    
-    // Lepsze podejście:
+    // Listy (- element)
     safeText = safeText.replace(/^- (.*$)/gm, '<ul><li>$1</li></ul>');
-    // Problem: to stworzy osobne <ul> dla każdego elementu.
-    // Fix: CSS merge margins? Albo zostawmy to. Dla prostych notatek OK.
-    
-    // Nowe linie -> <br> (ale nie wewnątrz tagów blokowych jak h3, ul)
-    // To jest trudne. Zostawmy white-space: pre-wrap w CSS (to już mamy).
-    // Jedynie musimy usunąć entery PO nagłówkach, żeby nie było dziur.
     
     return safeText;
-}
-
-function handleFormatting(formatType) {
-    const textarea = DOM.formNoteContent;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = textarea.value.substring(start, end);
-    let newText = '';
-    let cursorOffset = 0;
-
-    switch (formatType) {
-        case 'bold':
-            newText = `**${selectedText}**`;
-            cursorOffset = 2; // Pozycjonowanie wewnątrz gwiazdek
-            break;
-        case 'italic':
-            newText = `*${selectedText}*`;
-            cursorOffset = 1;
-            break;
-        case 'underline':
-            newText = `__${selectedText}__`;
-            cursorOffset = 2;
-            break;
-        case 'heading':
-            newText = `# ${selectedText}`;
-            cursorOffset = 2;
-            break;
-        case 'list':
-            newText = `- ${selectedText}`;
-            cursorOffset = 2;
-            break;
-        case 'code':
-            newText = `\`${selectedText}\``;
-            cursorOffset = 1;
-            break;
-        case 'link':
-            if (selectedText) {
-                newText = `[${selectedText}](url)`;
-            } else {
-                newText = `[tekst](url)`;
-            }
-            cursorOffset = 1; // Żeby edytować tekst
-            break;
-    }
-
-    // Wstawienie tekstu
-    textarea.setRangeText(newText, start, end, 'end');
-    
-    // Przywrócenie focusu i ustawienie kursora
-    textarea.focus();
-    
-    if (!selectedText && cursorOffset > 0) {
-        // Jeśli nie było zaznaczenia, wstawiamy kursor W ŚRODEK znaczników
-        textarea.setSelectionRange(start + cursorOffset, start + cursorOffset + (formatType === 'link' ? 5 : 0));
-    }
-    
-    // Wyzwolenie eventu input (żeby zaktualizować licznik znaków)
-    const event = new Event('input');
-    textarea.dispatchEvent(event);
 }
 
 function handleFilterChange(filter) {
 
     AppState.currentFilter = filter;
     
-    // Dla niektórych filtrów musimy przeładować dane z serwera
+    AppState.selectedNote = null;
+    if (DOM.noteView) DOM.noteView.style.display = 'none';
+    if (DOM.emptyState) DOM.emptyState.style.display = 'none';
+    updateUrl(null);
+    
     if (['my', 'shared', 'group', 'public', 'favorites', 'all'].includes(filter)) {
         loadNotes();
     } else {
@@ -845,14 +992,18 @@ function openCreateModal() {
     
     DOM.formTitle.textContent = 'Nowa notatka';
     DOM.formNoteTitle.value = '';
-    DOM.formNoteContent.value = '';
     DOM.formNoteTags.value = '';
     DOM.formNoteVisibility.value = 'PRIVATE';
     DOM.formError.style.display = 'none';
     
+    // Wyczyść Quill
+    if (AppState.quill) {
+        AppState.quill.setContents([]);
+        AppState.quill.enable();
+    }
+    
     // Włącz edycję
     DOM.formNoteTitle.disabled = false;
-    DOM.formNoteContent.disabled = false;
     DOM.formNoteTags.disabled = false;
     
     // Ukryj sekcję udostępniania
@@ -860,7 +1011,7 @@ function openCreateModal() {
     if (DOM.visibilityHelp) DOM.visibilityHelp.textContent = 'Notatka będzie widoczna tylko dla Ciebie.';
     
     updateCharCounter(DOM.formNoteTitle, DOM.titleCharCount, 150);
-    updateCharCounter(DOM.formNoteContent, DOM.contentCharCount, null);
+    if (DOM.contentCharCount) DOM.contentCharCount.textContent = '0';
     
     DOM.noteFormOverlay.style.display = 'flex';
     setTimeout(() => DOM.formNoteTitle.focus(), 50);
@@ -871,7 +1022,7 @@ async function openEditModal() {
     
     // Sprawdź uprawnienia do edycji (jeśli zdefiniowane)
     if (AppState.selectedNote.canEdit === false) {
-        showToast('Nie masz uprawnień do edycji tej notatki.', 'warning');
+        Utils.showToast('Nie masz uprawnień do edycji tej notatki.', 'warning');
         return;
     }
 
@@ -881,14 +1032,25 @@ async function openEditModal() {
     
     DOM.formTitle.textContent = 'Edycja notatki';
     DOM.formNoteTitle.value = AppState.selectedNote.title;
-    DOM.formNoteContent.value = AppState.selectedNote.content;
     DOM.formNoteTags.value = AppState.selectedNote.tags || '';
     DOM.formNoteVisibility.value = AppState.selectedNote.visibility || 'PRIVATE';
     DOM.formError.style.display = 'none';
     
+    // Wczytaj treść do Quill
+    if (AppState.quill) {
+        const content = AppState.selectedNote.content || '';
+        if (content.trim().startsWith('<')) {
+            // Treść HTML — wczytaj bezpośrednio
+            AppState.quill.root.innerHTML = content;
+        } else {
+            // Stara treść Markdown — konwertuj na HTML przez parser i wczytaj
+            AppState.quill.root.innerHTML = parseMarkdownLite(content);
+        }
+        AppState.quill.enable();
+    }
+    
     // Włącz edycję
     DOM.formNoteTitle.disabled = false;
-    DOM.formNoteContent.disabled = false;
     DOM.formNoteTags.disabled = false;
     
     // Załaduj użytkowników jeśli udostępniona
@@ -902,7 +1064,7 @@ async function openEditModal() {
             }
         } catch (error) {
             console.error('Błąd pobierania użytkowników:', error);
-            showToast('Nie udało się pobrać listy użytkowników', 'error');
+            Utils.showToast('Nie udało się pobrać listy użytkowników', 'error');
         }
     }
     
@@ -910,7 +1072,9 @@ async function openEditModal() {
     renderSelectedUsers();
     
     updateCharCounter(DOM.formNoteTitle, DOM.titleCharCount, 150);
-    updateCharCounter(DOM.formNoteContent, DOM.contentCharCount, null);
+    if (DOM.contentCharCount && AppState.quill) {
+        DOM.contentCharCount.textContent = `${AppState.quill.getLength() - 1}`;
+    }
     
     DOM.noteFormOverlay.style.display = 'flex';
 }
@@ -942,6 +1106,14 @@ function closeFormModal() {
         icon.classList.add('fa-expand');
     }
     DOM.btnToggleFullscreen.title = "Pełny ekran";
+}
+
+function toggleNotesSidebar() {
+    if (!DOM.notesSidebar) return;
+    const isCollapsed = DOM.notesSidebar.classList.toggle('collapsed');
+    if (DOM.btnToggleSidebar) {
+        DOM.btnToggleSidebar.title = isCollapsed ? 'Rozwiń panel' : 'Zwiń panel';
+    }
 }
 
 function openDeleteConfirmation() {
@@ -1016,11 +1188,11 @@ async function toggleFavorite(noteId) {
         }
         
         const msg = updatedNote.isFavorited ? 'Dodano do ulubionych' : 'Usunięto z ulubionych';
-        showToast(msg, 'success');
+        Utils.showToast(msg, 'success');
         
     } catch (error) {
         console.error('Błąd:', error);
-        showToast('Nie udało się zmienić statusu ulubionej', 'error');
+        Utils.showToast('Nie udało się zmienić statusu ulubionej', 'error');
     }
 }
 
@@ -1029,7 +1201,7 @@ async function openShareModal() {
 
     // Sprawdź uprawnienia do edycji (wymagane też do udostępniania)
     if (AppState.selectedNote.canEdit === false) {
-        showToast('Tylko autor notatki może zarządzać jej udostępnianiem.', 'warning');
+        Utils.showToast('Tylko autor notatki może zarządzać jej udostępnianiem.', 'warning');
         return;
     }
     
@@ -1039,14 +1211,22 @@ async function openShareModal() {
     
     DOM.formTitle.textContent = 'Udostępnij notatkę';
     DOM.formNoteTitle.value = AppState.selectedNote.title;
-    DOM.formNoteContent.value = AppState.selectedNote.content;
     DOM.formNoteTags.value = AppState.selectedNote.tags || '';
     DOM.formNoteVisibility.value = AppState.selectedNote.visibility || 'PRIVATE';
     
-    // Wyłącz edycję tytułu i treści
-    // Wyłącz edycję tytułu, treści i tagów
+    // Wczytaj treść do Quill (tylko do odczytu)
+    if (AppState.quill) {
+        const content = AppState.selectedNote.content || '';
+        if (content.trim().startsWith('<')) {
+            AppState.quill.root.innerHTML = content;
+        } else {
+            AppState.quill.root.innerHTML = parseMarkdownLite(content);
+        }
+        AppState.quill.disable();
+    }
+    
+    // Wyłącz edycję tytułu i tagów
     DOM.formNoteTitle.disabled = true;
-    DOM.formNoteContent.disabled = true;
     DOM.formNoteTags.disabled = true;
     
     // Pokaż sekcję udostępniania jeśli SHARED_WITH_USERS
@@ -1086,11 +1266,11 @@ async function handleCopyNote() {
              loadNotes();
         }
         
-        showToast('Notatka została skopiowana do Twojej kolekcji', 'success');
+        Utils.showToast('Notatka została skopiowana do Twojej kolekcji', 'success');
         
     } catch (error) {
         console.error('Błąd:', error);
-        showToast('Nie udało się skopiować notatki', 'error');
+        Utils.showToast('Nie udało się skopiować notatki', 'error');
     }
 }
 
@@ -1226,27 +1406,7 @@ async function shareNoteData(noteId, visibility) {
     return await response.json();
 }
 
-// NARZĘDZIA I POWIADOMIENIA
 
-function showToast(message, type = 'success') {
-    if (!DOM.toastContainer) return;
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    
-    const icon = type === 'success' ? 'check-circle' : 'exclamation-circle';
-    
-    toast.innerHTML = `
-        <i class="fas fa-${icon}"></i>
-        <span>${message}</span>
-    `;
-
-    DOM.toastContainer.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.animation = 'fadeOut 0.3s forwards';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
 
 function debounce(func, wait) {
     let timeout;
@@ -1313,14 +1473,14 @@ async function exportToPdf() {
     const element = document.getElementById('noteContent');
     if (!element) return;
 
-    showToast('Generowanie pliku PDF...', 'info');
+    Utils.showToast('Generowanie pliku PDF...', 'info');
 
     // Sprawdź czy biblioteka jest załadowana
     if (typeof html2pdf === 'undefined') {
         try {
             await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
         } catch (e) {
-            showToast('Błąd ładowania biblioteki PDF.', 'error');
+            Utils.showToast('Błąd ładowania biblioteki PDF.', 'error');
             return;
         }
     }
@@ -1364,10 +1524,10 @@ async function exportToPdf() {
     // Spróbujmy wygenerować prosto z kontenera.
     
     html2pdf().set(opt).from(container).save().then(() => {
-        showToast('Pobrano plik PDF.', 'success');
+        Utils.showToast('Pobrano plik PDF.', 'success');
     }).catch(err => {
         console.error(err);
-        showToast('Błąd generowania PDF.', 'error');
+        Utils.showToast('Błąd generowania PDF.', 'error');
     });
 }
 
@@ -1377,7 +1537,7 @@ async function exportToDocx() {
     const element = document.getElementById('noteContent');
     if (!element) return;
 
-    showToast('Generowanie pliku DOCX...', 'info');
+    Utils.showToast('Generowanie pliku DOCX...', 'info');
 
     // Sprawdź czy biblioteka jest załadowana
     if (typeof htmlDocx === 'undefined') {
@@ -1387,7 +1547,7 @@ async function exportToDocx() {
             await loadScript('https://unpkg.com/html-docx-js/dist/html-docx.js');
         } catch (e) {
             console.error(e);
-            showToast('Błąd ładowania biblioteki DOCX.', 'error');
+            Utils.showToast('Błąd ładowania biblioteki DOCX.', 'error');
             return;
         }
     }
@@ -1433,11 +1593,11 @@ async function exportToDocx() {
         a.click();
         document.body.removeChild(a);
         
-        showToast('Pobrano plik DOCX.', 'success');
+        Utils.showToast('Pobrano plik DOCX.', 'success');
 
     } catch (error) {
         console.error('DOCX Export Error:', error);
-        showToast('Błąd generowania pliku DOCX.', 'error');
+        Utils.showToast('Błąd generowania pliku DOCX.', 'error');
     }
 }
 

@@ -1,0 +1,208 @@
+/* Zmienne lokalne  */
+:root {
+    --onboarding-bg: #ffffff;
+    --onboarding-text-title: #2d3748;
+    --onboarding-text-desc: #718096;
+    --onboarding-border: #e2e8f0;
+    --onboarding-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --onboarding-btn-text: #718096;
+    --onboarding-btn-hover: #2d3748;
+
+    --primary: #005efa;
+    --primary-hover: #004acb;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+}
+
+[data-theme="dark"] {
+    --onboarding-bg: #1a202c;
+    --onboarding-text-title: #f7fafc;
+    --onboarding-text-desc: #a0aec0;
+    --onboarding-border: #2d3748;
+    --onboarding-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+    --onboarding-btn-text: #a0aec0;
+    --onboarding-btn-hover: #f7fafc;
+
+    --primary: #4a9eff;
+    --primary-hover: #6bb3ff;
+}
+
+/* Overlay - maska przyciemniająca tło */
+.onboarding-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 2147483640;
+    opacity: 0;
+    animation: fadeIn 0.3s forwards;
+}
+
+/* Klasa pomocnicza do wynoszenia rodziców (np. header) powyżej maski */
+.onboarding-elevate-parent {
+    z-index: 2147483641 !important;
+    position: relative;
+}
+
+/* Element podświetlony - wychodzi ponad maskę */
+.onboarding-highlight {
+    z-index: 2147483642 !important;
+    box-shadow: inset 0 0 0 4px var(--primary), 0 0 20px rgba(0, 0, 0, 0.5) !important;
+    border-radius: var(--radius-md);
+    transition: box-shadow 0.3s ease;
+    pointer-events: none;
+}
+
+/* Dymek z treścią */
+.onboarding-popover {
+    position: absolute;
+    width: 320px;
+    max-width: calc(100vw - 2rem);
+    /* Ensure it fits on small screens */
+    background: var(--onboarding-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--onboarding-shadow);
+    z-index: 2147483647;
+    padding: 1.5rem;
+    border: 1px solid var(--onboarding-border);
+    opacity: 0;
+}
+
+@media (max-width: 640px) {
+    .onboarding-popover {
+        position: fixed;
+        width: auto;
+        max-width: none;
+        top: auto !important;
+        left: 1rem !important;
+        right: 1rem !important;
+        bottom: 1rem !important;
+        transform: none !important;
+        padding: 1rem;
+        font-size: 0.9em;
+        margin: 0;
+    }
+
+    .onboarding-title {
+        font-size: 1rem;
+    }
+}
+
+.onboarding-popover.fade-in {
+    animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Header */
+.onboarding-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.onboarding-step-count {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--onboarding-text-desc);
+    font-weight: 600;
+}
+
+.onboarding-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: var(--onboarding-btn-text);
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.onboarding-close-btn:hover {
+    color: #ef4444;
+    /* Error red */
+}
+
+/* Content */
+.onboarding-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--onboarding-text-title);
+}
+
+.onboarding-description {
+    font-size: 0.95rem;
+    color: var(--onboarding-text-desc);
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+}
+
+/* Footer */
+.onboarding-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--onboarding-border);
+    padding-top: 1rem;
+}
+
+/* Przyciski wewnątrz dymka */
+.onboarding-popover .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.onboarding-popover .btn-text {
+    background: none;
+    border: none;
+    color: var(--onboarding-btn-text);
+}
+
+.onboarding-popover .btn-text:hover {
+    color: var(--onboarding-text-title);
+}
+
+.onboarding-popover .btn-primary {
+    background: var(--primary);
+    color: white;
+    border: none;
+}
+
+.onboarding-popover .btn-primary:hover {
+    background: var(--primary-hover);
+}
+
+/* Blokada scrollowania body */
+body.onboarding-active {
+    overflow: hidden;
+}
+
+/* Animacje */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}

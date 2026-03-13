@@ -114,7 +114,7 @@ public class SecurityConfig {
                 http.formLogin(form -> form
                                 .loginPage("/login") // Adres widoku logowania
                                 .loginProcessingUrl("/login") // Adres POST formularza
-                                .defaultSuccessUrl("/dashboard", true) // Gdzie przekierować po sukcesie
+                                .defaultSuccessUrl("/home", true) // Gdzie przekierować po sukcesie
                                 .permitAll() // Strona logowania dostępna dla każdego
                 );
 
@@ -138,8 +138,13 @@ public class SecurityConfig {
                                                 "/reset-password",
                                                 "/forgot-password",
                                                 "/password-reset-expired",
-                                                "/token-error")
+                                                "/token-error",
+                                                "/contact",
+                                                "/error/**")
                                 .permitAll()
+
+                                // API feedback dla niezalogowanych
+                                .requestMatchers(HttpMethod.POST, "/api/feedback").permitAll()
 
                                 // API endpoints tylko dla ADMIN
                                 .requestMatchers(HttpMethod.POST, "/api/schedule/**", "/api/groups").hasRole("ADMIN")
@@ -156,6 +161,9 @@ public class SecurityConfig {
                                 // Widoki admin tylko dla ADMIN
                                 .requestMatchers("/admin/**").hasRole("ADMIN")
 
+                                // Widoki starosty tylko dla STAROSTA
+                                .requestMatchers("/starosta/**").hasRole("STAROSTA")
+
                                 .requestMatchers(HttpMethod.GET,
                                                 "/api/schedule",
                                                 "/api/schedule/{id}",
@@ -169,12 +177,12 @@ public class SecurityConfig {
                                 .authenticated()
 
                                 // to dla stron widokow
+                                .requestMatchers("/home").authenticated()
                                 .requestMatchers(
-                                                "/dashboard",
-                                                "/schedule", // dodalem dla planu zajec
-                                                "/profile", // dodalem dla edycji profilu
-                                                "/change-password" // dodalem dla zmiany hasla
-                                ).authenticated()
+                                                "/student/**", // cała strefa studenta
+                                                "/profile", // edycja profilu
+                                                "/settings" // formularz ustawien
+                                ).hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
 
                                 .anyRequest().authenticated());
 

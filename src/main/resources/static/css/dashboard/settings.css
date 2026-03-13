@@ -70,7 +70,7 @@ body {
     padding: 40px 35px;
     border-radius: 16px;
     box-shadow: 0 8px 32px var(--shadow-color);
-    max-width: 800px;
+    max-width: 1000px;
     width: 100%;
     border: 1px solid var(--border-color);
 }
@@ -180,15 +180,18 @@ p,
 .settings-card {
     background: white;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    /* Lżejszy startowy cień */
     margin-bottom: 24px;
     border: 1px solid #e5e7eb;
     overflow: hidden;
-    transition: box-shadow 0.3s ease, transform 0.2s ease;
+    transition: box-shadow 0.3s ease;
+    /* Usunięto transform */
 }
 
 .settings-card:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+    /* Głębszy cień, bez unoszenia */
 }
 
 /* Header karty */
@@ -437,7 +440,7 @@ textarea.form-control {
     font-family: 'Inter', sans-serif;
     font-size: 1rem;
     color: var(--text-dark);
-    background-color: var(--bg-card);
+    background-color: #f8fafc;
     border: 1px solid var(--border-color-input);
     border-radius: 10px;
     transition: all 0.3s ease;
@@ -468,7 +471,7 @@ textarea.form-control {
     font-family: 'Inter', sans-serif;
     font-size: 1rem;
     color: var(--text-dark);
-    background-color: var(--bg-card);
+    background-color: #f8fafc;
     border: 1px solid var(--border-color-input);
     border-radius: 10px;
     transition: all 0.3s ease;
@@ -483,7 +486,7 @@ textarea.form-control::placeholder {
 textarea.form-control:focus {
     border-color: var(--color-primary);
     background-color: var(--bg-card);
-    box-shadow: 0 0 0 4px rgba(0, 94, 250, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 94, 250, 0.1), 0 0 0 3px rgba(0, 94, 250, 0.15);
     outline: none;
 }
 
@@ -751,37 +754,32 @@ select.form-control {
 
 .avatar-actions {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     justify-content: center;
     margin-bottom: 16px;
 }
 
 .btn-upload,
 .btn-remove {
-    padding: 12px 28px;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid transparent;
+    transition: background 0.15s ease;
+    border: none;
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    letter-spacing: 0.01em;
+    gap: 6px;
 }
 
 .btn-upload {
-    background: #1f2937;
-    /* Ciemny grafit */
+    background: var(--color-primary, #005efa);
     color: white;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .btn-upload:hover {
-    background: #111827;
-    transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    background: var(--color-primary-dark, #004acb);
 }
 
 .btn-upload:active {
@@ -789,19 +787,16 @@ select.form-control {
 }
 
 .btn-remove {
-    background: #fff;
-    border: 1px solid #fee2e2;
-    color: #ef4444;
+    background: transparent;
+    border: 1px solid #d1d5db;
+    color: #6b7280;
     display: none;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 .btn-remove:hover {
     background: #fef2f2;
-    border-color: #fecaca;
-    color: #dc2626;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+    color: #ef4444;
 }
 
 .upload-hint {
