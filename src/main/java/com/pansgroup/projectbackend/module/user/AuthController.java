@@ -28,23 +28,25 @@ public class AuthController {
 
     private final UserService userService;
     private final AuthenticationManager authManager;
+    private final org.springframework.security.web.authentication.RememberMeServices rememberMeServices;
 
-    public AuthController(UserService userService, AuthenticationManager authManager) {
+    public AuthController(UserService userService, AuthenticationManager authManager,
+            org.springframework.security.web.authentication.RememberMeServices rememberMeServices) {
         this.userService = userService;
         this.authManager = authManager;
+        this.rememberMeServices = rememberMeServices;
     }
 
     @PostMapping("/login")
     public ResponseEntity<UserResponseDto> login(
             @Valid @RequestBody LoginRequestDto dto,
-            HttpServletRequest request
-    ) {
-        // 1) Uwierzytelnienie (tu polecą 401 przy złych danych – obsłuży to globalexceptionhandler)
+            HttpServletRequest request,
+            jakarta.servlet.http.HttpServletResponse response) {
+        // 1) Uwierzytelnienie
         Authentication authentication = authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword())
-        );
+                new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword()));
 
-        // 2) Zapis kontekstu do security context oraz do sesji (logowanie stanowe)
+        // 2) Zapis kontekstu do security context oraz do sesji
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(authentication);
         SecurityContextHolder.setContext(context);
@@ -52,7 +54,13 @@ public class AuthController {
         HttpSession session = request.getSession(true);
         session.setAttribute(SPRING_SECURITY_CONTEXT_KEY, context);
 
-        // 3) Zwróć aktualnego użytkownika na podstawie e-maila z Authentication
+        // 3) Obsługa Remember Me (przekazujemy flagę przez atrybut, bo żądanie to JSON)
+        if (dto.isRememberMe()) {
+            request.setAttribute("REMEMBER_ME_FLAG", true);
+            rememberMeServices.loginSuccess(request, response, authentication);
+        }
+
+        // 4) Zwróć aktualnego użytkownika
         String email = authentication.getName();
         UserResponseDto user = userService.getCurrentUser(email);
 
@@ -89,21 +97,20 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     public ResponseEntity<Void> forgotPassword(
-            @Valid @RequestBody ForgotPasswordRequestDto dto
-    ) {
-        userService.requestPasswordReset(dto.email());
+            @Valid @RequestBody ForgotPasswordRequestDto dto) {
+        // Normalizacja email (trim + lowercase)
+        String normalizedEmail = dto.email().trim().toLowerCase(java.util.Locale.ROOT);
+        userService.requestPasswordReset(normalizedEmail);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/reset-password")
     public ResponseEntity<Void> resetPassword(
-            @Valid @RequestBody ResetPasswordRequestDto dto
-    ) {
+            @Valid @RequestBody ResetPasswordRequestDto dto) {
         userService.processPasswordReset(
                 dto.token(),
                 dto.newPassword(),
-                dto.confirmPassword()
-        );
+                dto.confirmPassword());
         return ResponseEntity.ok().build();
     }
 }

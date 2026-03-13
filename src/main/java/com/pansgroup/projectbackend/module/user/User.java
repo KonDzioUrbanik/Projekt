@@ -7,7 +7,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity(name = "users")
+@Entity
+@Table(name = "users")
 @Getter
 @Setter
 public class User {
@@ -46,5 +47,11 @@ public class User {
 
     @Column(length = 500)
     private String bio;
+
+    @Lob
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private byte[] avatarData;
+
+    private String avatarContentType;
 
 }

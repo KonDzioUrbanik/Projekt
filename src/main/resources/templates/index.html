@@ -1,45 +1,165 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="PANSportal - Platforma studencka dla studentów PANS w Krośnie.">
+        <meta name="keywords" content="PANS, PANSportal, student, Krosno">
+        <meta name="author" content="PANS">
+        
         <title>PANSportal</title>
 
-        <!-- Import czcionek oraz ikon -->
         <link rel="icon" th:href="@{/favicon.png}" type="image/png">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-        <!-- Główny arkusz stylów -->
-        <link rel="stylesheet" th:href="@{/css/common/style.css}" href="../static/css/common/style.css">
+        <link rel="stylesheet" th:href="@{/css/common/style.css}">
+        <link rel="stylesheet" th:href="@{/css/common/theme.css}">
+        <script th:src="@{/js/common/theme.js}"></script>
     </head>
     <body>
-        <!-- Główny kontener -->
-        <div class="main-container">
-            <header class="main-header">
+        <button class="theme-toggle-btn" id="themeToggleBtn" title="Zmień motyw">
+            <i class="fas fa-moon"></i>
+            <i class="fas fa-sun"></i>
+        </button>
+        
+        <nav class="landing-nav">
+            <a href="/" class="nav-logo">
                 <div class="logo-circle">
                     <i class="fas fa-university"></i>
                 </div>
+                <span>PANSportal</span>
+            </a>
+            
+            <div class="nav-actions">
+                <a th:href="@{/login}" class="btn btn-outline">Logowanie</a>
+                <a th:href="@{/register}" class="btn btn-primary">Rejestracja</a>
+            </div>
+        </nav>
+
+        <main>
+            <header class="hero-section">
+                <div class="hero-content">
+                    <span class="hero-badge">Nowy Rok Akademicki 2025/26</span>
+                    
+                    <h1 class="hero-title">Witamy w PANSportal</h1>
+                    
+                    <div class="hero-text-group">
+                        <h2 class="hero-secondary-title">Twoje miejsce do</h2>
+                        <div class="typewriter-wrapper">
+                            <span class="typewriter-text"></span><span class="cursor">|</span>
+                        </div>
+                    </div>
+                    
+                    <p class="hero-subtitle">
+                        Kompleksowa platforma dla studentów PANS w Krośnie.
+                    </p>
+
+                    <div class="hero-buttons">
+                        <a th:href="@{/login}" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Przejdź do panelu
+                        </a>
+                    </div>
+                </div>
                 
-                <h1>Witamy w PANSportal</h1>
-                <p>Twoje miejsce do zarządzania studiami.</p>
+                <div class="hero-visual">
+                    <div class="levitating-card">
+                        <div class="card-header-mock">
+                            <div class="dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                        </div>
+                        <div class="card-body-mock">
+                            <div class="mock-sidebar">
+                                <div class="mock-line" style="width: 60%"></div>
+                                <div class="mock-line" style="width: 80%"></div>
+                                <div class="mock-line" style="width: 70%"></div>
+                            </div>
+                            <div class="mock-content">
+                                <div class="mock-title"></div>
+                                <div class="mock-grid">
+                                    <div class="mock-item"></div>
+                                    <div class="mock-item"></div>
+                                    <div class="mock-item"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-glow"></div>
+                    </div>
+                </div>
             </header>
 
-            <!-- Nawigacja startowa -->
-            <nav class="start-nav">
-                <a th:href="@{/login}" class="btn btn-primary">
-                    <i class="fas fa-sign-in-alt"></i> Zaloguj się
-                </a>
-                <a th:href="@{/register}" class="btn btn-primary">
-                    <i class="fas fa-user-plus"></i> Stwórz konto
-                </a>
-                <a th:href="@{/tutorial}" class="btn btn-tertiary">
-                    <i class="fas fa-graduation-cap"></i> Zobacz samouczek
-                </a>
-            </nav>
-        </div>
+            <section class="features-grid">
+                <h2 class="sr-only">Kluczowe funkcje</h2>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="far fa-calendar-alt"></i></div>
+                    <h3 class="feature-title">Organizacja czasu</h3>
+                    <p class="feature-desc">Twój harmonogram zajęć i kalendarz roku akademickiego zawsze pod ręką.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-book-open"></i></div>
+                    <h3 class="feature-title">Notatki i materiały</h3>
+                    <p class="feature-desc">Twórz notatki, zapisuj ważne informacje i miej dostęp do materiałów w każdym momencie.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-comments"></i></div>
+                    <h3 class="feature-title">Społeczność</h3>
+                    <p class="feature-desc">Forum grupy i szybka wymiana informacji ze studentami oraz wykładowcami.</p>
+                </div>
+            </section>
+
+            <section class="university-branding">
+                <h2 class="sr-only">Informacje o uczelni</h2>
+                <div class="branding-content">
+                    <img src="/images/LogoPANS.png" alt="Logo PANS" class="pans-logo" width="263" height="59">
+                    <p class="branding-text">
+                        Platforma dedykowana studentom<br>
+                        <strong>Państwowej Akademii Nauk Stosowanych w Krośnie</strong>
+                    </p>
+                </div>
+            </section>
+
+            <section class="info-section">
+                <div class="info-grid">
+                    <div class="info-column">
+                        <h4><i class="fas fa-university"></i> Kontakt z uczelnią</h4>
+                        <ul class="info-list">
+                            <li><i class="fas fa-map-marker-alt"></i> Państwowa Akademia Nauk Stosowanych w Krośnie<br>Rynek 1, 38-400 Krosno</li>
+                            <li><i class="fas fa-phone"></i> +48 13 43 755 00</li>
+                            <li><i class="fas fa-envelope"></i> <a href="mailto:pans@pans.krosno.pl">pans@pans.krosno.pl</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="info-column">
+                        <h4><i class="fas fa-link"></i> Przydatne linki</h4>
+                        <ul class="info-links">
+                            <li><a href="https://pans.krosno.pl" target="_blank">Strona główna PANS</a></li>
+                            <li><a href="https://biblioteka.pans.krosno.pl" target="_blank">Biblioteka uczelniana</a></li>
+                            <li><a href="https://e-learning.kpu.krosno.pl/" target="_blank">E-Student</a></li>
+                            <li><a href="https://usos.kpu.krosno.pl/" target="_blank">USOSWeb</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="info-column">
+                        <h4><i class="fas fa-headset"></i> Pomoc techniczna</h4>
+                        <p>Masz problem z logowaniem lub działaniem systemu?</p>
+                        <a href="/" class="btn btn-outline btn-sm" style="margin-top: 10px;">
+                            Zgłoś problem
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="landing-footer">
+            <p>&copy; 2026 PANSportal. Wszelkie prawa zastrzeżone.</p>
+        </footer>
+
+        <script th:src="@{/js/landing/landing.js}" src="../static/js/landing/landing.js"></script>
 
     </body>
 </html>

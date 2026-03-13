@@ -9,7 +9,8 @@ public record NoteResponseDto(
         Long userId,
         String userFirstName,
         String userLastName,
+        String visibility,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
-) {}
-
+        LocalDateTime updatedAt,
+        String studentGroupName) {
+}

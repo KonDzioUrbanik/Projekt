@@ -1,57 +1,157 @@
 <!DOCTYPE html>
 <html lang="pl"
-    xmlns:th="http://www.thymeleaf.org"
-    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        <title layout:title-pattern="$CONTENT_TITLE - PANSportal">Panel startowy</title>
+        
+        <title>Panel Studenta</title>
 
-        <!-- import czcionek oraz ikon -->
         <link rel="icon" th:href="@{/favicon.png}" type="image/png">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-        <!-- osobne arkusze stylow -->
-        <link rel="stylesheet" th:href="@{/css/dashboard/dashboard.css}" href="../../static/css/dashboard/dashboard.css">
+        <link rel="stylesheet" th:href="@{/css/dashboard/dashboard.css}">
+        <link rel="stylesheet" th:href="@{/css/dashboard/sidebar.css}">
+        <link rel="stylesheet" th:href="@{/css/common/feedback-modal.css}">
+        <link rel="stylesheet" th:href="@{/css/common/theme.css}">
 
         <th:block layout:fragment="page-styles"></th:block>
     </head>
+    
     <body>
         <div th:replace="~{fragments/header :: header}"></div>
 
         <div class="dashboard-container">
-            <aside class="navbar-left">
-                <div th:replace="~{fragments/sidebar :: sidebar}"></div>
-            </aside>
+            <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
-            <section class="navbar-middle">
+            <main class="navbar-middle">
                 <div layout:fragment="content"></div>
-            </section>
+            </main>
         </div>
 
-        <script th:src="@{/js/common/user-menu.js}" src="../../static/js/common/user-menu.js"></script>
+        <!-- Floating Help Button -->
+        <button class="floating-help-btn" id="feedbackBtn" title="Zgłoś problem lub sugestię">
+            <i class="fas fa-bug"></i>
+        </button>
 
-        <script>
-            document.addEventListener("DOMContentLoaded", function(){
-                // znalezienie kontener menu i aktywny link
-                const navContainer = document.querySelector('.side-nav');
-                const activeLink = document.querySelector('.side-nav .active');
+        <!-- Feedback Modal -->
+        <div class="feedback-modal-overlay" id="feedbackModal">
+            <div class="feedback-modal">
+                <div class="feedback-modal-header">
+                    <h2>
+                        <i class="fas fa-bug"></i>
+                        Zgłoś problem
+                    </h2>
+                    <button class="modal-close-btn" id="closeFeedbackModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="feedback-modal-body">
+                    <div class="feedback-message" id="feedbackMessage"></div>
+                    
+                    <form id="feedbackForm">
+                        <div class="feedback-form-group">
+                            <label class="required">Typ zgłoszenia</label>
+                            <div class="feedback-type-options">
+                                <div class="feedback-type-option">
+                                    <input type="radio" id="type-bug" name="type" value="BUG" checked>
+                                    <label for="type-bug" class="feedback-type-label">
+                                        <i class="fas fa-bug"></i>
+                                        <span>Błąd</span>
+                                    </label>
+                                </div>
+                                <div class="feedback-type-option">
+                                    <input type="radio" id="type-suggestion" name="type" value="SUGGESTION">
+                                    <label for="type-suggestion" class="feedback-type-label">
+                                        <i class="fas fa-lightbulb"></i>
+                                        <span>Sugestia</span>
+                                    </label>
+                                </div>
+                                <div class="feedback-type-option">
+                                    <input type="radio" id="type-question" name="type" value="OTHER">
+                                    <label for="type-question" class="feedback-type-label">
+                                        <i class="fas fa-question-circle"></i>
+                                        <span>Pytanie</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
 
-                // jesli oba elementy istnieja
-                if (navContainer && activeLink){
-                    // przewiniecie tak, aby aktywny element byl widoczny
-                    activeLink.scrollIntoView({
-                        behavior: 'auto', // 'auto' oznacza natychmiastowy skok bez animacji
-                        block: 'nearest', // nie przewijanie strony w pionie
-                        inline: 'center'  // wycentrowanie przycisku w poziomie
-                    });
-                }
-            });
-        </script>
+                        <div class="feedback-form-group">
+                            <label for="feedback-title" class="required">Tytuł</label>
+                            <input 
+                                type="text" 
+                                id="feedback-title" 
+                                name="title"
+                                class="feedback-input" 
+                                placeholder="Krótki opis problemu"
+                                maxlength="150"
+                                required>
+                        </div>
+
+                        <div class="feedback-form-group">
+                            <label for="feedback-description" class="required">Szczegółowy opis</label>
+                            <textarea 
+                                id="feedback-description" 
+                                name="description"
+                                class="feedback-textarea" 
+                                placeholder="Opisz szczegółowo zaistniały problem, uwzględniając: co się stało, na której stronie wystąpił problem, jakie kroki poprzedzały błąd"
+                                maxlength="1000"
+                                required></textarea>
+                            <div class="char-counter">
+                                <span id="charCount">0</span> / 1000
+                            </div>
+                        </div>
+
+                        <div class="feedback-form-group">
+                            <label for="feedback-email">Email kontaktowy (opcjonalnie)</label>
+                            <input 
+                                type="email" 
+                                id="feedback-email" 
+                                name="email"
+                                class="feedback-input" 
+                                placeholder="Adres e-mail (opcjonalnie, jeśli oczekujesz odpowiedzi)">
+                        </div>
+
+                        <div class="feedback-form-group">
+                            <label for="feedback-file">Załącznik (opcjonalnie)</label>
+                            <input 
+                                type="file" 
+                                id="feedback-file" 
+                                name="file"
+                                class="feedback-input" 
+                                accept=".jpg,.jpeg,.png,.pdf">
+                            <small style="display:block; margin-top:0.25rem; color:var(--text-muted); font-size:0.8rem;">
+                                Maksymalny rozmiar pliku: 5MB. Dozwolone formaty: Obrazy, PDF.
+                            </small>
+                        </div>
+                        
+                        <input type="text" name="website" style="display:none !important" tabindex="-1" autocomplete="off">
+                    </form>
+                </div>
+
+                <div class="feedback-modal-footer">
+                    <button type="button" class="feedback-btn feedback-btn-cancel" id="cancelFeedback">
+                        Anuluj
+                    </button>
+                    <button type="submit" form="feedbackForm" class="feedback-btn feedback-btn-submit" id="submitFeedback">
+                        <i class="fas fa-paper-plane"></i> Wyślij
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <script th:src="@{/js/common/utils.js}"></script>
+        <script th:src="@{/js/common/theme.js}"></script>
+        <script th:src="@{/js/common/user-menu.js}"></script> 
+        <script th:src="@{/js/dashboard/sidebar.js}" defer></script>
+        <script th:src="@{/js/common/feedback-modal.js}" defer></script>
 
         <th:block layout:fragment="page-scripts"></th:block>
     </body>

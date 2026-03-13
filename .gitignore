@@ -42,3 +42,6 @@ build/
 # Ignoruj lokalne logi Dockera, jeśli powstaną
 *.log
 
+### Uploads ###
+/uploads/
+

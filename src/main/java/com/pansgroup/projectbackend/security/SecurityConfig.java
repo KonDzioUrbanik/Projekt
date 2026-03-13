@@ -15,101 +15,172 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.RememberMeServices;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 
 @Configuration
 public class SecurityConfig {
 
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring().requestMatchers(
-                "/static/**",
-                "/favicon.png",
-                "/favicon.ico",
-                "/css/**",
-                "/js/**"
-        );
-    }
+        @Bean
+        public WebSecurityCustomizer webSecurityCustomizer() {
+                return (web) -> web.ignoring().requestMatchers(
+                                "/static/**",
+                                "/favicon.png",
+                                "/favicon.ico",
+                                "/css/**",
+                                "/js/**",
+                                "/images/**");
+        }
 
-    @Bean
-    public UserDetailsService userDetailsService(UserService userService) {
-        return email -> {
-            User user = userService.findUserByEmailInternal(email);
-            if (user == null) {
-                throw new UsernameNotFoundException("Nie znaleziono użytkownika: " + email);
-            }
-            if (!user.isActivated()) {
-                throw new DisabledException("Konto nie zostało aktywowane :( Sprawdź e-mail");
-            }
-            return org.springframework.security.core.userdetails.User
-                    .withUsername(user.getEmail())
-                    .password(user.getPassword())
-                    .roles(user.getRole().replace("ROLE_", ""))
-                    .build();
-        };
-    }
+        @Bean
+        public UserDetailsService userDetailsService(UserService userService) {
+                return email -> {
+                        User user = userService.findUserByEmailInternal(email);
+                        if (user == null) {
+                                throw new UsernameNotFoundException("Nie znaleziono użytkownika: " + email);
+                        }
+                        if (!user.isActivated()) {
+                                throw new DisabledException(
+                                                "Konto nie zostało aktywowane. Sprawdź swoją skrzynkę e-mail i kliknij w link aktywacyjny. Jeśli nie otrzymałeś wiadomości, skontaktuj się z administratorem.");
+                        }
+                        return org.springframework.security.core.userdetails.User
+                                        .withUsername(user.getEmail())
+                                        .password(user.getPassword())
+                                        .roles(user.getRole().replace("ROLE_", ""))
+                                        .build();
+                };
+        }
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
-    }
+        @Bean
+        public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+                return config.getAuthenticationManager();
+        }
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        @org.springframework.beans.factory.annotation.Value("${app.security.remember-me.key}")
+        private String rememberMeKey;
 
-        http.csrf(AbstractHttpConfigurer::disable);
-        http.httpBasic(AbstractHttpConfigurer::disable);
-        http.formLogin(AbstractHttpConfigurer::disable);
+        @Bean
+        public PersistentTokenRepository persistentTokenRepository(
+                        javax.sql.DataSource dataSource) {
+                org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl tokenRepository = new org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl();
+                tokenRepository.setDataSource(dataSource);
+                return tokenRepository;
+        }
 
-        http.authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                        "/favicon.ico",
-                        "/favicon.png",
-                        "/",
-                        "/login",
-                        "/register",
-                        "/tutorial",
-                        "/api/auth/**",
-                        "/swagger-ui/**",
-                        "/v3/api-docs/**",
-                        "/confirm",
-                        "/reset-password",
-                        "/forgot-password",
-                        "/password-reset-expired",
-                        "/token-error"
-                ).permitAll()
+        @Bean
+        public RememberMeServices rememberMeServices(UserDetailsService userDetailsService,
+                        PersistentTokenRepository tokenRepository) {
+                // Używamy własnej klasy, aby obsłużyć flagę przekazaną w atrybucie (dla
+                // logowania JSON)
+                CustomRememberMeServices services = new CustomRememberMeServices(
+                                rememberMeKey, userDetailsService, tokenRepository);
+                services.setTokenValiditySeconds(604800); // 7 dni
+                services.setParameter("remember-me");
+                return services;
+        }
 
-                .requestMatchers(HttpMethod.POST, "/api/schedule/**", "/api/groups").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT,
-                        "/api/schedule/**",
-                        "/api/groups/**",
-                        "/api/users/role/update/**",
-                        "/api/users/assign-group/**"
-                ).hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/schedule/**", "/api/groups/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.GET, "/api/groups").hasRole("ADMIN")
+        /**
+         * Własna implementacja, która zagląda również do atrybutów żądania.
+         * Dzięki temu AuthController może ustawić flagę ręcznie dla żądań JSON.
+         */
+        public static class CustomRememberMeServices extends PersistentTokenBasedRememberMeServices {
+                public CustomRememberMeServices(String key, UserDetailsService userDetailsService,
+                                PersistentTokenRepository tokenRepository) {
+                        super(key, userDetailsService, tokenRepository);
+                }
 
-                .requestMatchers(HttpMethod.GET,
-                        "/api/schedule/**",
-                        "/api/groups/{id}"
-                ).authenticated()
+                @Override
+                protected boolean rememberMeRequested(jakarta.servlet.http.HttpServletRequest request,
+                                String parameter) {
+                        Object flag = request.getAttribute("REMEMBER_ME_FLAG");
+                        if (flag instanceof Boolean) {
+                                return (Boolean) flag;
+                        }
+                        return super.rememberMeRequested(request, parameter);
+                }
+        }
 
-                //to dla api :D
-                .requestMatchers(
-                        "/api/users/me",
-                        "/api/notes/**"
-                ).authenticated()
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http,
+                        RememberMeServices rememberMeServices)
+                        throws Exception {
 
-                //to dla stron widokow :D
-                .requestMatchers(
-                    "/dashboard", 
-                    "/schedule", //dodalem dla planu zajec
-                    "/profile",//dodalem dla edycji profilu
-                    "/change-password" //dodalem dla zmiany hasla
-                ).authenticated()
+                http.csrf(AbstractHttpConfigurer::disable);
+                http.httpBasic(AbstractHttpConfigurer::disable);
 
-                .anyRequest().authenticated()
-        );
+                // Dzięki temu Spring wie, że jak ktoś nie ma dostępu, to trzeba go rzucić na
+                // "/login"
+                http.formLogin(form -> form
+                                .loginPage("/login") // Adres widoku logowania
+                                .loginProcessingUrl("/login") // Adres POST formularza
+                                .defaultSuccessUrl("/dashboard", true) // Gdzie przekierować po sukcesie
+                                .permitAll() // Strona logowania dostępna dla każdego
+                );
 
-        return http.build();
-    }
+                http.logout(logout -> logout
+                                .logoutUrl("/logout")
+                                .logoutSuccessUrl("/login?logout")
+                                .permitAll());
+
+                http.authorizeHttpRequests(auth -> auth
+                                .requestMatchers(
+                                                "/favicon.ico",
+                                                "/favicon.png",
+                                                "/",
+                                                "/login",
+                                                "/register",
+                                                "/tutorial",
+                                                "/api/auth/**",
+                                                "/swagger-ui/**",
+                                                "/v3/api-docs/**",
+                                                "/confirm",
+                                                "/reset-password",
+                                                "/forgot-password",
+                                                "/password-reset-expired",
+                                                "/token-error")
+                                .permitAll()
+
+                                // API endpoints tylko dla ADMIN
+                                .requestMatchers(HttpMethod.POST, "/api/schedule/**", "/api/groups").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.PUT,
+                                                "/api/schedule/**",
+                                                "/api/groups/**",
+                                                "/api/users/role/update/**",
+                                                "/api/users/assign-group/**")
+                                .hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/schedule/**", "/api/groups/**")
+                                .hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.GET, "/api/groups", "/api/schedule/all").hasRole("ADMIN")
+
+                                // Widoki admin tylko dla ADMIN
+                                .requestMatchers("/admin/**").hasRole("ADMIN")
+
+                                .requestMatchers(HttpMethod.GET,
+                                                "/api/schedule",
+                                                "/api/schedule/{id}",
+                                                "/api/groups/{id}")
+                                .authenticated()
+
+                                // to dla api
+                                .requestMatchers(
+                                                "/api/users/me",
+                                                "/api/notes/**")
+                                .authenticated()
+
+                                // to dla stron widokow
+                                .requestMatchers(
+                                                "/dashboard",
+                                                "/schedule", // dodalem dla planu zajec
+                                                "/profile", // dodalem dla edycji profilu
+                                                "/change-password" // dodalem dla zmiany hasla
+                                ).authenticated()
+
+                                .anyRequest().authenticated());
+
+                http.rememberMe(rememberMe -> rememberMe
+                                .rememberMeServices(rememberMeServices));
+
+                return http.build();
+        }
 }

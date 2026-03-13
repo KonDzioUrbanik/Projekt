@@ -28,6 +28,11 @@ public class ScheduleController {
         return scheduleService.getMySchedule(userEmail);
     }
 
+    @GetMapping("/all")
+    public List<ScheduleEntryResponseDto> getAllSchedules() {
+        return scheduleService.findAll();
+    }
+
     @GetMapping("/{id}")
     public ScheduleEntryResponseDto getById(@PathVariable Long id) {
         return scheduleService.findById(id);
@@ -50,5 +55,11 @@ public class ScheduleController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         scheduleService.delete(id);
+    }
+
+    @DeleteMapping("/group/{groupId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteByGroup(@PathVariable Long groupId) {
+        scheduleService.deleteByGroupId(groupId);
     }
 }

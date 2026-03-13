@@ -1,12 +1,11 @@
 package com.pansgroup.projectbackend.module.user.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
 
-@Schema(description = "Dane do przypisania użytkownika do grupy")
+@Schema(description = "Dane do przypisania użytkownika do kierunku")
 public record UserGroupAssignmentDto(
-        @NotNull(message = "ID grupy jest wymagane")
-        @Schema(description = "ID grupy, do której ma być przypisany użytkownik", example = "5")
+        //@NotNull(message = "ID kierunku jest wymagane")
+        @Schema(description = "ID kierunku, do którego ma być przypisany użytkownik. 'Null' aby usunąć przypisanie do kierunku.", example = "5")
         Long groupId
 ) {
 }

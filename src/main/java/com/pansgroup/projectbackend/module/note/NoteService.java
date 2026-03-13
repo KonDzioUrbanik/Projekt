@@ -18,5 +18,7 @@ public interface NoteService {
     List<NoteResponseDto> findAll();
 
     List<NoteResponseDto> findByUser(Long userId);
+    
+    List<NoteResponseDto> findByUserEmail(String email);
 }
 

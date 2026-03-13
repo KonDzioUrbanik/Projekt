@@ -13,11 +13,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("ALL")
 @Service
@@ -30,11 +32,19 @@ public class UserServiceImpl implements UserService {
     private final ConfirmationTokenRepository confirmationTokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
 
+    // Rate limiting dla forgot-password: email -> ostatni czas wysłania
+    private final ConcurrentHashMap<String, LocalDateTime> passwordResetCooldown = new ConcurrentHashMap<>();
+    private static final long COOLDOWN_SECONDS = 60;
+
+    // Rate limiting dla confirmation: token -> ostatni czas próby
+    private final ConcurrentHashMap<String, LocalDateTime> confirmationAttemptsCooldown = new ConcurrentHashMap<>();
+    private static final long CONFIRMATION_COOLDOWN_SECONDS = 5;
 
     public UserServiceImpl(UserRepository userRepository,
-                           PasswordEncoder passwordEncoder,
-                           StudentGroupRepository studentGroupRepository,
-                           EmailService emailService, ConfirmationTokenRepository confirmationTokenRepository, PasswordResetTokenRepository passwordResetTokenRepository) {
+            PasswordEncoder passwordEncoder,
+            StudentGroupRepository studentGroupRepository,
+            EmailService emailService, ConfirmationTokenRepository confirmationTokenRepository,
+            PasswordResetTokenRepository passwordResetTokenRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.studentGroupRepository = studentGroupRepository;
@@ -47,7 +57,8 @@ public class UserServiceImpl implements UserService {
     public User findUserByEmailInternal(String email) {
         String e = email.trim().toLowerCase(Locale.ROOT);
         return userRepository.findByEmail(e)
-                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + e));
+                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException(
+                        "Nie znaleziono użytkownika o adresie: " + e));
     }
 
     @Override
@@ -86,7 +97,6 @@ public class UserServiceImpl implements UserService {
         return mapToResponseDto(saved);
     }
 
-
     private Integer extractIndexNumberFromEmail(String email) {
         if (email == null || email.isEmpty()) {
             return null;
@@ -120,7 +130,8 @@ public class UserServiceImpl implements UserService {
     public List<UserResponseDto> findAll() {
         return userRepository.findAll()
                 .stream()
-                .map(this::mapToResponseDto)   // bez hasła
+                .sorted((u1, u2) -> Long.compare(u1.getId(), u2.getId())) // sortowanie po id rosnaco
+                .map(this::mapToResponseDto) // bez hasła
                 .toList();
     }
 
@@ -140,11 +151,13 @@ public class UserServiceImpl implements UserService {
 
         // Szukamy użytkownika po emailu
         User user = userRepository.findByEmail(normalizedEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + normalizedEmail));
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        "Nie znaleziono użytkownika o adresie: " + normalizedEmail));
 
         // Sprawdzamy poprawność hasła
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-            throw new BadCredentialsException("Nieprawidłowe dane logowania");
+            throw new BadCredentialsException(
+                    "Wprowadzone dane logowania są nieprawidłowe. Sprawdź adres e-mail i hasło.");
         }
 
         return user;
@@ -168,10 +181,33 @@ public class UserServiceImpl implements UserService {
                 u.getNickName(),
                 u.getPhoneNumber(),
                 u.getFieldOfStudy(),
-                u.getYearOfStudy(),
+                // Priorytet dla roku studiów: Kierunek > Profil
+                extractYearFromGroupName(groupName) != null ? extractYearFromGroupName(groupName) : u.getYearOfStudy(),
                 u.getStudyMode(),
-                u.getBio()
-        );
+                u.getBio());
+    }
+
+    private Integer extractYearFromGroupName(String groupName) {
+        if (groupName == null || groupName.isEmpty()) {
+            return null;
+        }
+
+        // Szukanie rzymskich cyfr oznaczających rok (I-V)
+        // \b zapewnia, że jest to całe słowo (np. żeby nie złapać 'I' w słowie
+        // 'Informatyka')
+        // Sprawdzamy najpierw IV, żeby nie złapało I czy V
+        if (groupName.matches(".*\\bIV\\b.*"))
+            return 4;
+        if (groupName.matches(".*\\bIII\\b.*"))
+            return 3;
+        if (groupName.matches(".*\\bII\\b.*"))
+            return 2;
+        if (groupName.matches(".*\\bI\\b.*"))
+            return 1;
+        if (groupName.matches(".*\\bV\\b.*"))
+            return 5;
+
+        return null;
     }
 
     @Override
@@ -180,10 +216,17 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
-        // Zmiana imienia i nazwiska użytkownika
+        // Aktualizacja danych podstawowych
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
 
+        // Aktualizacja pól informacyjnych profilu
+        // UWAGA: Pola poniżej są CZYSTO INFORMACYJNE i NIE wpływają na członkostwo w
+        // grupie.
+        // Rzeczywiste przypisanie do grupy (user.studentGroup) jest zarządzane
+        // WYŁĄCZNIE
+        // przez administratora poprzez endpoint assignUserToGroup().
+        // Użytkownik może swobodnie edytować te pola dla celów prezentacyjnych.
         user.setNickName(dto.getNickName());
         user.setPhoneNumber(dto.getPhoneNumber());
         user.setFieldOfStudy(dto.getFieldOfStudy());
@@ -203,12 +246,12 @@ public class UserServiceImpl implements UserService {
 
         // Weryfikacja bieżącego hasła
         if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
-            throw new PasswordMismatchException("Nieprawidłowe bieżące hasło");
+            throw new PasswordMismatchException("Podane obecne hasło jest nieprawidłowe.");
         }
 
         // Weryfikacja nowego hasła i potwierdzenia
         if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
-            throw new PasswordMismatchException("Nowe hasło i potwierdzenie hasła nie pasują do siebie");
+            throw new PasswordMismatchException("Nowe hasło i potwierdzenie hasła nie są identyczne.");
         }
 
         // Zmiana hasła
@@ -238,15 +281,20 @@ public class UserServiceImpl implements UserService {
 
         // 1. Znajdź użytkownika
         User userToUpdate = userRepository.findByEmail(normalizedEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + normalizedEmail));
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        "Nie znaleziono użytkownika o adresie: " + normalizedEmail));
 
-        // 2. Znajdź encję grupy
-        // Używamy metody z studentgrouprepository, która zwróci encję Grupy
-        StudentGroup group = studentGroupRepository.findById(dto.groupId())
-                .orElseThrow(() -> new StudentGroupNotFoundException(dto.groupId()));
-
-        // 3. Przypisz grupę do użytkownika
-        userToUpdate.setStudentGroup(group);
+        // 2. Znajdź encję kierunku lub usuń przypisanie (jeśli groupId == null)
+        if (dto.groupId() == null) {
+            // usunięcie przypisania do kierunku
+            userToUpdate.setStudentGroup(null);
+        } else {
+            // użycie metody z studentGroupRepository, która zwróci encję kierunku
+            StudentGroup group = studentGroupRepository.findById(dto.groupId())
+                    .orElseThrow(() -> new StudentGroupNotFoundException(dto.groupId()));
+            // 3. Przypisz kierunek do użytkownika
+            userToUpdate.setStudentGroup(group);
+        }
 
         // 4. Zapisz i zwróć DTO
         return mapToResponseDto(userRepository.save(userToUpdate));
@@ -254,29 +302,60 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void confirmToken(String token) {
+        // Rate limiting - sprawdź czy nie ma zbyt wielu prób dla tego tokenu
+        LocalDateTime lastAttempt = confirmationAttemptsCooldown.get(token);
+        if (lastAttempt != null) {
+            long secondsSinceLastAttempt = Duration.between(lastAttempt, LocalDateTime.now()).getSeconds();
+            if (secondsSinceLastAttempt < CONFIRMATION_COOLDOWN_SECONDS) {
+                long remainingSeconds = CONFIRMATION_COOLDOWN_SECONDS - secondsSinceLastAttempt;
+                throw new TooManyRequestsException(
+                        "Zbyt wiele prób aktywacji. Poczekaj " + remainingSeconds + " sekund przed ponowną próbą.");
+            }
+        }
+
+        // Zapisz timestamp próby
+        confirmationAttemptsCooldown.put(token, LocalDateTime.now());
+
         // Wszystko tutaj jest poprawne
         Optional<ConfirmationToken> tokenOptional = confirmationTokenRepository.findByToken(token);
         if (!tokenOptional.isPresent()) {
-            throw new UsernameNotFoundException("Token jest błędny " + token + " bądz nie istnieje");
+            throw new UsernameNotFoundException(
+                    "Link aktywacyjny jest nieprawidłowy lub wygasł. Zarejestruj się ponownie lub skontaktuj się z administratorem.");
         } else {
             ConfirmationToken confirmationToken = tokenOptional.get();
             if (confirmationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-                throw new UsernameNotFoundException("Token przeterminowany");
+                throw new UsernameNotFoundException(
+                        "Link aktywacyjny wygasł. Zarejestruj się ponownie lub skontaktuj się z administratorem.");
             }
             User user = confirmationToken.getUser();
             user.setActivated(true);
             userRepository.save(user);
             confirmationTokenRepository.delete(confirmationToken);
+
+            // Usuń z cooldown po udanej aktywacji
+            confirmationAttemptsCooldown.remove(token);
         }
     }
 
     @Override
     public void requestPasswordReset(String email) {
+        // Rate limiting - sprawdź czy użytkownik nie spamuje
+        LocalDateTime lastRequest = passwordResetCooldown.get(email);
+        if (lastRequest != null) {
+            long secondsSinceLastRequest = Duration.between(lastRequest, LocalDateTime.now()).getSeconds();
+            if (secondsSinceLastRequest < COOLDOWN_SECONDS) {
+                long remainingSeconds = COOLDOWN_SECONDS - secondsSinceLastRequest;
+                throw new TooManyRequestsException(
+                        "Poczekaj " + remainingSeconds + " sekund przed ponowną próbą wysłania linku resetującego.");
+            }
+        }
+
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty()) {
             throw new UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + email);
         } else if (!user.get().isActivated()) {
-            throw new AccountInactiveException("Konto o tym emailu \n" + email + " nie jest aktywne");
+            throw new AccountInactiveException("Konto z adresem e-mail " + email
+                    + " nie zostało aktywowane. Sprawdź swoją skrzynkę pocztową i kliknij w link aktywacyjny.");
         } else {
             User u = user.get();
             PasswordResetToken passwordResetToken = new PasswordResetToken();
@@ -285,18 +364,37 @@ public class UserServiceImpl implements UserService {
             passwordResetToken.setExpiryDate(LocalDateTime.now().plusMinutes(10));
             passwordResetTokenRepository.save(passwordResetToken);
             emailService.sendPasswordResetEmail(u.getEmail(), passwordResetToken.getToken());
+
+            // Zapisz timestamp ostatniego wysłania dla tego emaila
+            passwordResetCooldown.put(email, LocalDateTime.now());
         }
+    }
+
+    @Override
+    @Transactional
+    public void deleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+
+        // Nie pozwalaj usuwać użytkowników z rolą ADMIN
+        if ("ADMIN".equals(user.getRole())) {
+            throw new IllegalStateException(
+                    "Nie można usunąć konta administratora. Konta z uprawnieniami administratora są chronione.");
+        }
+
+        userRepository.delete(user);
     }
 
     @Override
     public void processPasswordReset(String token, String newPassword, String confirmPassword) {
         if (!newPassword.equals(confirmPassword)) {
-            throw new PasswordMismatchException("Hasła nie są takie same");
+            throw new PasswordMismatchException(
+                    "Wprowadzone hasła nie są identyczne. Upewnij się, że oba pola zawierają to samo hasło.");
         }
         Optional<PasswordResetToken> tokenOptional = passwordResetTokenRepository.findByToken(token);
         if (!tokenOptional.isEmpty()) {
             if (tokenOptional.get().getExpiryDate().isBefore(LocalDateTime.now())) {
-                throw new UsernameNotFoundException("Token przeterminowany");
+                throw new UsernameNotFoundException("Link do resetowania hasła wygasł. Wystąp o nowy link resetujący.");
             } else {
                 PasswordResetToken passwordResetToken = tokenOptional.get();
                 User user = passwordResetToken.getUser();
@@ -305,7 +403,83 @@ public class UserServiceImpl implements UserService {
                 passwordResetTokenRepository.delete(passwordResetToken);
             }
         } else {
-            throw new UsernameNotFoundException("Token jest błędny " + token + " bądź nie istnieje");
+            throw new UsernameNotFoundException(
+                    "Link do resetowania hasła jest nieprawidłowy lub wygasł. Wystąp o nowy link resetujący.");
         }
+    }
+
+    @Override
+    @Transactional
+    public void uploadAvatar(Long userId, org.springframework.web.multipart.MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "Plik nie może być pusty");
+        }
+
+        String filename = org.springframework.util.StringUtils.cleanPath(file.getOriginalFilename());
+        String extension = org.springframework.util.StringUtils.getFilenameExtension(filename);
+        List<String> allowedExtensions = java.util.Arrays.asList("jpg", "jpeg", "png", "gif");
+
+        if (extension == null || !allowedExtensions.contains(extension.toLowerCase())) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST,
+                    "Niedozwolone rozszerzenie pliku: " + extension + ". Dozwolone: jpg, png, gif.");
+        }
+
+        String mimeType = file.getContentType();
+        if (mimeType == null || !mimeType.startsWith("image/")) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "Niedozwolony typ pliku: " + mimeType);
+        }
+
+        if (file.getSize() > 5 * 1024 * 1024) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "Plik jest zbyt duży (max 5MB).");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+
+        try {
+            user.setAvatarData(file.getBytes());
+            user.setAvatarContentType(mimeType);
+            userRepository.save(user);
+        } catch (java.io.IOException e) {
+            throw new RuntimeException("Błąd podczas przetwarzania awatara", e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public User getAvatar(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+
+        if (user.getAvatarData() == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.NOT_FOUND, "Użytkownik nie ma awatara");
+        }
+        // Force load LOB data within transaction
+        int len = user.getAvatarData().length;
+        return user;
+    }
+
+    @Override
+    @Transactional
+    public void removeAvatar(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+        user.setAvatarData(null);
+        user.setAvatarContentType(null);
+        userRepository.save(user);
+    }
+
+    @Override
+    public List<UserResponseDto> searchUsers(String query) {
+        String searchPattern = "%" + query.toLowerCase() + "%";
+        List<User> users = userRepository.searchByNameOrEmail(searchPattern);
+        return users.stream()
+                .map(this::mapToResponseDto)
+                .toList();
     }
 }
