@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/main-layout}"
+      xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Ogłoszenia</title>
+        <th:block layout:fragment="page-styles">
+            <link rel="stylesheet" th:href="@{/css/admin/announcement.css}">
+        </th:block>
+    </head>
+    <body>
+        <div layout:fragment="content">
+
+            <div class="admin-header">
+                <div>
+                    <h1><i class="fas fa-bullhorn" style="color: var(--color-primary); margin-right: 0.5rem;"></i>Ogłoszenia grupy</h1>
+                    <p>Wiadomości wysłane przez starostę Twojej grupy</p>
+                </div>
+            </div>
+
+            <!-- Alert area -->
+            <div id="announcementMessage"></div>
+
+            <!-- Loading state -->
+            <div class="ann-loading" id="annLoading">
+                <div class="ann-spinner"></div>
+                <p>Ładowanie ogłoszeń...</p>
+            </div>
+
+            <!-- Empty state (hidden by default) -->
+            <div class="ann-empty-state" id="annEmpty" style="display: none;">
+                <div class="ann-empty-icon">
+                    <i class="fas fa-bullhorn"></i>
+                </div>
+                <h3>Brak ogłoszeń</h3>
+                <p>Twoja grupa nie ma jeszcze żadnych ogłoszeń. Starosta Twojej grupy może je tutaj publikować.</p>
+            </div>
+
+            <!-- Announcement list -->
+            <div id="announcementList" style="display: none;">
+                <div class="ann-section-header">
+                    <h3 class="ann-section-title">
+                        <i class="fas fa-list"></i>
+                        Wszystkie ogłoszenia
+                        <span class="ann-count-badge" id="annCountBadge">0</span>
+                    </h3>
+                </div>
+                <div id="annCards"></div>
+            </div>
+
+            <!-- Hidden form placeholder (required by announcements.js) -->
+            <form id="announcementForm" data-mode="student" style="display: none;"></form>
+
+        </div>
+
+        <th:block layout:fragment="page-scripts">
+            <script th:src="@{/js/dashboard/announcements.js}" defer></script>
+        </th:block>
+    </body>
+</html>
+
