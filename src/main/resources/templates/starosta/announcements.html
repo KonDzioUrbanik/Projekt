@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/main-layout}"
+      xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Ogłoszenia grupy</title>
+        <th:block layout:fragment="page-styles">
+            <link rel="stylesheet" th:href="@{/css/admin/announcement.css}">
+        </th:block>
+    </head>
+    <body>
+        <div layout:fragment="content">
+
+            <div class="admin-header">
+                <div>
+                    <h1><i class="fas fa-bullhorn" style="color: var(--color-primary); margin-right: 0.5rem;"></i>Ogłoszenia dla grupy</h1>
+                    <p>Publikuj wiadomości dla studentów przypisanych do Twojej grupy</p>
+                </div>
+            </div>
+
+            <!-- Alert area -->
+            <div id="announcementMessage"></div>
+
+            <!-- New Announcement Form -->
+            <div class="ann-form-card">
+                <div class="ann-form-card-header">
+                    <div class="ann-form-card-icon">
+                        <i class="fas fa-pen-to-square"></i>
+                    </div>
+                    <div class="ann-form-card-title">
+                        <h2>Nowe ogłoszenie</h2>
+                        <p>Wypełnij formularz, aby opublikować ogłoszenie dla swojej grupy</p>
+                    </div>
+                </div>
+                <div class="ann-form-body">
+                    <form id="announcementForm" data-mode="starosta">
+                        <div class="ann-form-group">
+                            <label class="ann-form-label" for="announcementTitle">
+                                Tytuł <span class="required-star">*</span>
+                            </label>
+                            <input id="announcementTitle"
+                                   type="text"
+                                   class="ann-form-input"
+                                   maxlength="150"
+                                   placeholder="Wpisz krótki, opisowy tytuł ogłoszenia..."
+                                   autocomplete="off"
+                                   required>
+                            <div class="ann-char-counter" id="titleCounter">0 / 150</div>
+                        </div>
+                        <div class="ann-form-group">
+                            <label class="ann-form-label" for="announcementContent">
+                                Treść <span class="required-star">*</span>
+                            </label>
+                            <textarea id="announcementContent"
+                                      class="ann-form-textarea"
+                                      rows="5"
+                                      maxlength="2000"
+                                      placeholder="Napisz treść ogłoszenia..."
+                                      required></textarea>
+                            <div class="ann-char-counter" id="contentCounter">0 / 2000</div>
+                        </div>
+                        <div class="ann-form-footer">
+                            <button type="submit" class="ann-btn-submit" id="submitBtn">
+                                <span class="ann-btn-spinner"></span>
+                                <span class="ann-btn-label">
+                                    <i class="fas fa-paper-plane"></i> Wyślij ogłoszenie
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Announcement list section -->
+            <div class="ann-section-header">
+                <h3 class="ann-section-title">
+                    <i class="fas fa-history"></i>
+                    Opublikowane ogłoszenia
+                    <span class="ann-count-badge" id="annCountBadge">0</span>
+                </h3>
+            </div>
+
+            <!-- Loading state -->
+            <div class="ann-loading" id="annLoading">
+                <div class="ann-spinner"></div>
+                <p>Ładowanie ogłoszeń...</p>
+            </div>
+
+            <!-- Empty state -->
+            <div class="ann-empty-state" id="annEmpty" style="display: none;">
+                <div class="ann-empty-icon">
+                    <i class="fas fa-inbox"></i>
+                </div>
+                <h3>Brak ogłoszeń</h3>
+                <p>Nie opublikowano jeszcze żadnych ogłoszeń dla Twojej grupy. Użyj formularza powyżej, aby dodać pierwsze.</p>
+            </div>
+
+            <!-- Cards container -->
+            <div id="announcementList" style="display: none;">
+                <div id="annCards"></div>
+            </div>
+
+        </div>
+
+        <!-- Delete confirmation modal -->
+        <div class="ann-modal-overlay" id="deleteModal">
+            <div class="ann-modal-card">
+                <div class="ann-modal-icon">
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+                <h3>Usuń ogłoszenie</h3>
+                <p>Czy na pewno chcesz usunąć to ogłoszenie? Tej operacji nie można cofnąć.</p>
+                <div class="ann-modal-actions">
+                    <button class="ann-btn-cancel" id="modalCancelBtn">Anuluj</button>
+                    <button class="ann-btn-confirm-delete" id="modalConfirmBtn">
+                        <i class="fas fa-trash-alt"></i> Usuń
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <th:block layout:fragment="page-scripts">
+            <script th:src="@{/js/dashboard/announcements.js}" defer></script>
+        </th:block>
+    </body>
+</html>
+

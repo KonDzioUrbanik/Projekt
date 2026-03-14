@@ -9,4 +9,8 @@ public interface AnnouncementService {
     AnnouncementResponseDto createForOwnGroup(AnnouncementCreateDto dto);
 
     List<AnnouncementResponseDto> getCurrentUserGroupFeed();
+
+    List<AnnouncementResponseDto> getAllAnnouncements();
+
+    void deleteById(Long id);
 }

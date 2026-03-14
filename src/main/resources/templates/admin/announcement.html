@@ -3,27 +3,103 @@
     <head>
         <title>Ogłoszenia</title>
         <th:block layout:fragment="page-styles">
-            <link rel="stylesheet" th:href="@{/css/admin/admin-users.css}" href="../../static/css/admin/admin-users.css">
+            <link rel="stylesheet" th:href="@{/css/admin/announcement.css}">
         </th:block>
     </head>
     <body>
         <div layout:fragment="content">
-        
-            <!-- <nav class="breadcrumb">
-                <a href="/home" class="breadcrumb-item">
-                    <i class="fas fa-home"></i> PANSportal
-                </a>
-                <span class="breadcrumb-separator">/</span>
-                <span class="breadcrumb-item active">Panel administratora</span>
-                <span class="breadcrumb-separator">/</span>
-                <span class="breadcrumb-item active">Ogłoszenia</span>
-            </nav> -->
-        
+
             <div class="admin-header">
                 <div>
-                    <h1>Ogłoszenia</h1>
+                    <h1><i class="fas fa-bullhorn" style="color: var(--color-primary); margin-right: 0.5rem;"></i>Ogłoszenia</h1>
+                    <p>Przeglądaj i zarządzaj wszystkimi ogłoszeniami w systemie</p>
                 </div>
             </div>
-        
+
+            <!-- Alert area -->
+            <div id="announcementMessage"></div>
+
+            <!-- Filters -->
+            <div class="ann-filters-card">
+                <div class="ann-filters-row">
+                    <div class="ann-search-group">
+                        <label><i class="fas fa-search"></i> Wyszukaj</label>
+                        <div class="ann-search-wrapper">
+                            <i class="fas fa-search"></i>
+                            <input type="text"
+                                   id="searchInput"
+                                   class="ann-search-input"
+                                   placeholder="Szukaj po tytule, treści lub autorze...">
+                        </div>
+                    </div>
+
+                    <div class="ann-filter-group">
+                        <label for="groupFilter"><i class="fas fa-users"></i> Grupa</label>
+                        <select id="groupFilter" class="ann-filter-select">
+                            <option value="">Wszystkie grupy</option>
+                        </select>
+                    </div>
+
+                    <button class="ann-btn-reset" id="resetFilters">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+
+                    <div class="ann-results-info">
+                        <span id="resultsCount">0</span> ogłoszeń
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="ann-table-card">
+                <div class="ann-table-scroll">
+                    <table class="ann-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>Tytuł</th>
+                                <th>Treść (podgląd)</th>
+                                <th>Autor</th>
+                                <th>Grupa</th>
+                                <th>Data</th>
+                                <th style="width: 90px;">Akcje</th>
+                            </tr>
+                        </thead>
+                        <tbody id="announcementTableBody">
+                            <tr>
+                                <td colspan="7" style="padding: 4rem 2rem; text-align: center;">
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                                        <div class="ann-spinner"></div>
+                                        <p style="color: var(--text-light); margin: 0;">Ładowanie ogłoszeń...</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Delete confirmation modal -->
+        <div class="ann-modal-overlay" id="deleteModal">
+            <div class="ann-modal-card">
+                <div class="ann-modal-icon">
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+                <h3>Usuń ogłoszenie</h3>
+                <p id="deleteModalText">Czy na pewno chcesz usunąć to ogłoszenie? Tej operacji nie można cofnąć.</p>
+                <div class="ann-modal-actions">
+                    <button class="ann-btn-cancel" id="modalCancelBtn">Anuluj</button>
+                    <button class="ann-btn-confirm-delete" id="modalConfirmBtn">
+                        <i class="fas fa-trash-alt"></i> Usuń
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <th:block layout:fragment="page-scripts">
+            <script th:src="@{/js/admin/admin-announcement.js}"></script>
+        </th:block>
     </body>
 </html>

@@ -6,6 +6,7 @@ import com.pansgroup.projectbackend.module.announcement.dto.AnnouncementResponse
 import com.pansgroup.projectbackend.module.student.StudentGroup;
 import com.pansgroup.projectbackend.module.user.User;
 import com.pansgroup.projectbackend.module.user.UserRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -62,6 +63,38 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                 .stream()
                 .map(this::mapToDto)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AnnouncementResponseDto> getAllAnnouncements() {
+        User currentUser = getCurrentUser();
+        if (!"ADMIN".equalsIgnoreCase(currentUser.getRole())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Tylko administrator może przeglądać wszystkie ogłoszenia.");
+        }
+        return announcementRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
+                .stream()
+                .map(this::mapToDto)
+                .toList();
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        User currentUser = getCurrentUser();
+        Announcement announcement = announcementRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Ogłoszenie o podanym ID nie istnieje."));
+
+        boolean isAdmin  = "ADMIN".equalsIgnoreCase(currentUser.getRole());
+        boolean isAuthor = announcement.getAuthor().getId().equals(currentUser.getId());
+
+        if (!isAdmin && !isAuthor) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Brak uprawnień do usunięcia tego ogłoszenia.");
+        }
+
+        announcementRepository.deleteById(id);
     }
 
     private User getCurrentUser() {
