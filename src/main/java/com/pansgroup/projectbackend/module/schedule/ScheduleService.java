@@ -17,6 +17,12 @@ public interface ScheduleService {
 
     void deleteByGroupId(Long groupId);
 
+    ScheduleEntryResponseDto archive(Long id);
+
+    ScheduleEntryResponseDto restore(Long id);
+
+    int archiveActive(String yearPlan);
+
     // ----------- OPERACJE ODCZYTU -----------
     ScheduleEntryResponseDto findById(Long id);
 

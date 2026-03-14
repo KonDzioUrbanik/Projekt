@@ -5,6 +5,7 @@ import com.pansgroup.projectbackend.module.schedule.DayOfWeek;
 import com.pansgroup.projectbackend.module.schedule.WeekType;
 import com.pansgroup.projectbackend.module.student.dto.StudentGroupResponseDto;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -18,5 +19,8 @@ public record ScheduleEntryResponseDto(
                 LocalTime endTime,
                 ClassType classType,
                 List<StudentGroupResponseDto> studentGroups,
-                WeekType weekType) {
+                WeekType weekType,
+                String customWeeks,
+                Boolean archived,
+                LocalDateTime archivedAt) {
 }

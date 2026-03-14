@@ -14,9 +14,12 @@ import com.pansgroup.projectbackend.module.user.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -82,7 +85,8 @@ public class ScheduleServiceImpl implements ScheduleService {
             entry.setStudentGroups(new ArrayList<>());
         }
 
-        entry.setWeekType(dto.weekType());
+        entry.setWeekType(resolvePersistedWeekType(dto.weekType(), dto.customWeeks()));
+        entry.setCustomWeeks(normalizeCustomWeeks(dto.customWeeks(), dto.weekType()));
 
         ScheduleEntry updated = scheduleRepository.save(entry);
         return toResponse(updated);
@@ -132,6 +136,47 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
+    public ScheduleEntryResponseDto archive(Long id) {
+        ScheduleEntry entry = scheduleRepository.findById(id)
+                .orElseThrow(() -> new ScheduleEntryNotFoundException(id));
+
+        entry.setArchived(true);
+        entry.setArchivedAt(LocalDateTime.now());
+        return toResponse(scheduleRepository.save(entry));
+    }
+
+    @Override
+    public ScheduleEntryResponseDto restore(Long id) {
+        ScheduleEntry entry = scheduleRepository.findById(id)
+                .orElseThrow(() -> new ScheduleEntryNotFoundException(id));
+
+        entry.setArchived(false);
+        entry.setArchivedAt(null);
+        return toResponse(scheduleRepository.save(entry));
+    }
+
+    @Override
+    public int archiveActive(String yearPlan) {
+        List<ScheduleEntry> candidates = scheduleRepository.findAll().stream()
+                .filter(entry -> !Boolean.TRUE.equals(entry.getArchived()))
+                .filter(entry -> yearPlan == null || yearPlan.isBlank()
+                        || (entry.getYearPlan() != null && entry.getYearPlan().equalsIgnoreCase(yearPlan.trim())))
+                .toList();
+
+        if (candidates.isEmpty()) {
+            return 0;
+        }
+
+        LocalDateTime archivedAt = LocalDateTime.now();
+        candidates.forEach(entry -> {
+            entry.setArchived(true);
+            entry.setArchivedAt(archivedAt);
+        });
+        scheduleRepository.saveAll(candidates);
+        return candidates.size();
+    }
+
+    @Override
     public List<ScheduleEntryResponseDto> findAll() {
         return scheduleRepository.findAll().stream()
                 .sorted((s1, s2) -> Long.compare(s1.getId(), s2.getId())) // sortowanie po id rosnaco
@@ -150,6 +195,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             // Wyszukanie zajęć po relacji z grupą studencką
             return scheduleRepository.findByStudentGroups(group)
                     .stream()
+                    .filter(entry -> !Boolean.TRUE.equals(entry.getArchived()))
                     .map(this::toResponse)
                     .toList();
         }
@@ -174,7 +220,10 @@ public class ScheduleServiceImpl implements ScheduleService {
                 entry.getEndTime(),
                 entry.getClassType(),
                 groupDtos,
-                entry.getWeekType());
+                resolveResponseWeekType(entry),
+                entry.getCustomWeeks(),
+                entry.getArchived(),
+                entry.getArchivedAt());
     }
 
     private ScheduleEntry toEntity(ScheduleEntryCreateDto dto) {
@@ -186,8 +235,60 @@ public class ScheduleServiceImpl implements ScheduleService {
         entry.setStartTime(dto.startTime());
         entry.setEndTime(dto.endTime());
         entry.setClassType(dto.classType());
-        entry.setWeekType(dto.weekType());
+        entry.setWeekType(resolvePersistedWeekType(dto.weekType(), dto.customWeeks()));
+        entry.setCustomWeeks(normalizeCustomWeeks(dto.customWeeks(), dto.weekType()));
+        entry.setArchived(false);
+        entry.setArchivedAt(null);
         // studentGroups są ustawiane w metodzie create
         return entry;
+    }
+
+    private String normalizeCustomWeeks(String customWeeks, WeekType weekType) {
+        if (weekType != WeekType.CUSTOM) {
+            return null;
+        }
+        if (customWeeks == null || customWeeks.isBlank()) {
+            throw new IllegalArgumentException("Dla trybu niestandardowego podaj numery tygodni (np. 1,3,5).");
+        }
+
+        List<Integer> weeks = Arrays.stream(customWeeks.split(","))
+                .map(String::trim)
+                .filter(token -> !token.isEmpty())
+                .map(token -> {
+                    if (!token.matches("\\d{1,2}")) {
+                        throw new IllegalArgumentException(
+                                "Niepoprawny format numeru tygodnia: '" + token + "'. Użyj liczb 1-53 oddzielonych przecinkami.");
+                    }
+                    int weekNumber = Integer.parseInt(token);
+                    if (weekNumber < 1 || weekNumber > 53) {
+                        throw new IllegalArgumentException(
+                                "Numer tygodnia poza zakresem 1-53: " + weekNumber + ".");
+                    }
+                    return weekNumber;
+                })
+                .distinct()
+                .toList();
+
+        if (weeks.isEmpty()) {
+            throw new IllegalArgumentException("Nie podano żadnego poprawnego numeru tygodnia.");
+        }
+
+        return weeks.stream().map(String::valueOf).collect(Collectors.joining(","));
+    }
+
+    private WeekType resolvePersistedWeekType(WeekType requestWeekType, String customWeeks) {
+        // Część środowisk ma w DB constraint/enum tylko ALL/WEEK_A/WEEK_B.
+        // Dla trybu niestandardowego zapisujemy ALL + customWeeks.
+        if (requestWeekType == WeekType.CUSTOM && customWeeks != null) {
+            return WeekType.ALL;
+        }
+        return requestWeekType;
+    }
+
+    private WeekType resolveResponseWeekType(ScheduleEntry entry) {
+        if (entry.getCustomWeeks() != null && !entry.getCustomWeeks().isBlank()) {
+            return WeekType.CUSTOM;
+        }
+        return entry.getWeekType();
     }
 }

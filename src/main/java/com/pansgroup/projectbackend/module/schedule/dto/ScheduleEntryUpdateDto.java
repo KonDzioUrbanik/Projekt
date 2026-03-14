@@ -27,5 +27,7 @@ public record ScheduleEntryUpdateDto(
 
                 List<Long> studentGroupIds,
 
-                @NotNull(message = "Typ tygodnia jest wymagany.") WeekType weekType) {
+                @NotNull(message = "Typ tygodnia jest wymagany.") WeekType weekType,
+
+                @Size(max = 512, message = "Niestandardowe tygodnie mogą mieć maksymalnie {max} znaków.") String customWeeks) {
 }

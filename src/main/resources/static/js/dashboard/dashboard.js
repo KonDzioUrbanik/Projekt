@@ -310,13 +310,10 @@ class DashboardHome {
     
     // Filtrowanie zajęć dla danego dnia
     getClassesForDay(dayName, date) {
-        // Pobierz aktualny typ tygodnia dla podanej daty
-        const currentWeekType = this.getWeekType(date);
-        
         // Filtruj według dnia i typu tygodnia
         const dayClasses = this.scheduleData.filter(c => {
             const matchesDay = c.dayOfWeek === dayName;
-            const matchesWeek = c.weekType === 'ALL' || !c.weekType || c.weekType === currentWeekType;
+            const matchesWeek = Utils.matchesScheduleRecurrence(c, date);
             return matchesDay && matchesWeek;
         });
         
@@ -570,15 +567,11 @@ class DashboardHome {
             
             // Liczba zajęć dzisiaj
             // Filtrowanie po tygodniu (A/B)
-        const currentWeekType = this.getWeekType(new Date());
-        
         if (this.scheduleData && this.scheduleData.length > 0) {
              const allSchedule = this.scheduleData;
              
              // Filtrujemy najpierw po tygodniu
-             const weekFilteredSchedule = allSchedule.filter(item => {
-                 return item.weekType === 'ALL' || item.weekType === currentWeekType;
-             });
+             const weekFilteredSchedule = allSchedule.filter(item => Utils.matchesScheduleRecurrence(item, new Date()));
 
             // Dzisiejsze zajęcia
             const today = this.getDayOfWeek(new Date());

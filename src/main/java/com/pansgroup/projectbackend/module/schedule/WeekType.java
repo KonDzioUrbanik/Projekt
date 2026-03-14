@@ -6,7 +6,8 @@ import lombok.Getter;
 public enum WeekType {
     ALL("Każdy tydzień"),
     WEEK_A("Tydzień A"),
-    WEEK_B("Tydzień B");
+    WEEK_B("Tydzień B"),
+    CUSTOM("Niestandardowy");
 
     private final String displayName;
 
