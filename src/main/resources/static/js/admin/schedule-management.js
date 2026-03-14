@@ -16,7 +16,7 @@ class ScheduleManagement {
             'PROJEKT': 'Projekt', 'SEMINARIUM': 'Seminarium', 'KONSULTACJE': 'Konsultacje'
         },
         WEEK_TYPES: {
-            'ALL': 'Każdy', 'WEEK_A': 'Tydzień A', 'WEEK_B': 'Tydzień B'
+            'ALL': 'Każdy', 'WEEK_A': 'Tydzień A', 'WEEK_B': 'Tydzień B', 'CUSTOM': 'Niestandardowy'
         }
     };
 
@@ -58,7 +58,9 @@ class ScheduleManagement {
         document.getElementById('typeFilter').addEventListener('change', () => this.applyFilters());
         document.getElementById('groupFilter').addEventListener('change', () => this.applyFilters());
         document.getElementById('teacherFilter').addEventListener('change', () => this.applyFilters());
-        
+        document.getElementById('showArchivedToggle').addEventListener('change', () => this.applyFilters());
+        document.getElementById('weekType').addEventListener('change', () => this.toggleCustomWeeksField());
+
         // Debounce na wyszukiwarce - 300ms opóźnienia dla lepszej wydajności
         const debouncedSearch = Utils.debounce(() => this.applyFilters(), 300);
         document.getElementById('searchInput').addEventListener('input', debouncedSearch);
@@ -69,6 +71,11 @@ class ScheduleManagement {
         const clearBtn = document.getElementById('clearGroupScheduleBtn');
         if (clearBtn) {
             clearBtn.addEventListener('click', () => this.clearGroupSchedule());
+        }
+
+        const archiveActiveBtn = document.getElementById('archiveActiveBtn');
+        if (archiveActiveBtn) {
+            archiveActiveBtn.addEventListener('click', () => this.archiveActiveEntries());
         }
 
         // Paginacja
@@ -134,6 +141,20 @@ class ScheduleManagement {
                     const id = deleteBtn.getAttribute('data-id');
                     const schedTitle = deleteBtn.closest('tr').querySelector('strong') ? deleteBtn.closest('tr').querySelector('strong').innerText : 'te zajęcia';
                     this.openDeleteConfirmModal(id, `Czy na pewno chcesz usunąć zajęcia <strong>${schedTitle}</strong>?`);
+                    return;
+                }
+
+                const archiveBtn = e.target.closest('.btn-archive');
+                if (archiveBtn) {
+                    const id = archiveBtn.getAttribute('data-id');
+                    this.archiveSchedule(id);
+                    return;
+                }
+
+                const restoreBtn = e.target.closest('.btn-restore');
+                if (restoreBtn) {
+                    const id = restoreBtn.getAttribute('data-id');
+                    this.restoreSchedule(id);
                     return;
                 }
             });
@@ -243,6 +264,7 @@ class ScheduleManagement {
         const groupFilter = document.getElementById('groupFilter').value;
         const teacherFilter = document.getElementById('teacherFilter').value;
         const searchText = document.getElementById('searchInput').value.toLowerCase().trim();
+        const showArchived = document.getElementById('showArchivedToggle').checked;
 
         this.filteredData = this.scheduleData.filter(item => {
             const dayMatch = !dayFilter || item.dayOfWeek === dayFilter;
@@ -274,7 +296,8 @@ class ScheduleManagement {
                               itemGroups.includes(searchText);
             }
 
-            return dayMatch && typeMatch && groupMatch && teacherMatch && searchMatch;
+            const archiveMatch = showArchived ? true : !item.archived;
+            return dayMatch && typeMatch && groupMatch && teacherMatch && searchMatch && archiveMatch;
         });
 
         this.updateResultsCounter();
@@ -304,6 +327,7 @@ class ScheduleManagement {
         document.getElementById('groupFilter').value = '';
         document.getElementById('teacherFilter').value = '';
         document.getElementById('searchInput').value = '';
+        document.getElementById('showArchivedToggle').checked = false;
         this.applyFilters();
     }
     
@@ -393,11 +417,15 @@ class ScheduleManagement {
             const safeTeacher = Utils.escapeHtml(item.teacher);
             const dayName = ScheduleManagement.CONFIG.DAY_NAMES[item.dayOfWeek] || item.dayOfWeek;
             const classTypeName = ScheduleManagement.CONFIG.CLASS_TYPES[item.classType] || item.classType;
-            const weekTypeName = ScheduleManagement.CONFIG.WEEK_TYPES[item.weekType] || item.weekType || 'Każdy';
-            const groupNames = item.studentGroups && item.studentGroups.length > 0 
+            const weekTypeName = this.formatWeekTypeLabel(item);
+            const groupNames = item.studentGroups && item.studentGroups.length > 0
                 ? item.studentGroups.map(g => Utils.escapeHtml(g.name)).join(', ') 
                 : '-';
-            
+            const archiveBadge = item.archived ? '<span class="week-badge" style="background:#4b5563;margin-left:6px;">Archiwum</span>' : '';
+            const archiveActionBtn = item.archived
+                ? `<button class="action-btn btn-restore" title="Przywróć" data-id="${item.id}"><i class="fas fa-box-open"></i></button>`
+                : `<button class="action-btn btn-archive" title="Archiwizuj" data-id="${item.id}"><i class="fas fa-archive"></i></button>`;
+
             return `
             <tr>
                 <td>${item.id}</td>
@@ -407,7 +435,7 @@ class ScheduleManagement {
                 <td>${safeRoom}</td>
                 <td>${safeTeacher}</td>
                 <td><span class="class-type-badge ${item.classType}">${classTypeName}</span></td>
-                <td><span class="week-badge">${weekTypeName}</span></td>
+                <td><span class="week-badge">${weekTypeName}</span>${archiveBadge}</td>
                 <td>${groupNames}</td>
                 <td>
                     <div class="action-buttons">
@@ -417,6 +445,7 @@ class ScheduleManagement {
                         <button class="action-btn btn-delete" title="Usuń" data-id="${item.id}">
                             <i class="fas fa-trash-alt"></i>
                         </button>
+                        ${archiveActionBtn}
                     </div>
                 </td>
             </tr>
@@ -456,6 +485,7 @@ class ScheduleManagement {
             document.getElementById('teacher').value = data.teacher;
             document.getElementById('classType').value = data.classType;
             document.getElementById('weekType').value = data.weekType || 'ALL';
+            document.getElementById('customWeeks').value = data.customWeeks || '';
             document.getElementById('dayOfWeek').value = data.dayOfWeek;
             document.getElementById('startTime').value = this.formatTimeForInput(data.startTime);
             document.getElementById('endTime').value = this.formatTimeForInput(data.endTime);
@@ -473,7 +503,9 @@ class ScheduleManagement {
             this.currentEditId = null;
             modalTitle.innerHTML = 'Dodaj zajęcia';
             document.getElementById('weekType').value = 'ALL';
+            document.getElementById('customWeeks').value = '';
         }
+        this.toggleCustomWeeksField();
         modal.classList.add('active');
     }
 
@@ -486,13 +518,22 @@ class ScheduleManagement {
     async saveSchedule(){
         const groupsSelect = document.getElementById('studentGroups');
         const selectedGroupIds = Array.from(groupsSelect.selectedOptions).map(opt => parseInt(opt.value));
-        
+        const weekType = document.getElementById('weekType').value;
+        const rawCustomWeeks = document.getElementById('customWeeks').value;
+        const normalizedCustomWeeks = weekType === 'CUSTOM' ? this.normalizeCustomWeeksInput(rawCustomWeeks) : null;
+
+        if (weekType === 'CUSTOM' && !normalizedCustomWeeks) {
+            Utils.showToast('Podaj poprawne numery tygodni 1-53, np. 1,3,5.', 'error');
+            return;
+        }
+
         const formData = {
             title: document.getElementById('title').value,
             room: document.getElementById('room').value,
             teacher: document.getElementById('teacher').value,
             classType: document.getElementById('classType').value,
-            weekType: document.getElementById('weekType').value,
+            weekType,
+            customWeeks: normalizedCustomWeeks,
             dayOfWeek: document.getElementById('dayOfWeek').value,
             startTime: document.getElementById('startTime').value + ':00',
             endTime: document.getElementById('endTime').value + ':00',
@@ -511,7 +552,16 @@ class ScheduleManagement {
                 });
             }
 
-            if(!response.ok) throw new Error(`Status: ${response.status}`);
+            if(!response.ok) {
+                let message = `Status: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    message = errorData && (errorData.detail || errorData.message) ? (errorData.detail || errorData.message) : message;
+                } catch (_) {
+                    // fallback do statusu
+                }
+                throw new Error(message);
+            }
 
             const wasEditing = this.isEditing;
             this.closeModal();
@@ -519,7 +569,8 @@ class ScheduleManagement {
             Utils.showToast(wasEditing ? 'Zajęcia zaktualizowane.' : 'Zajęcia dodane.', 'success');
         } catch (error) {
             console.error('Błąd zapisu:', error);
-            Utils.showToast('Wystąpił błąd podczas zapisywania.', 'error');
+            const backendMessage = error && error.message ? error.message : 'Wystąpił błąd podczas zapisywania.';
+            Utils.showToast(backendMessage, 'error');
         }
     }
 
@@ -654,6 +705,48 @@ class ScheduleManagement {
         }
     }
 
+    async archiveSchedule(id) {
+        try {
+            const response = await fetch(`${ScheduleManagement.CONFIG.API.SCHEDULE}/${id}/archive`, { method: 'PUT' });
+            if (!response.ok) throw new Error(`Status: ${response.status}`);
+            Utils.showToast('Zajęcia zarchiwizowane.', 'success');
+            await this.loadSchedule();
+        } catch (error) {
+            console.error('Błąd archiwizacji:', error);
+            Utils.showToast('Nie udało się zarchiwizować zajęć.', 'error');
+        }
+    }
+
+    async restoreSchedule(id) {
+        try {
+            const response = await fetch(`${ScheduleManagement.CONFIG.API.SCHEDULE}/${id}/restore`, { method: 'PUT' });
+            if (!response.ok) throw new Error(`Status: ${response.status}`);
+            Utils.showToast('Zajęcia przywrócone z archiwum.', 'success');
+            await this.loadSchedule();
+        } catch (error) {
+            console.error('Błąd przywracania:', error);
+            Utils.showToast('Nie udało się przywrócić zajęć.', 'error');
+        }
+    }
+
+    async archiveActiveEntries() {
+        const yearPlan = window.prompt('Podaj rok/plan do archiwizacji (opcjonalnie, np. INFORMATYKA ROK III).\nPozostaw puste aby zarchiwizować wszystkie aktywne zajęcia:');
+        if (yearPlan === null) return;
+
+        const query = yearPlan.trim() ? `?yearPlan=${encodeURIComponent(yearPlan.trim())}` : '';
+        try {
+            const response = await fetch(`${ScheduleManagement.CONFIG.API.SCHEDULE}/archive${query}`, { method: 'PUT' });
+            if (!response.ok) throw new Error(`Status: ${response.status}`);
+            const result = await response.json();
+            const archivedCount = result && result.archivedCount ? result.archivedCount : 0;
+            Utils.showToast(`Zarchiwizowano ${archivedCount} zajęć.`, 'success');
+            await this.loadSchedule();
+        } catch (error) {
+            console.error('Błąd archiwizacji semestru:', error);
+            Utils.showToast('Nie udało się wykonać archiwizacji.', 'error');
+        }
+    }
+
     // Eksport CSV
     openExportModal() {
         document.getElementById('exportCount').textContent = this.filteredData.length;
@@ -731,6 +824,48 @@ class ScheduleManagement {
     }
 
     formatTimeForInput(timeObj){ return this.formatTime(timeObj); }
+
+    toggleCustomWeeksField() {
+        const weekType = document.getElementById('weekType').value;
+        const customWeeksRow = document.getElementById('customWeeksRow');
+        if (!customWeeksRow) return;
+        customWeeksRow.style.display = weekType === 'CUSTOM' ? '' : 'none';
+    }
+
+    normalizeCustomWeeksInput(rawValue) {
+        if (!rawValue || typeof rawValue !== 'string') return null;
+
+        const tokens = rawValue
+            .split(',')
+            .map(t => t.trim())
+            .filter(Boolean);
+
+        if (tokens.length === 0) return null;
+
+        const normalized = [];
+        for (const token of tokens) {
+            if (!/^\d{1,2}$/.test(token)) {
+                return null;
+            }
+            const weekNumber = parseInt(token, 10);
+            if (weekNumber < 1 || weekNumber > 53) {
+                return null;
+            }
+            if (!normalized.includes(weekNumber)) {
+                normalized.push(weekNumber);
+            }
+        }
+
+        return normalized.join(',');
+    }
+
+    formatWeekTypeLabel(item) {
+        if (item.weekType === 'CUSTOM') {
+            const customWeeks = (item.customWeeks || '').trim();
+            return customWeeks ? `Niestandardowy (${Utils.escapeHtml(customWeeks)})` : 'Niestandardowy';
+        }
+        return ScheduleManagement.CONFIG.WEEK_TYPES[item.weekType] || item.weekType || 'Każdy';
+    }
 }
 
 // gloalna instancja

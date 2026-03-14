@@ -127,6 +127,12 @@ public class GlobalExceptionHandler {
                 Map.of("errors", Map.of(ex.getField(), "nie może być puste")));
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ProblemDetail handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest req) {
+        return pd(HttpStatus.BAD_REQUEST, "Validation error",
+                ex.getMessage(), req, "invalid_argument");
+    }
+
     /* ====== 401: uwierzytelnianie */
     // Ta metoda celowo nie łapie już Twoich własnych wyjątków
     @ExceptionHandler({

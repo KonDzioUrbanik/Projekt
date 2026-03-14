@@ -163,6 +163,30 @@ const Utils = {
         }
     },
 
+    parseCustomWeeks(customWeeks) {
+        if (!customWeeks || typeof customWeeks !== 'string') return [];
+        return customWeeks
+            .split(',')
+            .map(t => t.trim())
+            .filter(Boolean)
+            .map(t => parseInt(t, 10))
+            .filter(n => Number.isInteger(n) && n >= 1 && n <= 53);
+    },
+
+    matchesScheduleRecurrence(item, date) {
+        if (!item || item.archived) return false;
+
+        const weekType = this.getWeekType(date);
+        if (!item.weekType || item.weekType === 'ALL') return true;
+        if (item.weekType === 'WEEK_A' || item.weekType === 'WEEK_B') return item.weekType === weekType;
+        if (item.weekType === 'CUSTOM') {
+            const currentWeekNumber = this.getWeekNumber(date);
+            return this.parseCustomWeeks(item.customWeeks).includes(currentWeekNumber);
+        }
+
+        return false;
+    },
+
     /* Debounce - opóźnia wykonanie funkcji */
     debounce(func, wait) {
         let timeout;

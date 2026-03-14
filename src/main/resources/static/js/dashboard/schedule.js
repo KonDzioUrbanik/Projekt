@@ -191,9 +191,6 @@ class ScheduleCalendar{
         const grid = document.getElementById('scheduleGrid');
         grid.innerHTML = '';
         
-        // Filtrowanie po typie tygodnia
-        const currentWeekType = this.getWeekType(this.currentWeekStart);
-        
         // sprwadzenie czy sa dane
         if(!this.scheduleData || this.scheduleData.length === 0){
              grid.innerHTML = `
@@ -209,10 +206,8 @@ class ScheduleCalendar{
         }
 
         // Filtrujemy zajęcia dla aktualnego tygodnia (ALL lub pasujący typ)
-        const weekFilteredData = this.scheduleData.filter(item => {
-             return item.weekType === 'ALL' || !item.weekType || item.weekType === currentWeekType;
-        });
-        
+        const weekFilteredData = this.scheduleData.filter(item => Utils.matchesScheduleRecurrence(item, this.currentWeekStart));
+
         // naglowek godzin
         grid.innerHTML += '<div class="time-header">Godziny</div>';
         
@@ -664,9 +659,6 @@ class ScheduleCalendar{
         const currentDayName = days[currentDayIndex];
         const currentTimeNum = now.getHours() + now.getMinutes() / 60;
         
-        // Pobierz aktualny typ tygodnia (WEEK_A lub WEEK_B)
-        const currentWeekType = this.getWeekType(now);
-
         let nextClass = null;
         let minDiff = Infinity;
         let isToday = false;
@@ -674,7 +666,7 @@ class ScheduleCalendar{
         // Sprawdź dzisiejsze zajęcia - filtruj też według typu tygodnia
         const todaysClasses = this.scheduleData.filter(c => {
             const matchesDay = c.dayOfWeek === currentDayName;
-            const matchesWeek = c.weekType === 'ALL' || !c.weekType || c.weekType === currentWeekType;
+            const matchesWeek = Utils.matchesScheduleRecurrence(c, now);
             return matchesDay && matchesWeek;
         });
         todaysClasses.forEach(c => {

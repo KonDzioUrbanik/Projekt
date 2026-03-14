@@ -13,6 +13,9 @@
                 <div class="header-section">
                     <h2>Zarządzanie harmonogramem zajęć</h2>
                     <div style="display: flex; gap: 10px;">
+                        <button class="btn-export" id="archiveActiveBtn" title="Archiwizuj aktywne zajęcia (np. po zakończeniu semestru)">
+                            <i class="fas fa-archive"></i> Archiwizuj aktywne
+                        </button>
                         <button class="btn-export" id="openExportModalBtn">
                             <i class="fas fa-file-csv"></i> Eksportuj CSV
                         </button>
@@ -71,6 +74,13 @@
                     <button class="btn-reset" id="resetFilters">
                         <i class="fas fa-redo"></i> Reset
                     </button>
+
+                    <div class="filter-group" style="align-self: end;">
+                        <label for="showArchivedToggle" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                            <input type="checkbox" id="showArchivedToggle">
+                            Pokaż archiwalne
+                        </label>
+                    </div>
 
                     <button class="btn-bulk-delete" id="clearGroupScheduleBtn" style="display: none;">
                         <i class="fas fa-trash-alt"></i> Wyczyść plan dla kierunku
@@ -206,7 +216,16 @@
                                         <option value="ALL">Każdy tydzień</option>
                                         <option value="WEEK_A">Tydzień A (nieparzysty)</option>
                                         <option value="WEEK_B">Tydzień B (parzysty)</option>
+                                        <option value="CUSTOM">Niestandardowy (numery tygodni)</option>
                                     </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row" id="customWeeksRow" style="display:none;">
+                                <div class="form-group full-width">
+                                    <label for="customWeeks"> Niestandardowe tygodnie (ISO)</label>
+                                    <input type="text" id="customWeeks" placeholder="np. 1,3,5,9,12" inputmode="numeric" pattern="\d{1,2}(\s*,\s*\d{1,2})*" title="Podaj numery tygodni 1-53, oddzielone przecinkami, np. 1,3,5">
+                                    <small class="form-hint">Podaj numery tygodni oddzielone przecinkami.</small>
                                 </div>
                             </div>
 

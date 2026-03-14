@@ -53,6 +53,11 @@
                     <span class="link-text">Notatki</span>
                 </a>
 
+                <a th:href="@{/student/announcements}" class="btn-navbar-left" th:classappend="${activePage == 'student-announcements'} ? 'active'">
+                    <i class="fas fa-bullhorn"></i>
+                    <span class="link-text">Ogłoszenia grupy</span>
+                </a>
+
                 <a th:href="@{/student/university-calendar}" class="btn-navbar-left" th:classappend="${activePage == 'university-calendar-public'} ? 'active'">
                     <i class="fas fa-university"></i>
                     <span class="link-text">Kalendarz uczelni</span>
@@ -67,6 +72,11 @@
                 <a th:href="@{/starosta/dashboard}" class="btn-navbar-left" th:classappend="${activePage == 'starosta-home'} ? 'active'">
                     <i class="fas fa-users"></i>
                     <span class="link-text">Dashboard</span>
+                </a>
+
+                <a th:href="@{/starosta/announcements}" class="btn-navbar-left" th:classappend="${activePage == 'announcements'} ? 'active'">
+                    <i class="fas fa-bullhorn"></i>
+                    <span class="link-text">Wyślij ogłoszenie</span>
                 </a>
                 <!-- Na razie jedno, reszta w przyszłości -->
             </div>

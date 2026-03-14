@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/schedule")
@@ -61,5 +62,21 @@ public class ScheduleController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteByGroup(@PathVariable Long groupId) {
         scheduleService.deleteByGroupId(groupId);
+    }
+
+    @PutMapping("/{id}/archive")
+    public ScheduleEntryResponseDto archive(@PathVariable Long id) {
+        return scheduleService.archive(id);
+    }
+
+    @PutMapping("/{id}/restore")
+    public ScheduleEntryResponseDto restore(@PathVariable Long id) {
+        return scheduleService.restore(id);
+    }
+
+    @PutMapping("/archive")
+    public Map<String, Integer> archiveActive(@RequestParam(required = false) String yearPlan) {
+        int archivedCount = scheduleService.archiveActive(yearPlan);
+        return Map.of("archivedCount", archivedCount);
     }
 }

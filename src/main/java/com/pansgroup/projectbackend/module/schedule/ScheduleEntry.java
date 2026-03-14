@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -41,4 +42,11 @@ public class ScheduleEntry {
 
     @Enumerated(EnumType.STRING)
     private WeekType weekType;
+
+    @Column(length = 512)
+    private String customWeeks; // np. "1,3,7,11" (numery tygodni ISO)
+
+    private Boolean archived = false;
+
+    private LocalDateTime archivedAt;
 }
