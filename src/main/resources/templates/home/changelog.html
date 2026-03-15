@@ -22,8 +22,52 @@
                     <details class="version-block latest" open>
                         <summary class="version-summary-header">
                             <div class="version-title">
-                                <span class="version-number">Marzec 2026 - v1.2</span>
+                                <span class="version-number">Marzec 2026 - v1.3a</span>
                                 <span class="latest-badge" style="margin-left: 0.5rem;">Aktualna wersja</span>
+                            </div>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </summary>
+                        <div class="version-content">
+                            <div class="version-desc">
+                                Rozszerzenie modułu harmonogramu i ogłoszeń pod nowy etap semestru. Wersja koncentruje się na obsłudze niestandardowych tygodni, archiwizacji zajęć oraz poprawie czytelności paneli ogłoszeń dla administratora i studenta.
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
+                                <ul class="change-list added">
+                                    <li><strong>Niestandardowy Tryb Tygodni Zajęć:</strong> W formularzu administracyjnym dodano tryb <i>CUSTOM</i>, umożliwiający przypisanie zajęć do konkretnych numerów tygodni semestru (np. 3, 7, 11), zamiast wyłącznie schematu „co tydzień” lub „A/B”.</li>
+                                    <li><strong>Archiwizacja Zajęć:</strong> Wprowadzono możliwość archiwizacji rekordów planu zajęć po zakończeniu semestru, aby utrzymać porządek w bieżącym harmonogramie bez utraty danych historycznych.</li>
+                                    <li><strong>Podgląd Ostatnich Ogłoszeń:</strong> Dodano sekcje z najnowszymi komunikatami na stronie głównej portalu oraz na dashboardzie studenta (3 ostatnie wpisy).</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
+                                <ul class="change-list changed">
+                                    <li><strong>Logika Wyświetlania Harmonogramu:</strong> Rozszerzono mechanizm filtrowania zajęć tak, aby poprawnie uwzględniał tygodnie niestandardowe oraz elementy zarchiwizowane w widokach administracyjnych.</li>
+                                    <li><strong>Formularz Dodawania Zajęć:</strong> Ujednolicono pola i walidację dla wszystkich trybów tygodnia (EVERY, A, B, CUSTOM), wraz z doprecyzowaniem znaczenia numeracji tygodni względem semestru.</li>
+                                    <li><strong>Panel Admina - Odbiorcy Ogłoszeń:</strong> Zastąpiono wybór radiowy listą rozwijaną z opcją „Wszyscy” lub wyborem konkretnego, aktualnie dostępnego kierunku.</li>
+                                    <li><strong>Czytelność Widoków Ogłoszeń:</strong> Odświeżono układ kart i odstępy w panelach ogłoszeń, zachowując obecną stylistykę aplikacji i poprawiając przejrzystość treści.</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
+                                <ul class="change-list fixed">
+                                    <li><strong>Walidacja Numeru Tygodnia:</strong> Usunięto błąd powodujący odrzucanie poprawnych numerów tygodni podczas zapisu zajęć w trybie niestandardowym.</li>
+                                    <li><strong>Integralność Danych przy CUSTOM:</strong> Naprawiono konflikt zapisu (naruszenie ograniczeń integralności danych) występujący m.in. dla wartości tygodnia 11.</li>
+                                    <li><strong>Komunikaty Błędów:</strong> Doprecyzowano informacje zwracane użytkownikowi w przypadku niepoprawnego harmonogramu, aby ułatwić korektę danych wejściowych.</li>
+                                    <li><strong>Panel Ogłoszeń Administratora:</strong> Przywrócono poprawne działanie panelu publikacji ogłoszeń globalnych i kierunkowych, wraz z poprawioną obsługą wyboru odbiorców.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- Marzec 2026 -->
+                    <details class="version-block">
+                        <summary class="version-summary-header">
+                            <div class="version-title">
+                                <span class="version-number">Marzec 2026 - v1.2</span>
                             </div>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </summary>

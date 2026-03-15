@@ -159,10 +159,13 @@ public class SecurityConfig {
                                 .hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.GET, "/api/groups", "/api/schedule/all").hasRole("ADMIN")
 
-                                // API ogłoszeń grupowych
-                                .requestMatchers(HttpMethod.POST, "/api/announcements").hasRole("STAROSTA")
+                                // API ogłoszeń
+                                .requestMatchers(HttpMethod.POST, "/api/announcements").hasAnyRole("STAROSTA", "ADMIN")
+                                .requestMatchers(HttpMethod.GET, "/api/announcements/all").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.GET, "/api/announcements/group")
                                 .hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/announcements/*")
+                                .hasAnyRole("STAROSTA", "ADMIN")
 
                                 // Widoki admin tylko dla ADMIN
                                 .requestMatchers("/admin/**").hasRole("ADMIN")

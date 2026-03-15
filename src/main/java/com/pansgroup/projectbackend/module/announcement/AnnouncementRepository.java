@@ -8,4 +8,6 @@ import java.util.List;
 @Repository
 public interface AnnouncementRepository extends JpaRepository<Announcement, Long> {
     List<Announcement> findByTargetGroup_IdOrderByCreatedAtDesc(Long groupId);
+
+    List<Announcement> findAllByOrderByCreatedAtDesc();
 }

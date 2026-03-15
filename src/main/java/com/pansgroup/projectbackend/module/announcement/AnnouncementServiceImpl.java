@@ -4,9 +4,9 @@ import com.pansgroup.projectbackend.exception.UsernameNotFoundException;
 import com.pansgroup.projectbackend.module.announcement.dto.AnnouncementCreateDto;
 import com.pansgroup.projectbackend.module.announcement.dto.AnnouncementResponseDto;
 import com.pansgroup.projectbackend.module.student.StudentGroup;
+import com.pansgroup.projectbackend.module.student.StudentGroupRepository;
 import com.pansgroup.projectbackend.module.user.User;
 import com.pansgroup.projectbackend.module.user.UserRepository;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,22 +15,33 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Transactional
 public class AnnouncementServiceImpl implements AnnouncementService {
 
     private final AnnouncementRepository announcementRepository;
+    private final StudentGroupRepository studentGroupRepository;
     private final UserRepository userRepository;
 
-    public AnnouncementServiceImpl(AnnouncementRepository announcementRepository, UserRepository userRepository) {
+    public AnnouncementServiceImpl(AnnouncementRepository announcementRepository,
+                                   StudentGroupRepository studentGroupRepository,
+                                   UserRepository userRepository) {
         this.announcementRepository = announcementRepository;
+        this.studentGroupRepository = studentGroupRepository;
         this.userRepository = userRepository;
     }
 
     @Override
     public AnnouncementResponseDto createForOwnGroup(AnnouncementCreateDto dto) {
         User currentUser = getCurrentUser();
+        String role = currentUser.getRole() == null ? "" : currentUser.getRole().toUpperCase();
+
+        if ("ADMIN".equals(role)) {
+            return createForAdmin(dto, currentUser);
+        }
+
         validateStarostaRole(currentUser);
 
         StudentGroup group = currentUser.getStudentGroup();
@@ -39,13 +50,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                     "Starosta nie ma przypisanej grupy, więc nie może wysłać ogłoszenia.");
         }
 
-        Announcement announcement = new Announcement();
-        announcement.setTitle(dto.title().trim());
-        announcement.setContent(dto.content().trim());
-        announcement.setAuthor(currentUser);
-        announcement.setTargetGroup(group);
-
-        Announcement saved = announcementRepository.save(announcement);
+        Announcement saved = announcementRepository.save(buildAnnouncement(dto, currentUser, group));
         return mapToDto(saved);
     }
 
@@ -68,12 +73,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     @Override
     @Transactional(readOnly = true)
     public List<AnnouncementResponseDto> getAllAnnouncements() {
-        User currentUser = getCurrentUser();
-        if (!"ADMIN".equalsIgnoreCase(currentUser.getRole())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Tylko administrator może przeglądać wszystkie ogłoszenia.");
-        }
-        return announcementRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
+        return announcementRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
                 .map(this::mapToDto)
                 .toList();
@@ -83,18 +83,68 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     public void deleteById(Long id) {
         User currentUser = getCurrentUser();
         Announcement announcement = announcementRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Ogłoszenie o podanym ID nie istnieje."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie znaleziono ogłoszenia."));
 
-        boolean isAdmin  = "ADMIN".equalsIgnoreCase(currentUser.getRole());
-        boolean isAuthor = announcement.getAuthor().getId().equals(currentUser.getId());
+        String role = currentUser.getRole() == null ? "" : currentUser.getRole().toUpperCase();
+        boolean isAdmin = "ADMIN".equals(role);
+        boolean isOwner = Objects.equals(announcement.getAuthor().getId(), currentUser.getId());
 
-        if (!isAdmin && !isAuthor) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Brak uprawnień do usunięcia tego ogłoszenia.");
+        if (!isAdmin && !isOwner) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak uprawnień do usunięcia tego ogłoszenia.");
         }
 
-        announcementRepository.deleteById(id);
+        announcementRepository.delete(announcement);
+
+    }
+
+    private AnnouncementResponseDto createForAdmin(AnnouncementCreateDto dto, User adminUser) {
+        if (Boolean.TRUE.equals(dto.global())) {
+            List<StudentGroup> allGroups = studentGroupRepository.findAll();
+            if (allGroups.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Brak grup docelowych. Dodaj kierunki, aby wysłać ogłoszenie globalne.");
+            }
+
+            Announcement firstSaved = null;
+            for (StudentGroup group : allGroups) {
+                Announcement saved = announcementRepository.save(buildAnnouncement(dto, adminUser, group));
+                if (firstSaved == null) {
+                    firstSaved = saved;
+                }
+            }
+            return mapToDto(firstSaved);
+        }
+
+        List<Long> groupIds = dto.targetGroupIds() == null ? List.of() : dto.targetGroupIds().stream().distinct().toList();
+        if (groupIds.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Wybierz co najmniej jeden kierunek albo użyj trybu globalnego.");
+        }
+
+        List<StudentGroup> targetGroups = studentGroupRepository.findAllById(groupIds);
+        if (targetGroups.size() != groupIds.size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Co najmniej jeden z wybranych kierunków nie istnieje.");
+        }
+
+        Announcement firstSaved = null;
+        for (StudentGroup group : targetGroups) {
+            Announcement saved = announcementRepository.save(buildAnnouncement(dto, adminUser, group));
+            if (firstSaved == null) {
+                firstSaved = saved;
+            }
+        }
+
+        return mapToDto(firstSaved);
+    }
+
+    private Announcement buildAnnouncement(AnnouncementCreateDto dto, User author, StudentGroup group) {
+        Announcement announcement = new Announcement();
+        announcement.setTitle(dto.title().trim());
+        announcement.setContent(dto.content().trim());
+        announcement.setAuthor(author);
+        announcement.setTargetGroup(group);
+        return announcement;
     }
 
     private User getCurrentUser() {
