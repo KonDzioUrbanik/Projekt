@@ -158,6 +158,21 @@
     color: #6b7280;
 }
 
+.contact-form .form-control:-webkit-autofill,
+.contact-form .form-control:-webkit-autofill:hover,
+.contact-form .form-control:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--text-dark, #111827);
+    -webkit-box-shadow: 0 0 0px 1000px var(--bg-input, #f9fafb) inset;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+[data-theme="dark"] .contact-form .form-control:-webkit-autofill,
+[data-theme="dark"] .contact-form .form-control:-webkit-autofill:hover,
+[data-theme="dark"] .contact-form .form-control:-webkit-autofill:focus {
+    -webkit-text-fill-color: #f3f4f6 !important;
+    -webkit-box-shadow: 0 0 0px 1000px #1e2530 inset !important;
+}
+
 .contact-form select.form-control {
     appearance: none;
     -webkit-appearance: none;
@@ -220,15 +235,33 @@
 }
 
 .btn-primary {
-    background-color: var(--color-primary, #2563eb);
-    color: white;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    background-color: #111827 !important; /* Antracytowy / Bardzo ciemny błękit */
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: background-color 0.2s ease;
 }
 
 .btn-primary:hover {
-    background-color: var(--color-primary-dark, #1d4ed8);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+    background-color: #1f2937 !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* DOPRACOWANIE PRZYCISKU W TRYBIE CIEMNYM (WYSOKI KONTRAST) */
+[data-theme="dark"] .btn-primary {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    box-shadow: none !important;
+}
+
+[data-theme="dark"] .btn-primary:hover {
+    background-color: #e5e7eb !important;
+    box-shadow: none !important;
 }
 
 .btn-primary:active {
@@ -393,7 +426,32 @@
 
 .btn-modal-close {
     width: 100%;
-    padding: 12px 0;
+    padding: 14px 0;
+    background-color: #111827 !important; /* Bardzo ciemny błękit/antracyt */
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: background-color 0.2s ease;
+}
+
+.btn-modal-close:hover {
+    background-color: #1f2937 !important;
+    transform: none !important; /* Brak efektu unoszenia AI */
+}
+
+/* PRZYCISK MODALU W TRYBIE CIEMNYM (WYSOKI KONTRAST) */
+[data-theme="dark"] .btn-modal-close {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+}
+
+[data-theme="dark"] .btn-modal-close:hover {
+    background-color: #e5e7eb !important;
 }
 
 /* Responsywność Modalu */

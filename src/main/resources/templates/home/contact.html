@@ -18,13 +18,12 @@
     <link rel="stylesheet" th:href="@{/css/common/theme.css}">
     
     <!-- Dedykowane style strony kontaktowej -->
-    <link rel="stylesheet" th:href="@{/css/home/contact.css}">
+    <link rel="stylesheet" th:href="@{/css/home/contact.css(v=${#dates.createNow().getTime()})}">
 
     <!-- System motywów -->
     <script th:src="@{/js/common/theme.js}"></script>
 </head>
 <body>
-    <!-- Przycisk zmiany motywu -->
     <button class="theme-toggle-btn" id="themeToggleBtn" title="Zmień motyw">
         <i class="fas fa-moon"></i>
         <i class="fas fa-sun"></i>
@@ -41,10 +40,12 @@
             <div class="contact-card">
                 <form id="publicContactForm" class="contact-form">
                     
-                    <!-- Honeypot field (hidden from users) -->
                     <div class="honeypot-group" style="display:none;" aria-hidden="true">
                         <label for="website">Strona internetowa</label>
                         <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+                        
+                        <input type="hidden" id="feedbackUrl" name="url">
+                        <input type="hidden" id="feedbackUserAgent" name="userAgent">
                     </div>
 
                     <div class="form-group">
@@ -87,19 +88,17 @@
                             <i class="fas fa-arrow-left"></i> Wróć
                         </a>
                         <button type="submit" class="btn btn-primary" id="submitContactBtn">
-                            <span class="btn-text"><i class="fas fa-paper-plane"></i> Wyślij zgłoszenie</span>
+                            <span class="btn-text">Wyślij zgłoszenie</span>
                             <div class="spinner d-none" id="submitSpinner"></div>
                         </button>
                     </div>
 
-                    <!-- Pusty kontener usunięty na rzecz Modala -->
                 </form>
             </div>
 
         </div>
     </div>
 
-    <!-- Centralny Modal Komunikatów Formularza -->
     <div id="statusModal" class="contact-modal-overlay d-none">
         <div class="contact-modal-box">
             <div id="modalIconWrap" class="modal-icon-wrap">
@@ -111,7 +110,6 @@
         </div>
     </div>
 
-    <!-- Skrypty JS -->
-    <script th:src="@{/js/home/contact.js}" defer></script>
+    <script th:src="@{/js/home/contact.js(v=${#dates.createNow().getTime()})}" defer></script>
 </body>
 </html>
