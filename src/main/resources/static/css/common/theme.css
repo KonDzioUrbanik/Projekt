@@ -175,6 +175,19 @@
     box-shadow: 0 4px 12px rgba(74, 158, 255, 0.4);
 }
 
+[data-theme="dark"] .nav-logo .logo-circle {
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 22px rgba(74, 158, 255, 0.22);
+}
+
+[data-theme="dark"] .nav-logo .logo-circle::after {
+    background: linear-gradient(135deg, rgba(74, 158, 255, 0.26), rgba(74, 158, 255, 0.08));
+}
+
+[data-theme="dark"] .nav-logo:hover .logo-circle {
+    box-shadow: 0 12px 28px rgba(74, 158, 255, 0.3);
+}
+
 /* Nagłówek */
 [data-theme="dark"] .header {
     background-color: var(--header-bg);
