@@ -125,24 +125,30 @@
 }
 
 .stats-box {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.6rem 1rem;
-    background: white;
+    padding: 8px 12px;
+    background: #eff6ff;
     border-radius: 6px;
-    border: 1px solid #e0e0e0;
-}
-
-.stat-label {
     font-size: 0.9rem;
-    color: #6c757d;
+    color: #1e40af;
+    font-weight: 600;
+    border: 1px solid #bfdbfe;
+    width: fit-content;
 }
 
-.stat-value {
+.stats-box .stat-label {
+    color: #1e40af;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    line-height: normal;
+}
+
+.stats-box .stat-value {
     font-size: 1.1rem;
     font-weight: 700;
-    color: #005efa;
+    color: var(--color-primary);
+    line-height: normal;
+    font-variant-numeric: normal;
 }
 
 .sort-box {
@@ -175,6 +181,12 @@
     outline: none;
     border-color: #005efa;
     box-shadow: 0 0 0 3px rgba(0, 94, 250, 0.1);
+}
+
+.stats-summary-row {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 1rem;
 }
 
 /* LISTA GRUP */
@@ -540,8 +552,16 @@
         flex: auto;
     }
 
-    .stats-box,
     .sort-box {
+        width: 100%;
+    }
+
+    .stats-summary-row {
+        width: 100%;
+        margin-bottom: 0.75rem;
+    }
+
+    .stats-summary-row .stats-box {
         width: 100%;
     }
 
@@ -615,6 +635,20 @@
     background-color: var(--bg-step);
     color: var(--text-main);
     border-color: var(--text-secondary);
+}
+
+[data-theme="dark"] .stats-box {
+    background: rgba(74, 158, 255, 0.16);
+    border-color: rgba(74, 158, 255, 0.35);
+    color: #bfdbfe;
+}
+
+[data-theme="dark"] .stats-box .stat-label {
+    color: #bfdbfe;
+}
+
+[data-theme="dark"] .stats-box .stat-value {
+    color: #60a5fa;
 }
 
 /* MODAL CONFIRM (DELETE) */

@@ -625,22 +625,37 @@
     background: #5a6268;
 }
 
+.ann-summary-row {
+    display: flex;
+    justify-content: flex-start;
+}
+
 .ann-results-info {
-    padding: 0.45rem 0.85rem;
+    padding: 8px 12px;
     background: #eff6ff;
     border-radius: 6px;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     color: #1e40af;
     font-weight: 600;
     border: 1px solid #bfdbfe;
-    white-space: nowrap;
-    align-self: flex-end;
-    margin-bottom: 0;
+    width: fit-content;
+    margin-bottom: 1rem;
 }
 
-.ann-results-info span {
-    font-size: 1rem;
+.ann-results-info .results-label {
+    color: #1e40af;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    line-height: normal;
+}
+
+.ann-results-info #resultsCount {
+    font-size: 1.1rem;
     color: var(--color-primary);
+    font-weight: 700;
+    line-height: normal;
+    font-variant-numeric: normal;
 }
 
 /* Table Wrapper */
@@ -676,6 +691,7 @@
     text-transform: uppercase;
     letter-spacing: 0.6px;
     white-space: nowrap;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.15);
 }
 
 .ann-table td {
@@ -726,10 +742,24 @@
     color: var(--text-light);
 }
 
+.ann-actions-header,
+.ann-td-actions {
+    width: 120px;
+    text-align: center;
+}
+
+.ann-action-group {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    flex-wrap: nowrap;
+}
+
 .ann-action-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
     border: none;
     display: inline-flex;
     align-items: center;
@@ -748,6 +778,7 @@
 .ann-btn-view:hover {
     background: var(--color-primary);
     color: white;
+    transform: translateY(-1px);
 }
 
 .ann-btn-del {
@@ -758,6 +789,39 @@
 .ann-btn-del:hover {
     background: #ef4444;
     color: white;
+    transform: translateY(-1px);
+}
+
+[data-theme="dark"] .ann-table thead {
+    background: #1a2332;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .ann-table th {
+    border-bottom: 2px solid var(--color-primary);
+}
+
+[data-theme="dark"] .ann-table tbody tr:hover {
+    background-color: rgba(74, 158, 255, 0.12);
+}
+
+[data-theme="dark"] .ann-expanded-content {
+    background: rgba(74, 158, 255, 0.08);
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .ann-results-info {
+    background: rgba(74, 158, 255, 0.16);
+    border-color: rgba(74, 158, 255, 0.35);
+    color: #bfdbfe;
+}
+
+[data-theme="dark"] .ann-results-info .results-label {
+    color: #bfdbfe;
+}
+
+[data-theme="dark"] .ann-results-info #resultsCount {
+    color: #60a5fa;
 }
 
 /* Empty row in table */
@@ -936,9 +1000,12 @@
         flex: unset;
     }
 
-    .ann-btn-reset,
-    .ann-results-info {
+    .ann-btn-reset {
         align-self: flex-start;
+    }
+
+    .ann-summary-row {
+        width: auto;
     }
 
     .ann-modal-card {

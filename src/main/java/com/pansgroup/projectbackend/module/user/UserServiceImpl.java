@@ -275,6 +275,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserResponseDto updateActivationStatus(Long userId, UserActivationUpdateDto dto) {
+        User userToUpdate = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+
+        if ("ADMIN".equalsIgnoreCase(userToUpdate.getRole()) && !Boolean.TRUE.equals(dto.activated())) {
+            throw new IllegalStateException("Nie można dezaktywować konta administratora.");
+        }
+
+        userToUpdate.setActivated(Boolean.TRUE.equals(dto.activated()));
+        return mapToResponseDto(userRepository.save(userToUpdate));
+    }
+
+    @Override
     @Transactional
     public UserResponseDto assignUserToGroup(String email, UserGroupAssignmentDto dto) {
         String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);

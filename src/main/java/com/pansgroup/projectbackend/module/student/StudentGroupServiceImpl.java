@@ -1,6 +1,7 @@
 package com.pansgroup.projectbackend.module.student;
 
 import com.pansgroup.projectbackend.exception.StudentGroupNotFoundException;
+import com.pansgroup.projectbackend.exception.StudentGroupAlreadyExistsException;
 import com.pansgroup.projectbackend.module.student.dto.StudentGroupCreateDto;
 import com.pansgroup.projectbackend.module.student.dto.StudentGroupResponseDto;
 import com.pansgroup.projectbackend.module.user.User;
@@ -9,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class StudentGroupServiceImpl implements StudentGroupService {
@@ -30,13 +32,31 @@ public class StudentGroupServiceImpl implements StudentGroupService {
 
     private StudentGroup toEntity(StudentGroupCreateDto dto) {
         StudentGroup entry = new StudentGroup();
-        entry.setName(dto.name().trim());
+        entry.setName(normalizeName(dto.name()));
         return entry;
+    }
+
+    private String normalizeName(String name) {
+        return name == null ? "" : name.trim().replaceAll("\\s+", " ");
+    }
+
+    private void ensureUniqueName(String name, Long currentId) {
+        String normalizedName = normalizeName(name);
+        boolean exists = studentGroupRepository.findAll().stream()
+                .anyMatch(group -> !group.getId().equals(currentId)
+                        && normalizeName(group.getName()).toLowerCase(Locale.ROOT)
+                                .equals(normalizedName.toLowerCase(Locale.ROOT)));
+
+        if (exists) {
+            throw new StudentGroupAlreadyExistsException(
+                    "Kierunek o nazwie '" + normalizedName + "' już istnieje.");
+        }
     }
 
 
     @Override
     public StudentGroupResponseDto create(StudentGroupCreateDto dto) {
+        ensureUniqueName(dto.name(), null);
         StudentGroup entry = toEntity(dto);
         StudentGroup saved = studentGroupRepository.save(entry);
         return toResponse(saved);
@@ -76,7 +96,8 @@ public class StudentGroupServiceImpl implements StudentGroupService {
     public StudentGroupResponseDto update(Long id, StudentGroupCreateDto dto) {
         StudentGroup entity = studentGroupRepository.findById(id)
                 .orElseThrow(() -> new StudentGroupNotFoundException(">" + id + "<"));
-        entity.setName(dto.name().trim());
+        ensureUniqueName(dto.name(), id);
+        entity.setName(normalizeName(dto.name()));
         StudentGroup updated = studentGroupRepository.save(entity);
         return toResponse(updated);
     }

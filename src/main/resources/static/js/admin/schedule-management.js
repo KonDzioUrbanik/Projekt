@@ -333,16 +333,8 @@ class ScheduleManagement {
     
     updateResultsCounter() {
         const countSpan = document.getElementById('resultsCount');
-        const textSpan = document.getElementById('resultsText');
         
         if (countSpan) countSpan.textContent = this.filteredData.length;
-        
-        if (textSpan) {
-            const count = this.filteredData.length;
-            if (count === 1) textSpan.textContent = "zajęcia";
-            else if (count >= 2 && count <= 4) textSpan.textContent = "zajęcia";
-            else textSpan.textContent = "zajęć";
-        }
     }
 
     updatePaginationUI() {

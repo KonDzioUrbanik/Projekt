@@ -30,6 +30,20 @@ class GroupsManagement{
         this.loadGroups();
     }
 
+    normalizeGroupName(name) {
+        return (name || '').trim().replace(/\s+/g, ' ').toLowerCase();
+    }
+
+    hasDuplicateName(name) {
+        const normalizedCandidate = this.normalizeGroupName(name);
+        return this.groups.some(group => {
+            if (this.isEditing && group.id === this.currentEditId) {
+                return false;
+            }
+            return this.normalizeGroupName(group.name) === normalizedCandidate;
+        });
+    }
+
     initDeleteModal() {
         const btnCancel = document.getElementById('btnCancelDelete');
         const btnConfirm = document.getElementById('btnConfirmDelete');
@@ -245,7 +259,10 @@ class GroupsManagement{
 
     updateStats(){
         const groupsCount = document.getElementById('groupsCount');
-        groupsCount.textContent = this.filteredGroups.length;
+        if (!groupsCount) {
+            return;
+        }
+        groupsCount.textContent = this.groups.length;
     }
 
     renderGroups(){
@@ -339,6 +356,11 @@ class GroupsManagement{
             return;
         }
 
+        if (this.hasDuplicateName(groupName)) {
+            Utils.showToast(`Kierunek o nazwie "${groupName}" już istnieje.`, 'warning');
+            return;
+        }
+
         const groupData = { name: groupName };
 
         try{
@@ -363,7 +385,19 @@ class GroupsManagement{
             }
 
             if(!response.ok){
-                throw new Error(`HTTP error! status: ${response.status}`);
+                let message = 'Wystąpił błąd podczas zapisywania kierunku.';
+                try {
+                    const errorText = await response.text();
+                    if (errorText) {
+                        try {
+                            const errorData = JSON.parse(errorText);
+                            message = errorData.detail || errorData.message || message;
+                        } catch {
+                            message = errorText;
+                        }
+                    }
+                } catch { /* ignore read error */ }
+                throw new Error(message);
             }
 
             const wasEditing = this.isEditing;
@@ -377,8 +411,10 @@ class GroupsManagement{
             );
         } 
         catch(error){
-            console.error('Błąd zapisu:', error);
-            Utils.showToast('Wystąpił błąd podczas zapisywania kierunku. Sprawdź poprawność danych i spróbuj ponownie.', 'error');
+            if (!String(error.message || '').includes('już istnieje')) {
+                console.error('Błąd zapisu:', error);
+            }
+            Utils.showToast(error.message || 'Wystąpił błąd podczas zapisywania kierunku. Sprawdź poprawność danych i spróbuj ponownie.', 'error');
         }
     }
 

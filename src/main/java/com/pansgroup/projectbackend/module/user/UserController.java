@@ -78,6 +78,13 @@ public class UserController {
         return userService.updateRoleUser(email, dto);
     }
 
+    @Operation(summary = "Aktywacja lub dezaktywacja konta użytkownika")
+    @PutMapping("/activation/{userId}")
+    public UserResponseDto updateActivationStatus(@PathVariable Long userId,
+                                                  @Valid @RequestBody UserActivationUpdateDto dto) {
+        return userService.updateActivationStatus(userId, dto);
+    }
+
     @Operation(summary = "Przypisanie użytkownika do kierunku (Tylko Admin)")
     @PutMapping("/assignGroup/{email}")
     public UserResponseDto assignUserToGroup(

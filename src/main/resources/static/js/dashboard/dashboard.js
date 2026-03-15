@@ -566,25 +566,13 @@ class DashboardHome {
             }
             
             // Liczba zajęć dzisiaj
-            // Filtrowanie po tygodniu (A/B)
-        if (this.scheduleData && this.scheduleData.length > 0) {
-             const allSchedule = this.scheduleData;
-             
-             // Filtrujemy najpierw po tygodniu
-             const weekFilteredSchedule = allSchedule.filter(item => Utils.matchesScheduleRecurrence(item, new Date()));
-
-            // Dzisiejsze zajęcia
-            const today = this.getDayOfWeek(new Date());
-            const todayClasses = weekFilteredSchedule.filter(c => c.dayOfWeek === today);
-            this.renderTodayClasses(todayClasses);
-
-            // Jutrzejsze zajęcia
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const tomorrowDay = this.getDayOfWeek(tomorrow);
-            const tomorrowClasses = weekFilteredSchedule.filter(c => c.dayOfWeek === tomorrowDay);
-            this.renderTomorrowClasses(tomorrowClasses);
-        }
+            if (scheduleResponse && scheduleResponse.ok) {
+                const allSchedule = await scheduleResponse.json();
+                const weekFilteredSchedule = allSchedule.filter(item => Utils.matchesScheduleRecurrence(item, new Date()));
+                const today = this.getDayOfWeek(new Date());
+                const todayClasses = weekFilteredSchedule.filter(c => c.dayOfWeek === today);
+                totalClassesToday = todayClasses.length;
+            }
             
             // Aktualizacja wartości statystyk
             this.updateStatValue('totalUsers', totalUsers);

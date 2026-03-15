@@ -150,13 +150,15 @@ const AdminAnnouncement = {
                     </span>
                 </td>
                 <td class="ann-td-date">${this.esc(created)}</td>
-                <td>
-                    <button class="ann-action-btn ann-btn-view" data-id="${item.id}" title="Rozwiń treść">
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                    <button class="ann-action-btn ann-btn-del" data-id="${item.id}" data-title="${this.esc(item.title)}" title="Usuń">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
+                <td class="ann-td-actions">
+                    <div class="ann-action-group">
+                        <button class="ann-action-btn ann-btn-view" data-id="${item.id}" title="Rozwiń treść">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <button class="ann-action-btn ann-btn-del" data-id="${item.id}" data-title="${this.esc(item.title)}" title="Usuń">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
                 </td>
             `;
             tableBody.appendChild(tr);
