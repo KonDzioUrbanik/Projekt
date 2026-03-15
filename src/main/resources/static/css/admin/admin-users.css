@@ -236,12 +236,37 @@
     font-weight: 600;
     border: 1px solid #bfdbfe;
     width: fit-content;
-    /* Ograniczenie szerokości */
+    margin-bottom: 1rem;
+}
+
+.results-info .results-label {
+    color: #1e40af;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    line-height: normal;
 }
 
 .results-info #resultsCount {
     font-size: 1.1rem;
     color: var(--color-primary);
+    font-weight: 700;
+    line-height: normal;
+    font-variant-numeric: normal;
+}
+
+[data-theme="dark"] .results-info {
+    background: rgba(74, 158, 255, 0.16);
+    border-color: rgba(74, 158, 255, 0.35);
+    color: #bfdbfe;
+}
+
+[data-theme="dark"] .results-info .results-label {
+    color: #bfdbfe;
+}
+
+[data-theme="dark"] .results-info #resultsCount {
+    color: #60a5fa;
 }
 
 .user-row-hidden {
@@ -332,7 +357,18 @@
     cursor: pointer;
     font-size: 0.85rem;
     margin-right: 5px;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.actions-cell {
+    min-width: 170px;
+}
+
+.action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
 }
 
 .btn {
@@ -385,6 +421,31 @@
 
 .btn-delete:hover {
     background: #fecaca;
+}
+
+.btn-activate {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.btn-activate:hover {
+    background: #bbf7d0;
+    transform: translateY(-1px);
+}
+
+.btn-deactivate {
+    background: #fff7ed;
+    color: #c2410c;
+}
+
+.btn-deactivate:hover {
+    background: #fed7aa;
+    transform: translateY(-1px);
+}
+
+.action-btn:disabled {
+    opacity: 0.65;
+    cursor: wait;
 }
 
 /* MODAL (OKIENKO) */
@@ -554,10 +615,6 @@
 
     .btn-secondary {
         justify-content: center;
-    }
-
-    .results-info {
-        text-align: center;
     }
 
     /* Kontener głowny - bez overflow */

@@ -229,6 +229,12 @@ public class GlobalExceptionHandler {
                 ex.getMessage(), req, "email_exists");
     }
 
+    @ExceptionHandler(StudentGroupAlreadyExistsException.class)
+    public ProblemDetail handleDuplicateStudentGroup(StudentGroupAlreadyExistsException ex, HttpServletRequest req) {
+        return pd(HttpStatus.CONFLICT, "Duplicate student group",
+                ex.getMessage(), req, "student_group_exists");
+    }
+
     /* ====== 409: naruszenie constraint DB. ====== */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail handleDataIntegrity(DataIntegrityViolationException ex, HttpServletRequest req) {

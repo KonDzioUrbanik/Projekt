@@ -82,7 +82,8 @@
                     </div>
                     
                     <div class="results-info">
-                        <span id="resultsCount">0</span> <span id="resultsText">użytkowników</span>
+                        <span class="results-label">Liczba użytkowników:</span>
+                        <span id="resultsCount">0</span>
                     </div>
                 </div>
                 
@@ -170,33 +171,41 @@
                                 
                                 <td th:text="${user.nrAlbumu != null} ? ${user.nrAlbumu} : '-'"> </td>
 
-                                <td>
-                                    <button class="action-btn btn-edit" title="Edytuj"
-                                            th:if="${user.role != 'ADMIN'}" 
-                                            th:data-email="${user.email}"
-                                            th:data-firstname="${user.firstName}"
-                                            th:data-lastname="${user.lastName}"
-                                            th:data-role="${user.role}"
-                                            th:data-group="${user.groupName != null ? user.groupName : ''}"
-                                            onclick="openEditModal(this)">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
+                                <td class="actions-cell">
+                                    <div class="action-buttons" th:if="${user.role != 'ADMIN'}">
+                                        <button class="action-btn"
+                                                th:classappend="${user.isActivated} ? 'btn-deactivate' : 'btn-activate'"
+                                                th:title="${user.isActivated} ? 'Dezaktywuj konto' : 'Aktywuj konto'"
+                                                th:data-id="${user.id}"
+                                                th:data-activated="${user.isActivated}"
+                                                onclick="toggleUserActivation(this)">
+                                            <i th:class="${user.isActivated} ? 'fas fa-user-slash' : 'fas fa-user-check'"></i>
+                                        </button>
+                                        
+                                        <button class="action-btn btn-edit" title="Edytuj"
+                                                th:data-email="${user.email}"
+                                                th:data-firstname="${user.firstName}"
+                                                th:data-lastname="${user.lastName}"
+                                                th:data-role="${user.role}"
+                                                th:data-group="${user.groupName != null ? user.groupName : ''}"
+                                                onclick="openEditModal(this)">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
 
-                                    <button class="action-btn btn-delete" title="Usuń" 
-                                            th:if="${user.role != 'ADMIN'}"
-                                            th:data-id="${user.id}"
-                                            onclick="openDeleteModal(this)">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                    
+                                        <button class="action-btn btn-delete" title="Usuń"
+                                                th:data-id="${user.id}"
+                                                onclick="openDeleteModal(this)">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+
                                     <span th:if="${user.role == 'ADMIN'}" class="admin-protected-icon">
                                         <i class="fas fa-lock" title="Konto chronione"></i>
                                     </span>
                                 </td>
                             </tr>
-                        </tbody>
                             <tr th:if="${users.empty}">
-                                <td colspan="7" class="empty-state-cell">
+                                <td colspan="8" class="empty-state-cell">
                                     <div class="empty-state">
                                         <i class="fas fa-users"></i>
                                         <h3>Brak użytkowników</h3>

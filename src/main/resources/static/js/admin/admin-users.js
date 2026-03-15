@@ -28,7 +28,6 @@ const statusFilter = document.getElementById('statusFilter');
 const resetFiltersBtn = document.getElementById('resetFilters');
 const tableRows = document.querySelectorAll('.users-table tbody tr');
 const resultsCount = document.getElementById('resultsCount');
-const resultsText = document.getElementById('resultsText');
 
 // funkcja do wypełnienia filtra kierunków unikalnymi wartościami z tabeli
 function populateGroupFilter(){
@@ -127,21 +126,12 @@ function resetFilters(){
     groupFilter.value = '';
     yearFilter.value = '';
     statusFilter.value = '';
-    
-    // wywołaj filtrowanie
-    const originalFilterUsers = filterUsers; // referencja do funkcji
-    
     filterUsers();
 }
 
 function updateResultsCounter(count) {
     if (resultsCount) {
         resultsCount.textContent = count;
-        if (count === 1) {
-            resultsText.textContent = 'użytkownik';
-        } else {
-            resultsText.textContent = 'użytkowników';
-        }
     }
 }
 
@@ -287,6 +277,47 @@ function openEditModal(btn){
 
 function closeEditModal(){
     document.getElementById("editUserModal").classList.remove("active");
+}
+
+async function toggleUserActivation(btn) {
+    const userId = btn.getAttribute('data-id');
+    const isCurrentlyActivated = btn.getAttribute('data-activated') === 'true';
+    const nextState = !isCurrentlyActivated;
+
+    btn.disabled = true;
+
+    try {
+        const response = await fetch(`/api/users/activation/${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ activated: nextState })
+        });
+
+        if (!response.ok) {
+            let message = 'Nie udało się zmienić statusu konta.';
+            try {
+                const errorText = await response.text();
+                if (errorText) {
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        message = errorData.detail || errorData.message || message;
+                    } catch {
+                        message = errorText;
+                    }
+                }
+            } catch { /* ignore read error */ }
+            throw new Error(message);
+        }
+
+        Utils.showToast(nextState ? 'Konto zostało aktywowane.' : 'Konto zostało dezaktywowane.', 'success');
+        setTimeout(() => location.reload(), 900);
+    } catch (error) {
+        console.error('Błąd zmiany statusu konta:', error);
+        Utils.showToast(error.message || 'Wystąpił błąd podczas zmiany statusu konta.', 'error');
+        btn.disabled = false;
+    }
 }
 
 // ladowanie grup z API
@@ -452,6 +483,8 @@ filterUsers = function() {
     const searchTerm = searchInput.value.toLowerCase().trim();
     const selectedRole = roleFilter.value;
     const selectedGroup = groupFilter.value;
+    const selectedYear = yearFilter.value;
+    const selectedStatus = statusFilter.value;
     
     // resetuj filteredRows
     filteredRows = [];
@@ -461,15 +494,19 @@ filterUsers = function() {
         const email = row.querySelector(CONFIG.SELECTORS.EMAIL_CELL).textContent.toLowerCase();
         const role = row.querySelector(CONFIG.SELECTORS.ROLE_BADGE).textContent.trim();
         const group = row.querySelector(CONFIG.SELECTORS.GROUP_CELL).textContent.trim();
+        const year = row.getAttribute('data-year');
+        const status = row.getAttribute('data-status');
         
         const matchesSearch = fullName.includes(searchTerm) || email.includes(searchTerm);
         const matchesRole = !selectedRole || role === selectedRole;
         const matchesGroup = !selectedGroup || group === selectedGroup;
+        const matchesYear = !selectedYear || year === selectedYear;
+        const matchesStatus = !selectedStatus || status === selectedStatus;
         
         // usuń klasę ukrywania filtra (teraz używamy tylko klasy paginacji)
         row.classList.remove('user-row-hidden');
         
-        if(matchesSearch && matchesRole && matchesGroup){
+        if(matchesSearch && matchesRole && matchesGroup && matchesYear && matchesStatus){
             filteredRows.push(row);
         } else {
             row.classList.add('user-row-hidden');

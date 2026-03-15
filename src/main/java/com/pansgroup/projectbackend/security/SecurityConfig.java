@@ -151,9 +151,11 @@ public class SecurityConfig {
                                                 "/api/schedule/**",
                                                 "/api/groups/**",
                                                 "/api/users/role/update/**",
-                                                "/api/users/assign-group/**")
+                                                "/api/users/assign-group/**",
+                                                "/api/users/assignGroup/**",
+                                                "/api/users/activation/**")
                                 .hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/schedule/**", "/api/groups/**")
+                                .requestMatchers(HttpMethod.DELETE, "/api/schedule/**", "/api/groups/**", "/api/users/**")
                                 .hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.GET, "/api/groups", "/api/schedule/all").hasRole("ADMIN")
 

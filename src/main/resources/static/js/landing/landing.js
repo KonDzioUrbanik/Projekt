@@ -43,4 +43,44 @@ document.addEventListener('DOMContentLoaded', () => {
         // Start animation
         setTimeout(type, 1000);
     }
+
+    const statValues = document.querySelectorAll('.stat-value[data-count]');
+    if (statValues.length > 0) {
+        const formatNumber = (value) => new Intl.NumberFormat('pl-PL').format(value);
+
+        const animateCounter = (element) => {
+            const target = Number(element.dataset.count || 0);
+            const duration = 1200;
+            const startTime = performance.now();
+
+            const step = (currentTime) => {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                const currentValue = Math.floor(target * eased);
+                element.textContent = formatNumber(currentValue);
+
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    element.textContent = formatNumber(target);
+                }
+            };
+
+            requestAnimationFrame(step);
+        };
+
+        const observer = new IntersectionObserver((entries, obs) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) {
+                    return;
+                }
+
+                animateCounter(entry.target);
+                obs.unobserve(entry.target);
+            });
+        }, { threshold: 0.4 });
+
+        statValues.forEach((element) => observer.observe(element));
+    }
 });

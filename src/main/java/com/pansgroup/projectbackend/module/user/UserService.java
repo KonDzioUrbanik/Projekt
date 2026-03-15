@@ -24,6 +24,8 @@ public interface UserService {
 
     UserResponseDto updateRoleUser(String email, UserRoleUpdateDto dto);
 
+    UserResponseDto updateActivationStatus(Long userId, UserActivationUpdateDto dto);
+
     UserResponseDto assignUserToGroup(String email, UserGroupAssignmentDto dto);
 
     void deleteUser(Long userId);

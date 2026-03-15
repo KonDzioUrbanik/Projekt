@@ -3,6 +3,7 @@ package com.pansgroup.projectbackend.controller;
 import com.pansgroup.projectbackend.exception.UsernameNotFoundException;
 import com.pansgroup.projectbackend.module.dashboard.DashboardService;
 import com.pansgroup.projectbackend.module.dashboard.dto.DashboardResponseDto;
+import com.pansgroup.projectbackend.module.landing.LandingStatsService;
 import com.pansgroup.projectbackend.module.user.UserService;
 import com.pansgroup.projectbackend.module.user.dto.UserResponseDto;
 
@@ -19,14 +20,17 @@ import java.security.Principal;
 public class MainController {
     private final DashboardService dashboardService;
     private final UserService userService;
+    private final LandingStatsService landingStatsService;
 
-    public MainController(DashboardService dashboardService, UserService userService) {
+    public MainController(DashboardService dashboardService, UserService userService, LandingStatsService landingStatsService) {
         this.dashboardService = dashboardService;
         this.userService = userService;
+        this.landingStatsService = landingStatsService;
     }
 
     @GetMapping("/")
-    public String mainView() {
+    public String mainView(Model model) {
+        model.addAttribute("landingStats", landingStatsService.getLandingStats());
         return "index";
     }
 

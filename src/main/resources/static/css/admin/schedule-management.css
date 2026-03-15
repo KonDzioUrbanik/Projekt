@@ -275,6 +275,22 @@
     margin-bottom: 1rem;
 }
 
+.results-info .results-label {
+    color: #1e40af;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    line-height: normal;
+}
+
+.results-info #resultsCount {
+    font-size: 1.1rem;
+    color: var(--color-primary);
+    font-weight: 700;
+    line-height: normal;
+    font-variant-numeric: normal;
+}
+
 #scheduleTable {
     width: 100%;
     border-collapse: collapse;
@@ -909,6 +925,20 @@
     background-color: var(--bg-card);
     border-color: var(--border-color);
     color: var(--text-main);
+}
+
+[data-theme="dark"] .results-info {
+    background: rgba(74, 158, 255, 0.16);
+    border-color: rgba(74, 158, 255, 0.35);
+    color: #bfdbfe;
+}
+
+[data-theme="dark"] .results-info .results-label {
+    color: #bfdbfe;
+}
+
+[data-theme="dark"] .results-info #resultsCount {
+    color: #60a5fa;
 }
 
 .export-data-summary {
