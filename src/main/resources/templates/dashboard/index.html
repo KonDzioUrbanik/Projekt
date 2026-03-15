@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<html layout:decorate="~{layout/main-layout}">
+<html lang="pl"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
     <head>
         <title>Strona główna</title>
     </head>
@@ -91,7 +94,7 @@
                                     <div class="section-divider current-section">
                                         <span class="divider-text live-lesson">
                                             <i class="fas fa-circle live-indicator"></i>
-                                            Trwają teraz</span>
+                                            Trwają teraz
                                         </span>
                                     </div>
                                     <div id="currentClassesList" class="classes-grid">
@@ -142,15 +145,34 @@
                                         <p>Aktualności i informacje</p>
                                     </div>
                                 </div>
+                                <a href="/student/announcements" class="view-link">
+                                    <span>Wszystkie ogłoszenia</span>
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
                             </div>
 
                             <div class="card-body">
-                                <div class="coming-soon">
-                                    <div class="coming-icon">
-                                        <i class="fas fa-rocket"></i>
+                                <div id="dashboardAnnouncementsLoader" class="loader-container">
+                                    <div class="loader-spinner"></div>
+                                    <p>Ładowanie ogłoszeń...</p>
+                                </div>
+
+                                <div id="dashboardAnnouncementsError" class="error-state" style="display: none;">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <h3>Nie udało się pobrać ogłoszeń</h3>
+                                    <p>Odśwież stronę i spróbuj ponownie.</p>
+                                </div>
+
+                                <div id="dashboardAnnouncementsEmpty" class="coming-soon" style="display: none;">
+                                    <div class="coming-icon secondary">
+                                        <i class="fas fa-inbox"></i>
                                     </div>
-                                    <h3>Już wkrótce!</h3>
-                                    <p>Moduł ogłoszeń będzie dostępny w przyszłości.</p>
+                                    <h3>Brak nowych ogłoszeń</h3>
+                                    <p>Gdy pojawią się nowe komunikaty dla Twojej grupy, zobaczysz je tutaj.</p>
+                                </div>
+
+                                <div id="dashboardAnnouncementsList" class="dashboard-announcements-preview" style="display: none;">
+                                    <!-- 3 ostatnie ogłoszenia zostaną załadowane przez JavaScript -->
                                 </div>
                             </div>
                         </div>

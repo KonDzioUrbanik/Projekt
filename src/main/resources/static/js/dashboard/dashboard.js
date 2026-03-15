@@ -8,6 +8,7 @@ class DashboardHome {
         API: {
             SCHEDULE: '/api/schedule',
             SCHEDULE_ALL: '/api/schedule/all',
+            ANNOUNCEMENTS: '/api/announcements/group',
             USERS: '/api/users',
             GROUPS: '/api/groups',
             CALENDAR_ACTIVE: '/api/calendar/active'
@@ -60,6 +61,7 @@ class DashboardHome {
         this.setGreeting();
         this.displayCurrentDate();
         this.loadUpcomingClasses();
+        this.loadLatestAnnouncements();
         
         // Inicjalizacja panelu admina (jeśli istnieje)
         const adminDashboard = document.querySelector('.admin-dashboard');
@@ -70,6 +72,91 @@ class DashboardHome {
         // Uruchomienie zegara
         this.updateClock();
         setInterval(() => this.updateClock(), 1000);
+    }
+
+    async loadLatestAnnouncements() {
+        const loader = document.getElementById('dashboardAnnouncementsLoader');
+        const errorDiv = document.getElementById('dashboardAnnouncementsError');
+        const emptyDiv = document.getElementById('dashboardAnnouncementsEmpty');
+        const listDiv = document.getElementById('dashboardAnnouncementsList');
+
+        if (!loader || !errorDiv || !emptyDiv || !listDiv) return;
+
+        loader.style.display = 'flex';
+        errorDiv.style.display = 'none';
+        emptyDiv.style.display = 'none';
+        listDiv.style.display = 'none';
+        listDiv.innerHTML = '';
+
+        try {
+            const response = await fetch(DashboardHome.CONFIG.API.ANNOUNCEMENTS);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const announcements = await response.json();
+            const latest = Array.isArray(announcements) ? announcements.slice(0, 3) : [];
+
+            if (latest.length === 0) {
+                emptyDiv.style.display = 'flex';
+                return;
+            }
+
+            listDiv.innerHTML = latest.map(item => this.renderAnnouncementPreview(item)).join('');
+            listDiv.style.display = 'flex';
+        } catch (error) {
+            console.error('Błąd ładowania ogłoszeń:', error);
+            errorDiv.style.display = 'flex';
+        } finally {
+            loader.style.display = 'none';
+        }
+    }
+
+    renderAnnouncementPreview(item) {
+        const createdAt = item.createdAt
+            ? new Date(item.createdAt).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })
+            : '-';
+
+        const title = this.escapeHtml(item.title || 'Bez tytułu');
+        const content = this.escapeHtml(item.content || '');
+        const author = this.escapeHtml([
+            item.authorFirstName,
+            item.authorLastName
+        ].filter(Boolean).join(' ') || 'Nieznany autor');
+
+        return `
+            <article class="dashboard-ann-card">
+                <div class="dashboard-ann-card-header">
+                    <div class="dashboard-ann-heading">
+                        <span class="dashboard-ann-kicker">Ogłoszenie</span>
+                        <h3 class="dashboard-ann-title">${title}</h3>
+                    </div>
+                    <span class="dashboard-ann-date">
+                        <i class="fas fa-clock"></i>
+                        ${createdAt}
+                    </span>
+                </div>
+
+                <p class="dashboard-ann-content">${content}</p>
+
+                <div class="dashboard-ann-footer">
+                    <div class="dashboard-ann-author">
+                        <i class="fas fa-user"></i>
+                        <span>${author}</span>
+                    </div>
+                </div>
+            </article>
+        `;
+    }
+
+    escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
     
     // Aktualizacja zegara

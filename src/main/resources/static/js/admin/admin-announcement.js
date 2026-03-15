@@ -4,12 +4,20 @@ const AdminAnnouncement = {
 
     state: {
         all: [],
+        groups: [],
         filtered: [],
         pendingDeleteId: null,
         filters: { search: '', group: '' }
     },
 
     elements: {
+        form:         document.getElementById('adminAnnouncementForm'),
+        titleInput:   document.getElementById('announcementTitle'),
+        contentInput: document.getElementById('announcementContent'),
+        submitBtn:    document.getElementById('submitBtn'),
+        titleCounter: document.getElementById('titleCounter'),
+        contentCounter: document.getElementById('contentCounter'),
+        targetAudienceSelect: document.getElementById('targetAudienceSelect'),
         tableBody:    document.getElementById('announcementTableBody'),
         searchInput:  document.getElementById('searchInput'),
         groupFilter:  document.getElementById('groupFilter'),
@@ -25,11 +33,26 @@ const AdminAnnouncement = {
     // ── Init ─────────────────────────────────────────────────────────────────
     init() {
         this.attachListeners();
-        this.fetchAnnouncements();
+        this.initCharCounters();
+        this.bootstrapData();
+    },
+
+    async bootstrapData() {
+        await Promise.all([this.fetchGroups(), this.fetchAnnouncements()]);
     },
 
     attachListeners() {
-        const { searchInput, groupFilter, resetBtn, cancelBtn, confirmBtn, deleteModal } = this.elements;
+        const {
+            form,
+            searchInput,
+            groupFilter,
+            resetBtn,
+            cancelBtn,
+            confirmBtn,
+            deleteModal
+        } = this.elements;
+
+        form?.addEventListener('submit', (e) => this.handleSubmit(e));
 
         searchInput?.addEventListener('input', (e) => {
             this.state.filters.search = e.target.value.toLowerCase();
@@ -52,6 +75,116 @@ const AdminAnnouncement = {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') this.closeModal();
         });
+    },
+
+    initCharCounters() {
+        const { titleInput, contentInput, titleCounter, contentCounter } = this.elements;
+
+        titleInput?.addEventListener('input', () => {
+            const len = titleInput.value.length;
+            if (!titleCounter) return;
+            titleCounter.textContent = `${len} / 150`;
+            titleCounter.className = 'ann-char-counter' +
+                (len >= 140 ? ' danger' : len >= 120 ? ' warn' : '');
+        });
+
+        contentInput?.addEventListener('input', () => {
+            const len = contentInput.value.length;
+            if (!contentCounter) return;
+            contentCounter.textContent = `${len} / 2000`;
+            contentCounter.className = 'ann-char-counter' +
+                (len >= 1900 ? ' danger' : len >= 1700 ? ' warn' : '');
+        });
+    },
+
+    // ── Create announcement ─────────────────────────────────────────────────
+    async handleSubmit(event) {
+        event.preventDefault();
+        this.clearMessage();
+
+        const title = (this.elements.titleInput?.value || '').trim();
+        const content = (this.elements.contentInput?.value || '').trim();
+
+        if (!title || !content) {
+            this.showError('Uzupełnij tytuł i treść ogłoszenia.');
+            return;
+        }
+
+        const targetAudience = this.elements.targetAudienceSelect?.value || 'global';
+        const isGlobal = targetAudience === 'global';
+        const selectedGroupIds = isGlobal ? [] : [Number(targetAudience)].filter(Number.isFinite);
+        if (!isGlobal && selectedGroupIds.length === 0) {
+            this.showError('Wybierz prawidłowy kierunek lub opcję globalną.');
+            return;
+        }
+
+        this.setSubmitLoading(true);
+
+        try {
+            const payload = {
+                title,
+                content,
+                global: isGlobal,
+                targetGroupIds: selectedGroupIds
+            };
+
+            const response = await fetch('/api/announcements', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(this.readErrorText(errText) || 'Nie udało się opublikować ogłoszenia.');
+            }
+
+            this.resetForm();
+            this.showSuccess('Ogłoszenie zostało opublikowane.');
+            await this.fetchAnnouncements();
+        } catch (err) {
+            this.showError('Błąd: ' + this.readError(err));
+        } finally {
+            this.setSubmitLoading(false);
+        }
+    },
+
+    setSubmitLoading(loading) {
+        const { submitBtn } = this.elements;
+        if (!submitBtn) return;
+        submitBtn.disabled = loading;
+        submitBtn.classList.toggle('loading', loading);
+    },
+
+    resetForm() {
+        this.elements.form?.reset();
+        if (this.elements.titleCounter) this.elements.titleCounter.textContent = '0 / 150';
+        if (this.elements.contentCounter) this.elements.contentCounter.textContent = '0 / 2000';
+        if (this.elements.targetAudienceSelect) {
+            this.elements.targetAudienceSelect.value = 'global';
+        }
+    },
+
+    async fetchGroups() {
+        const { targetAudienceSelect } = this.elements;
+        if (!targetAudienceSelect) return;
+
+        try {
+            const response = await fetch('/api/groups');
+            if (!response.ok) throw new Error('Nie udało się pobrać kierunków.');
+            const groups = await response.json();
+            this.state.groups = Array.isArray(groups) ? groups : [];
+
+            targetAudienceSelect.innerHTML = '<option value="global">Wszyscy (globalnie)</option>';
+            this.state.groups.forEach(group => {
+                const option = document.createElement('option');
+                option.value = String(group.id);
+                option.textContent = group.name;
+                targetAudienceSelect.appendChild(option);
+            });
+        } catch (err) {
+            this.showError('Błąd podczas ładowania kierunków: ' + err.message);
+        }
     },
 
     // ── Fetch ────────────────────────────────────────────────────────────────
@@ -78,6 +211,8 @@ const AdminAnnouncement = {
     populateGroupFilter() {
         const { groupFilter } = this.elements;
         if (!groupFilter) return;
+
+        groupFilter.innerHTML = '<option value="">Wszystkie grupy</option>';
 
         const groups = [...new Set(this.state.all.map(a => a.targetGroupName).filter(Boolean))].sort();
         groups.forEach(g => {
@@ -262,6 +397,26 @@ const AdminAnnouncement = {
         if (type === 'success') {
             setTimeout(() => { this.elements.msgEl.innerHTML = ''; }, 4000);
         }
+    },
+
+    clearMessage() {
+        if (this.elements.msgEl) this.elements.msgEl.innerHTML = '';
+    },
+
+    readErrorText(text) {
+        const raw = (text || '').trim();
+        if (!raw) return '';
+        if (!raw.startsWith('{')) return raw;
+        try {
+            return JSON.parse(raw).message || raw;
+        } catch (_) {
+            return raw;
+        }
+    },
+
+    readError(err) {
+        if (!err?.message) return 'Wystąpił nieoczekiwany błąd.';
+        return this.readErrorText(err.message) || err.message;
     },
 
     // ── Utils ────────────────────────────────────────────────────────────────

@@ -440,6 +440,31 @@
     font-weight: 600;
 }
 
+.ann-target-mode-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 0.6rem 0;
+}
+
+.ann-target-mode-row label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+}
+
+.ann-target-help {
+    margin-top: 0.35rem;
+    font-size: 0.78rem;
+    color: var(--text-light);
+}
+
+#targetGroupsSelect {
+    min-height: 170px;
+}
+
 .ann-form-footer {
     display: flex;
     justify-content: flex-end;

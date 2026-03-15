@@ -1,5 +1,9 @@
 <!DOCTYPE html>
-<html layout:decorate="~{layout/main-layout}">
+<html lang="pl"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout/main-layout}">
     <head>
         <title>Strona główna portalu</title>
         <link rel="stylesheet" th:href="@{/css/home/home.css}">
@@ -22,7 +26,7 @@
                             </div>
                             <div class="date-info">
                                 <span class="date-label">PANSportal</span>
-                                <span class="date-value">Wersja v1.2</span>
+                                <span class="date-value">Wersja v1.3a</span>
                             </div>
                         </a>
                     </div>
@@ -79,9 +83,22 @@
                                 <p style="color: var(--text-light); font-size: 0.95rem; margin-bottom: 1rem; line-height: 1.5;">
                                     Bądź na bieżąco z najnowszymi informacjami, zmianami w regulaminach i wydarzeniami na uczelni.
                                 </p>
-                                <div class="empty-state-small" style="padding: 1rem 0; text-align: center;">
+                                <div id="homeAnnouncementsList" class="home-announcements-list"></div>
+                                <div id="homeAnnouncementsEmpty" class="empty-state-small" style="padding: 1rem 0; text-align: center; display: none;">
                                     <i class="fas fa-newspaper" style="font-size: 2rem; color: var(--text-placeholder); margin-bottom: 1rem; opacity: 0.5;"></i>
                                     <p style="font-size: 0.9rem; color: var(--text-light); margin: 0;">Obecnie brak nowych komunikatów.</p>
+                                </div>
+                                <div id="homeAnnouncementsError" class="empty-state-small" style="padding: 1rem 0; text-align: center; display: none;">
+                                    <i class="fas fa-exclamation-circle" style="font-size: 1.5rem; color: #ef4444; margin-bottom: 0.75rem;"></i>
+                                    <p style="font-size: 0.9rem; color: var(--text-light); margin: 0;">Nie udało się załadować komunikatów.</p>
+                                </div>
+                                <div class="home-ann-actions">
+                                    <a th:href="@{/student/announcements}" class="home-announcements-link" sec:authorize="hasAnyRole('STUDENT', 'STAROSTA')">
+                                        Zobacz wszystkie ogłoszenia <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                    <a th:href="@{/admin/announcement}" class="home-announcements-link" sec:authorize="hasRole('ADMIN')">
+                                        Przejdź do panelu ogłoszeń <i class="fas fa-arrow-right"></i>
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -99,31 +116,31 @@
                             </div>
                             <div class="card-body" style="padding: 1.5rem;">
                                 <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                                    <a href="https://pans.krosno.pl" target="_blank" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background: var(--bg-secondary); border-radius: 8px; color: var(--text-dark); text-decoration: none; transition: background 0.2s;">
+                                    <a href="https://pans.krosno.pl" target="_blank" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background: var(--bg-step); border-radius: 8px; color: var(--text-dark); text-decoration: none; transition: background 0.2s;">
                                         <div style="display: flex; align-items: center; gap: 10px;">
                                             <i class="fas fa-university" style="color: var(--color-primary); width: 20px; text-align: center;"></i> Strona główna PANS
                                         </div>
                                         <i class="fas fa-external-link-alt" style="font-size: 0.8rem; color: var(--text-light);"></i>
                                     </a>
-                                    <a href="https://biblioteka.pans.krosno.pl" target="_blank" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background: var(--bg-secondary); border-radius: 8px; color: var(--text-dark); text-decoration: none; transition: background 0.2s;">
+                                    <a href="https://biblioteka.pans.krosno.pl" target="_blank" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background: var(--bg-step); border-radius: 8px; color: var(--text-dark); text-decoration: none; transition: background 0.2s;">
                                         <div style="display: flex; align-items: center; gap: 10px;">
                                             <i class="fas fa-book" style="color: var(--color-primary); width: 20px; text-align: center;"></i> Biblioteka uczelniana
                                         </div>
                                         <i class="fas fa-external-link-alt" style="font-size: 0.8rem; color: var(--text-light);"></i>
                                     </a>
-                                    <a href="https://e-learning.kpu.krosno.pl/" target="_blank" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background: var(--bg-secondary); border-radius: 8px; color: var(--text-dark); text-decoration: none; transition: background 0.2s;">
+                                    <a href="https://e-learning.kpu.krosno.pl/" target="_blank" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background: var(--bg-step); border-radius: 8px; color: var(--text-dark); text-decoration: none; transition: background 0.2s;">
                                         <div style="display: flex; align-items: center; gap: 10px;">
                                             <i class="fas fa-laptop-code" style="color: var(--color-primary); width: 20px; text-align: center;"></i> E-Student
                                         </div>
                                         <i class="fas fa-external-link-alt" style="font-size: 0.8rem; color: var(--text-light);"></i>
                                     </a>
-                                    <a href="https://usos.kpu.krosno.pl/" target="_blank" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background: var(--bg-secondary); border-radius: 8px; color: var(--text-dark); text-decoration: none; transition: background 0.2s;">
+                                    <a href="https://usos.kpu.krosno.pl/" target="_blank" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background: var(--bg-step); border-radius: 8px; color: var(--text-dark); text-decoration: none; transition: background 0.2s;">
                                         <div style="display: flex; align-items: center; gap: 10px;">
                                             <i class="fas fa-server" style="color: var(--color-primary); width: 20px; text-align: center;"></i> USOSWeb
                                         </div>
                                         <i class="fas fa-external-link-alt" style="font-size: 0.8rem; color: var(--text-light);"></i>
                                     </a>
-                                    <a href="https://poczta.student.kpu.krosno.pl/" target="_blank" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background: var(--bg-secondary); border-radius: 8px; color: var(--text-dark); text-decoration: none; transition: background 0.2s;">
+                                    <a href="https://poczta.student.kpu.krosno.pl/" target="_blank" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background: var(--bg-step); border-radius: 8px; color: var(--text-dark); text-decoration: none; transition: background 0.2s;">
                                         <div style="display: flex; align-items: center; gap: 10px;">
                                             <i class="fas fa-envelope" style="color: var(--color-primary); width: 20px; text-align: center;"></i> Poczta PANS
                                         </div>
@@ -135,9 +152,9 @@
                     </div>
                 </div>
             </div>
-        </div>
 
         <th:block layout:fragment="page-scripts">
+            <script th:src="@{/js/home/home-announcements.js}" defer></script>
             <script>
                 (function() {
                     const hour = new Date().getHours();
