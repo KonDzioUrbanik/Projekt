@@ -6,6 +6,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnText = submitBtn?.querySelector('.btn-text');
     const spinner = document.getElementById('submitSpinner');
 
+    // Uzupełnij ukryte pola metadanych
+    const urlField = document.getElementById('feedbackUrl');
+    const uaField = document.getElementById('feedbackUserAgent');
+    if (urlField) urlField.value = window.location.href;
+    if (uaField) uaField.value = navigator.userAgent;
+
     // Elementy Modala
     const statusModal = document.getElementById('statusModal');
     const modalIconWrap = document.getElementById('modalIconWrap');

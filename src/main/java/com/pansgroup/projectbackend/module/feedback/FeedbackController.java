@@ -56,6 +56,14 @@ public class FeedbackController {
             requestCache.entrySet().removeIf(entry -> now - entry.getValue() > 3600000); // Remove entries older than 1h
         }
 
+        // Metadata Fallback (if missing from frontend)
+        if (dto.getUrl() == null || dto.getUrl().trim().isEmpty()) {
+            dto.setUrl(request.getHeader("Referer"));
+        }
+        if (dto.getUserAgent() == null || dto.getUserAgent().trim().isEmpty()) {
+            dto.setUserAgent(request.getHeader("User-Agent"));
+        }
+
         feedbackService.createFeedback(dto, file);
         return ResponseEntity.ok(Map.of("message", "Feedback submitted successfully"));
     }

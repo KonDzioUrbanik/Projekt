@@ -22,42 +22,41 @@
                     <details class="version-block latest" open>
                         <summary class="version-summary-header">
                             <div class="version-title">
-                                <span class="version-number">Marzec 2026 - v1.3a</span>
+                                <span class="version-number">Marzec 2026 - v1.3</span>
                                 <span class="latest-badge" style="margin-left: 0.5rem;">Aktualna wersja</span>
                             </div>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </summary>
                         <div class="version-content">
                             <div class="version-desc">
-                                Rozszerzenie modułu harmonogramu i ogłoszeń pod nowy etap semestru. Wersja koncentruje się na obsłudze niestandardowych tygodni, archiwizacji zajęć oraz poprawie czytelności paneli ogłoszeń dla administratora i studenta.
+                                Kompleksowa rozbudowa modułów komunikacyjnych oraz narzędzi administracyjnych. Wersja v1.3 skupia się na dostarczeniu elastycznych narzędzi do zarządzania cyklem akademickim oraz profesjonalnej prezentacji portalu na zewnątrz.
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
                                 <ul class="change-list added">
-                                    <li><strong>Niestandardowy Tryb Tygodni Zajęć:</strong> W formularzu administracyjnym dodano tryb <i>CUSTOM</i>, umożliwiający przypisanie zajęć do konkretnych numerów tygodni semestru (np. 3, 7, 11), zamiast wyłącznie schematu „co tydzień” lub „A/B”.</li>
-                                    <li><strong>Archiwizacja Zajęć:</strong> Wprowadzono możliwość archiwizacji rekordów planu zajęć po zakończeniu semestru, aby utrzymać porządek w bieżącym harmonogramie bez utraty danych historycznych.</li>
-                                    <li><strong>Podgląd Ostatnich Ogłoszeń:</strong> Dodano sekcje z najnowszymi komunikatami na stronie głównej portalu oraz na dashboardzie studenta (3 ostatnie wpisy).</li>
+                                    <li><strong>System Ogłoszeń (Announcements):</strong> Implementacja ról Starosty i Administratora w kontekście publikacji treści. Dodano możliwość tagowania kierunków, asynchroniczne wysyłanie do bazy oraz widok kartowy na dashboardzie studenta z datą i autorem.</li>
+                                    <li><strong>Zaawansowany Tryb CUSTOM Harmonogramu:</strong> Wprowadzenie precyzyjnego definiowania tygodni zajęć (np. tygodnie 3, 5, 12) wykraczającego poza model A/B. Dodano walidację zakresu dat zgodną z kalendarzem akademickim.</li>
+                                    <li><strong>Archiwizacja Danych Historycznych:</strong> Implementacja flagi `archived` dla encji zajęć. Dodano filtry "Ukryj zarchiwizowane" w panelach administracyjnych, co pozwala na separację planów z poprzednich semestrów.</li>
+                                    <li><strong>Nowy Landing Page (Strona Startowa):</strong> Całkowita przebudowa interfejsu publicznego. Wdrożenie skryptu `landing.js` wykorzystującego <i>Intersection Observer API</i> do płynnych animacji sekcji oraz liczników statystyk uczelni, które "ożywają" podczas przewijania.</li>
+                                    <li><strong>Publiczny Formularz Kontaktowy (/contact):</strong> Niezależna podstrona dostępna bez logowania. Zabezpieczenie przed botami poprzez mechanizm <strong>Honeypot</strong> oraz <strong>Rate-Limiter</strong> blokujący nadmiarowe żądania z jednego adresu IP.</li>
+                                    <li><strong>Dziennik Zmian (Changelog):</strong> Dedykowany moduł historyczny z responsywnym timeline'em, wykorzystujący czcionki systemowe JetBrains Mono dla oznaczeń technicznych.</li>
                                 </ul>
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
                                 <ul class="change-list changed">
-                                    <li><strong>Logika Wyświetlania Harmonogramu:</strong> Rozszerzono mechanizm filtrowania zajęć tak, aby poprawnie uwzględniał tygodnie niestandardowe oraz elementy zarchiwizowane w widokach administracyjnych.</li>
-                                    <li><strong>Formularz Dodawania Zajęć:</strong> Ujednolicono pola i walidację dla wszystkich trybów tygodnia (EVERY, A, B, CUSTOM), wraz z doprecyzowaniem znaczenia numeracji tygodni względem semestru.</li>
-                                    <li><strong>Panel Admina - Odbiorcy Ogłoszeń:</strong> Zastąpiono wybór radiowy listą rozwijaną z opcją „Wszyscy” lub wyborem konkretnego, aktualnie dostępnego kierunku.</li>
-                                    <li><strong>Czytelność Widoków Ogłoszeń:</strong> Odświeżono układ kart i odstępy w panelach ogłoszeń, zachowując obecną stylistykę aplikacji i poprawiając przejrzystość treści.</li>
+                                    <li><strong>Optymalizacja Zapytań SQL:</strong> Poprawa wydajności filtrów w panelach zarządzania przy dużych zbiorach danych zarchiwizowanych.</li>
+                                    <li><strong>UI Administratora:</strong> Ujednolicenie boksów statystyk (Liczba użytkowników, grup, zgłoszeń) z wykorzystaniem spójnej palety kolorystycznej i ikonografii FontAwesome 6.</li>
                                 </ul>
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
                                 <ul class="change-list fixed">
-                                    <li><strong>Walidacja Numeru Tygodnia:</strong> Usunięto błąd powodujący odrzucanie poprawnych numerów tygodni podczas zapisu zajęć w trybie niestandardowym.</li>
-                                    <li><strong>Integralność Danych przy CUSTOM:</strong> Naprawiono konflikt zapisu (naruszenie ograniczeń integralności danych) występujący m.in. dla wartości tygodnia 11.</li>
-                                    <li><strong>Komunikaty Błędów:</strong> Doprecyzowano informacje zwracane użytkownikowi w przypadku niepoprawnego harmonogramu, aby ułatwić korektę danych wejściowych.</li>
-                                    <li><strong>Panel Ogłoszeń Administratora:</strong> Przywrócono poprawne działanie panelu publikacji ogłoszeń globalnych i kierunkowych, wraz z poprawioną obsługą wyboru odbiorców.</li>
+                                    <li><strong>Walidacja Formularzy:</strong> Naprawiono błąd pozwalający na wpisanie błędnych numerów tygodni w trybie CUSTOM.</li>
+                                    <li><strong>Stabilność Sesji:</strong> Rozwiązano problem z wybieraniem grupy docelowej ogłoszeń przy przełączaniu filtrów w tym samym widoku.</li>
                                 </ul>
                             </div>
                         </div>
@@ -73,35 +72,33 @@
                         </summary>
                         <div class="version-content">
                             <div class="version-desc">
-                                Wdrożenie nowej architektury nawigacji portalowej. Zrealizowano rozdzielenie przestrzeni użytkowników na niezależne moduły przypisane do odpowiednich ról (Student, Starosta, Administrator), co optymalizuje proces zarządzania serwisem.
+                                Gruntowna przebudowa architektury bezpieczeństwa i nawigacji. Wprowadzenie dedykowanych przestrzeni interfejsowych (Paneli) zależnych od przypisanych ról systemowych.
                             </div>
                             
                             <div class="change-category">
                                 <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
                                 <ul class="change-list added">
-                                    <li><strong>Nowa Strona Główna:</strong> Zaimplementowano wspólny ekran powitalny (/home) zawierający kafelki przekierowujące do dedykowanych przestrzeni roboczych oraz moduł integracyjny z linkami do zewnętrznych systemów uczelnianych PANS.</li>
-                                    <li><strong>Rozdzielenie Przestrzeni Ról:</strong> Utworzono odrębne widoki o zdefiniowanych ścieżkach URL dla głównych ról systemu (np. <i>/student/dashboard</i>, <i>/starosta/dashboard</i>, <i>/admin/dashboard</i>) wraz z walidacją dostępu na poziomie kontrolerów.</li>
-                                    <li><strong>Rozbudowa Menu Bocznego:</strong> Zaimplementowano sekcjonowanie listy nawigacyjnej za pomocą nagłówków kategoryzujących (Sidebar List Headers), odseparowując narzędzia dla studentów od tych przeznaczonych dla administratorów.</li>
-                                    <li><strong>Publiczny Formularz Kontaktowy:</strong> Wdrożono niezależną, estetyczną podstronę <i>/contact</i> dla niezalogowanych interesantów zintegrowaną z modułem Feedback. Zabezpieczono punkt wejścia zabezpieczeniem mechanizmu limitującego ruch (Rate-Limiter) i parametrem anti-bothoneypot.</li>
-                                    <li><strong>Wsparcie dla Błędów Autoryzacji:</strong> Zaimplementowano dedykowany, estetyczny widok błędu 403 (Odmowa dostępu) pojawiający się automatycznie przy próbach nieautoryzowanego przejścia pod zastrzeżone ścieżki w systemie PANSportal.</li>
+                                    <li><strong>Panel Starosty:</strong> Nowy węzeł portalowy dedykowany wybranym studentom, umożliwiający zarządzanie komunikacją wewnątrz kierunku.</li>
+                                    <li><strong>Routing Bazujący na Rolach:</strong> Wdrożenie rygorystycznych filtrów Spring Security dla ścieżek `/student/**`, `/starosta/**` oraz `/admin/**`.</li>
+                                    <li><strong>Mechanizm Undo & Centralne Toasty:</strong> Implementacja w `utils.js` globalnego systemu powiadomień z funkcją odroczonego usuwania (Undo Delete) dla użytkowników, zajęć i zgłoszeń.</li>
+                                    <li><strong>Globalna Strona Główna (/home):</strong> Interaktywny hub z kafelkami nawigacyjnymi ułatwiający szybki start pracy w systemie.</li>
                                 </ul>
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
                                 <ul class="change-list changed">
-                                    <li><strong>Aktualizacja Interfejsu Widoków:</strong> Zmodyfikowano paletę kolorystyczną banerów użytkowników na ujednolicony niebieski, dostosowując dynamiczne powitania do pory dnia. Przywrócono gradient kolorów firmowych uczelni na okładce strony głównej.</li>
-                                    <li><strong>Przebudowa Profilu Administratora:</strong> Usunięto zbędne dla funkcjonalności wglądu administracyjnego widoki (sekcje aktywności i notatek), zwalniając obszar interfejsu pod planowane operacje techniczne uwierzytelnień i logów działania.</li>
-                                    <li><strong>Zastąpienie Powiadomień Okienkami Modal:</strong> Komunikaty potwierdzające operacje oraz błędy (np. dla formularza wsparcia) przebudowano na responsywne, estetyczne okna typu "Modal" przystosowane poprawnie do standardów obu rzutowań wizualnych (Trybu Jasnego i Ciemnego).</li>
+                                    <li><strong>Nowy Sidebar (Menu Boczne):</strong> Reorganizacja struktury menu – dodanie nagłówków kategorii (List Headers) oraz adaptacyjnego zwijania panelu bocznego.</li>
+                                    <li><strong>Interfejs Modali:</strong> Zastąpienie natywnych funkcji `prompt()` i `confirm()` autorskimi oknami modalnymi CSS z pełną obsługą Dark Mode.</li>
+                                    <li><strong>Refaktoryzacja Frontend:</strong> Ekstrakcja wspólnej logiki do `auth-utils.js` oraz centralizacja wzorca CONFIG dla wszystkich skryptów JS.</li>
                                 </ul>
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
                                 <ul class="change-list fixed">
-                                    <li><strong>Aktualizacja Ścieżek Breadcrumbs:</strong> Dostosowano wskazywane ścieżki i lokalizacje routingu komponentu na wszystkich podstronach nawigacji w celu spójności ze zaktualizowanym drzewem infrastruktury plików.</li>
-                                    <li><strong>Ograniczenia Dostępu do Modułów na podstawie Ról (Routing):</strong> Usunięto powtarzającą się lukę autoryzacyjną umożliwiającą wstęp do wrażliwych widoków <i>/student/**</i> każdemu nowo uwierzytelnionemu profilowi bez określonej jeszcze przestrzeni docelowej, implementując do łańcucha Security weryfikację na podstawie odgórnie przypisanych uprawnień (`hasAnyRole`). Pomyślnie dopracowano także styl i grafiki wejść pól 'select' psujących się na niektórych przeglądarkach w trybie Ciemnym.</li>
-                                    <li><strong>Formatowanie Modułu Notatek:</strong> Usunięto błąd powodujący zniekształcenia rozmiaru głównego kontenera poprzez wymuszone reguły edytora Quill (HTML/Markdown), wdrażając dedykowane style formatujące kod, zachowujące poprawną interlinię tekstów i przywracające spójność głównego paska przewijania.</li>
+                                    <li><strong>Luki Autoryzacji:</strong> Zablokowano dostęp do narzędzi administracyjnych poprzez bezpośrednie linki dla rang studenckich.</li>
+                                    <li><strong>Responsywność Dashboardu:</strong> Poprawiono błędy wyświetlania kafelków aktywności na ekranach o niskiej rozdzielczości (poniżej 768px).</li>
                                 </ul>
                             </div>
                         </div>
@@ -117,26 +114,27 @@
                         </summary>
                         <div class="version-content">
                             <div class="version-desc">
-                                Faza wdrożeń poprawek UX/UI po oddaniu wersji bazowej MVP. Optymalizacje obejmują rozbudowę zgłoszeń technicznych wsparcia i dodanie zaawansowanych możliwości zapisu osobistego notatnika.
+                                Faza optymalizacji UX i ulepszeń wizualnych. Skupienie na komforcie użytkowania oraz wprowadzenie zaawansowanych systemów wsparcia.
                             </div>
                             
                             <div class="change-category">
                                 <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
                                 <ul class="change-list added">
-                                    <li><strong>Płynne Animacje Ekranów:</strong> Wdrożono mechanizm z biblioteki <i>View Transitions API</i> wspierający utrzymywanie widoków pomiędzy przejściami w interfejsie bez ponownego statycznego układania szablonów przeglądarki.</li>
-                                    <li><strong>Moduł Zgłoszeń i Systemu Pomocy (Feedback):</strong> Dodano interaktywny formularz umożliwiający zgłaszanie błędów aplikacji lub sugestii zmian. Dodano zbieranie do raportów podstawowych metadanych ze środowiska użytkownika dla celów programistycznych.</li>
-                                    <li><strong>Interaktywny Samouczek w Systemie:</strong> Wdrożono moduł Onboarding Tour działający pod pamięcią podręczną przeglądarki informujący nowo zarejestrowanych początkujących studentów o działaniu poszczególnych paneli przy pierwszym logowaniu do systemu.</li>
-                                    <li><strong>Nawigacyjny Wskaźnik Ścieżki Breadcrumbs:</strong> Element ułatwiający rozeznanie przestrzeni nawigacji dla modułów (np. "Strona Główna > Zgłoszenia"). Udostępniono przycisk ułatwiający powrót na górę "Go To Top" rozległych list.</li>
-                                    <li><strong>Zarządzanie Awatarem i operacjami wspartymi Toast:</strong> Zapewnienie osadzenia obrazkowych zdjęć przy polach profilu z poziomu ustawień w kontrolerach. Działania usuwania bazodanowych obiektów wzbogacone powiadomieniami typu Snack-Bar zawierające operację "Cofnij".</li>
-                                    <li><strong>Wsparcie Tygodni Zmiennych Harmonogramu:</strong> Uruchomienie architektonicznego podziału cyklu organizacyjnego wyświetlania zajęć wg "Tygodnia A" i "Tygodnia B". Rozszerzone formatowanie kafelkowe siatki układu dla list w metodologii "Masonry" na urządzenia stacjonarne.</li>
+                                    <li><strong>View Transitions API:</strong> Płynne animacje (fade/slide) podczas nawigacji między podstronami, eliminujące efekt "migania" przy zmianie widoku.</li>
+                                    <li><strong>Interaktywny Onboarding:</strong> Moduł samouczka (`onboarding.js`) z overlayem i podświetlaniem kluczowych funkcji dla nowych użytkowników.</li>
+                                    <li><strong>System Feedbacku:</strong> Integracja zintegrowanego formularza zgłaszania uwag z backendem, pozwalająca studentom na bezpośredni dialog z twórcami.</li>
+                                    <li><strong>Mechanizm Breadcrumbs:</strong> Dynamicznie generowana ścieżka powrotna (Okruszki) ułatwiająca orientację w strukturze portalu.</li>
+                                    <li><strong>Paginacja i Eksport:</strong> Wdrożenie stronicowania tabel (10/25/50) oraz eksportu danych w panelach użytkowników i harmonogramu.</li>
+                                    <li><strong>Obsługa Zdjęć (Awatary):</strong> System przesyłania plików graficznych z automatyczną walidacją formatu i rozmiaru (multipart-upload).</li>
+                                    <li><strong>Tygodnie A/B:</strong> Wprowadzenie logiki oznaczania typów tygodni w harmonogramie i badge'a "DZIŚ" przy aktualnej dacie.</li>
                                 </ul>
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
                                 <ul class="change-list fixed">
-                                    <li>Wyeliminowanie zidentyfikowanych zagrożeń dla integralności komunikacji na tle przepływu logów bazodanowych pod kątem wstrzyknięć kodu <strong>XSS</strong> - wprowadzenie i walidowanie ograniczeń dla tekstowych elementów aplikacji.</li>
-                                    <li>Uporządkowano kwestie zachowań parametrów pamiętających preferencje włączenia ciemnego motywu przez klienta. Usunięto błędy dla niepotrzebnych gradientów bocznego panelu (kontrast tekstu dla responsywnego menu bocznego układu po jego zmniejszeniu lub rozwijaniu).</li>
+                                    <li><strong>Zabezpieczenia XSS:</strong> Implementacja funkcji `sanitizeHTML` i `escapeHtml` dla wszystkich dynamicznie wstawianych treści w module Notatek.</li>
+                                    <li><strong>Trwałość Dark Mode:</strong> Rozwiązano błąd resetowania motywu po krótkiej nieaktywności sesji użytkownika.</li>
                                 </ul>
                             </div>
                         </div>
@@ -147,30 +145,31 @@
                         <summary class="version-summary-header">
                             <div class="version-title">
                                 <span class="version-number">Styczeń 2026 - v1.0</span>
-                                <span class="latest-badge" style="background:var(--bg-step); color:var(--text-muted); box-shadow:none; margin-left:0.5rem;">Wersja stabilna bazowa (MVP)</span>
+                                <span class="latest-badge" style="background:var(--bg-step); color:var(--text-muted); box-shadow:none; margin-left:0.5rem;">Wersja stabilna (MVP)</span>
                             </div>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </summary>
                         <div class="version-content">
                             <div class="version-desc">
-                                Faza finalizacji pierwszego bazowego wydania produktu (Realizacja Sprintów 5 i 6). Uruchomienie mechanizmów tworzenia indywidualnego notatnika, generowania i wizualizowania przydzielonego kalendarza przez podania graficzne.
+                                Pierwsze stabilne wydanie systemu (Minimum Viable Product). Uruchomienie rdzennych modułów do organizacji nauki, zarządzania grupami i wsparcia studenta.
                             </div>
                             
                             <div class="change-category">
                                 <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
                                 <ul class="change-list added">
-                                    <li><strong>Prywatne Notatki (Notes Base System):</strong> Środowisko zarządzania zapiskami przypisane konkretnym logującym rolom ID w bazie. Rozbudowane zaawansowanym skryptowaniem "Live-Search" na przeszukiwania wyrazów z uwzględnieniem tagowej obsługi priorytetów połączonych elementami modyfikującymi (CRUD).</li>
-                                    <li><strong>Wizualizator Kalendarzy Wydarzeń:</strong> Implementacja biblioteki FullCalendar potrafiącej czytać i zaciągnąć instancje zdarzeń systemowych po REST API, konwertując obiektywne przydziały rekordu planu studenckiego administratora na określone siatki formatu bloków planowania czasowego, wspieranego obsługą klikalną zajęć.</li>
-                                    <li><strong>Dashboard i Karty Śledzące:</strong> Moduł startowy został ustrukturyzowany z wydzielonymi zestawieniami powiązanych flagami kontrolera informacji takich jak liczba zalogowań, bieżące zajęcia na osi dat, czy przypomnienia o nadchodzących operacjach w przeciągu wyliczonych dni. Wdrażanie systemów ładowania zawartości przed docelowym wyciąganiem pliku dla wygody wizualnej przed pojawieniem rekordu na listach.</li>
-                                    <li><strong>Zarządzanie Formą Profilu:</strong> Środowisko informatyczne do parametryzacji informacji "Mojego Profilu" udostępniane dla wszystkich w portalu. Osadzenie wbudowanego ręcznego sterownika włączenia natywnego obsługiwania trybu wysokiego kontrastu odrzuceń na bazie localStorage'u nazwanego jako Globalny Tryb Nocny (Dark Mode).</li>
+                                    <li><strong>Wszechstronny Notatnik:</strong> Edytor tekstu bogatego oparty o bibliotekę Quill, współdzielenie notatek dla całego kierunku oraz tryb pełnoekranowy (Fullscreen Mode).</li>
+                                    <li><strong>Interaktywny Harmonogram:</strong> Wizualizacja planu zajęć zintegrowana z FullCalendar, z automatycznym mapowaniem dni tygodnia i godzin.</li>
+                                    <li><strong>Moduł Kalendarza Akademickiego:</strong> Narzędzie dla Administratora do zarządzania ważnymi datami roku (sesje, przerwy świąteczne) widoczne na dashboardzie studentów.</li>
+                                    <li><strong>Globalny Dark Mode:</strong> Implementacja natywnego trybu ciemnego wykorzystującego zmienne CSS, z zapisem preferencji w `localStorage`.</li>
+                                    <li><strong>Statystyki i Skeleton Loaders:</strong> Dynamiczne liczniki na dashboardzie z animacją ładowania treści (skeletons), poprawiające postrzeganą szybkość aplikacji.</li>
                                 </ul>
                             </div>
                             
                             <div class="change-category">
                                 <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
                                 <ul class="change-list changed">
-                                    <li>Optymalizacja metodologii wpisu i klasyfikacji na polu wyznaczania list "Grup". Wprowadzono strukturalnie podział operacyjności z bazowej encji przypisań na "Kierunek Studiów", uniezależniając mapowanie profili roczników i eliminując wadliwe nakładania klas przez stare algorytmy w zapytaniach.</li>
-                                    <li>Modyfikacja architektury okien decyzyjnych interfejsów ze strukturalnej ingerencji formatu systemowych w środowisku wczytanej grafiki - tzw. okna błędne alert() powrotem HTTP zamieniono rzutowaniem elementów po interfejsowe i wysunięte warstwami nad interfejsem wbudowanych komunikatów okiennych w standardowej operacyjności informatycznej nazywane Toast.</li>
+                                    <li><strong>Model Zarządzania Kierunkami:</strong> Przejście z prostych grup na pełną relacyjną strukturę "Przedmiot - Wykładowca - Sala - Kierunek".</li>
+                                    <li><strong>Uproszczone Logowanie:</strong> Dodanie przycisku "Zapamiętaj mnie" (Remember Me) opartego na tokenach trwałych Spring Security oraz wizualizacji hasła.</li>
                                 </ul>
                             </div>
                         </div>
@@ -186,15 +185,31 @@
                         </summary>
                         <div class="version-content">
                             <div class="version-desc">
-                                Powołanie rdzenia infrastrukturalnego obsługi zarządczej platformą od strony interfejsu wizualizacyjnego dla ról z poziomem operacyjnym ("Administrator"). Przetworzenie systematyzacji instancji zajęć na proces relacji z użytkownikiem po czasie operacyjnym bazy.
+                                Budowa rdzenia administracyjnego i zaawansowanych procesów relacyjnych. Skupienie na integralności danych i zarządzaniu strukturą uczelni oraz optymalizacji środowiska uruchomieniowego.
                             </div>
                             
                             <div class="change-category">
                                 <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
                                 <ul class="change-list added">
-                                    <li><strong>Konsola Zestawień Operacyjnych Użytkowników (Panel Admin):</strong> Zbudowano strefę wbudowanych czytników encji każdego zarezerwowanej sesją konta operujących listowaniem tabel danych, gdzie odgórnie operujące zarządztwo (na zasadach CRUD) poprzez filtr i zapytania systematycznie podbije rolę bez edytowania strukturalnej zapory bazy głównego serwera z wyciągów surowego Postgres. Blokady zwalnianych list profili o pop-up potwierdzający połączonych zabezpieczeniem na front.</li>
-                                    <li><strong>Relacyjne Połączenia Kierunków Studiów:</strong> Opracowano metodę wpisu operujących rekordów dla Zajęć - wykorzystano logikę dodawania "Many-to-Many" dającą perspektywne dodawanie wykładowców nad zdefiniowaną i jednokrotnym oknem salą na wiele pożądań instancyjnych. Integracje zaopatrzone interfejsem dla form operacyjnych uwalniają bazę od przymusu wbijania surowego rekordu z poziomu logów z API.</li>
-                                    <li><strong>Słownik Encjalny Wydziałów (Kierunki):</strong> Zrealizowano zestaw narzędzi tworzących bazowane powiązania Kierunku Studiowania z parametrem administratorów na nich, pozyskujących ze sprzężeniem na asynchronicznych i renderowanych po oddelegowanym API zwrocie dla odpytywanych pól interfejsem w przeglądarkach do optymalizacji serwerów wyjściowych operujących dużymi skryptowymi zasobami we-względzie danych.</li>
+                                    <li><strong>Admin Workspace:</strong> Implementacja panelu zarządczego z logiką automatycznego nadawania roli STUDENT oraz autorską metodą ekstrakcji numeru albumu bezpośrednio z adresu e-mail użytkownika.</li>
+                                    <li><strong>Fundamenty Harmonogramu:</strong> Wdrożenie modelu ScheduleEntry oraz usług CRUD, umożliwiających precyzyjne mapowanie zajęć na wykładowców, typy spotkań oraz sale wykładowe.</li>
+                                    <li><strong>Globalna Obsługa Błędów:</strong> Wdrożenie mechanizmu `GlobalExceptionHandler`, zapewniającego spójne i czytelne komunikaty o błędach API dla całego systemu.</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
+                                <ul class="change-list changed">
+                                    <li><strong>Struktura Projektu:</strong> Przeniesienie plików statycznych do struktury modułowej i reorganizacja ścieżek widoków Thymeleaf dla lepszej przejrzystości kodu.</li>
+                                    <li><strong>Konfiguracja Środowiskowa:</strong> Migracja z twardo zapisanych poświadczeń na system zmiennych środowiskowych (Environment Variables) w plikach properties.</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
+                                <ul class="change-list fixed">
+                                    <li><strong>Środowisko Docker:</strong> Rozwiązano krytyczne błędy konteneryzacji i komunikacji między kontenerem aplikacji a bazą danych.</li>
+                                    <li><strong>Walidacja Relacji:</strong> Naprawiono błędy integralności przy usuwaniu rekordów posiadających aktywne powiązania w harmonogramie.</li>
                                 </ul>
                             </div>
                         </div>
@@ -210,14 +225,31 @@
                         </summary>
                         <div class="version-content">
                             <div class="version-desc">
-                                Ustanowienie warstwy szablonowania front-endu i konfigurowanie mechanizmów obsługowych operacji logowania wraz z usługami dostępu i przyporządkowania autoryzacji komunikującego się bramą pocztową zabezpieczeń na podstawie pierwszych 3 cykli Sprintu.
+                                Ustanowienie warstwy wizualnej oraz fundamentów bezpieczeństwa i komunikacji SMTP.
                             </div>
                             
                             <div class="change-category">
                                 <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
                                 <ul class="change-list added">
-                                    <li><strong>Zautomatyzowana Poczta SMTP we framgmentacjach serwisu:</strong> Integracja dedykowanych kont domeny ze Spring, zdolny przetwarzać żądania logik z logowania dla bezpiecznego, tymczasowego wygasania tokenowej pętli od 10 minutach. Pozwala to operacyjnie powołać wymuszane restrykcjami hasła po ich zgubieniu przy przypomnieniach. Integracja wymuszająca sprawdzające aktywacje odnośnikami po mailu założonego hasła po założonym rejestrem szyfrującego bcrypt'a przy bazach testowych H2 i zewnętrzach środowisk.</li>
-                                    <li><strong>Budowanie Konwencji Layoutów:</strong> Realizacja interfejsowego wizualizatora ujęta po autorskim silniku konwencji dla kontrolera ("Zaciągnięte fragmenty i silnik - Thymeleaf"). Pozwala zbudować na raz użyty "Pasek Boczny z autentycznością cache" czy nagłówki odgórnych szkieletów po plik statyczny (nie powodując ładowań dla przemieszczeń widokowych za odciążonym ruchem systemowym po zasobach HTTP zwalniających ram na otwieraniu aplikacji na mniejszych mocach z urządzeń testowych). Instalowanie kontroli sesji przy wychodzeniach do wrot po uwierzytelnianych wejściach na parametrach ról w autoryzacji serwerowych logik bazy zabezpieczeń.</li>
+                                    <li><strong>Bezpieczny System Kont:</strong> Rejestracja i logowanie wykorzystujące szyfrowanie haseł <strong>BCrypt</strong> oraz mechanizm Spring Security.</li>
+                                    <li><strong>Usługi SMTP:</strong> Automatyczna wysyłka e-maili konfiguracyjnych, linków resetowania hasła i potwierdzeń aktywacji konta.</li>
+                                    <li><strong>System Szablonów Thymeleaf:</strong> Wdrożenie reużywalnych fragmentów HTML (Header, Sidebar, Script-Layout), zapewniających spójność kodu.</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
+                                <ul class="change-list changed">
+                                    <li><strong>Obsługa Błędów:</strong> Zastąpienie domyślnych ekranów błędów dedykowanymi widokami dla statusów 404 i 500, dopasowanymi do stylistyki portalu.</li>
+                                    <li><strong>Polityka Hasał:</strong> Wzmocnienie wymagań dotyczących złożoności haseł podczas procesu rejestracji użytkownika.</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
+                                <ul class="change-list fixed">
+                                    <li><strong>Stabilność SMTP:</strong> Naprawiono błąd "Internal Server Error" występujący przy próbach wysyłki maili do nieobsługiwanych domen.</li>
+                                    <li><strong>Cache'owanie Szablonów:</strong> Wyłączono agresywne cache'owanie widoków w środowisku deweloperskim, rozwiązując problemy z brakiem widoczności zmian w UI.</li>
                                 </ul>
                             </div>
                         </div>
@@ -233,14 +265,31 @@
                         </summary>
                         <div class="version-content">
                             <div class="version-desc">
-                                Uruchomienie szkieletu, konfiguracji repozytorium platformy oprogramowania zarządzającego projektem uczelnianym PANSportal (Sprint 0) z określeniem podstawowych technologii wejściowych i operujących instalacji z bazą infrastrukturalną pod spodem w poświadczeniach powiązanych zabezpieczeń ramowych.
+                                Inicjalizacja projektu PANSportal. Konfiguracja architektury serwerowej, środowiska bazodanowego i podstawowych protokołów dostępu.
                             </div>
                             
                             <div class="change-category">
                                 <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
                                 <ul class="change-list added">
-                                    <li><strong>Konfiguracja Centrali Architektury (Środowisko Projektowe Spring Boot):</strong> Określenie warunków instalacyjnym kodu autorskiej aplikacji i narzędzi po operacjach dla języków obsługiwanych od platform wariantów o pakiet wejściowy systemowego rzutowania na JAVE (w pakiecie wewnątrz środowisk o silniku frameworkowych uwarunkowań dla Spring-Boot'a). Obsługa zewnętrznych wejść baz wpisów relacjami po autoryzowaniu struktur z instalacyjnym zdefiniowanej bazy danych podmiotu z <i>PostgreSQL</i> wspominanych i asygnowanym nakładanymi danymi na tablice unikającym błędu kwerend u baz na <i>Hibernate / JPA</i> po procesorowej logistycznej encjalność kodu w zapytaniach operacyjności warstwami pojęć encji i podstron.</li>
-                                    <li><strong>Konwencja Autoryzowania i Izolowania Zespołu Zapytań:</strong> Architektura bram operacyjności zaopatrzono obwarowanej instalacji pakietowaniu logik zabezpieczeniach w system - (Mechanika logik odizolowana przy protokollujących połączeniach i walidowania z paczki blokującej obieg powrotny statusowe logik we frontach z <i>Spring Security</i> w standardach operatywności obronnej filtrem zabezpieczających nieuprawnione logowania żądań API serwów). Koncepcja połączenia bram podłączana od razów obsługujący front z powiązań odgórnych pliku pod uruchomione pierwsze widoki autoryzacji operujących pod "Landing Page" systemową witryny z otoczki przeglądarkowej w pierwszych integracjach zapowiedzi serwisu PANS.</li>
+                                    <li><strong>Szkielet Spring Boot 3.x:</strong> Konfiguracja głównego silnika aplikacji oraz mapowania ORM dla PostgreSQL.</li>
+                                    <li><strong>Fundamenty Bazy Danych:</strong> Projektowanie pierwszych encji (User, Role) i zabezpieczenie dostępu na poziomie bazy.</li>
+                                    <li><strong>Pierwszy Landing Page:</strong> Bazowa strona informacyjna prezentująca logotypy uczelni i ogólne założenia serwisu.</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
+                                <ul class="change-list changed">
+                                    <li><strong>Model Uprawnień:</strong> Przebudowa ról użytkowników z prostych flag na system hierarchiczny, przygotowujący grunt pod Panele Ról.</li>
+                                    <li><strong>Zarządzanie Zależnościami:</strong> Optymalizacja pliku `pom.xml` i usunięcie konfliktowych bibliotek dla silnika Hibernate.</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
+                                <ul class="change-list fixed">
+                                    <li><strong>Błędy Startowe:</strong> Naprawa problemów z nawiązywaniem połączenia z bazą danych podczas inicjalizacji kontekstu Springa.</li>
+                                    <li><strong>Formatowanie Logów:</strong> Ujednolicenie wyjścia konsoli serwerowej, ułatwiające późniejszy debuging aplikacji.</li>
                                 </ul>
                             </div>
                         </div>
