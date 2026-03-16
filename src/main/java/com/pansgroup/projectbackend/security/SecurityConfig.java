@@ -39,6 +39,10 @@ public class SecurityConfig {
                         if (user == null) {
                                 throw new UsernameNotFoundException("Nie znaleziono użytkownika: " + email);
                         }
+                        if (user.isBlocked()) {
+                                throw new DisabledException(
+                                                "Twoje konto zostało zablokowane przez administratora. Skontaktuj się z obsługą.");
+                        }
                         if (!user.isActivated()) {
                                 throw new DisabledException(
                                                 "Konto nie zostało aktywowane. Sprawdź swoją skrzynkę e-mail i kliknij w link aktywacyjny. Jeśli nie otrzymałeś wiadomości, skontaktuj się z administratorem.");
@@ -153,11 +157,18 @@ public class SecurityConfig {
                                                 "/api/users/role/update/**",
                                                 "/api/users/assign-group/**",
                                                 "/api/users/assignGroup/**",
-                                                "/api/users/activation/**")
+                                                "/api/users/activation/**",
+                                                "/api/users/block/**")
                                 .hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/schedule/**", "/api/groups/**", "/api/users/**")
+                                .requestMatchers(HttpMethod.DELETE, "/api/schedule/**", "/api/groups/**",
+                                                "/api/users/**")
                                 .hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.GET, "/api/groups", "/api/schedule/all").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.GET, 
+                                                "/api/groups", 
+                                                "/api/schedule/all",
+                                                "/api/users",
+                                                "/api/users/search")
+                                .hasRole("ADMIN")
 
                                 // API ogłoszeń
                                 .requestMatchers(HttpMethod.POST, "/api/announcements").hasAnyRole("STAROSTA", "ADMIN")

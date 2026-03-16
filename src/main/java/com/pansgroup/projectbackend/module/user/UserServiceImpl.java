@@ -10,6 +10,7 @@ import com.pansgroup.projectbackend.module.user.dto.*;
 import com.pansgroup.projectbackend.module.user.passwordReset.PasswordResetToken;
 import com.pansgroup.projectbackend.module.user.passwordReset.PasswordResetTokenRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,7 +58,7 @@ public class UserServiceImpl implements UserService {
     public User findUserByEmailInternal(String email) {
         String e = email.trim().toLowerCase(Locale.ROOT);
         return userRepository.findByEmail(e)
-                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException(
+                .orElseThrow(() -> new UsernameNotFoundException(
                         "Nie znaleziono użytkownika o adresie: " + e));
     }
 
@@ -91,7 +92,7 @@ public class UserServiceImpl implements UserService {
         // Mail jest wysyłany
         emailService.sendConfirmationEmail(saved.getEmail(), tokenValue);
         confirmationToken.setExpiryDate(LocalDateTime.now().plusMinutes(10));
-        confirmationToken.setUser(saved); // POPRAWNIE: Użytkownik przypisany do tokenu
+        confirmationToken.setUser(saved);
         confirmationTokenRepository.save(confirmationToken);
 
         return mapToResponseDto(saved);
@@ -156,7 +157,7 @@ public class UserServiceImpl implements UserService {
 
         // Sprawdzamy poprawność hasła
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-            throw new BadCredentialsException(
+            throw new org.springframework.security.authentication.BadCredentialsException(
                     "Wprowadzone dane logowania są nieprawidłowe. Sprawdź adres e-mail i hasło.");
         }
 
@@ -164,10 +165,6 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserResponseDto mapToResponseDto(User u) {
-        Long groupId = u.getStudentGroup() != null ? u.getStudentGroup().getId() : null;
-        String groupName = u.getStudentGroup() != null ? u.getStudentGroup().getName() : null;
-
-        // POPRAWKA: Usunięto 9. argument (u.isActivated), aby pasował do DTO
         return new UserResponseDto(
                 u.getId(),
                 u.getFirstName(),
@@ -175,16 +172,20 @@ public class UserServiceImpl implements UserService {
                 u.getEmail(),
                 u.getRole(),
                 u.getNrAlbumu(),
-                groupId,
-                groupName,
-                u.isActivated,
+                u.getStudentGroup() != null ? u.getStudentGroup().getId() : null,
+                u.getStudentGroup() != null ? u.getStudentGroup().getName() : null,
+                u.isActivated(),
+                u.isBlocked(),
                 u.getNickName(),
                 u.getPhoneNumber(),
                 u.getFieldOfStudy(),
-                // Priorytet dla roku studiów: Kierunek > Profil
-                extractYearFromGroupName(groupName) != null ? extractYearFromGroupName(groupName) : u.getYearOfStudy(),
+                u.getYearOfStudy(),
                 u.getStudyMode(),
-                u.getBio());
+                u.getBio(),
+                u.getLastLogin(),
+                u.getCreatedAt(),
+                u.getLastLoginIp(),
+                u.getFailedLoginAttempts());
     }
 
     private Integer extractYearFromGroupName(String groupName) {
@@ -221,12 +222,6 @@ public class UserServiceImpl implements UserService {
         user.setLastName(dto.getLastName());
 
         // Aktualizacja pól informacyjnych profilu
-        // UWAGA: Pola poniżej są CZYSTO INFORMACYJNE i NIE wpływają na członkostwo w
-        // grupie.
-        // Rzeczywiste przypisanie do grupy (user.studentGroup) jest zarządzane
-        // WYŁĄCZNIE
-        // przez administratora poprzez endpoint assignUserToGroup().
-        // Użytkownik może swobodnie edytować te pola dla celów prezentacyjnych.
         user.setNickName(dto.getNickName());
         user.setPhoneNumber(dto.getPhoneNumber());
         user.setFieldOfStudy(dto.getFieldOfStudy());
@@ -494,5 +489,50 @@ public class UserServiceImpl implements UserService {
         return users.stream()
                 .map(this::mapToResponseDto)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public void updateLastLogin(String email, String ip) {
+        userRepository.findByEmail(email.toLowerCase(Locale.ROOT)).ifPresent(user -> {
+            user.setLastLogin(java.time.LocalDateTime.now());
+            user.setLastLoginIp(ip);
+            user.setFailedLoginAttempts(0); // Reset przy udanym logowaniu
+            userRepository.save(user);
+        });
+    }
+
+    @Override
+    @Transactional
+    public void incrementFailedAttempts(String email) {
+        userRepository.findByEmail(email.toLowerCase(Locale.ROOT)).ifPresent(user -> {
+            Integer current = user.getFailedLoginAttempts();
+            user.setFailedLoginAttempts((current != null ? current : 0) + 1);
+            userRepository.save(user);
+        });
+    }
+
+    @Override
+    @Transactional
+    public void resetFailedAttempts(String email) {
+        userRepository.findByEmail(email.toLowerCase(Locale.ROOT)).ifPresent(user -> {
+            user.setFailedLoginAttempts(0);
+            userRepository.save(user);
+        });
+    }
+
+    @Override
+    @Transactional
+    public UserResponseDto toggleBlock(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("Nie znaleziono użytkownika o ID: " + userId));
+        
+        // Zabezpieczenie przed blokowaniem administratorów
+        if ("ADMIN".equalsIgnoreCase(user.getRole())) {
+            throw new IllegalStateException("Nie można zablokować konta administratora.");
+        }
+        
+        user.setBlocked(!user.isBlocked());
+        return mapToResponseDto(userRepository.save(user));
     }
 }

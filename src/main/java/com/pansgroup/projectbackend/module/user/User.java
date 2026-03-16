@@ -38,6 +38,7 @@ public class User {
     ConfirmationToken confirmationToken;
 
     boolean isActivated;
+    private boolean isBlocked = false;
 
     private String nickName;
     private String phoneNumber;
@@ -53,5 +54,18 @@ public class User {
     private byte[] avatarData;
 
     private String avatarContentType;
+    private java.time.LocalDateTime lastLogin;
+
+    private String lastLoginIp;
+
+    @Column(updatable = false)
+    private java.time.LocalDateTime createdAt;
+
+    private Integer failedLoginAttempts = 0;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = java.time.LocalDateTime.now();
+    }
 
 }

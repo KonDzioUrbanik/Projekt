@@ -43,8 +43,8 @@ class UserControllerTest {
 
         // Przygotowujemy odpowiedź, jaką zwróciłby serwis
         UserResponseDto responseDto = new UserResponseDto(
-                1L, "Jan", "Testowy", "student@pans.pl", "STUDENT", 12345, null, null, true,
-                "Mistrz", "123", "IT", 1, "S", "Bio"
+                1L, "Jan", "Testowy", "student@pans.pl", "STUDENT", 12345, null, null, true, false,
+                "Mistrz", "123", "IT", 1, "S", "Bio", null, null, null, 0
         );
 
         // Musimy zasymulować, że najpierw znajdujemy usera po mailu (bo tak działa kontroler: Authentication -> email -> ID)

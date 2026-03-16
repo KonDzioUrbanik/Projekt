@@ -308,20 +308,33 @@
 .users-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
 }
 
 .users-table th,
 .users-table td {
-    padding: 1rem;
+    padding: 0.75rem 0.6rem;
     text-align: left;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+    border-right: 1px solid rgba(229, 231, 235, 0.4);
+}
+
+[data-theme="dark"] .users-table th,
+[data-theme="dark"] .users-table td {
+    border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+    border-right: 1px solid rgba(75, 85, 99, 0.2);
+}
+
+.users-table th:last-child,
+.users-table td:last-child {
+    border-right: none;
 }
 
 .users-table th {
     background-color: #005efa;
     font-weight: 600;
     color: white;
+    white-space: nowrap;
 }
 
 .users-table tr:hover {
@@ -351,12 +364,12 @@
 }
 
 .action-btn {
-    padding: 6px 12px;
+    padding: 5px 8px;
     border-radius: 6px;
     border: none;
     cursor: pointer;
-    font-size: 0.85rem;
-    margin-right: 5px;
+    font-size: 0.8rem;
+    margin-right: 0;
     transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 
@@ -367,8 +380,68 @@
 .action-buttons {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    flex-wrap: wrap;
+    gap: 0.3rem;
+    flex-wrap: nowrap;
+    justify-content: center;
+    /* Wyśrodkowanie akcji w ich kolumnie */
+}
+
+.truncate-text {
+    display: block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Specyficzne szerokości kolumn */
+.col-id {
+    width: 40px;
+}
+
+.col-name {
+    min-width: 140px;
+    max-width: 180px;
+}
+
+.col-email {
+    min-width: 160px;
+    max-width: 200px;
+}
+
+.col-role {
+    width: 80px;
+}
+
+.col-direction {
+    min-width: 150px;
+    max-width: 220px;
+}
+
+.col-year {
+    width: 50px;
+}
+
+.col-album {
+    width: 80px;
+}
+
+.col-date {
+    width: 130px;
+    font-size: 0.8rem;
+}
+
+.col-actions {
+    width: 140px;
+}
+
+.admin-protected-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    color: #6b7280;
+    font-size: 1.1rem;
 }
 
 .btn {
@@ -441,6 +514,39 @@
 .btn-deactivate:hover {
     background: #fed7aa;
     transform: translateY(-1px);
+}
+
+.btn-secondary-block {
+    width: 100%;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-secondary-block:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+    transform: translateY(-1px);
+}
+
+[data-theme="dark"] .btn-secondary-block {
+    background: #1e293b;
+    color: #94a3b8;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .btn-secondary-block:hover {
+    background: #334155;
+    color: #f1f5f9;
 }
 
 .action-btn:disabled {
@@ -959,7 +1065,10 @@
     }
 }
 
-#deleteConfirmOverlay {
+#deleteConfirmOverlay,
+#activationConfirmOverlay,
+#blockConfirmOverlay,
+#securityDetailsOverlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -974,14 +1083,20 @@
     animation: fadeInOverlay 0.2s ease-out;
 }
 
-#deleteConfirmOverlay.active {
+#deleteConfirmOverlay.active,
+#activationConfirmOverlay.active,
+#blockConfirmOverlay.active,
+#securityDetailsOverlay.active {
     display: flex;
 }
 
-#deleteConfirmOverlay .modal-card {
+#deleteConfirmOverlay .modal-card,
+#activationConfirmOverlay .modal-card,
+#blockConfirmOverlay .modal-card,
+#securityDetailsOverlay .modal-card {
     background: #ffffff;
     width: 100%;
-    max-width: 650px;
+    max-width: 450px;
     border-radius: 12px;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     display: flex;
@@ -990,52 +1105,88 @@
     animation: slideUpOverlay 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-#deleteConfirmOverlay .modal-sm {
-    max-width: 400px;
+#deleteConfirmOverlay .modal-sm,
+#activationConfirmOverlay .modal-sm,
+#securityCardOverlay .modal-sm {
+    max-width: 480px;
 }
 
-#deleteConfirmOverlay .modal-center-content {
+#deleteConfirmOverlay .modal-center-content,
+#activationConfirmOverlay .modal-center-content {
     text-align: center;
     overflow: hidden;
 }
 
-#deleteConfirmOverlay .modal-body-centered {
+#deleteConfirmOverlay .modal-body-centered,
+#activationConfirmOverlay .modal-body-centered,
+#blockConfirmOverlay .modal-body-centered {
     padding: 30px 25px 10px 25px;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-#deleteConfirmOverlay .modal-icon-wrapper {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
+#deleteConfirmOverlay .modal-icon-wrapper,
+#activationConfirmOverlay .modal-icon-wrapper,
+#blockConfirmOverlay .modal-icon-wrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 20px;
+    margin: 0 auto 20px auto;
     font-size: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-#deleteConfirmOverlay .modal-icon-wrapper.danger {
-    background: #fee2e2;
-    color: #dc2626;
+.modal-icon-wrapper.warning {
+    background: #fff7ed;
+    color: #f97316;
+    box-shadow: 0 8px 16px rgba(249, 115, 22, 0.1);
 }
 
-#deleteConfirmOverlay .modal-body-centered h3 {
+.modal-icon-wrapper.success {
+    background: #f0fdf4;
+    color: #22c55e;
+    box-shadow: 0 8px 16px rgba(34, 197, 94, 0.1);
+}
+
+.modal-icon-wrapper.danger {
+    background: #fef2f2;
+    color: #ef4444;
+    box-shadow: 0 8px 16px rgba(239, 68, 68, 0.1);
+}
+
+.active .modal-icon-wrapper {
+    transform: scale(1.1);
+}
+
+#activationConfirmOverlay .modal-icon-wrapper.warning {
+    background: #fff7ed;
+    color: #c2410c;
+}
+
+#deleteConfirmOverlay .modal-body-centered h3,
+#activationConfirmOverlay .modal-body-centered h3,
+#blockConfirmOverlay .modal-body-centered h3 {
     margin: 0 0 10px 0;
     color: #111827;
     font-size: 1.25rem;
 }
 
-#deleteConfirmOverlay .modal-body-centered p {
+#deleteConfirmOverlay .modal-body-centered p,
+#activationConfirmOverlay .modal-body-centered p,
+#blockConfirmOverlay .modal-body-centered p {
     color: #4b5563;
     font-size: 0.95rem;
     line-height: 1.5;
     margin: 0;
 }
 
-#deleteConfirmOverlay .modal-footer-centered {
+#deleteConfirmOverlay .modal-footer-centered,
+#activationConfirmOverlay .modal-footer-centered,
+#blockConfirmOverlay .modal-footer-centered {
     padding: 20px 25px 25px 25px;
     display: flex;
     flex-direction: column;
@@ -1046,91 +1197,317 @@
 }
 
 @media (min-width: 480px) {
-    #deleteConfirmOverlay .modal-footer-centered {
+
+    #deleteConfirmOverlay .modal-footer-centered,
+    #activationConfirmOverlay .modal-footer-centered,
+    #blockConfirmOverlay .modal-footer-centered {
         flex-direction: row;
         justify-content: center;
     }
 }
 
-#deleteConfirmOverlay .btn-danger-block {
-    background: #ef4444;
+#deleteConfirmOverlay .btn-danger-block,
+#activationConfirmOverlay .btn-danger-block,
+#blockConfirmOverlay .btn-danger-block {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
     color: white;
     padding: 12px 24px;
-    border-radius: 8px;
+    border-radius: 10px;
     border: none;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     flex: 1;
-    transition: background 0.2s;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
 }
 
-#deleteConfirmOverlay .btn-danger-block:hover {
-    background: #dc2626;
+#deleteConfirmOverlay .btn-danger-block:hover,
+#activationConfirmOverlay .btn-danger-block:hover,
+#blockConfirmOverlay .btn-danger-block:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(239, 68, 68, 0.25);
 }
 
-#deleteConfirmOverlay .btn-text-gray,
-#deleteConfirmOverlay .btn-tertiary {
-    background: #ffffff;
-    border: 1px solid #d1d5db;
-    color: #111827;
+#activationConfirmOverlay .btn-primary-block,
+#blockConfirmOverlay .btn-primary-block {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+    color: white;
     padding: 12px 24px;
-    border-radius: 8px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+    flex: 1;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 94, 250, 0.2);
+}
+
+#activationConfirmOverlay .btn-primary-block:hover,
+#blockConfirmOverlay .btn-primary-block:hover {
+    background: linear-gradient(135deg, var(--color-primary-dark), #004dc9);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(0, 94, 250, 0.3);
+}
+
+#deleteConfirmOverlay .btn-tertiary,
+#activationConfirmOverlay .btn-tertiary,
+#blockConfirmOverlay .btn-tertiary {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 12px 24px;
+    border-radius: 10px;
     font-weight: 600;
     cursor: pointer;
     flex: 1;
-    transition: background 0.2s;
+    transition: all 0.2s ease;
 }
 
-#deleteConfirmOverlay .btn-text-gray:hover,
-#deleteConfirmOverlay .btn-tertiary:hover {
-    background: #f3f4f6;
+#deleteConfirmOverlay .btn-tertiary:hover,
+#activationConfirmOverlay .btn-tertiary:hover,
+#blockConfirmOverlay .btn-tertiary:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #1e293b;
 }
 
-[data-theme="dark"] #deleteConfirmOverlay {
+[data-theme="dark"] #deleteConfirmOverlay,
+[data-theme="dark"] #activationConfirmOverlay,
+[data-theme="dark"] #blockConfirmOverlay {
     background: rgba(0, 0, 0, 0.7);
 }
 
-[data-theme="dark"] #deleteConfirmOverlay .modal-card {
+[data-theme="dark"] #deleteConfirmOverlay .modal-card,
+[data-theme="dark"] #activationConfirmOverlay .modal-card,
+[data-theme="dark"] #blockConfirmOverlay .modal-card,
+[data-theme="dark"] #securityDetailsOverlay .modal-card {
     background: #1a1a1a;
-    border: 1px solid #333;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
 }
 
-[data-theme="dark"] #deleteConfirmOverlay .modal-body-centered h3 {
+[data-theme="dark"] #deleteConfirmOverlay .modal-body-centered h3,
+[data-theme="dark"] #activationConfirmOverlay .modal-body-centered h3,
+[data-theme="dark"] #blockConfirmOverlay .modal-body-centered h3 {
     color: #f8fafc;
 }
 
-[data-theme="dark"] #deleteConfirmOverlay .modal-body-centered p {
+[data-theme="dark"] #deleteConfirmOverlay .modal-body-centered p,
+[data-theme="dark"] #activationConfirmOverlay .modal-body-centered p,
+[data-theme="dark"] #blockConfirmOverlay .modal-body-centered p {
     color: #9ca3af;
 }
 
-[data-theme="dark"] #deleteConfirmOverlay .modal-footer-centered {
-    background: #1a1a1a;
+[data-theme="dark"] #deleteConfirmOverlay .modal-footer-centered,
+[data-theme="dark"] #activationConfirmOverlay .modal-footer-centered,
+[data-theme="dark"] #blockConfirmOverlay .modal-footer-centered {
+    background: transparent;
     border-top: none;
 }
 
-[data-theme="dark"] #deleteConfirmOverlay .btn-text-gray,
-[data-theme="dark"] #deleteConfirmOverlay .btn-tertiary {
+[data-theme="dark"] #deleteConfirmOverlay .btn-tertiary,
+[data-theme="dark"] #activationConfirmOverlay .btn-tertiary,
+[data-theme="dark"] #blockConfirmOverlay .btn-tertiary {
     background: #222;
     border: 1px solid #333;
     color: #e5e5e5;
 }
 
-[data-theme="dark"] #deleteConfirmOverlay .btn-text-gray:hover,
-[data-theme="dark"] #deleteConfirmOverlay .btn-tertiary:hover {
+[data-theme="dark"] #deleteConfirmOverlay .btn-tertiary:hover,
+[data-theme="dark"] #activationConfirmOverlay .btn-tertiary:hover,
+[data-theme="dark"] #blockConfirmOverlay .btn-tertiary:hover {
     background: #333;
 }
 
-[data-theme="dark"] #deleteConfirmOverlay .modal-icon-wrapper.danger {
-    background: rgba(220, 38, 38, 0.15);
+[data-theme="dark"] .modal-icon-wrapper.danger {
+    background: rgba(239, 68, 68, 0.15);
     color: #fca5a5;
+    box-shadow: none;
 }
 
-[data-theme="dark"] #deleteConfirmOverlay .btn-danger-block {
+[data-theme="dark"] .modal-icon-wrapper.success {
+    background: rgba(34, 197, 94, 0.15);
+    color: #86efac;
+    box-shadow: none;
+}
+
+[data-theme="dark"] .modal-icon-wrapper.warning {
+    background: rgba(249, 115, 22, 0.15);
+    color: #fdba74;
+    box-shadow: none;
+}
+
+[data-theme="dark"] #deleteConfirmOverlay .btn-danger-block,
+[data-theme="dark"] #activationConfirmOverlay .btn-danger-block,
+[data-theme="dark"] #activationConfirmOverlay .btn-primary-block {
     border: none;
 }
 
-/* TOASTY (POWIADOMIENIA) */
+/* KARTA BEZPIECZEŃSTWA */
+.security-info-grid {
+    display: flex;
+    flex-direction: column;
+    margin-top: 15px;
+    border-top: 1px solid rgba(241, 245, 249, 0.8);
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 6px;
+    gap: 15px;
+    background: transparent;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid rgba(241, 245, 249, 0.8);
+    transition: all 0.2s ease;
+    box-shadow: none;
+}
+
+.info-item:hover {
+    background: rgba(0, 94, 250, 0.02);
+    border-color: #f1f5f9;
+    transform: none;
+    box-shadow: none;
+}
+
+.info-label {
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    font-size: 0.7rem;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.info-label i {
+    color: #cbd5e1;
+    font-size: 0.9rem;
+    width: 18px;
+}
+
+.info-value {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #334155;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+code.info-value {
+    background: transparent;
+    padding: 0;
+    border: none;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.85rem;
+    color: var(--color-primary);
+}
+
+.user-summary {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 4px 12px 4px;
+    text-align: center;
+}
+
+.modal-actions-bar {
+    display: flex;
+    justify-content: center;
+    padding: 5px 0 20px 0;
+    border-bottom: 1px solid rgba(241, 245, 249, 0.8);
+    margin-bottom: 10px;
+}
+
+.modal-actions-bar .btn {
+    min-width: 180px;
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: normal;
+    padding: 10px 20px;
+    border-radius: 10px;
+}
+
+.avatar-small {
+    width: 48px;
+    height: 48px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary);
+    font-size: 1.25rem;
+}
+
+#securityModalUserName {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1e293b;
+    display: block;
+    margin-bottom: 2px;
+}
+
+/* Tryb ciemny */
+[data-theme="dark"] .security-info-grid {
+    border-top-color: #334155;
+}
+
+[data-theme="dark"] #securityModalUserName {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .modal-actions-bar {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .info-item {
+    background: transparent;
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+    box-shadow: none;
+}
+
+[data-theme="dark"] .info-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+[data-theme="dark"] .info-label {
+    color: #64748b;
+}
+
+[data-theme="dark"] .info-label i {
+    color: #475569;
+}
+
+[data-theme="dark"] .info-value {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .avatar-small {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+[data-theme="dark"] #securityModalUserName {
+    color: #f8fafc;
+}
+
+.badge-warning {
+    background-color: #fff7ed;
+    color: #c2410c;
+}
+
+.badge-danger {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
 .toast-container {
     position: fixed;
     bottom: 24px;
