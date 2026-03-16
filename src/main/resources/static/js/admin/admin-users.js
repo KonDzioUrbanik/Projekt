@@ -1,5 +1,23 @@
 // filtrowanie i wyszukiwanie użytkowników
 
+function formatDate(dateString) {
+    if (!dateString || dateString === '-') return '-';
+    // Jeśli dateString to już sformatowana data (np. z Thymeleaf: YYYY-MM-DD HH:mm)
+    // a nie surowy format ISO z backendu (który zawiera literę 'T')
+    if (dateString.includes(':') && !dateString.includes('T')) return dateString;
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
 const CONFIG = {
     SELECTORS: {
         FULL_NAME_CELL: 'td:nth-child(2)',
@@ -15,9 +33,11 @@ const CONFIG = {
         ROLE: 3,
         GROUP: 4,
         YEAR: 5,
-        ALBUM: 6
+        ALBUM: 6,
+        CREATED_AT: 7,
+        LAST_LOGIN: 8
     },
-    EMPTY_VALUES: ['Brak', '-', '', 'Nie przypisano kierunku']
+    EMPTY_VALUES: ['Brak', '-', '', 'Nie przypisano kierunku', 'Nie przypisano']
 };
 
 const searchInput = document.getElementById('searchInput');
@@ -74,9 +94,6 @@ function filterUsers() {
     const selectedYear = yearFilter.value;
     const selectedStatus = statusFilter.value;
     
-    // najpierw usuń paginację (pokaż wszystko) aby filtr działał na całości
-    // potem paginacja zostanie zaaplikowana ponownie
-    
     // resetuj filteredRows
     filteredRows = [];
     
@@ -92,9 +109,15 @@ function filterUsers() {
         
         const matchesSearch = fullName.includes(searchTerm) || email.includes(searchTerm);
         const matchesRole = !selectedRole || role === selectedRole;
-        const matchesGroup = !selectedGroup || group === selectedGroup;
         const matchesYear = !selectedYear || year === selectedYear;
         const matchesStatus = !selectedStatus || status === selectedStatus;
+        
+        let matchesGroup = !selectedGroup || group === selectedGroup;
+        
+        // Specjalna obsługa dla "Nie przypisano kierunku" w filtrze
+        if (selectedGroup === 'Nie przypisano kierunku') {
+            matchesGroup = CONFIG.EMPTY_VALUES.includes(group);
+        }
         
         // usuń klasę ukrywania filtra
         row.classList.remove('user-row-hidden');
@@ -232,13 +255,20 @@ function sortTable(columnIndex, dataType, headerElement){
             bValue = bValue === '' ? -Infinity : parseFloat(bValue);
             return currentSortOrder === 'asc' ? aValue - bValue : bValue - aValue;
         } 
+        else if(dataType === 'date'){
+            const parseDate = (val) => {
+                if (!val || val === 'Nigdy' || val === '-') return new Date(0);
+                // Format: YYYY-MM-DD HH:mm -> YYYY-MM-DDTHH:mm
+                return new Date(val.trim().replace(' ', 'T'));
+            };
+            const dateA = parseDate(aValue);
+            const dateB = parseDate(bValue);
+            return currentSortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+        }
         else{
-            if(currentSortOrder === 'asc'){
-                return aValue.localeCompare(bValue, 'pl');
-            } 
-            else{
-                return bValue.localeCompare(aValue, 'pl');
-            }
+            return currentSortOrder === 'asc' 
+                ? aValue.localeCompare(bValue, 'pl')
+                : bValue.localeCompare(aValue, 'pl');
         }
     });
     
@@ -279,11 +309,193 @@ function closeEditModal(){
     document.getElementById("editUserModal").classList.remove("active");
 }
 
-async function toggleUserActivation(btn) {
+// MODAL AKTYWACJI/DEZAKTYWACJI
+let currentActivationData = null;
+
+function openActivationModal(btn) {
     const userId = btn.getAttribute('data-id');
     const isCurrentlyActivated = btn.getAttribute('data-activated') === 'true';
+    const userName = btn.getAttribute('data-name');
     const nextState = !isCurrentlyActivated;
 
+    currentActivationData = { userId, nextState, btn };
+
+    const overlay = document.getElementById('activationConfirmOverlay');
+    const iconWrapper = document.getElementById('activationModalIcon');
+    const title = document.getElementById('activationModalTitle');
+    const text = document.getElementById('activationModalText');
+    const confirmBtn = document.getElementById('btnConfirmActivation');
+
+    title.textContent = nextState ? 'Aktywacja konta' : 'Dezaktywacja konta';
+    text.innerHTML = nextState 
+        ? `Czy na pewno chcesz <strong>aktywować</strong> konto użytkownika <strong>${userName}</strong>?`
+        : `Czy na pewno chcesz <strong>dezaktywować</strong> konto użytkownika <strong>${userName}</strong>?`;
+    
+    confirmBtn.className = `btn ${nextState ? 'btn-primary-block' : 'btn-danger-block'}`;
+    confirmBtn.textContent = nextState ? 'Aktywuj konto' : 'Dezaktywuj konto';
+    
+    iconWrapper.className = `modal-icon-wrapper ${nextState ? 'success' : 'warning'}`;
+    iconWrapper.innerHTML = nextState ? '<i class="fas fa-user-check"></i>' : '<i class="fas fa-user-slash"></i>';
+
+    if (overlay) overlay.classList.add('active');
+}
+
+// SECURITY MODAL
+function openSecurityModal(user) {
+    const overlay = document.getElementById('securityDetailsOverlay');
+    const nameElem = document.getElementById('securityModalUserName');
+    const emailElem = document.getElementById('securityModalUserEmail');
+    const ipElem = document.getElementById('securityModalIp');
+    const failedElem = document.getElementById('securityModalFailed');
+    const createdElem = document.getElementById('securityModalCreated');
+
+    if (!nameElem || !emailElem || !ipElem || !failedElem || !createdElem) {
+        console.error('Nie znaleziono elementów modalu bezpieczeństwa');
+        return;
+    }
+
+    nameElem.textContent = `${user.firstName} ${user.lastName}`;
+    emailElem.textContent = user.email;
+    
+    let displayIp = user.lastLoginIp || 'Brak danych';
+    if (displayIp === '0:0:0:0:0:0:0:1') displayIp = 'Localhost (IPv6)';
+    else if (displayIp === '127.0.0.1') displayIp = 'Localhost (IPv4)';
+    
+    ipElem.textContent = displayIp;
+    failedElem.textContent = user.failedLoginAttempts || 0;
+    
+    // Klasa koloru dla prób logowania
+    failedElem.className = 'badge';
+    if (user.failedLoginAttempts > 5) {
+        failedElem.classList.add('badge-danger');
+    } else if (user.failedLoginAttempts > 1) {
+        failedElem.classList.add('badge-warning');
+    } else {
+        failedElem.classList.add('badge-student'); // neutralny niebieski
+    }
+
+    createdElem.textContent = user.createdAt ? formatDate(user.createdAt) : '-';
+
+    // Status blokady
+    const blockStatusElem = document.getElementById('securityModalBlockStatus');
+    const blockBtn = document.getElementById('securityModalBlockBtn');
+    
+    if (blockStatusElem) {
+        blockStatusElem.textContent = user.isBlocked ? 'ZABLOKOWANE' : 'Brak blokady';
+        blockStatusElem.style.color = user.isBlocked ? '#ef4444' : '#22c55e';
+        blockStatusElem.style.fontWeight = 'bold';
+    }
+
+    if (blockBtn) {
+        blockBtn.style.display = 'block';
+        blockBtn.textContent = user.isBlocked ? 'Odblokuj konto' : 'Zablokuj konto';
+        blockBtn.className = user.isBlocked ? 'btn btn-primary-block' : 'btn btn-danger-block';
+        blockBtn.onclick = () => openBlockModal(user.id, user.isBlocked);
+    }
+
+    if (overlay) overlay.classList.add('active');
+}
+
+let currentBlockUserId = null;
+
+function openBlockModal(userId, isCurrentlyBlocked) {
+    currentBlockUserId = userId;
+    const overlay = document.getElementById('blockConfirmOverlay');
+    const title = document.getElementById('blockModalTitle');
+    const text = document.getElementById('blockModalText');
+    const icon = document.getElementById('blockModalIcon');
+    const confirmBtn = document.getElementById('btnConfirmBlock');
+
+    if (!overlay || !title || !text || !icon || !confirmBtn) return;
+
+    if (isCurrentlyBlocked) {
+        title.textContent = 'Odblokować konto?';
+        text.innerHTML = 'Użytkownik <strong>odzyska dostęp</strong> do portalu natychmiast po odblokowaniu.';
+        icon.className = 'modal-icon-wrapper success';
+        icon.innerHTML = '<i class="fas fa-user-check"></i>';
+        confirmBtn.className = 'btn btn-primary-block';
+        confirmBtn.textContent = 'Odblokuj konto';
+    } else {
+        title.textContent = 'Zablokować konto?';
+        text.innerHTML = 'Użytkownik <strong>straci dostęp</strong> do swojego konta natychmiast po zablokowaniu.';
+        icon.className = 'modal-icon-wrapper warning';
+        icon.innerHTML = '<i class="fas fa-user-slash"></i>';
+        confirmBtn.className = 'btn btn-danger-block';
+        confirmBtn.textContent = 'Zablokuj konto';
+    }
+
+    confirmBtn.onclick = () => toggleUserBlock(userId);
+
+    overlay.classList.add('active');
+}
+
+function closeBlockModal() {
+    const overlay = document.getElementById('blockConfirmOverlay');
+    if (overlay) overlay.classList.remove('active');
+    currentBlockUserId = null;
+}
+
+async function toggleUserBlock(userId) {
+    closeBlockModal();
+    
+    try {
+        const response = await fetch(`/api/users/block/${userId}`, {
+            method: 'PUT'
+        });
+
+        if (!response.ok) throw new Error('Błąd serwera.');
+
+        const updatedUser = await response.json();
+        Utils.showToast(updatedUser.isBlocked ? 'Konto zostało zablokowane.' : 'Konto zostało odblokowane.', 'success');
+        
+        // Odśwież modal z nowymi danymi
+        openSecurityModal(updatedUser);
+    } catch (error) {
+        console.error('Błąd blokady konta:', error);
+        Utils.showToast('Wystąpił błąd podczas zmiany blokady konta.', 'error');
+    }
+}
+
+function openSecurityModalFromBtn(btn) {
+    const user = {
+        id: btn.getAttribute('data-id'),
+        firstName: btn.getAttribute('data-firstname'),
+        lastName: btn.getAttribute('data-lastname'),
+        email: btn.getAttribute('data-email'),
+        lastLoginIp: btn.getAttribute('data-ip'),
+        failedLoginAttempts: parseInt(btn.getAttribute('data-failed')) || 0,
+        createdAt: btn.getAttribute('data-created'),
+        isBlocked: btn.getAttribute('data-blocked') === 'true'
+    };
+    openSecurityModal(user);
+}
+
+function closeSecurityModal() {
+    const overlay = document.getElementById('securityDetailsOverlay');
+    if (overlay) overlay.classList.remove('active');
+}
+
+// Funkcja pomocnicza do zamykania wszystkich modali administratora
+function closeAllModals() {
+    // closeDeleteModal(); 
+    closeEditModal();
+    closeActivationModal();
+    closeSecurityModal();
+    closeBlockModal();
+}
+
+function closeActivationModal() {
+    const overlay = document.getElementById('activationConfirmOverlay');
+    if (overlay) overlay.classList.remove('active');
+    currentActivationData = null;
+}
+
+document.getElementById('btnConfirmActivation')?.addEventListener('click', async () => {
+    if (!currentActivationData) return;
+    
+    const { userId, nextState, btn } = currentActivationData;
+    closeActivationModal();
+    
     btn.disabled = true;
 
     try {
@@ -296,29 +508,17 @@ async function toggleUserActivation(btn) {
         });
 
         if (!response.ok) {
-            let message = 'Nie udało się zmienić statusu konta.';
-            try {
-                const errorText = await response.text();
-                if (errorText) {
-                    try {
-                        const errorData = JSON.parse(errorText);
-                        message = errorData.detail || errorData.message || message;
-                    } catch {
-                        message = errorText;
-                    }
-                }
-            } catch { /* ignore read error */ }
-            throw new Error(message);
+            throw new Error('Błąd serwera przy zmianie statusu.');
         }
 
         Utils.showToast(nextState ? 'Konto zostało aktywowane.' : 'Konto zostało dezaktywowane.', 'success');
         setTimeout(() => location.reload(), 900);
     } catch (error) {
         console.error('Błąd zmiany statusu konta:', error);
-        Utils.showToast(error.message || 'Wystąpił błąd podczas zmiany statusu konta.', 'error');
+        Utils.showToast('Wystąpił błąd podczas zmiany statusu konta.', 'error');
         btn.disabled = false;
     }
-}
+});
 
 // ladowanie grup z API
 let allGroups = [];
@@ -584,7 +784,9 @@ function performExport() {
         album: document.getElementById('exportAlbum').checked,
         role: document.getElementById('exportRole').checked,
         group: document.getElementById('exportGroup').checked,
-        year: document.getElementById('exportYear').checked
+        year: document.getElementById('exportYear').checked,
+        createdAt: true,
+        lastLogin: true // domyślnie dodajmy info o logowaniu do CSV
     };
     
     // sprawdź czy wybrano przynajmniej jedną kolumnę
@@ -602,6 +804,8 @@ function performExport() {
     if (columns.group) headers.push('Kierunek');
     if (columns.year) headers.push('Rok studiów');
     if (columns.album) headers.push('Numer albumu');
+    if (columns.createdAt) headers.push('Dołączył');
+    if (columns.lastLogin) headers.push('Ostatnie logowanie');
     
     // zbierz dane z wierszy
     const csvData = rowsToExport.map(row => {
@@ -629,6 +833,12 @@ function performExport() {
         }
         if (columns.album) {
             rowData.push(escapeCSV(row.querySelector('td:nth-child(7)').textContent.trim()));
+        }
+        if (columns.createdAt) {
+            rowData.push(escapeCSV(row.querySelector('td:nth-child(8)').textContent.trim()));
+        }
+        if (columns.lastLogin) {
+            rowData.push(escapeCSV(row.querySelector('td:nth-child(9)').textContent.trim()));
         }
         
         return rowData;

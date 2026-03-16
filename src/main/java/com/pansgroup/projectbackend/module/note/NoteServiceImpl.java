@@ -347,12 +347,17 @@ public class NoteServiceImpl implements NoteService {
                 u.getStudentGroup() != null ? u.getStudentGroup().getId() : null,
                 u.getStudentGroup() != null ? u.getStudentGroup().getName() : null,
                 u.isActivated(),
+                u.isBlocked(),
                 u.getNickName(),
                 u.getPhoneNumber(),
                 u.getFieldOfStudy(),
                 u.getYearOfStudy(),
                 u.getStudyMode(),
-                u.getBio());
+                u.getBio(),
+                u.getLastLogin(),
+                u.getCreatedAt(),
+                u.getLastLoginIp(),
+                u.getFailedLoginAttempts());
     }
 
     private Note findNoteByIdAndEnsureOwnership(Long noteId) {

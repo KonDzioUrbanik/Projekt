@@ -9,16 +9,6 @@
     <body>
         <div layout:fragment="content">
             
-            <!-- <nav class="breadcrumb">
-                <a href="/home" class="breadcrumb-item">
-                    <i class="fas fa-home"></i> PANSportal
-                </a>
-                <span class="breadcrumb-separator">/</span>
-                <span class="breadcrumb-item active">Panel administratora</span>
-                <span class="breadcrumb-separator">/</span>
-                <span class="breadcrumb-item active">Lista użytkowników</span>
-            </nav> -->
-            
             <div class="admin-header">
                 <div>
                     <h1>Użytkownicy</h1>
@@ -87,7 +77,6 @@
                     </div>
                 </div>
                 
-                <!-- Kontrolki paginacji - góra -->
                 <div class="pagination-controls" id="paginationTop">
                     <div class="pagination-info">
                         Strona <span id="currentPageTop">1</span> z <span id="totalPagesTop">1</span>
@@ -107,33 +96,38 @@
                     </div>
                 </div>
                 
-                <!-- Kontener na tabelę z osobnym przewijaniem -->
                 <div class="table-scroll-container">
                     <table class="users-table">
                         <thead>
                             <tr>
-                                <th class="sortable" data-column="0" data-type="number">
+                                <th class="col-id sortable" data-column="0" data-type="number">
                                     ID <i class="fas fa-sort sort-icon"></i>
                                 </th>
-                                <th class="sortable" data-column="1" data-type="text">
+                                <th class="col-name sortable" data-column="1" data-type="text">
                                     Imię i Nazwisko <i class="fas fa-sort sort-icon"></i>
                                 </th>
-                                <th class="sortable" data-column="2" data-type="text">
+                                <th class="col-email sortable" data-column="2" data-type="text">
                                     Email <i class="fas fa-sort sort-icon"></i>
                                 </th>
-                                <th class="sortable" data-column="3" data-type="text">
+                                <th class="col-role sortable" data-column="3" data-type="text">
                                     Rola <i class="fas fa-sort sort-icon"></i>
                                 </th>
-                                <th class="sortable" data-column="4" data-type="text">
+                                <th class="col-direction sortable" data-column="4" data-type="text">
                                     Kierunek <i class="fas fa-sort sort-icon"></i>
                                 </th>
-                                <th class="sortable" data-column="5" data-type="number">
+                                <th class="col-year sortable" data-column="5" data-type="number">
                                     Rok <i class="fas fa-sort sort-icon"></i>
                                 </th>
-                                <th class="sortable" data-column="6" data-type="number">
+                                <th class="col-album sortable" data-column="6" data-type="number">
                                     NrAlbumu <i class="fas fa-sort sort-icon"></i>
                                 </th>
-                                <th>Akcje</th>
+                                <th class="col-date sortable" data-column="7" data-type="date">
+                                    Dołączył <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="col-date sortable" data-column="8" data-type="date">
+                                    Ostatnie logowanie <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="col-actions">Akcje</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -141,10 +135,10 @@
                                 th:data-year="${user.yearOfStudy}" 
                                 th:data-status="${user.isActivated}">
 
-                                <td th:text="${user.id}">1</td>
+                                <td class="col-id" th:text="${user.id}">1</td>
 
-                                <td>
-                                    <div class="user-cell">
+                                <td class="col-name">
+                                    <div class="user-cell" th:title="${user.firstName} + ' ' + ${user.lastName}">
                                         <div class="user-avatar-icon">
                                             <i class="fas fa-user"></i>
                                             <span class="status-dot" 
@@ -152,34 +146,54 @@
                                                   th:title="${user.isActivated} ? 'Konto aktywne' : 'Konto nieaktywne'">
                                             </span>
                                         </div>
-                                        <span th:text="${user.firstName} + ' ' + ${user.lastName}"> </span>
+                                        <span class="truncate-text" th:text="${user.firstName} + ' ' + ${user.lastName}"> </span>
                                     </div>
                                 </td>
 
-                                <td th:text="${user.email}"> </td>
+                                <td class="col-email">
+                                    <span class="truncate-text" th:text="${user.email}" th:title="${user.email}"> </span>
+                                </td>
 
-                                <td>
+                                <td class="col-role">
                                     <span class="badge" th:classappend="${user.role == 'ADMIN'} ? 'badge-admin' : (${user.role == 'STAROSTA'} ? 'badge-starosta' : 'badge-student')" th:text="${user.role}"> </span>
                                 </td>
 
-                                <td>
-                                    <span th:if="${user.groupName != null}" th:text="${user.groupName}"></span>
+                                <td class="col-direction">
+                                    <span class="truncate-text" th:if="${user.groupName != null}" th:text="${user.groupName}" th:title="${user.groupName}"></span>
                                     <i th:if="${user.groupName == null}">Nie przypisano kierunku</i>
                                 </td>
                                 
-                                <td th:text="${user.yearOfStudy != null} ? ${user.yearOfStudy} : '-'"> </td>
+                                <td class="col-year" th:text="${user.yearOfStudy != null} ? ${user.yearOfStudy} : '-'"> </td>
                                 
-                                <td th:text="${user.nrAlbumu != null} ? ${user.nrAlbumu} : '-'"> </td>
+                                <td class="col-album" th:text="${user.nrAlbumu != null} ? ${user.nrAlbumu} : '-'"> </td>
+                                
+                                <td class="col-date" th:text="${user.createdAt != null} ? ${#temporals.format(user.createdAt, 'yyyy-MM-dd HH:mm')} : '-'"> </td>
+
+                                <td class="col-date" th:text="${user.lastLogin != null} ? ${#temporals.format(user.lastLogin, 'yyyy-MM-dd HH:mm')} : 'Nigdy'"> </td>
 
                                 <td class="actions-cell">
                                     <div class="action-buttons" th:if="${user.role != 'ADMIN'}">
-                                        <button class="action-btn"
-                                                th:classappend="${user.isActivated} ? 'btn-deactivate' : 'btn-activate'"
-                                                th:title="${user.isActivated} ? 'Dezaktywuj konto' : 'Aktywuj konto'"
+                                        <button class="action-btn btn-secondary" title="Bezpieczeństwo"
+                                                th:data-id="${user.id}"
+                                                th:data-email="${user.email}"
+                                                th:data-firstname="${user.firstName}"
+                                                th:data-lastname="${user.lastName}"
+                                                th:data-ip="${user.lastLoginIp}"
+                                                th:data-failed="${user.failedLoginAttempts}"
+                                                th:data-created="${user.createdAt != null ? #temporals.format(user.createdAt, 'yyyy-MM-dd HH:mm') : '-'}"
+                                                th:data-blocked="${user.isBlocked}"
+                                                onclick="openSecurityModalFromBtn(this)">
+                                            <i class="fas fa-shield-alt"></i>
+                                        </button>
+
+                                        <button class="action-btn btn-activate"
+                                                th:if="${!user.isActivated}"
+                                                title="Aktywuj konto"
                                                 th:data-id="${user.id}"
                                                 th:data-activated="${user.isActivated}"
-                                                onclick="toggleUserActivation(this)">
-                                            <i th:class="${user.isActivated} ? 'fas fa-user-slash' : 'fas fa-user-check'"></i>
+                                                th:data-name="${user.firstName} + ' ' + ${user.lastName}"
+                                                onclick="openActivationModal(this)">
+                                            <i class="fas fa-user-check"></i>
                                         </button>
                                         
                                         <button class="action-btn btn-edit" title="Edytuj"
@@ -195,7 +209,7 @@
                                         <button class="action-btn btn-delete" title="Usuń"
                                                 th:data-id="${user.id}"
                                                 onclick="openDeleteModal(this)">
-                                            <i class="fas fa-trash-alt"></i>
+                                            <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
 
@@ -265,7 +279,6 @@
                 </div>
             </div>
 
-            <!-- Modal eksportu CSV -->
             <div id="exportModal" class="modal-overlay">
                 <div class="modal-content export-modal">
                     <div class="modal-header">
@@ -332,7 +345,6 @@
                 </div>
             </div>
 
-            <!-- Delete Confirmation Modal -->
             <div class="modal-overlay" id="deleteConfirmOverlay">
                 <div class="modal-card modal-sm modal-center-content">
                     <div class="modal-body-centered">
@@ -347,6 +359,88 @@
                     <div class="modal-footer-centered">
                         <button class="btn btn-tertiary" id="btnCancelDelete">Anuluj</button>
                         <button class="btn btn-danger-block" id="btnConfirmDelete">Usuń użytkownika</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-overlay" id="securityDetailsOverlay">
+                <div class="modal-card modal-sm">
+                    <div class="modal-header">
+                        <h3>Karta Bezpieczeństwa</h3>
+                        <button class="close-btn" onclick="closeSecurityModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="user-summary">
+                            <div class="avatar-small">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                            <div>
+                                <strong id="securityModalUserName">Użytkownik</strong>
+                                <div class="hint-text" id="securityModalUserEmail">email@student.kpu.krosno.pl</div>
+                            </div>
+                        </div>
+
+                        <div class="modal-actions-bar">
+                            <button id="securityModalBlockBtn" class="btn btn-danger-block" style="display:none;" onclick="toggleUserBlock()">Zablokuj konto</button>
+                        </div>
+                        
+                        <div class="security-info-grid">
+                            <div class="info-item">
+                                <span class="info-label"><i class="fas fa-network-wired"></i> Ostatnie IP</span>
+                                <code id="securityModalIp" class="info-value">Localhost (IPv6)</code>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label"><i class="fas fa-user-clock"></i> Próby logowań</span>
+                                <span id="securityModalFailed" class="badge info-value">0</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label"><i class="fas fa-calendar-alt"></i> Data rejestracji</span>
+                                <span id="securityModalCreated" class="info-value">2026-03-15 23:09</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label"><i class="fas fa-user-lock"></i> Status blokady</span>
+                                <span id="securityModalBlockStatus" class="info-value">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary-block" onclick="closeSecurityModal()">Zamknij kartę</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-overlay" id="blockConfirmOverlay">
+                <div class="modal-card modal-sm modal-center-content">
+                    <div class="modal-body-centered">
+                        <div class="modal-icon-wrapper warning" id="blockModalIcon">
+                            <i class="fas fa-user-slash"></i>
+                        </div>
+                        <h3 id="blockModalTitle">Potwierdzenie</h3>
+                        <p class="text-muted" id="blockModalText">
+                            Czy na pewno chcesz zmienić status blokady tego konta?
+                        </p>
+                    </div>
+                    <div class="modal-footer-centered">
+                        <button class="btn btn-tertiary" onclick="closeBlockModal()">Anuluj</button>
+                        <button class="btn btn-danger-block" id="btnConfirmBlock">Potwierdź</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-overlay" id="activationConfirmOverlay">
+                <div class="modal-card modal-sm modal-center-content">
+                    <div class="modal-body-centered">
+                        <div class="modal-icon-wrapper warning" id="activationModalIcon">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <h3 id="activationModalTitle">Potwierdzenie</h3>
+                        <p class="text-muted" id="activationModalText">
+                            Czy na pewno chcesz aktywować to konto?
+                        </p>
+                    </div>
+                    <div class="modal-footer-centered">
+                        <button class="btn btn-tertiary" onclick="closeActivationModal()">Anuluj</button>
+                        <button class="btn btn-primary-block" id="btnConfirmActivation">Potwierdź</button>
                     </div>
                 </div>
             </div>

@@ -42,5 +42,13 @@ public interface UserService {
 
     void removeAvatar(Long userId);
 
+    void updateLastLogin(String email, String ip);
+
+    void incrementFailedAttempts(String email);
+
+    void resetFailedAttempts(String email);
+
     List<UserResponseDto> searchUsers(String query);
+
+    UserResponseDto toggleBlock(Long userId);
 }

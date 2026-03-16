@@ -138,4 +138,9 @@ public class UserController {
         return userService.searchUsers(query);
     }
 
+    @Operation(summary = "Zablokuj lub odblokuj konto użytkownika (tylko Admin)")
+    @PutMapping("/block/{userId}")
+    public UserResponseDto toggleBlock(@PathVariable Long userId) {
+        return userService.toggleBlock(userId);
+    }
 }
