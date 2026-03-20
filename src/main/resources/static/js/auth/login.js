@@ -12,6 +12,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const emailInput = document.getElementById("email");
     const rememberMeCheckbox = document.getElementById("remember-me");
 
+    // Obsługa komunikatów o błędach z URL (np. po wylogowaniu przez blokadę konta)
+    const urlParams = new URLSearchParams(window.location.search);
+    const errorParam = urlParams.get('error');
+    if (errorParam) {
+        let message = "";
+        if (errorParam === 'blocked') {
+            message = "Twoje konto zostało zablokowane przez administratora. Skontaktuj się z obsługą.";
+        } else if (errorParam === 'inactive') {
+            message = "Twoje konto nie jest jeszcze aktywne. Sprawdź swoją skrzynkę e-mail i kliknij w link aktywacyjny.";
+        } else if (errorParam === 'error') {
+            message = "Wystapił błąd sesji lub Twoje konto przestało być dostępne. Proszę zalogować się ponownie.";
+        }
+        
+        if (message && errorMessageContainer) {
+            displayMessage(errorMessageContainer, message);
+        }
+    }
+
     // Przywracanie zapamiętanego e-maila
     const savedEmail = localStorage.getItem('remembered_email');
     if (savedEmail && emailInput) {
