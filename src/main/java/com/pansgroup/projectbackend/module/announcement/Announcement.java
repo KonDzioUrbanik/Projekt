@@ -8,6 +8,8 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "group_announcements")
@@ -28,6 +30,9 @@ public class Announcement {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @Column(length = 64)
+    private String broadcastKey;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
@@ -35,4 +40,7 @@ public class Announcement {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "target_group_id", nullable = false)
     private StudentGroup targetGroup;
+
+    @OneToMany(mappedBy = "announcement", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<AnnouncementReadConfirmation> readConfirmations = new HashSet<>();
 }

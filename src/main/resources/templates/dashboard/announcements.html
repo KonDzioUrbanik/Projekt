@@ -50,6 +50,23 @@
             <!-- Hidden form placeholder (required by announcements.js) -->
             <form id="announcementForm" data-mode="student" style="display: none;"></form>
 
+            <!-- Delete confirmation modal -->
+            <div class="ann-modal-overlay" id="deleteModal">
+                <div class="ann-modal-card">
+                    <div class="ann-modal-icon">
+                        <i class="fas fa-trash-alt"></i>
+                    </div>
+                    <h3>Usuń ogłoszenie</h3>
+                    <p>Czy na pewno chcesz usunąć to ogłoszenie? Tej operacji nie można cofnąć.</p>
+                    <div class="ann-modal-actions">
+                        <button class="ann-btn-cancel" id="modalCancelBtn">Anuluj</button>
+                        <button class="ann-btn-confirm-delete" id="modalConfirmBtn">
+                            <i class="fas fa-trash-alt"></i> Usuń
+                        </button>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <th:block layout:fragment="page-scripts">

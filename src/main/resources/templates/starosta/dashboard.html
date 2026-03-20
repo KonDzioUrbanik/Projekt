@@ -54,7 +54,7 @@
                 </div>
 
                 <div class="dashboard-grid mt-4">
-                    <div class="dashboard-card primary-card">
+                    <div class="dashboard-card primary-card starosta-announcement-card">
                         <div class="card-header">
                             <div class="header-left">
                                 <div class="icon-badge secondary">
@@ -66,10 +66,11 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card-body">
-                            <p>Możesz już publikować ogłoszenia dla swojej grupy.</p>
-                            <a th:href="@{/starosta/announcements}" class="btn-primary" style="display: inline-block; margin-top: 0.5rem; text-decoration: none;">
-                                Przejdź do ogłoszeń
+                        <div class="card-body starosta-announcement-body">
+                            <p>Możesz publikować ogłoszenia dla swojej grupy oraz śledzić potwierdzenia odczytu.</p>
+                            <a th:href="@{/starosta/announcements}" class="view-link starosta-announcement-cta">
+                                <span>Przejdź do ogłoszeń</span>
+                                <i class="fas fa-arrow-right"></i>
                             </a>
                         </div>
                     </div>

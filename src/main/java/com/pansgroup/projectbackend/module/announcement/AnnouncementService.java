@@ -13,4 +13,6 @@ public interface AnnouncementService {
     List<AnnouncementResponseDto> getAllAnnouncements();
 
     void deleteById(Long id);
+
+    void confirmRead(Long id);
 }

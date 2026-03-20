@@ -10,4 +10,6 @@ public interface AnnouncementRepository extends JpaRepository<Announcement, Long
     List<Announcement> findByTargetGroup_IdOrderByCreatedAtDesc(Long groupId);
 
     List<Announcement> findAllByOrderByCreatedAtDesc();
+
+    List<Announcement> findByBroadcastKeyOrderByCreatedAtDesc(String broadcastKey);
 }

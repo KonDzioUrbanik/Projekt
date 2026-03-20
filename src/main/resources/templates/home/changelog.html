@@ -19,11 +19,50 @@
 
                 <div class="timeline">
                     <!-- Marzec 2026 -->
-                    <details class="version-block latest" open>
+                    <details id="v1-3-2" class="version-block latest" open>
+                        <summary class="version-summary-header">
+                            <div class="version-title">
+                                <span class="version-number">Marzec 2026 - v1.3.2</span>
+                                <span class="latest-badge" style="margin-left: 0.5rem;">Aktualna wersja</span>
+                            </div>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </summary>
+                        <div class="version-content">
+                            <div class="version-desc">
+                                Wydanie porządkujące moduł ogłoszeń oraz dopracowujące panel Starosty. Skupiono się na spójności interfejsu, niezawodnym usuwaniu wpisów i czytelniejszym zarządzaniu ogłoszeniami globalnymi.
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
+                                <ul class="change-list added">
+                                    <li><strong>Publiczne Liczniki Potwierdzeń:</strong> Liczba potwierdzeń przeczytania ogłoszenia jest widoczna dla wszystkich użytkowników feedu.</li>
+                                    <li><strong>Potwierdzanie przez Starostę:</strong> Starosta może potwierdzać przeczytanie ogłoszeń admina przypisanych do jego grupy (z wykluczeniem własnych wpisów).</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
+                                <ul class="change-list changed">
+                                    <li><strong>Dashboard Starosty:</strong> Odświeżono kafelek „Wyślij ogłoszenie” i CTA „Przejdź do ogłoszeń”, aby lepiej pasowały do obecnego stylu frontendu.</li>
+                                    <li><strong>Panel Administratora:</strong> Globalne wysyłki ogłoszeń są prezentowane jako jeden wpis logiczny zamiast wielu duplikatów per kierunek.</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
+                                <ul class="change-list fixed">
+                                    <li><strong>Usuwanie Ogłoszeń:</strong> Naprawiono obsługę przycisków usuwania i okien potwierdzających w panelach Starosty i Administratora.</li>
+                                    <li><strong>Integralność Usuwania:</strong> Usuwanie wpisów nie powoduje już konfliktów integralności danych dla powiązanych potwierdzeń odczytu.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- Marzec 2026 -->
+                    <details class="version-block">
                         <summary class="version-summary-header">
                             <div class="version-title">
                                 <span class="version-number">Marzec 2026 - v1.3</span>
-                                <span class="latest-badge" style="margin-left: 0.5rem;">Aktualna wersja</span>
                             </div>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </summary>

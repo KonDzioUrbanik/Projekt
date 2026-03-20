@@ -284,15 +284,18 @@ const AdminAnnouncement = {
                         ${this.esc(item.targetGroupName || '-')}
                     </span>
                 </td>
+                <td class="ann-td-date">${Number(item.readConfirmationsCount || 0)}</td>
                 <td class="ann-td-date">${this.esc(created)}</td>
                 <td class="ann-td-actions">
                     <div class="ann-action-group">
                         <button class="ann-action-btn ann-btn-view" data-id="${item.id}" title="Rozwiń treść">
                             <i class="fas fa-chevron-down"></i>
                         </button>
-                        <button class="ann-action-btn ann-btn-del" data-id="${item.id}" data-title="${this.esc(item.title)}" title="Usuń">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                        ${item.canDelete
+                            ? `<button class="ann-action-btn ann-btn-del" data-id="${item.id}" data-title="${this.esc(item.title)}" data-global="${item.targetGroupId === null}" title="Usuń">
+                                   <i class="fas fa-trash-alt"></i>
+                               </button>`
+                            : ''}
                     </div>
                 </td>
             `;
@@ -314,7 +317,7 @@ const AdminAnnouncement = {
                     expandTr.className = 'ann-expanded-row';
                     expandTr.dataset.for = item.id;
                     expandTr.innerHTML = `
-                        <td colspan="7">
+                        <td colspan="8">
                             <div class="ann-expanded-content">${this.esc(item.content || '')}</div>
                         </td>
                     `;
@@ -326,7 +329,7 @@ const AdminAnnouncement = {
             // Delete
             tr.querySelector('.ann-btn-del')?.addEventListener('click', (e) => {
                 const btn = e.currentTarget;
-                this.openDeleteModal(Number(btn.dataset.id), btn.dataset.title);
+                this.openDeleteModal(Number(btn.dataset.id), btn.dataset.title, btn.dataset.global === 'true');
             });
         });
     },
@@ -334,7 +337,7 @@ const AdminAnnouncement = {
     emptyRow(icon, title, subtitle) {
         return `
             <tr class="ann-table-empty">
-                <td colspan="7">
+                <td colspan="8">
                     <div class="ann-table-empty-inner">
                         <i class="fas ${icon}"></i>
                         <h4>${title}</h4>
@@ -346,11 +349,13 @@ const AdminAnnouncement = {
     },
 
     // ── Delete Modal ─────────────────────────────────────────────────────────
-    openDeleteModal(id, title) {
+    openDeleteModal(id, title, isGlobal) {
         this.state.pendingDeleteId = id;
         if (this.elements.deleteText) {
             this.elements.deleteText.innerHTML =
-                `Czy na pewno chcesz usunąć ogłoszenie <strong>&ldquo;${this.esc(title || '')}&rdquo;</strong>? Tej operacji nie można cofnąć.`;
+                isGlobal
+                    ? `Czy na pewno chcesz usunac globalne ogloszenie <strong>&ldquo;${this.esc(title || '')}&rdquo;</strong>? Operacja usunie cala paczke wyslanek do wszystkich kierunkow.`
+                    : `Czy na pewno chcesz usunąć ogłoszenie <strong>&ldquo;${this.esc(title || '')}&rdquo;</strong>? Tej operacji nie można cofnąć.`;
         }
         this.elements.deleteModal?.classList.add('active');
     },
@@ -369,13 +374,12 @@ const AdminAnnouncement = {
             const response = await fetch(`/api/announcements/${id}`, { method: 'DELETE' });
             if (!response.ok) {
                 const errText = await response.text();
-                throw new Error(errText || 'Nie udało się usunąć ogłoszenia.');
+                throw new Error(this.readErrorText(errText) || 'Nie udało się usunąć ogłoszenia.');
             }
-            this.state.all = this.state.all.filter(a => a.id !== id);
-            this.applyFilters();
+            await this.fetchAnnouncements();
             this.showSuccess('Ogłoszenie zostało usunięte.');
         } catch (err) {
-            this.showError('Błąd: ' + err.message);
+            this.showError('Błąd: ' + this.readError(err));
         }
     },
 
