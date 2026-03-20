@@ -358,8 +358,8 @@ function renderReviewLists(events) {
             }
 
             li.innerHTML = `
-                <span class="event-dates">${event.formattedDateRange}</span>
-                <span class="${descClass}" ${styleAttr}>${event.title}</span>
+                <span class="event-dates">${this.escapeHtml(event.formattedDateRange || '')}</span>
+                <span class="${descClass}" ${styleAttr}>${this.escapeHtml(event.title || '')}</span>
             `;
             
             // Add click listener for Edit
@@ -449,7 +449,7 @@ function applyCalendarMarkers(events) {
                     style = `style="${cursorStyle}"`;
                 }
 
-                cell.innerHTML = `<span class="day-marker ${data.color}" ${style} data-tooltip="${data.title}">${day}</span>`;
+                cell.innerHTML = `<span class="day-marker ${data.color}" ${style} data-tooltip="${Utils.escapeHtml(data.title)}">${day}</span>`;
                 
                 // Add click listener
                 if (isAdmin) {

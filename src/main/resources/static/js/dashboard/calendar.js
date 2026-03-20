@@ -116,7 +116,12 @@ class FullCalendarInitializer {
 
         let titleContainer = document.createElement('div');
         titleContainer.className = 'fc-event-title-container';
-        titleContainer.innerHTML = `<strong>${title}</strong> ${time}`;
+        
+        let boldTitle = document.createElement('strong');
+        boldTitle.textContent = title;
+        
+        titleContainer.appendChild(boldTitle);
+        titleContainer.appendChild(document.createTextNode(` ${time}`));
 
         let eventWrapper = document.createElement('div');
         eventWrapper.className = 'event-item-custom';

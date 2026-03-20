@@ -17,6 +17,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 
 @Configuration
 public class SecurityConfig {
@@ -163,8 +165,8 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.DELETE, "/api/schedule/**", "/api/groups/**",
                                                 "/api/users/**")
                                 .hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.GET, 
-                                                "/api/groups", 
+                                .requestMatchers(HttpMethod.GET,
+                                                "/api/groups",
                                                 "/api/schedule/all",
                                                 "/api/users",
                                                 "/api/users/search")
@@ -175,7 +177,8 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.GET, "/api/announcements/all").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.GET, "/api/announcements/group")
                                 .hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
-                                .requestMatchers(HttpMethod.POST, "/api/announcements/*/confirm-read").hasAnyRole("STUDENT", "STAROSTA")
+                                .requestMatchers(HttpMethod.POST, "/api/announcements/*/confirm-read")
+                                .hasAnyRole("STUDENT", "STAROSTA")
                                 .requestMatchers(HttpMethod.DELETE, "/api/announcements/*")
                                 .hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
 
@@ -209,6 +212,37 @@ public class SecurityConfig {
 
                 http.rememberMe(rememberMe -> rememberMe
                                 .rememberMeServices(rememberMeServices));
+
+                // Nagłówki bezpieczeństwa HTTP
+                http.headers(headers -> headers
+                                // Content-Security-Policy
+                                // 'unsafe-inline' w script-src jest wymagane przez inline ANTI-FOUC skrypt w
+                                // <head>
+                                // Jeśli w przyszłości inline skrypt zostanie zastąpiony nonce/hash, można
+                                // usunąć 'unsafe-inline'
+                                .contentSecurityPolicy(csp -> csp.policyDirectives(
+                                                "default-src 'self'; " +
+                                                                "script-src 'self' 'unsafe-inline' " +
+                                                                "https://cdn.quilljs.com " +
+                                                                "https://cdn.jsdelivr.net " +
+                                                                "https://cdnjs.cloudflare.com; " +
+                                                                "style-src 'self' 'unsafe-inline' " +
+                                                                "https://fonts.googleapis.com " +
+                                                                "https://cdnjs.cloudflare.com " +
+                                                                "https://cdn.quilljs.com " +
+                                                                "https://cdn.jsdelivr.net; " +
+                                                                "font-src 'self' data: " +
+                                                                "https://fonts.gstatic.com " +
+                                                                "https://cdnjs.cloudflare.com; " +
+                                                                "img-src 'self' data: blob:; " +
+                                                                "connect-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+                                                                "frame-ancestors 'none'; " +
+                                                                "base-uri 'self'; " +
+                                                                "form-action 'self'"))
+                                .frameOptions(frame -> frame.deny())
+                                .contentTypeOptions(Customizer.withDefaults())
+                                .referrerPolicy(referrer -> referrer
+                                                .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)));
 
                 return http.build();
         }

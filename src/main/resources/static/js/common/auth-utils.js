@@ -23,16 +23,25 @@ const AUTH_CONFIG = {
     }
 };
 
-/* Wyświetla komunikat błędu lub sukcesu w kontenerze */
+/* Wyświetla komunikat HTML w kontenerze */
 function displayMessage(container, message, isSuccess = false) {
     if (!container) {
         console.error('Brak kontenera dla komunikatu');
         return;
     }
-    
-    // Escapowanie HTML dla bezpieczeństwa (XSS prevention)
     container.innerHTML = message;
     container.className = isSuccess ? 'form-message success' : 'form-message error';
+    container.setAttribute('role', 'alert');
+    container.setAttribute('aria-live', isSuccess ? 'polite' : 'assertive');
+}
+
+/* Bezpieczna wersja displayMessage dla czystego tekstu */
+function displaySafeText(container, text, isSuccess = false) {
+    if (!container) return;
+    container.textContent = text;
+    container.className = isSuccess ? 'form-message success' : 'form-message error';
+    container.setAttribute('role', 'alert');
+    container.setAttribute('aria-live', isSuccess ? 'polite' : 'assertive');
 }
 
 /* Konwertuje numer albumu na pełny adres email studenta */

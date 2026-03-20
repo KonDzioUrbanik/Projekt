@@ -273,7 +273,7 @@ class GroupsManagement{
                 groupsList.innerHTML = `
                     <div class="empty-state" style="grid-column: 1 / -1;">
                         <h3>Nie znaleziono kierunków</h3>
-                        <p>Brak kierunków pasujących do frazy: "<strong>${this.searchQuery}</strong>"</p>
+                        <p>Brak kierunków pasujących do frazy: "<strong>${Utils.escapeHtml(this.searchQuery)}</strong>"</p>
                     </div>
                 `;
             } else {
@@ -288,10 +288,10 @@ class GroupsManagement{
 
         groupsList.innerHTML = this.filteredGroups.map(group => {
             // Wyróżnienie wyszukiwanej frazy
-            let displayName = group.name;
+            let displayName = Utils.escapeHtml(group.name);
             if(this.searchQuery){
-                const regex = new RegExp(`(${this.searchQuery})`, 'gi');
-                displayName = group.name.replace(regex, '<mark>$1</mark>');
+                const regex = new RegExp(`(${Utils.escapeHtml(this.searchQuery)})`, 'gi');
+                displayName = displayName.replace(regex, '<mark>$1</mark>');
             }
 
             return `

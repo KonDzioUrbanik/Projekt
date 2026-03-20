@@ -158,8 +158,17 @@ function updateResultsCounter(count) {
     }
 }
 
+// Pomocnicza funkcja debounce (opóźnienie wywołania przy wpisywaniu)
+function debounce(fn, delay) {
+    let timer;
+    return function(...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+}
+
 // event listeners
-searchInput.addEventListener('input', filterUsers);
+searchInput.addEventListener('input', debounce(filterUsers, 300)); // debounce 300ms przy wyszukiwaniu
 roleFilter.addEventListener('change', filterUsers);
 groupFilter.addEventListener('change', filterUsers);
 yearFilter.addEventListener('change', filterUsers);
@@ -327,9 +336,16 @@ function openActivationModal(btn) {
     const confirmBtn = document.getElementById('btnConfirmActivation');
 
     title.textContent = nextState ? 'Aktywacja konta' : 'Dezaktywacja konta';
-    text.innerHTML = nextState 
-        ? `Czy na pewno chcesz <strong>aktywować</strong> konto użytkownika <strong>${userName}</strong>?`
-        : `Czy na pewno chcesz <strong>dezaktywować</strong> konto użytkownika <strong>${userName}</strong>?`;
+    
+    if (text) {
+        if (nextState) {
+            text.innerHTML = `Czy na pewno chcesz <strong>aktywować</strong> konto użytkownika <strong id="activationUserName"></strong>?`;
+            document.getElementById('activationUserName').textContent = userName;
+        } else {
+            text.innerHTML = `Czy na pewno chcesz <strong>dezaktywować</strong> konto użytkownika <strong id="activationUserName"></strong>?`;
+            document.getElementById('activationUserName').textContent = userName;
+        }
+    }
     
     confirmBtn.className = `btn ${nextState ? 'btn-primary-block' : 'btn-danger-block'}`;
     confirmBtn.textContent = nextState ? 'Aktywuj konto' : 'Dezaktywuj konto';

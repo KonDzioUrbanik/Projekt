@@ -149,10 +149,17 @@ const Utils = {
     getWeekType(date) {
         const weekNumber = this.getWeekNumber(date);
         
-        // Granica semestrów: 23 luty 2026 zaczyna się semestr letni
         const checkDate = new Date(date);
         checkDate.setHours(0, 0, 0, 0);
-        const semesterSwitch = new Date(2026, 1, 23); // luty (index 1)
+
+        // Konfiguracja dat początku semestrów letnich (aktualizuj na nowy rok akademicki)
+        // Format: { year, month (0-indexed), day }
+        const SUMMER_SEMESTER_START = { year: 2026, month: 1, day: 23 }; // 23 luty 2026
+        const semesterSwitch = new Date(
+            SUMMER_SEMESTER_START.year,
+            SUMMER_SEMESTER_START.month,
+            SUMMER_SEMESTER_START.day
+        );
 
         if (checkDate < semesterSwitch) {
             // SEMESTR ZIMOWY

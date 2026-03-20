@@ -175,13 +175,8 @@ document.addEventListener('DOMContentLoaded', function(){
             messageTimeout = null;
         }
         
-        messageDiv.className = 'form-message ' + type;
-        
-        let icon = 'fa-info-circle';
-        if(type === 'success') icon = 'fa-check-circle';
-        if(type === 'error') icon = 'fa-exclamation-circle';
-        
-        messageDiv.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+        messageDiv.innerHTML = `<i class="fas ${icon}"></i> <span id="msgTxt"></span>`;
+        messageDiv.querySelector('#msgTxt').textContent = message;
         messageDiv.style.display = 'block';
         
         messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -593,9 +588,9 @@ document.addEventListener('DOMContentLoaded', function(){
         });
 
         function showMessage(text, type) {
-            const msgBox = document.getElementById('profileMessage');
             if (msgBox) {
-                msgBox.textContent = text;
+                msgBox.innerHTML = '<span id="msgBoxTxt"></span>';
+                msgBox.querySelector('#msgBoxTxt').textContent = text;
                 msgBox.className = 'form-message ' + (type === 'error' ? 'error' : 'success');
                 msgBox.style.display = 'block';
                 msgBox.scrollIntoView({ behavior: 'smooth', block: 'center' });

@@ -50,6 +50,7 @@ class ProfileModule {
     }
 
     renderNotes(notes) {
+        if (!this.notesContainer) return; // Guard: element może nie istnieć
         // Aktualizacja licznika
         if (this.statsNotes) {
             this.statsNotes.textContent = notes ? notes.length : 0;
@@ -125,10 +126,11 @@ class ProfileModule {
     }
 
     renderComments(comments) {
+        if (!this.commentsContainer) return; // Guard
         if (!comments || comments.length === 0) {
             this.commentsContainer.innerHTML = `
                 <div class="empty-state-small">
-                    <i class="fas fa-comment-slash"></i>
+                    <i class="fas fa-comment-slash" aria-hidden="true"></i>
                     <p>Brak komentarzy</p>
                 </div>
             `;
@@ -141,25 +143,26 @@ class ProfileModule {
     // Sekcja: Narzędzia pomocnicze
 
     showEmptyState(container, iconClass, message, linkUrl, linkText) {
+        if (!container) return; // Guard: element może nie istnieć
         let btnHtml = '';
         if (linkUrl && linkText) {
-            btnHtml = `<a href="${linkUrl}" class="btn-link">${linkText}</a>`;
+            btnHtml = `<a href="${linkUrl}" class="btn-link">${Utils.escapeHtml(linkText)}</a>`;
         }
-        
         container.innerHTML = `
             <div class="empty-state-small">
-                <i class="fas ${iconClass}"></i>
-                <p>${message}</p>
+                <i class="fas ${Utils.escapeHtml(iconClass)}" aria-hidden="true"></i>
+                <p>${Utils.escapeHtml(message)}</p>
                 ${btnHtml}
             </div>
         `;
     }
 
     showError(container, message) {
+        if (!container) return; // Guard: element może nie istnieć
         container.innerHTML = `
             <div class="empty-state-small error">
-                <i class="fas fa-exclamation-triangle"></i>
-                <p>${message}</p>
+                <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                <p>${Utils.escapeHtml(message)}</p>
             </div>
         `;
     }

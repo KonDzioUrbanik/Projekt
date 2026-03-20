@@ -118,9 +118,9 @@ class DashboardHome {
             ? new Date(item.createdAt).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })
             : '-';
 
-        const title = this.escapeHtml(item.title || 'Bez tytułu');
-        const content = this.escapeHtml(item.content || '');
-        const author = this.escapeHtml([
+        const title = Utils.escapeHtml(item.title || 'Bez tytułu');
+        const content = Utils.escapeHtml(item.content || '');
+        const author = Utils.escapeHtml([
             item.authorFirstName,
             item.authorLastName
         ].filter(Boolean).join(' ') || 'Nieznany autor');
@@ -150,14 +150,6 @@ class DashboardHome {
         `;
     }
 
-    escapeHtml(value) {
-        return String(value ?? '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
     
     // Aktualizacja zegara
     updateClock() {

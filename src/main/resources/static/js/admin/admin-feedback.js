@@ -232,8 +232,8 @@ const FeedbackManager = {
 
         // Dane techniczne
         const techDetails = `
-            URL: ${item.url || 'Brak'}<br>
-            User Agent: ${item.userAgent || 'Brak'}
+            URL: ${Utils.escapeHtml(item.url || 'Brak')}<br>
+            User Agent: ${Utils.escapeHtml(item.userAgent || 'Brak')}
         `;
         document.getElementById('modalTechDetails').innerHTML = techDetails;
 
@@ -397,17 +397,6 @@ const FeedbackManager = {
                 }
             }
         }, 5000);
-    },
-
-    // Helpery
-    escapeHtml(unsafe) {
-        if (!unsafe) return '';
-        return unsafe
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
     },
 
     formatDate(dateStr, includeTime = false) {

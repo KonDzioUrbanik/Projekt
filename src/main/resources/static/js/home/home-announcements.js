@@ -50,10 +50,10 @@
         const createdAt = item.createdAt
             ? new Date(item.createdAt).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })
             : '-';
-        const title = esc(item.title || 'Bez tytułu');
-        const content = esc(item.content || '');
-        const groupName = esc(item.targetGroupName || 'Brak grupy');
-        const authorName = esc([item.authorFirstName, item.authorLastName].filter(Boolean).join(' ') || 'Nieznany autor');
+        const title = Utils.escapeHtml(item.title || 'Bez tytułu');
+        const content = Utils.escapeHtml(item.content || '');
+        const groupName = Utils.escapeHtml(item.targetGroupName || 'Brak grupy');
+        const authorName = Utils.escapeHtml([item.authorFirstName, item.authorLastName].filter(Boolean).join(' ') || 'Nieznany autor');
 
         return `
             <article class="home-ann-card">
@@ -88,14 +88,6 @@
         errorEl.style.display = 'none';
     }
 
-    function esc(text) {
-        return String(text)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
 })();
 
 
