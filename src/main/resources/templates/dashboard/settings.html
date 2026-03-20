@@ -15,7 +15,15 @@
         <link rel="stylesheet" th:href="@{/css/dashboard/settings.css}" href="../static/css/dashboard/settings.css">
         <!-- Theme CSS -->
         <link rel="stylesheet" th:href="@{/css/common/theme.css}">
-        <script th:src="@{/js/common/theme.js}"></script>
+
+        <script>
+            (function() {
+                var t = localStorage.getItem('theme');
+                if (t === 'dark' || (!t && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                }
+            })();
+        </script>
     </head>
     <body>
         <!-- Przycisk zmiany motywu -->
@@ -299,5 +307,6 @@
 
         <!-- osobny plik JS -->
         <script th:src="@{/js/dashboard/settings.js}" src="../../static/js/dashboard/settings.js" defer></script>
+        <script th:src="@{/js/common/theme.js}" defer></script>
     </body>
 </html>

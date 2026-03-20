@@ -23,6 +23,17 @@
         <link rel="stylesheet" th:href="@{/css/common/theme.css}">
 
         <th:block layout:fragment="page-styles"></th:block>
+        
+        <script>
+            (function() {
+                var stored = localStorage.getItem('theme');
+                if (stored === 'dark') {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                } else if (!stored && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                }
+            })();
+        </script>
     </head>
     
     <body>
