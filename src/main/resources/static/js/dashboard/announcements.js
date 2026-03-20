@@ -243,11 +243,11 @@
             <article class="announcement-card">
                 <div class="announcement-card-header">
                     <div class="announcement-card-header-left">
-                        <div class="ann-author-avatar">${escapeHtml(initials)}</div>
+                        <div class="ann-author-avatar">${Utils.escapeHtml(initials)}</div>
                         <div class="announcement-title-block">
-                            <h4 class="announcement-title">${escapeHtml(item.title || '')}</h4>
+                            <h4 class="announcement-title">${Utils.escapeHtml(item.title || '')}</h4>
                             <div class="announcement-author-line">
-                                <strong>${escapeHtml(author)}</strong>
+                                <strong>${Utils.escapeHtml(author)}</strong>
                             </div>
                         </div>
                     </div>
@@ -256,15 +256,15 @@
                         ${deleteBtn}
                     </div>
                 </div>
-                <p class="announcement-content">${escapeHtml(item.content || '')}</p>
+                <p class="announcement-content">${Utils.escapeHtml(item.content || '')}</p>
                 <div class="announcement-meta">
                     <div class="ann-meta-item">
                         <i class="fas fa-clock"></i>
-                        <span>${escapeHtml(created)}</span>
+                        <span>${Utils.escapeHtml(created)}</span>
                     </div>
                     <div class="ann-group-badge">
                         <i class="fas fa-users"></i>
-                        ${escapeHtml(group)}
+                        ${Utils.escapeHtml(group)}
                     </div>
                     ${readStats}
                     ${readAction}
@@ -284,7 +284,7 @@
         msgEl.innerHTML = `
             <div class="ann-alert ${type}">
                 <i class="fas ${icon}"></i>
-                <span>${escapeHtml(text)}</span>
+                <span>${Utils.escapeHtml(text)}</span>
             </div>
         `;
         // Auto-dismiss success after 4 s
@@ -306,12 +306,4 @@
         return t;
     }
 
-    function escapeHtml(text) {
-        return String(text)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
 })();

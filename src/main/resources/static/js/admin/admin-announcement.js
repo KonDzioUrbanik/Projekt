@@ -275,24 +275,24 @@ const AdminAnnouncement = {
 
             tr.innerHTML = `
                 <td style="color: var(--text-light); font-size: 0.82rem;">${index + 1}</td>
-                <td><div class="ann-td-title" title="${this.esc(item.title)}">${this.esc(item.title || '')}</div></td>
-                <td><div class="ann-td-content" title="${this.esc(item.content)}">${this.esc(item.content || '')}</div></td>
-                <td class="ann-td-author">${this.esc(author)}</td>
+                <td><div class="ann-td-title" title="${Utils.escapeHtml(item.title)}">${Utils.escapeHtml(item.title || '')}</div></td>
+                <td><div class="ann-td-content" title="${Utils.escapeHtml(item.content)}">${Utils.escapeHtml(item.content || '')}</div></td>
+                <td class="ann-td-author">${Utils.escapeHtml(author)}</td>
                 <td class="ann-td-group">
                     <span class="ann-group-badge">
                         <i class="fas fa-users"></i>
-                        ${this.esc(item.targetGroupName || '-')}
+                        ${Utils.escapeHtml(item.targetGroupName || '-')}
                     </span>
                 </td>
                 <td class="ann-td-date">${Number(item.readConfirmationsCount || 0)}</td>
-                <td class="ann-td-date">${this.esc(created)}</td>
+                <td class="ann-td-date">${Utils.escapeHtml(created)}</td>
                 <td class="ann-td-actions">
                     <div class="ann-action-group">
                         <button class="ann-action-btn ann-btn-view" data-id="${item.id}" title="Rozwiń treść">
                             <i class="fas fa-chevron-down"></i>
                         </button>
                         ${item.canDelete
-                            ? `<button class="ann-action-btn ann-btn-del" data-id="${item.id}" data-title="${this.esc(item.title)}" data-global="${item.targetGroupId === null}" title="Usuń">
+                            ? `<button class="ann-action-btn ann-btn-del" data-id="${item.id}" data-title="${Utils.escapeHtml(item.title)}" data-global="${item.targetGroupId === null}" title="Usuń">
                                    <i class="fas fa-trash-alt"></i>
                                </button>`
                             : ''}
@@ -318,7 +318,7 @@ const AdminAnnouncement = {
                     expandTr.dataset.for = item.id;
                     expandTr.innerHTML = `
                         <td colspan="8">
-                            <div class="ann-expanded-content">${this.esc(item.content || '')}</div>
+                            <div class="ann-expanded-content">${Utils.escapeHtml(item.content || '')}</div>
                         </td>
                     `;
                     tr.after(expandTr);
@@ -354,8 +354,8 @@ const AdminAnnouncement = {
         if (this.elements.deleteText) {
             this.elements.deleteText.innerHTML =
                 isGlobal
-                    ? `Czy na pewno chcesz usunac globalne ogloszenie <strong>&ldquo;${this.esc(title || '')}&rdquo;</strong>? Operacja usunie cala paczke wyslanek do wszystkich kierunkow.`
-                    : `Czy na pewno chcesz usunąć ogłoszenie <strong>&ldquo;${this.esc(title || '')}&rdquo;</strong>? Tej operacji nie można cofnąć.`;
+                    ? `Czy na pewno chcesz usunac globalne ogloszenie <strong>&ldquo;${Utils.escapeHtml(title || '')}&rdquo;</strong>? Operacja usunie cala paczke wyslanek do wszystkich kierunkow.`
+                    : `Czy na pewno chcesz usunąć ogłoszenie <strong>&ldquo;${Utils.escapeHtml(title || '')}&rdquo;</strong>? Tej operacji nie można cofnąć.`;
         }
         this.elements.deleteModal?.classList.add('active');
     },
@@ -397,7 +397,7 @@ const AdminAnnouncement = {
         this.elements.msgEl.innerHTML = `
             <div class="ann-alert ${type}">
                 <i class="fas ${icon}"></i>
-                <span>${this.esc(text)}</span>
+                <span>${Utils.escapeHtml(text)}</span>
             </div>
         `;
         if (type === 'success') {
@@ -425,15 +425,6 @@ const AdminAnnouncement = {
         return this.readErrorText(err.message) || err.message;
     },
 
-    // ── Utils ────────────────────────────────────────────────────────────────
-    esc(text) {
-        return String(text ?? '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
 };
 
 document.addEventListener('DOMContentLoaded', () => AdminAnnouncement.init());

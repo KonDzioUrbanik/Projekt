@@ -191,7 +191,7 @@ function setQuillTooltips() {
 function setupEventListeners() {
     // Szukanie
     if (DOM.searchInput) {
-        DOM.searchInput.addEventListener('input', debounce((e) => {
+        DOM.searchInput.addEventListener('input', Utils.debounce((e) => {
             AppState.searchQuery = e.target.value.trim();
             applyCurrentFilter();
             renderNotesList();
@@ -241,7 +241,7 @@ function setupEventListeners() {
 
     // Wyszukiwanie użytkowników do udostępnienia
     if (DOM.userSearchInput) {
-        DOM.userSearchInput.addEventListener('input', debounce(handleUserSearch, CONFIG.TIMING.USER_SEARCH_DEBOUNCE));
+        DOM.userSearchInput.addEventListener('input', Utils.debounce(handleUserSearch, CONFIG.TIMING.USER_SEARCH_DEBOUNCE));
     }
 
 
@@ -287,25 +287,10 @@ function setupEventListeners() {
 
 // LOGIKA: CZAS I LICZNIKI
 
-function formatRelativeTime(dateString) {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInSeconds = Math.floor((now - date) / 1000);
-
-    if (diffInSeconds < 60) return 'przed chwilą';
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60) return `${diffInMinutes} min temu`;
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) {
-        if (diffInHours === 1) return 'godzinę temu';
-        if (diffInHours > 1 && diffInHours < 5) return `${diffInHours} godz. temu`;
-        return `${diffInHours} godz. temu`;
-    }
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays === 1) return 'wczoraj';
-    return date.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' });
-}
+/**
+ * Formatuje datę jako czas relatywny ("przed chwilą", "5 min temu" itp.)
+ * Deleguje do Utils.formatDate (utils.js) - unikamy duplikacji logiki.
+ */
 
 function updateCharCounter(inputElement, counterElement, limit) {
     if (!inputElement || !counterElement) return;
@@ -659,7 +644,7 @@ function renderNotesList() {
             updateUrl(note.id);
         };
         
-        const date = formatRelativeTime(note.updatedAt || note.createdAt);
+        const date = Utils.formatDate(note.updatedAt || note.createdAt);
         
         // Usunięcie tagów HTML oraz znaczników Markdown z podglądu
         const rawContent = note.content || '';
@@ -693,10 +678,10 @@ function renderNotesList() {
                     <i class="fas fa-pen"></i>
                 </button>
             </div>
-            <h3>${escapeHtml(Utils.stripMarkdown(note.title))}</h3>
-            <p>${escapeHtml(preview)}</p>
+            <h3>${Utils.escapeHtml(Utils.stripMarkdown(note.title))}</h3>
+            <p>${Utils.escapeHtml(preview)}</p>
             <div class="note-card-footer">
-                <span>${date}</span>
+                <span>${Utils.formatDate(note.updatedAt || note.createdAt)}</span>
                 <span class="note-card-visibility ${(note.visibility || 'PRIVATE').toLowerCase().replace('_', '-')}">
                     <i class="fas ${visibilityIcons[note.visibility || 'PRIVATE']}"></i>
                 </span>
@@ -771,7 +756,7 @@ function renderMasonryGrid() {
         const rawContent = note.content || '';
         const cleanContent = Utils.stripMarkdown(Utils.stripHtml(rawContent));
         const preview = cleanContent ? cleanContent.substring(0, 200) + (cleanContent.length > 200 ? '...' : '') : '';
-        const date = formatRelativeTime(note.updatedAt || note.createdAt);
+        const date = Utils.formatDate(note.updatedAt || note.createdAt);
         const bgColor = colorPalette[index % colorPalette.length];
         const iconClass = visibilityIcons[note.visibility || 'PRIVATE'];
 
@@ -783,21 +768,21 @@ function renderMasonryGrid() {
         card.innerHTML = `
             <div class="masonry-card-inner">
                 <div class="masonry-card-header">
-                    <h3 class="masonry-card-title">${escapeHtml(Utils.stripMarkdown(note.title))}</h3>
+                    <h3 class="masonry-card-title">${Utils.escapeHtml(Utils.stripMarkdown(note.title))}</h3>
                     <span class="masonry-card-icon" title="${note.visibility || 'PRIVATE'}">
                         <i class="fas ${iconClass}"></i>
                     </span>
                 </div>
-                ${preview ? `<p class="masonry-card-preview">${escapeHtml(preview)}</p>` : '<p class="masonry-card-preview empty">Brak treści...</p>'}
+                ${preview ? `<p class="masonry-card-preview">${Utils.escapeHtml(preview)}</p>` : '<p class="masonry-card-preview empty">Brak treści...</p>'}
                 ${
                     note.tags ? `<div class="masonry-card-tags">${
                         note.tags.split(',').map(t => t.trim()).filter(t => t)
                             .slice(0, 3)
-                            .map(t => `<span class="masonry-tag">#${escapeHtml(t)}</span>`).join('')
+                            .map(t => `<span class="masonry-tag">#${Utils.escapeHtml(t)}</span>`).join('')
                     }</div>` : ''
                 }
                 <div class="masonry-card-footer">
-                    <span class="masonry-card-date">${date}</span>
+                    <span class="masonry-card-date">${Utils.formatDate(note.updatedAt || note.createdAt)}</span>
                     ${note.isFavorited ? '<i class="fas fa-star masonry-star"></i>' : ''}
                 </div>
             </div>
@@ -835,14 +820,14 @@ function renderNoteView(note) {
 
     
     if (DOM.noteAuthor) DOM.noteAuthor.textContent = getNoteAuthorName(note);
-    if (DOM.noteCreatedAt) DOM.noteCreatedAt.textContent = formatDateTime(note.createdAt);
+    if (DOM.noteCreatedAt) DOM.noteCreatedAt.textContent = Utils.formatDate(note.createdAt);
 
     // Sprawdź czy notatka była edytowana (updatedAt != null)
     const isEdited = note.updatedAt !== null && note.updatedAt !== undefined;
     if (DOM.noteEditedMeta) {
         DOM.noteEditedMeta.style.display = isEdited ? 'inline-block' : 'none';
         if (isEdited) {
-            DOM.noteEditedMeta.title = `Ostatnia edycja: ${formatDateTime(note.updatedAt)}`;
+            DOM.noteEditedMeta.title = `Ostatnia edycja: ${Utils.formatDate(note.updatedAt)}`;
         }
     }
 
@@ -929,7 +914,7 @@ function parseMarkdownLite(text) {
     if (!text) return '';
 
     // Sanityzacja HTML (XSS prevention)
-    let safeText = escapeHtml(text);
+    let safeText = Utils.escapeHtml(text);
 
     // Parsowanie Markdown
 
@@ -1337,8 +1322,8 @@ function renderUserSearchResults(users) {
             userEl.className = 'user-search-result';
             userEl.innerHTML = `
                 <div>
-                    <strong>${escapeHtml(user.firstName)} ${escapeHtml(user.lastName)}</strong>
-                    <br><small>${escapeHtml(user.email)}</small>
+                    <strong>${Utils.escapeHtml(user.firstName)} ${Utils.escapeHtml(user.lastName)}</strong>
+                    <br><small>${Utils.escapeHtml(user.email)}</small>
                 </div>
             `;
             userEl.onclick = () => selectUser(user);
@@ -1378,7 +1363,7 @@ function renderSelectedUsers() {
         const userChip = document.createElement('div');
         userChip.className = 'user-chip';
         userChip.innerHTML = `
-            <span>${escapeHtml(user.firstName || '')} ${escapeHtml(user.lastName || '')}</span>
+            <span>${Utils.escapeHtml(user.firstName || '')} ${Utils.escapeHtml(user.lastName || '')}</span>
             <button type="button" onclick="removeSelectedUser(${user.id})">
                 <i class="fas fa-times"></i>
             </button>
@@ -1404,37 +1389,6 @@ async function shareNoteData(noteId, visibility) {
     }
     
     return await response.json();
-}
-
-
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-function formatDateTime(dateStr) {
-    if (!dateStr) return '';
-    return new Date(dateStr).toLocaleString('pl-PL', { 
-        day: 'numeric', month: 'long', hour: '2-digit', minute:'2-digit' 
-    });
-}
-
-function escapeHtml(text) {
-    if (!text) return '';
-    return text
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
 }
 
 function getNoteAuthorName(note) {
@@ -1539,12 +1493,11 @@ async function exportToDocx() {
 
     Utils.showToast('Generowanie pliku DOCX...', 'info');
 
-    // Sprawdź czy biblioteka jest załadowana
+    // Sprawdzenie czy biblioteka jest załadowana
     if (typeof htmlDocx === 'undefined') {
         try {
-            // Używamy wersji z unpkg (html-docx-js)
-            // Uwaga: html-docx-js udostępnia globalny obiekt 'htmlDocx' lub 'asBlob'
-            await loadScript('https://unpkg.com/html-docx-js/dist/html-docx.js');
+            // Użycie html-docx-js z jsdelivr
+            await loadScript('https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js');
         } catch (e) {
             console.error(e);
             Utils.showToast('Błąd ładowania biblioteki DOCX.', 'error');
@@ -1561,7 +1514,7 @@ async function exportToDocx() {
             <html>
                 <head>
                     <meta charset="utf-8">
-                    <title>${escapeHtml(title)}</title>
+                    <title>${Utils.escapeHtml(title)}</title>
                     <style>
                         body { font-family: 'Calibri', 'Arial', sans-serif; font-size: 11pt; }
                         h1 { font-size: 16pt; color: #2e74b5; }
@@ -1571,9 +1524,9 @@ async function exportToDocx() {
                     </style>
                 </head>
                 <body>
-                    <h1>${escapeHtml(title)}</h1>
+                    <h1>${Utils.escapeHtml(title)}</h1>
                     <p style="color: grey; font-size: 9pt;">
-                        Autor: ${escapeHtml(getNoteAuthorName(AppState.selectedNote))}<br>
+                        Autor: ${Utils.escapeHtml(getNoteAuthorName(AppState.selectedNote))}<br>
                         Data: ${new Date().toLocaleString()}
                     </p>
                     <hr>
