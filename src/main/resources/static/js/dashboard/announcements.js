@@ -66,13 +66,14 @@
         });
         modalConfirmBtn?.addEventListener('click', async () => {
             if (!pendingDeleteId) return;
+            const idToDelete = pendingDeleteId;
             closeDeleteModal();
-            await executeDelete(pendingDeleteId);
-            pendingDeleteId = null;
+            await executeDelete(idToDelete);
         });
     }
 
     function openDeleteModal(id) {
+        if (!deleteModal) return;
         pendingDeleteId = id;
         deleteModal?.classList.add('active');
     }
@@ -179,13 +180,32 @@
         const cardsHtml = list.map((item, index) => buildCard(item, index + 1)).join('');
         if (cardsEl) cardsEl.innerHTML = cardsHtml;
 
-        // Attach delete button listeners (starosta only)
-        if (mode === 'starosta' && cardsEl) {
+        if (cardsEl) {
             cardsEl.querySelectorAll('.ann-delete-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     openDeleteModal(Number(btn.dataset.id));
                 });
             });
+
+            cardsEl.querySelectorAll('.ann-confirm-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    await executeConfirmRead(Number(btn.dataset.id));
+                });
+            });
+        }
+    }
+
+    async function executeConfirmRead(id) {
+        try {
+            const response = await fetch(`/api/announcements/${id}/confirm-read`, { method: 'POST' });
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(errText || 'Nie udało się potwierdzić przeczytania ogłoszenia.');
+            }
+            showMessage('Potwierdzono przeczytanie ogłoszenia.', 'success');
+            await loadAnnouncements();
+        } catch (err) {
+            showMessage(readError(err), 'error');
         }
     }
 
@@ -198,10 +218,25 @@
         const initials = ((item.authorFirstName?.[0] || '') + (item.authorLastName?.[0] || '')).toUpperCase() || '?';
         const group    = item.targetGroupName || '-';
 
-        const deleteBtn = mode === 'starosta'
+        const deleteBtn = item.canDelete
             ? `<button class="ann-delete-btn" data-id="${item.id}" title="Usuń ogłoszenie">
                    <i class="fas fa-trash-alt"></i>
                </button>`
+            : '';
+
+        const readAction = item.canConfirmRead
+            ? `<button class="ann-confirm-btn" data-id="${item.id}">
+                   <i class="fas fa-check"></i> Potwierdzam przeczytanie
+               </button>`
+            : item.readByCurrentUser
+                ? `<span class="ann-read-badge"><i class="fas fa-check-circle"></i> Potwierdzone</span>`
+                : '';
+
+        const readStats = item.canViewReadStats
+            ? `<div class="ann-meta-item ann-read-count" title="Liczba potwierdzeń przeczytania">
+                   <i class="fas fa-user-check"></i>
+                   <span>Potwierdzenia: ${Number(item.readConfirmationsCount || 0)}</span>
+               </div>`
             : '';
 
         return `
@@ -231,6 +266,8 @@
                         <i class="fas fa-users"></i>
                         ${escapeHtml(group)}
                     </div>
+                    ${readStats}
+                    ${readAction}
                 </div>
             </article>
         `;

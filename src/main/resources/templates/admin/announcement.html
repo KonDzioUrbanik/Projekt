@@ -127,13 +127,14 @@
                                 <th>Treść (podgląd)</th>
                                 <th>Autor</th>
                                 <th>Grupa</th>
+                                <th>Potwierdzenia</th>
                                 <th>Data</th>
                                 <th class="ann-actions-header">Akcje</th>
                             </tr>
                         </thead>
                         <tbody id="announcementTableBody">
                             <tr>
-                                <td colspan="7" style="padding: 4rem 2rem; text-align: center;">
+                                <td colspan="8" style="padding: 4rem 2rem; text-align: center;">
                                     <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
                                         <div class="ann-spinner"></div>
                                         <p style="color: var(--text-light); margin: 0;">Ładowanie ogłoszeń...</p>
@@ -145,23 +146,23 @@
                 </div>
             </div>
 
-        </div>
-
-        <!-- Delete confirmation modal -->
-        <div class="ann-modal-overlay" id="deleteModal">
-            <div class="ann-modal-card">
-                <div class="ann-modal-icon">
-                    <i class="fas fa-trash-alt"></i>
-                </div>
-                <h3>Usuń ogłoszenie</h3>
-                <p id="deleteModalText">Czy na pewno chcesz usunąć to ogłoszenie? Tej operacji nie można cofnąć.</p>
-                <div class="ann-modal-actions">
-                    <button class="ann-btn-cancel" id="modalCancelBtn">Anuluj</button>
-                    <button class="ann-btn-confirm-delete" id="modalConfirmBtn">
-                        <i class="fas fa-trash-alt"></i> Usuń
-                    </button>
+            <!-- Delete confirmation modal -->
+            <div class="ann-modal-overlay" id="deleteModal">
+                <div class="ann-modal-card">
+                    <div class="ann-modal-icon">
+                        <i class="fas fa-trash-alt"></i>
+                    </div>
+                    <h3>Usuń ogłoszenie</h3>
+                    <p id="deleteModalText">Czy na pewno chcesz usunąć to ogłoszenie? Tej operacji nie można cofnąć.</p>
+                    <div class="ann-modal-actions">
+                        <button class="ann-btn-cancel" id="modalCancelBtn">Anuluj</button>
+                        <button class="ann-btn-confirm-delete" id="modalConfirmBtn">
+                            <i class="fas fa-trash-alt"></i> Usuń
+                        </button>
+                    </div>
                 </div>
             </div>
+
         </div>
 
         <th:block layout:fragment="page-scripts">

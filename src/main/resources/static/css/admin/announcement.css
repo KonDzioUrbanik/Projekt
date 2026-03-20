@@ -176,6 +176,45 @@
     box-shadow: 0 4px 10px rgba(239, 68, 68, 0.35);
 }
 
+.ann-confirm-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid rgba(5, 150, 105, 0.25);
+    background: rgba(5, 150, 105, 0.08);
+    color: #047857;
+    border-radius: 18px;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ann-confirm-btn:hover {
+    background: #059669;
+    color: #fff;
+    border-color: #059669;
+}
+
+.ann-read-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 18px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #047857;
+    background: rgba(5, 150, 105, 0.08);
+    border: 1px solid rgba(5, 150, 105, 0.25);
+}
+
+.ann-read-count {
+    font-weight: 600;
+    color: var(--text-light);
+}
+
 /* --- Loading State --- */
 .ann-loading {
     display: flex;

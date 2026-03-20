@@ -860,6 +860,32 @@ body {
     transform: translateX(4px);
 }
 
+.starosta-announcement-card .card-header {
+    background: linear-gradient(135deg, rgba(5, 150, 105, 0.08) 0%, rgba(5, 150, 105, 0.02) 100%);
+}
+
+.starosta-announcement-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.95rem;
+}
+
+.starosta-announcement-body p {
+    color: var(--text-light);
+    margin: 0;
+}
+
+.starosta-announcement-cta {
+    width: fit-content;
+    background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+    box-shadow: 0 6px 14px rgba(5, 150, 105, 0.28);
+}
+
+.starosta-announcement-cta:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    box-shadow: 0 8px 18px rgba(5, 150, 105, 0.35);
+}
+
 /* Ciało karty */
 .card-body {
     padding: 1.75rem;

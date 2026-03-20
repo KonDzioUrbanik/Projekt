@@ -175,8 +175,9 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.GET, "/api/announcements/all").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.GET, "/api/announcements/group")
                                 .hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/api/announcements/*/confirm-read").hasAnyRole("STUDENT", "STAROSTA")
                                 .requestMatchers(HttpMethod.DELETE, "/api/announcements/*")
-                                .hasAnyRole("STAROSTA", "ADMIN")
+                                .hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
 
                                 // Widoki admin tylko dla ADMIN
                                 .requestMatchers("/admin/**").hasRole("ADMIN")

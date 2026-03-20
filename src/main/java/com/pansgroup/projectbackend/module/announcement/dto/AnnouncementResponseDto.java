@@ -11,6 +11,11 @@ public record AnnouncementResponseDto(
         String authorFirstName,
         String authorLastName,
         Long targetGroupId,
-        String targetGroupName
+        String targetGroupName,
+        boolean canDelete,
+        boolean canConfirmRead,
+        boolean readByCurrentUser,
+        boolean canViewReadStats,
+        long readConfirmationsCount
 ) {
 }

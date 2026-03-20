@@ -39,4 +39,10 @@ public class AnnouncementController {
     public void delete(@PathVariable Long id) {
         announcementService.deleteById(id);
     }
+
+    @PostMapping("/{id}/confirm-read")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void confirmRead(@PathVariable Long id) {
+        announcementService.confirmRead(id);
+    }
 }
