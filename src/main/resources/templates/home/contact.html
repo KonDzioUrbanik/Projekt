@@ -16,12 +16,17 @@
     <!-- Główne style aplikacji -->
     <link rel="stylesheet" th:href="@{/css/common/style.css}">
     <link rel="stylesheet" th:href="@{/css/common/theme.css}">
-    
-    <!-- Dedykowane style strony kontaktowej -->
-    <link rel="stylesheet" th:href="@{/css/home/contact.css(v=${#dates.createNow().getTime()})}">
 
-    <!-- System motywów -->
-    <script th:src="@{/js/common/theme.js}"></script>
+    <script>
+        (function() {
+            var t = localStorage.getItem('theme');
+            if (t === 'dark' || (!t && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+
+    <link rel="stylesheet" th:href="@{/css/home/contact.css(v=${#dates.createNow().getTime()})}">
 </head>
 <body>
     <button class="theme-toggle-btn" id="themeToggleBtn" title="Zmień motyw">
@@ -111,5 +116,6 @@
     </div>
 
     <script th:src="@{/js/home/contact.js(v=${#dates.createNow().getTime()})}" defer></script>
+    <script th:src="@{/js/common/theme.js}" defer></script>
 </body>
 </html>
