@@ -358,8 +358,8 @@ function renderReviewLists(events) {
             }
 
             li.innerHTML = `
-                <span class="event-dates">${this.escapeHtml(event.formattedDateRange || '')}</span>
-                <span class="${descClass}" ${styleAttr}>${this.escapeHtml(event.title || '')}</span>
+                <span class="event-dates">${Utils.escapeHtml(event.formattedDateRange || '')}</span>
+                <span class="${descClass}" ${styleAttr}>${Utils.escapeHtml(event.title || '')}</span>
             `;
             
             // Add click listener for Edit

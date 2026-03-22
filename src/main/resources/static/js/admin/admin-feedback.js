@@ -128,13 +128,13 @@ const FeedbackManager = {
                 <td>#${item.id}</td>
                 <td>${this.renderType(item.type)}</td>
                 <td>
-                    <div class="feedback-title-text" title="${this.escapeHtml(item.title)}">
-                        ${this.escapeHtml(item.title)}
+                    <div class="feedback-title-text" title="${Utils.escapeHtml(item.title)}">
+                        ${Utils.escapeHtml(item.title)}
                     </div>
                 </td>
-                <td>${item.email ? this.escapeHtml(item.email) : '<span class="text-muted">-</span>'}</td>
+                <td>${item.email ? Utils.escapeHtml(item.email) : '<span class="text-muted">-</span>'}</td>
                 <td>${this.renderStatus(item.status)}</td>
-                <td>${this.formatDate(item.createdAt)}</td>
+                <td>${Utils.formatDate(item.createdAt)}</td>
                 <td>
                     <button class="action-btn btn-view" onclick="FeedbackManager.openModal(${item.id})" title="Szczegóły">
                         <i class="fas fa-eye"></i>
@@ -207,7 +207,7 @@ const FeedbackManager = {
         // Wypełnianie danych
         document.getElementById('modalTitle').textContent = item.title;
         document.getElementById('modalStatus').innerHTML = this.renderStatus(item.status);
-        document.getElementById('modalDate').textContent = this.formatDate(item.createdAt, true);
+        document.getElementById('modalDate').textContent = Utils.formatDate(item.createdAt);
         document.getElementById('modalType').textContent = this.translateType(item.type);
         document.getElementById('modalEmail').textContent = item.email || 'Anonim';
         document.getElementById('modalDescription').textContent = item.description;
@@ -215,13 +215,14 @@ const FeedbackManager = {
         // Załącznik
         const attachmentRow = document.getElementById('attachmentRow');
         const attachmentDiv = document.getElementById('modalAttachment');
-        if (item.originalFileName) {
+        if (item.attachmentId) {
             attachmentRow.style.display = 'block';
+            const safeFileName = Utils.escapeHtml(item.originalFileName || 'Załącznik');
             attachmentDiv.innerHTML = `
-                <a href="/api/feedback/${item.id}/attachment" class="attachment-link" target="_blank">
-                    <i class="fas fa-paperclip"></i> 
-                    Pobierz załącznik ${item.originalFileName ? `(${item.originalFileName})` : ''}
-                </a>`;
+                <a href="/api/feedback/attachments/${item.attachmentId}" target="_blank" class="attachment-link">
+                    <i class="fas fa-paperclip"></i> ${safeFileName}
+                </a>
+            `;
         } else {
             attachmentRow.style.display = 'none';
             attachmentDiv.innerHTML = '';
@@ -399,20 +400,6 @@ const FeedbackManager = {
         }, 5000);
     },
 
-    formatDate(dateStr, includeTime = false) {
-        const date = new Date(dateStr);
-        const options = { 
-            day: '2-digit', 
-            month: '2-digit', 
-            year: 'numeric'
-        };
-        if (includeTime) {
-            options.hour = '2-digit';
-            options.minute = '2-digit';
-        }
-        return date.toLocaleDateString('pl-PL', options);
-    },
-
     translateType(type) {
         const map = {
             'BUG': 'Błąd w systemie',
@@ -421,8 +408,6 @@ const FeedbackManager = {
         };
         return map[type] || type;
     },
-
-
 };
 
 // Start

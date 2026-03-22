@@ -367,17 +367,17 @@ class DashboardHome {
         }
         
         specialPeriodDiv.innerHTML = `
-            <div class="special-period-card ${cssClass}">
-                <div class="special-period-icon">
-                    <i class="fas ${icon}"></i>
-                </div>
-                <div class="special-period-content">
-                    <h3>${period.title}</h3>
-                    <p>${message}</p>
-                    <span class="special-period-dates">${period.formattedDateRange || ''}</span>
-                </div>
+        <div class="special-period-card">
+            <div class="special-period-header">
+                <i class="fas ${icon}"></i>
+                <span class="special-period-title">${Utils.escapeHtml(period.title)}</span>
             </div>
-        `;
+            <div class="special-period-body">
+                <p>${message}</p>
+                <span class="special-period-dates">${Utils.escapeHtml(period.formattedDateRange)}</span>
+            </div>
+        </div>
+    `;
         specialPeriodDiv.style.display = 'block';
     }
     
