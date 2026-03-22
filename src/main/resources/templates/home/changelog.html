@@ -29,32 +29,35 @@
                         </summary>
                         <div class="version-content">
                             <div class="version-desc">
-                                Wydanie koncentrujące się na bezpieczeństwie aplikacji oraz komforcie wizualnym. Wprowadzono zaawansowane mechanizmy ochrony przed atakami XSS oraz wyeliminowano błędy związane z miganiem motywu graficznego.
+                                Wydanie wprowadzające moduł Postępu Akademickiego. Ponadto rozszerzono zabezpieczenia aplikacji przed atakami XSS oraz zoptymalizowano proces ładowania motywu graficznego.
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
                                 <ul class="change-list added">
-                                    <li><strong>Polityka CSP (Content Security Policy):</strong> Rygorystyczne zasady ładowania skryptów i stylów, znacznie podnoszące odporność na ataki typu Cross-Site Scripting.</li>
-                                    <li><strong>Mechanizm SRI (Subresource Integrity):</strong> Weryfikacja integralności bibliotek zewnętrznych (FontAwesome, Quill, FullCalendar).</li>
-                                    <li><strong>Blokada Konta w Czasie Rzeczywistym:</strong> System natychmiastowego unieważniania sesji i przekierowania użytkowników po zablokowaniu konta przez administratora.</li>
+                                    <li><strong>Moduł Postępu Akademickiego:</strong> Dodano widok wizualizujący przebieg i bieżące parametry trwającego semestru dla studentów.</li>
+                                    <li><strong>Widżet "Nadchodzące wydarzenia":</strong> Dodano nową sekcję z listą najbliższych przerw i sesji. Zaimplementowano odliczanie dni oraz skrócone formatowanie zakresu dat dla wydarzeń wielodniowych.</li>
+                                    <li><strong>Dynamiczne Ramy Semestru:</strong> Dodano logikę przyporządkowującą aktualną datę do semestru letniego lub zimowego na podstawie kalendarza akademickiego. Procentowy wskaźnik postępu uwzględnia teraz cały okres aż do zakończenia sesji.</li>
+                                    <li><strong>Polityka CSP (Content Security Policy):</strong> Wdrożono nagłówki CSP dla skryptów i stylów w celu mitygacji ataków XSS.</li>
+                                    <li><strong>Mechanizm SRI (Subresource Integrity):</strong> Dodano atrybuty integralności dla zewnętrznych bibliotek JS i CSS (FontAwesome, Quill, FullCalendar).</li>
+                                    <li><strong>Blokada Konta w Czasie Rzeczywistym:</strong> Wdrożono system natychmiastowego unieważniania sesji użytkownika po jego zablokowaniu przez administratora.</li>
                                 </ul>
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
                                 <ul class="change-list changed">
-                                    <li><strong>Globalne Utwardzenie XSS:</strong> Kompleksowe zabezpieczenie dynamicznych treści w powiadomieniach (Toast), okruszkach (Breadcrumbs), harmonogramie oraz panelach administratora.</li>
-                                    <li><strong>Konsolidacja Narzędzi:</strong> Centralizacja logiki pomocniczej w `utils.js` i usunięcie zduplikowanego kodu z modułów administracyjnych (formatowanie dat, debouncing, escapowanie).</li>
-                                    <li><strong>Optymalizacja Motywu:</strong> Implementacja skryptu ANTI-FOUC (Flash of Unstyled Content), który eliminuje efekt migania jasnego tła przy przechodzeniu między stronami.</li>
+                                    <li><strong>Zabezpieczenia XSS:</strong> Wprowadzono funkcje escapowania HTML chroniące zawartość interfejsu w toastach powiadomień, module breadcrumbs, harmonogramie oraz panelach administratora.</li>
+                                    <li><strong>Konsolidacja Kodu:</strong> Zcentralizowano powielony kod narzędziowy (formatowanie dat, debouncing, escapowanie) wewnątrz głównego pliku `utils.js`.</li>
+                                    <li><strong>Optymalizacja Ładowania:</strong> Wdrożono skrypt zapobiegający efektowi FOUC (Flash of Unstyled Content) przed załadowaniem finalnego motywu CSS.</li>
                                 </ul>
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
                                 <ul class="change-list fixed">
-                                    <li><strong>Błędy Naprawcze (Regresje):</strong> Wyeliminowano błędy `ReferenceError` powstałe podczas refaktoryzacji narzędzi pomocniczych w panelu użytkowników.</li>
-                                    <li><strong>Dostępność (A11y):</strong> Poprawa obsługi autouzupełniania w formularzach logowania i rejestracji.</li>
+                                    <li><strong>Błędy Regresjyjne:</strong> Wyeliminowano błąd `ReferenceError` występujący po przeniesieniu funkcji z panelu użytkowników do głównego skryptu narzędziowego.</li>
+                                    <li><strong>Dostępność (A11y):</strong> Poprawiono brak spójności w atrybutach autouzupełniania przeglądarek w formularzach logowania i rejestracji.</li>
                                 </ul>
                             </div>
                         </div>

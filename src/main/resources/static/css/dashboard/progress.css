@@ -1,0 +1,375 @@
+/* Academic Progress Page Styles - Minimalist SaaS Approach */
+:root {
+    --progress-accent: var(--color-primary, #4a90e2);
+    --progress-bg: var(--bg-main, #f8fafc);
+    --progress-card-bg: var(--bg-card, #ffffff);
+    --progress-card-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.05));
+    --progress-border: var(--border-color, #e2e8f0);
+    --progress-text-main: var(--text-dark, #1e293b);
+    --progress-text-muted: var(--text-light, #64748b);
+    --progress-gradient: linear-gradient(90deg, var(--color-primary) 0%, #63b3ed 100%);
+    --progress-success: var(--success-color, #10b981);
+    --progress-warning: #f59e0b;
+    --progress-danger: var(--danger-color, #ef4444);
+}
+
+[data-theme="dark"] {
+    --progress-warning: #d97706;
+}
+
+.academic-progress-page {
+    /* Padding removed because navbar-middle has it */
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: var(--progress-text-main);
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2.5rem;
+}
+
+.page-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--progress-text-main) !important;
+}
+
+.page-subtitle {
+    color: var(--progress-text-muted);
+    font-size: 1rem;
+}
+
+.status-badge {
+    background: var(--progress-card-bg);
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
+    box-shadow: var(--progress-card-shadow);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--progress-border);
+}
+
+.badge-label {
+    font-size: 0.875rem;
+    color: var(--progress-text-muted);
+}
+
+.badge-value {
+    font-weight: 600;
+    color: var(--progress-accent);
+}
+
+/* Grid Layout */
+.progress-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.card {
+    background: var(--progress-card-bg);
+    border-radius: 16px;
+    border: 1px solid var(--progress-border);
+    box-shadow: var(--progress-card-shadow);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--progress-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: transparent;
+}
+
+/* Fix for dark mode card headers */
+[data-theme="dark"] .card-header {
+    background: rgba(255,255,255,0.02);
+}
+
+.card-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+    color: var(--progress-text-main) !important;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Semester Progress */
+.progress-container {
+    margin: 1rem 0;
+}
+
+.progress-bar-wrapper {
+    height: 14px;
+    background: var(--progress-bg);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    position: relative;
+    border: 1px solid var(--progress-border);
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: var(--progress-gradient);
+    border-radius: 999px;
+    transition: width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 0 10px rgba(0, 94, 250, 0.3);
+}
+
+.progress-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.stats-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--progress-text-main);
+    letter-spacing: -0.02em;
+}
+
+.stats-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--progress-text-muted);
+}
+
+.semester-range {
+    margin-top: 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--progress-text-muted);
+    text-align: center;
+    background: var(--progress-bg);
+    padding: 0.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--progress-border);
+}
+
+/* Countdowns */
+.countdown-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.countdown-card {
+    height: 100%;
+    border-left: 4px solid var(--progress-border);
+}
+
+.break-card { border-left-color: var(--progress-warning); }
+.session-card { border-left-color: var(--progress-accent); }
+
+.countdown-card .card-body {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.countdown-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: var(--progress-bg);
+    color: var(--progress-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    border: 1px solid var(--progress-border);
+}
+
+.break-card .countdown-icon { 
+    background: rgba(245, 158, 11, 0.1); 
+    color: var(--progress-warning); 
+    border-color: rgba(245, 158, 11, 0.2);
+}
+
+.session-card .countdown-icon { 
+    background: var(--primary-light); 
+    color: var(--progress-accent);
+}
+
+.event-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--progress-text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.countdown-value {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+}
+
+.countdown-value .number {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--progress-text-main);
+}
+
+.countdown-value .unit {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--progress-text-muted);
+    text-transform: lowercase;
+}
+
+/* Upcoming Events Widget */
+.events-card {
+    margin-top: 2rem;
+    overflow: hidden;
+}
+
+.upcoming-events-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.event-list-item {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--progress-border);
+    transition: background-color 0.2s ease;
+}
+
+.event-list-item:last-child {
+    border-bottom: none;
+}
+
+.event-list-item:hover {
+    background: rgba(0,0,0,0.02);
+}
+
+[data-theme="dark"] .event-list-item:hover {
+    background: rgba(255,255,255,0.02);
+}
+
+.event-icon-wrapper {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-right: 1.25rem;
+    flex-shrink: 0;
+}
+
+.event-details {
+    flex: 1;
+    min-width: 0; /* for text truncation */
+}
+
+.event-title {
+    font-weight: 600;
+    color: var(--progress-text-main);
+    margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.event-date {
+    font-size: 0.85rem;
+    color: var(--progress-text-muted);
+}
+
+.event-countdown {
+    text-align: right;
+    min-width: 60px;
+    margin-left: 1rem;
+}
+
+.event-days {
+    font-weight: 800;
+    font-size: 1.2rem;
+    color: var(--progress-text-main);
+}
+
+.event-days-label {
+    font-size: 0.7rem;
+    color: var(--progress-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+/* Event Types Colors */
+.type-holiday .event-icon-wrapper { background: rgba(239, 68, 68, 0.1); color: var(--progress-danger); }
+.type-exam .event-icon-wrapper { background: rgba(74, 144, 226, 0.1); color: var(--progress-accent); }
+.type-break .event-icon-wrapper { background: rgba(245, 158, 11, 0.1); color: var(--progress-warning); }
+
+/* Animations */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .progress-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .countdown-group {
+        flex-direction: row;
+    }
+
+    .countdown-card {
+        flex: 1;
+    }
+}
+
+@media (max-width: 600px) {
+    .progress-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .countdown-group {
+        flex-direction: column;
+    }
+}
+
+.info-banner {
+    margin-top: 2rem;
+    padding: 1rem 1.5rem;
+    background: var(--bg-step);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+
