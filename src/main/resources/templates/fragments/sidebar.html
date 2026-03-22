@@ -62,6 +62,11 @@
                     <i class="fas fa-university"></i>
                     <span class="link-text">Kalendarz uczelni</span>
                 </a>
+
+                <a th:href="@{/student/academic-progress}" class="btn-navbar-left" th:classappend="${activePage == 'academic-progress'} ? 'active'">
+                    <i class="fas fa-chart-line"></i>
+                    <span class="link-text">Postęp semestru</span>
+                </a>
             </div>
 
             <!-- PANEL STAROSTY -->

@@ -196,11 +196,13 @@
                 ? '<span class="breadcrumb-separator">/</span>'
                 : '';
 
+            const safeLabel = Utils.escapeHtml(crumb.label);
+
             if (isLast) {
-                return `${separator}<span class="breadcrumb-item active">${crumb.label}</span>`;
+                return `${separator}<span class="breadcrumb-item active">${safeLabel}</span>`;
             }
 
-            return `${separator}<a href="${crumb.href}" class="breadcrumb-item">${crumb.label}</a>`;
+            return `${separator}<a href="${crumb.href}" class="breadcrumb-item">${safeLabel}</a>`;
         }).join('');
 
         container.style.display = '';

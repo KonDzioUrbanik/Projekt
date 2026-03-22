@@ -226,7 +226,8 @@ class ScheduleCalendar{
             }
 
             const isSpecialClass = specialInfo ? 'special-day-header' : '';
-            const specialLabel = specialInfo ? `<span class="special-label">${specialInfo.name}</span>` : '';
+            const safeSpecialName = specialInfo ? Utils.escapeHtml(specialInfo.name) : '';
+            const specialLabel = specialInfo ? `<span class="special-label">${safeSpecialName}</span>` : '';
             
             grid.innerHTML += `<div class="day-header ${isSpecialClass}" data-date="${this.formatDateLocal(dayDate)}">
                 ${this.dayNames[dayKey]} <span class="header-date">${dateStr}</span>
@@ -642,7 +643,7 @@ class ScheduleCalendar{
             const nextClassDetailsEl = document.getElementById('nextClassDetails');
             
             if (timeToNextEl) timeToNextEl.style.display = 'none';
-            if (nextLabelEl) nextLabelEl.innerHTML = specialDay.name;
+            if (nextLabelEl) nextLabelEl.textContent = specialDay.name;
             if (nextClassTitleEl) nextClassTitleEl.textContent = this.getSpecialPeriodMessage(specialDay.type);
             if (nextClassDetailsEl) nextClassDetailsEl.textContent = 'Brak zajęć dydaktycznych';
             

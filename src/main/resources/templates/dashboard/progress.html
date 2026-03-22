@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pl"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <title>Postęp semestru</title>
+    <th:block layout:fragment="page-styles">
+        <link rel="stylesheet" th:href="@{/css/dashboard/progress.css}">
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="academic-progress-page">
+            <!-- Header Section -->
+            <div class="progress-header">
+                <div class="header-info">
+                    <h1 class="page-title">Postęp semestru</h1>
+                    <p class="page-subtitle">Śledź swój czas i przygotuj się na nadchodzące wydarzenia.</p>
+                </div>
+                <!-- Week Type Badge -->
+                <div id="weekTypeBadge" class="status-badge">
+                    <span class="badge-label">Obecnie:</span>
+                    <span id="currentWeekType" class="badge-value">Wczytywanie...</span>
+                </div>
+            </div>
+
+            <!-- Main Grid -->
+            <div class="progress-grid">
+                <!-- Semester Progress Card -->
+                <div class="card progress-card main-stats">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fas fa-graduation-cap"></i> <span id="semesterNameTitle">Mój semestr</span></h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="progress-container">
+                            <div class="progress-bar-wrapper">
+                                <div id="semesterProgressBar" class="progress-bar-fill" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-stats">
+                                <span id="progressPercentage" class="stats-value">0%</span>
+                                <span id="dayCount" class="stats-label">Dzień 0 z 0</span>
+                            </div>
+                        </div>
+                        <p id="semesterDates" class="semester-range">--. --. ---- - --. --. ----</p>
+                    </div>
+                </div>
+
+                <!-- Countdowns -->
+                <div class="countdown-group">
+                    <!-- Break Countdown -->
+                    <div class="card countdown-card break-card">
+                        <div class="card-body">
+                            <div class="countdown-icon"><i class="fas fa-umbrella-beach"></i></div>
+                            <div class="countdown-info">
+                                <h3 id="breakName" class="event-name">Najbliższa przerwa</h3>
+                                <div class="countdown-value">
+                                    <span id="daysToBreak" class="number">--</span>
+                                    <span class="unit">dni</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Session Countdown -->
+                    <div class="card countdown-card session-card">
+                        <div class="card-body">
+                            <div class="countdown-icon"><i class="fas fa-file-signature"></i></div>
+                            <div class="countdown-info">
+                                <h3 id="sessionName" class="event-name">Nadchodząca sesja</h3>
+                                <div class="countdown-value">
+                                    <span id="daysToSession" class="number">--</span>
+                                    <span class="unit">dni</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upcoming Events Section -->
+            <div class="card events-card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-calendar-day"></i> Nadchodzące wydarzenia</h2>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <div id="upcomingEventsList" class="upcoming-events-list">
+                        <!-- Events rendered via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State / No Data Info -->
+            <div id="noDataInfo" class="info-banner" style="display: none;">
+                <i class="fas fa-info-circle"></i>
+                <span>Brak zdefiniowanych dat semestru w kalendarzu akademickim. Skontaktuj się z administracją.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page Scripts -->
+    <th:block layout:fragment="page-scripts">
+        <script th:src="@{/js/dashboard/progress.js}"></script>
+    </th:block>
+</body>
+</html>

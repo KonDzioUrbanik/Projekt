@@ -180,6 +180,12 @@ public class MainController {
         return "admin/university-calendar";
     }
 
+    @GetMapping("/student/academic-progress")
+    public String showAcademicProgress(Model model) {
+        model.addAttribute("activePage", "academic-progress");
+        return "dashboard/progress";
+    }
+
     @GetMapping("/student/forum")
     public String forumView(Model model) {
         model.addAttribute("activePage", "forum");

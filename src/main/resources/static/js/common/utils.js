@@ -223,11 +223,14 @@ const Utils = {
             actionHtml = '',
             duration = 4000,
             closable = false,
-            containerId = 'toastContainer'
+            containerId = 'toastContainer',
+            isHtml = false
         } = options;
 
         const container = document.getElementById(containerId);
         if (!container) return null;
+
+        const finalMessage = isHtml ? message : Utils.escapeHtml(message);
 
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
@@ -252,7 +255,7 @@ const Utils = {
 
         toast.innerHTML = `
             <i class="fas fa-${icon}"></i>
-            <span style="flex:1;">${message}</span>
+            <span style="flex:1;">${finalMessage}</span>
             ${actionBlock}
             ${closeBtnHtml}
         `;

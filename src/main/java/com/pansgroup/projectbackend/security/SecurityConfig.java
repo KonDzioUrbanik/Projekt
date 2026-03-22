@@ -19,6 +19,7 @@ import org.springframework.security.web.authentication.rememberme.PersistentToke
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 
 @Configuration
 public class SecurityConfig {
@@ -108,11 +109,15 @@ public class SecurityConfig {
 
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http,
-                        RememberMeServices rememberMeServices)
+                        RememberMeServices rememberMeServices,
+                        AccountStatusFilter accountStatusFilter)
                         throws Exception {
 
                 http.csrf(AbstractHttpConfigurer::disable);
                 http.httpBasic(AbstractHttpConfigurer::disable);
+
+                // Rejestracja filtra sprawdzającego status konta (blokady)
+                http.addFilterBefore(accountStatusFilter, AuthorizationFilter.class);
 
                 // Dzięki temu Spring wie, że jak ktoś nie ma dostępu, to trzeba go rzucić na
                 // "/login"
@@ -235,7 +240,8 @@ public class SecurityConfig {
                                                                 "https://fonts.gstatic.com " +
                                                                 "https://cdnjs.cloudflare.com; " +
                                                                 "img-src 'self' data: blob:; " +
-                                                                "connect-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+                                                                "connect-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+                                                                +
                                                                 "frame-ancestors 'none'; " +
                                                                 "base-uri 'self'; " +
                                                                 "form-action 'self'"))

@@ -1,23 +1,5 @@
 // filtrowanie i wyszukiwanie użytkowników
 
-function formatDate(dateString) {
-    if (!dateString || dateString === '-') return '-';
-    // Jeśli dateString to już sformatowana data (np. z Thymeleaf: YYYY-MM-DD HH:mm)
-    // a nie surowy format ISO z backendu (który zawiera literę 'T')
-    if (dateString.includes(':') && !dateString.includes('T')) return dateString;
-    
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return dateString;
-    
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    
-    return `${year}-${month}-${day} ${hours}:${minutes}`;
-}
-
 const CONFIG = {
     SELECTORS: {
         FULL_NAME_CELL: 'td:nth-child(2)',
@@ -338,13 +320,13 @@ function openActivationModal(btn) {
     title.textContent = nextState ? 'Aktywacja konta' : 'Dezaktywacja konta';
     
     if (text) {
-        if (nextState) {
-            text.innerHTML = `Czy na pewno chcesz <strong>aktywować</strong> konto użytkownika <strong id="activationUserName"></strong>?`;
-            document.getElementById('activationUserName').textContent = userName;
-        } else {
-            text.innerHTML = `Czy na pewno chcesz <strong>dezaktywować</strong> konto użytkownika <strong id="activationUserName"></strong>?`;
-            document.getElementById('activationUserName').textContent = userName;
-        }
+        const actionText = nextState ? 'aktywować' : 'dezaktywować';
+        const strongElement = document.createElement('strong');
+        strongElement.textContent = userName;
+
+        text.textContent = `Czy na pewno chcesz ${actionText} konto użytkownika `;
+        text.appendChild(strongElement);
+        text.appendChild(document.createTextNode('?'));
     }
     
     confirmBtn.className = `btn ${nextState ? 'btn-primary-block' : 'btn-danger-block'}`;
@@ -387,10 +369,10 @@ function openSecurityModal(user) {
     } else if (user.failedLoginAttempts > 1) {
         failedElem.classList.add('badge-warning');
     } else {
-        failedElem.classList.add('badge-student'); // neutralny niebieski
+        failedElem.classList.add('badge-student');
     }
 
-    createdElem.textContent = user.createdAt ? formatDate(user.createdAt) : '-';
+    createdElem.textContent = user.createdAt ? Utils.formatDate(user.createdAt) : '-';
 
     // Status blokady
     const blockStatusElem = document.getElementById('securityModalBlockStatus');
