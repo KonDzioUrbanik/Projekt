@@ -21,12 +21,11 @@ public class ScheduleController {
         this.scheduleService = scheduleService;
     }
 
-    // ---------- ENDPOINT DLA STUDENTÓW (ODCZYT) ----------
+    // ---------- ODCZYT ----------
 
     @GetMapping
     public List<ScheduleEntryResponseDto> getMySchedule(Principal principal) {
-        String userEmail = principal.getName();
-        return scheduleService.getMySchedule(userEmail);
+        return scheduleService.getMySchedule(principal.getName());
     }
 
     @GetMapping("/all")
@@ -39,17 +38,30 @@ public class ScheduleController {
         return scheduleService.findById(id);
     }
 
-    // ---------- ENDPOINT DLA ADMINISTRATORÓW (MODYFIKACJA) ----------
+    // ---------- MODYFIKACJA (ADMIN / STAROSTA) ----------
 
+    /**
+     * Tworzy nowy wpis.
+     * Parametr ?force=true pozwala pominąć walidację kolizji (wyłącznie ADMIN).
+     */
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED) // Zwraca 201 Created
-    public ScheduleEntryResponseDto create(@Valid @RequestBody ScheduleEntryCreateDto dto) {
-        return scheduleService.create(dto);
+    @ResponseStatus(HttpStatus.CREATED)
+    public ScheduleEntryResponseDto create(
+            @Valid @RequestBody ScheduleEntryCreateDto dto,
+            @RequestParam(defaultValue = "false") boolean force) {
+        return scheduleService.create(dto, force);
     }
 
+    /**
+     * Aktualizuje wpis.
+     * Parametr ?force=true pozwala pominąć walidację kolizji (wyłącznie ADMIN).
+     */
     @PutMapping("/{id}")
-    public ScheduleEntryResponseDto update(@PathVariable Long id, @Valid @RequestBody ScheduleEntryUpdateDto dto) {
-        return scheduleService.update(id, dto);
+    public ScheduleEntryResponseDto update(
+            @PathVariable Long id,
+            @Valid @RequestBody ScheduleEntryUpdateDto dto,
+            @RequestParam(defaultValue = "false") boolean force) {
+        return scheduleService.update(id, dto, force);
     }
 
     @DeleteMapping("/{id}")

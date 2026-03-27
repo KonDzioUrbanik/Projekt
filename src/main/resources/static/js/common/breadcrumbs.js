@@ -31,6 +31,11 @@
             href: '/starosta/dashboard',
             parent: 'home'
         },
+        announcements: {
+            label: 'Ogłoszenia grupy',
+            href: '/starosta/announcements',
+            parent: 'starosta-panel'
+        },
 
         /* Dashboard Użytkownika (Podwiązane pod Panel Studenta) */
         calendar: {
@@ -56,6 +61,11 @@
         notes: {
             label: 'Notatki',
             href: '/student/notes',
+            parent: 'student-panel'
+        },
+        'student-announcements': {
+            label: 'Ogłoszenia grupy',
+            href: '/student/announcements',
             parent: 'student-panel'
         },
         'university-calendar-public': {

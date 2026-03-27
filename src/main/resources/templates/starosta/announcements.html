@@ -4,7 +4,7 @@
     <head>
         <title>Ogłoszenia grupy</title>
         <th:block layout:fragment="page-styles">
-            <link rel="stylesheet" th:href="@{/css/admin/announcement.css}">
+            <link rel="stylesheet" th:href="@{/css/admin/admin-announcement.css}">
         </th:block>
     </head>
     <body>
@@ -20,15 +20,12 @@
             <!-- Alert area -->
             <div id="announcementMessage"></div>
 
-            <!-- New Announcement Form -->
+            <!-- New Announcement Form (Starosta) -->
             <div class="ann-form-card">
                 <div class="ann-form-card-header">
-                    <div class="ann-form-card-icon">
-                        <i class="fas fa-pen-to-square"></i>
-                    </div>
                     <div class="ann-form-card-title">
-                        <h2>Nowe ogłoszenie</h2>
-                        <p>Wypełnij formularz, aby opublikować ogłoszenie dla swojej grupy</p>
+                        <h2>Nowe ogłoszenie starosty</h2>
+                        <p>Dodaj ogłoszenie dla studentów swojej grupy zajęciowej</p>
                     </div>
                 </div>
                 <div class="ann-form-body">
@@ -58,6 +55,38 @@
                                       required></textarea>
                             <div class="ann-char-counter" id="contentCounter">0 / 2000</div>
                         </div>
+                        <div class="ann-form-row">
+                            <div class="ann-form-group">
+                                <label class="ann-form-label" for="prioritySelect">
+                                    <i class="fas fa-flag"></i> Priorytet
+                                </label>
+                                <select id="prioritySelect" class="ann-form-input">
+                                    <option value="INFO">Info (domyślny)</option>
+                                    <option value="IMPORTANT">Ważne</option>
+                                    <option value="ORGANIZATIONAL">Organizacyjne</option>
+                                </select>
+                            </div>
+                            <div class="ann-form-group ann-form-group--inline">
+                                <label class="ann-form-label">&nbsp;</label>
+                                <label class="ann-pin-label">
+                                    <input type="checkbox" id="isPinnedCheckbox" class="ann-pin-checkbox">
+                                    <i class="fas fa-thumbtack"></i> Przypnij na górze
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="ann-form-group">
+                            <label class="ann-form-label" for="announcementFiles">
+                                <i class="fas fa-paperclip"></i> Załączniki (max 5, po 5 MB)
+                            </label>
+                            <input type="file"
+                                   id="announcementFiles"
+                                   class="ann-form-file"
+                                   multiple
+                                   accept=".jpg,.jpeg,.png,.pdf,.docx">
+                            <div id="fileList" class="ann-file-list"></div>
+                        </div>
+
                         <div class="ann-form-footer">
                             <button type="submit" class="ann-btn-submit" id="submitBtn">
                                 <span class="ann-btn-spinner"></span>
@@ -72,31 +101,66 @@
 
             <!-- Announcement list section -->
             <div class="ann-section-header">
-                <h3 class="ann-section-title">
-                    <i class="fas fa-history"></i>
-                    Opublikowane ogłoszenia
-                    <span class="ann-count-badge" id="annCountBadge">0</span>
-                </h3>
-            </div>
-
-            <!-- Loading state -->
-            <div class="ann-loading" id="annLoading">
-                <div class="ann-spinner"></div>
-                <p>Ładowanie ogłoszeń...</p>
-            </div>
-
-            <!-- Empty state -->
-            <div class="ann-empty-state" id="annEmpty" style="display: none;">
-                <div class="ann-empty-icon">
-                    <i class="fas fa-inbox"></i>
+                <div class="ann-section-line"></div>
+                <div class="ann-section-title">
+                    <i class="fas fa-tasks"></i> Zarządzanie i listowanie ogłoszeń
                 </div>
-                <h3>Brak ogłoszeń</h3>
-                <p>Nie opublikowano jeszcze żadnych ogłoszeń dla Twojej grupy. Użyj formularza powyżej, aby dodać pierwsze.</p>
+                <div class="ann-section-line"></div>
             </div>
 
-            <!-- Cards container -->
-            <div id="announcementList" style="display: none;">
-                <div id="annCards"></div>
+            <!-- Filters -->
+            <div class="ann-filters-card">
+                <div class="ann-filters-row">
+                    <div class="ann-search-group">
+                        <label><i class="fas fa-search"></i> Wyszukaj</label>
+                        <div class="ann-search-wrapper">
+                            <i class="fas fa-search"></i>
+                            <input type="text"
+                                   id="searchInput"
+                                   class="ann-search-input"
+                                   placeholder="Szukaj po tytule lub treści...">
+                        </div>
+                    </div>
+
+                    <button class="ann-btn-reset" id="resetFilters">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+            </div>
+
+            <div class="ann-summary-row">
+                <div class="ann-results-info">
+                    <span class="results-label">Liczba ogłoszeń:</span>
+                    <span id="resultsCount">0</span>
+                </div>
+            </div>
+
+            <!-- Table Card -->
+            <div class="ann-table-card" id="announcementList" style="display: none;">
+                <div class="ann-table-scroll">
+                    <table class="ann-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>Tytuł</th>
+                                <th>Treść (podgląd)</th>
+                                <th>Data</th>
+                                <th>Potwierdzenia</th>
+                                <th class="ann-actions-header">Akcje</th>
+                            </tr>
+                        </thead>
+                        <tbody id="announcementTableBody">
+                            <tr>
+                                <td colspan="6" style="padding: 4rem 2rem; text-align: center;">
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                                        <div class="ann-spinner"></div>
+                                        <p style="color: var(--text-light); margin: 0;">Ładowanie ogłoszeń...</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- Delete confirmation modal -->
@@ -112,6 +176,20 @@
                         <button class="ann-btn-confirm-delete" id="modalConfirmBtn">
                             <i class="fas fa-trash-alt"></i> Usuń
                         </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Read Details Modal -->
+            <div class="ann-modal-overlay" id="readDetailsModal">
+                <div class="ann-modal-card ann-modal-wide">
+                    <div class="ann-modal-icon" style="background: var(--color-primary-alpha)">
+                        <i class="fas fa-eye" style="color: var(--color-primary)"></i>
+                    </div>
+                    <h3>Kto przeczytał</h3>
+                    <div id="readDetailsList" class="ann-readers-list"></div>
+                    <div class="ann-modal-actions">
+                        <button class="ann-btn-cancel" id="readDetailsClose">Zamknij</button>
                     </div>
                 </div>
             </div>

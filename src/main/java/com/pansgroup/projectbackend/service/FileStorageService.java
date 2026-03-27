@@ -1,76 +1,134 @@
 package com.pansgroup.projectbackend.service;
 
+import org.apache.tika.Tika;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
 public class FileStorageService {
 
+    private static final Map<String, String> ALLOWED_MIME_TYPES = Map.of(
+            "jpg",  "image/jpeg",
+            "jpeg", "image/jpeg",
+            "png",  "image/png",
+            "pdf",  "application/pdf",
+            "docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    );
+
     private final Path fileStorageLocation;
+    private final Tika tika = new Tika();
 
-    public FileStorageService() {
-        this.fileStorageLocation = Paths.get("uploads/feedback").toAbsolutePath().normalize();
-
+    public FileStorageService(@Value("${app.upload.dir:uploads/announcements}") String uploadDir) {
+        this.fileStorageLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
         try {
             Files.createDirectories(this.fileStorageLocation);
         } catch (Exception ex) {
-            throw new RuntimeException("Could not create the directory where the uploaded files will be stored.", ex);
+            throw new RuntimeException("Nie można utworzyć katalogu przechowywania plików: " + uploadDir, ex);
         }
     }
 
+    /**
+     * Przechowuje plik po weryfikacji rozszerzenia i zawartości (MIME via Tika).
+     * Zwraca UUID-based nazwę pliku do przechowywania w bazie.
+     */
     public String storeFile(MultipartFile file) {
-        // Normalize file name
-        String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
-        String fileName = UUID.randomUUID().toString() + "_" + originalFileName;
+        String originalFileName = StringUtils.cleanPath(
+                file.getOriginalFilename() != null ? file.getOriginalFilename() : "unknown"
+        );
+
+        if (originalFileName.contains("..") || originalFileName.contains("/") || originalFileName.contains("\\")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Nazwa pliku zawiera niedozwolone znaki: " + originalFileName);
+        }
+
+        String extension = StringUtils.getFilenameExtension(originalFileName);
+        if (extension == null || !ALLOWED_MIME_TYPES.containsKey(extension.toLowerCase())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Niedozwolony format pliku. Dozwolone: " + String.join(", ", ALLOWED_MIME_TYPES.keySet()));
+        }
 
         try {
-            // Check if the file's name contains invalid characters
-            if (fileName.contains("..")) {
-                throw new RuntimeException("Sorry! Filename contains invalid path sequence " + fileName);
+            byte[] fileBytes = file.getBytes();
+
+            // Weryfikacja rzeczywistej zawartości pliku (ochrona przed podmienionym rozszerzeniem)
+            String detectedMime = tika.detect(fileBytes);
+            if (detectedMime.contains(";")) {
+                detectedMime = detectedMime.split(";")[0].trim();
             }
 
-            // Validate file extension
-            String extension = StringUtils.getFilenameExtension(originalFileName);
-            if (extension == null || !isValidExtension(extension)) {
-                throw new RuntimeException("Nieprawidłowy format pliku. Dozwolone: jpg, jpeg, png, pdf.");
+            String expectedMime = ALLOWED_MIME_TYPES.get(extension.toLowerCase());
+            boolean mimeMatch = detectedMime.equalsIgnoreCase(expectedMime)
+                    // Tika może zwracać OPC/OOXML wrapper dla DOCX
+                    || ("docx".equalsIgnoreCase(extension) && detectedMime.contains("openxmlformats"))
+                    || ("docx".equalsIgnoreCase(extension) && detectedMime.equals("application/x-tika-ooxml"))
+                    || ("docx".equalsIgnoreCase(extension) && detectedMime.equals("application/zip"));
+
+            if (!mimeMatch) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Zawartość pliku (" + detectedMime + ") nie odpowiada deklarowanemu rozszerzeniu ." + extension + ".");
             }
 
-            // Copy file to the target location (Replacing existing file with the same name)
-            Path targetLocation = this.fileStorageLocation.resolve(fileName);
-            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+            String storedFileName = UUID.randomUUID() + "." + extension.toLowerCase();
+            Path targetLocation = this.fileStorageLocation.resolve(storedFileName);
+            Files.write(targetLocation, fileBytes);
 
-            return fileName;
+            return storedFileName;
+
         } catch (IOException ex) {
-            throw new RuntimeException("Could not store file " + fileName + ". Please try again!", ex);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Nie można zapisać pliku. Spróbuj ponownie.", ex);
         }
     }
 
-    private boolean isValidExtension(String extension) {
-        return java.util.List.of("jpg", "jpeg", "png", "pdf").contains(extension.toLowerCase());
-    }
-
-    public Resource loadFileAsResource(String fileName) {
+    /**
+     * Ładuje plik jako Resource do przesłania klientowi.
+     * Zabezpieczone przed path traversal – plik musi znajdować się w katalogu uploads.
+     */
+    public Resource loadFileAsResource(String storedFileName) {
         try {
-            Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
+            // Blokada path traversal
+            Path filePath = this.fileStorageLocation.resolve(storedFileName).normalize();
+            if (!filePath.startsWith(this.fileStorageLocation)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Dostęp do pliku zabroniony.");
+            }
+
             Resource resource = new UrlResource(filePath.toUri());
-            if (resource.exists()) {
+            if (resource.exists() && resource.isReadable()) {
                 return resource;
             } else {
-                throw new RuntimeException("File not found " + fileName);
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Plik nie znaleziony: " + storedFileName);
             }
         } catch (MalformedURLException ex) {
-            throw new RuntimeException("File not found " + fileName, ex);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Błąd ładowania pliku.", ex);
+        }
+    }
+
+    /**
+     * Usuwa plik z systemu plików (np. przy usuwaniu ogłoszenia).
+     */
+    public void deleteFile(String storedFileName) {
+        try {
+            Path filePath = this.fileStorageLocation.resolve(storedFileName).normalize();
+            if (filePath.startsWith(this.fileStorageLocation)) {
+                Files.deleteIfExists(filePath);
+            }
+        } catch (IOException ex) {
+            // Logujemy ale nie przerywamy – usunięcie metadanych z DB jest ważniejsze
+            System.err.println("Ostrzeżenie: nie można usunąć pliku " + storedFileName + ": " + ex.getMessage());
         }
     }
 }

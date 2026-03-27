@@ -10,12 +10,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
-// IMPORTY ZALEŻNOŚCI SPRING SECURITY
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.InternalAuthenticationServiceException; // <-- NOWY IMPORT
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-// ------------------------------------
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -23,6 +21,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
 import java.util.LinkedHashMap;
@@ -34,7 +33,7 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    /* ====== Helpers ====== */
+    /* Helpers */
 
     private ProblemDetail pd(HttpStatus status,
             String title,
@@ -61,14 +60,14 @@ public class GlobalExceptionHandler {
         return p;
     }
 
-    /* ====== 404: brak zasobu (np. z DispatcherServlet w Spring 6) ====== */
+    /* 404: brak zasobu (np. z DispatcherServlet w Spring 6) */
     @ExceptionHandler(NoResourceFoundException.class)
     public ProblemDetail handleNoResourceFound(NoResourceFoundException ex, HttpServletRequest req) {
         return pd(HttpStatus.NOT_FOUND, "Not found",
                 "Resource not found: " + ex.getResourcePath(), req, "not_found");
     }
 
-    /* ====== 405: zła metoda HTTP ====== */
+    /* 405: zła metoda HTTP */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ProblemDetail handleMethodNotSupported(HttpRequestMethodNotSupportedException ex, HttpServletRequest req) {
         return pd(HttpStatus.METHOD_NOT_ALLOWED, "Method not allowed",
@@ -76,14 +75,14 @@ public class GlobalExceptionHandler {
                 Map.of("reason", ex.getMessage()));
     }
 
-    /* ====== 409: duplikacja numeru albumu ====== */
+    /* 409: duplikacja numeru albumu */
     @ExceptionHandler(AlbumNumberAlreadyExistsException.class)
     public ProblemDetail handleDuplicateAlbumNumber(AlbumNumberAlreadyExistsException ex, HttpServletRequest req) {
         return pd(HttpStatus.CONFLICT, "Duplicate album number",
                 ex.getMessage(), req, "number_album_exists");
     }
 
-    /* ====== 400: @Valid na @RequestBody ====== */
+    /* 400: @Valid na @RequestBody */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidation(MethodArgumentNotValidException ex, HttpServletRequest req) {
         Map<String, String> errors = ex.getBindingResult().getFieldErrors().stream()
@@ -97,7 +96,7 @@ public class GlobalExceptionHandler {
                 Map.of("errors", errors));
     }
 
-    /* ====== 400: walidacja @RequestParam/@PathVariable ====== */
+    /* 400: walidacja @RequestParam/@PathVariable */
     @ExceptionHandler(ConstraintViolationException.class)
     public ProblemDetail handleConstraintViolation(ConstraintViolationException ex, HttpServletRequest req) {
         var errors = ex.getConstraintViolations().stream()
@@ -111,7 +110,7 @@ public class GlobalExceptionHandler {
                 Map.of("errors", errors));
     }
 
-    /* ====== 400: zły payload / typy ====== */
+    /* 400: zły payload / typy */
     @ExceptionHandler({ HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class })
     public ProblemDetail handleBadPayload(Exception ex, HttpServletRequest req) {
         return pd(HttpStatus.BAD_REQUEST, "Malformed request",
@@ -133,7 +132,7 @@ public class GlobalExceptionHandler {
                 ex.getMessage(), req, "invalid_argument");
     }
 
-    /* ====== 401: uwierzytelnianie */
+    /* 401: uwierzytelnianie */
     // Ta metoda celowo nie łapie już Twoich własnych wyjątków
     @ExceptionHandler({
             BadCredentialsException.class, // Spring Security
@@ -160,21 +159,21 @@ public class GlobalExceptionHandler {
                 detail, req, "auth_failed");
     }
 
-    /* ====== 403: brak uprawnień (np. filtr JWT) ====== */
+    /* 403: brak uprawnień (np. filtr JWT) */
     @ExceptionHandler(AccessDeniedException.class)
     public ProblemDetail handleAccessDenied(HttpServletRequest req) {
         return pd(HttpStatus.FORBIDDEN, "Access denied",
                 "Brak uprawnień do wykonania tej operacji.", req, "access_denied");
     }
 
-    /* ====== 400: password mismatch ====== */
+    /* 400: password mismatch */
     @ExceptionHandler(PasswordMismatchException.class)
     public ProblemDetail handlePasswordMismatch(PasswordMismatchException ex, HttpServletRequest req) {
         return pd(HttpStatus.BAD_REQUEST, "Password mismatch",
                 ex.getMessage(), req, "password_mismatch");
     }
 
-    /* ====== 404: domenowe not found ====== */
+    /* 404: domenowe not found */
     @ExceptionHandler(NoteNotFoundException.class)
     public ProblemDetail handleNoteNotFound(NoteNotFoundException ex, HttpServletRequest req) {
         return pd(HttpStatus.NOT_FOUND, "Not found",
@@ -195,7 +194,7 @@ public class GlobalExceptionHandler {
 
     // HANDLERY DLA RESETOWANIA HASŁA
 
-    /* ====== 404: Błąd resetu hasła - nie znaleziono użytkownika ====== */
+    /* 404: Błąd resetu hasła - nie znaleziono użytkownika */
     @ExceptionHandler(com.pansgroup.projectbackend.exception.UsernameNotFoundException.class)
     public ProblemDetail handleResetPasswordUserNotFound(
             com.pansgroup.projectbackend.exception.UsernameNotFoundException ex,
@@ -206,7 +205,7 @@ public class GlobalExceptionHandler {
                 req, "user_not_found_reset");
     }
 
-    /* ====== 400: Błąd resetu hasła - konto nieaktywne ====== */
+    /* 400: Błąd resetu hasła - konto nieaktywne */
     @ExceptionHandler(AccountInactiveException.class)
     public ProblemDetail handleResetPasswordInactive(AccountInactiveException ex, HttpServletRequest req) {
         // Przekazuje wiadomość z serwisu (np. "Konto... nie jest aktywne")
@@ -215,14 +214,14 @@ public class GlobalExceptionHandler {
                 req, "account_inactive_reset");
     }
 
-    /* ====== 429: Too Many Requests - Rate Limiting ====== */
+    /* 429: Too Many Requests - Rate Limiting */
     @ExceptionHandler(TooManyRequestsException.class)
     public ProblemDetail handleTooManyRequests(TooManyRequestsException ex, HttpServletRequest req) {
         return pd(HttpStatus.TOO_MANY_REQUESTS, "Too many requests",
                 ex.getMessage(), req, "rate_limit_exceeded");
     }
 
-    /* ====== 409: konflikt/unikalność (np. email) ====== */
+    /* 409: konflikt/unikalność (np. email) */
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ProblemDetail handleDuplicateEmail(EmailAlreadyExistsException ex, HttpServletRequest req) {
         return pd(HttpStatus.CONFLICT, "Duplicate email",
@@ -235,7 +234,7 @@ public class GlobalExceptionHandler {
                 ex.getMessage(), req, "student_group_exists");
     }
 
-    /* ====== 409: naruszenie constraint DB. ====== */
+    /* 409: naruszenie constraint DB. */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail handleDataIntegrity(DataIntegrityViolationException ex, HttpServletRequest req) {
         ex.getMostSpecificCause();
@@ -245,7 +244,17 @@ public class GlobalExceptionHandler {
                 Map.of("reason", reason));
     }
 
-    /* ====== 500: fallback ====== */
+    @ExceptionHandler(ResponseStatusException.class)
+    public ProblemDetail handleResponseStatus(ResponseStatusException ex, HttpServletRequest req) {
+        HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());
+        if (status == null)
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        return pd(status, "Request error",
+                ex.getReason(), req, "request_error");
+    }
+
+    /* 500: fallback */
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleGeneral(Exception ex, HttpServletRequest req) {
         // Logujemy błąd DOKŁADNIE, aby widzieć, co się stało

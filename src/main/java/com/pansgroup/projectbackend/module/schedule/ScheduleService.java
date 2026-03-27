@@ -8,10 +8,16 @@ import java.util.List;
 
 public interface ScheduleService {
 
-    // ----------- OPERACJE CRUD DLA ADMINISTRATORA -----------
+    // ----------- OPERACJE CRUD -----------
     ScheduleEntryResponseDto create(ScheduleEntryCreateDto dto);
 
+    /** Tworzy wpis z opcjonalnym pominięciem walidacji kolizji (force=true) */
+    ScheduleEntryResponseDto create(ScheduleEntryCreateDto dto, boolean force);
+
     ScheduleEntryResponseDto update(Long id, ScheduleEntryUpdateDto dto);
+
+    /** Aktualizuje wpis z opcjonalnym pominięciem walidacji kolizji (force=true) */
+    ScheduleEntryResponseDto update(Long id, ScheduleEntryUpdateDto dto, boolean force);
 
     void delete(Long id);
 

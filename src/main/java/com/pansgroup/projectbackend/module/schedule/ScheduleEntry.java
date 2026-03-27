@@ -37,6 +37,14 @@ public class ScheduleEntry {
     @Column(length = 2000)
     private String yearPlan; // np. INFORMATYKA ROK III itp.
 
+    /** Numer podgrupy laboratoryjnej/ćwiczeniowej (np. "L1", "C2") */
+    @Column(length = 20)
+    private String groupNumber;
+
+    /** Specjalizacja (opcjonalnie, np. "Bazy danych") */
+    @Column(length = 100)
+    private String specialization;
+
     @ManyToMany(fetch = FetchType.LAZY)
     private List<StudentGroup> studentGroups;
 

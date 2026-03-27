@@ -1,6 +1,9 @@
 package com.pansgroup.projectbackend.module.announcement.dto;
 
+import com.pansgroup.projectbackend.module.announcement.AnnouncementPriority;
+
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record AnnouncementResponseDto(
         Long id,
@@ -16,6 +19,10 @@ public record AnnouncementResponseDto(
         boolean canConfirmRead,
         boolean readByCurrentUser,
         boolean canViewReadStats,
-        long readConfirmationsCount
+        long readConfirmationsCount,
+        AnnouncementPriority priority,
+        boolean isPinned,
+        boolean isGlobal,
+        List<AttachmentResponseDto> attachments
 ) {
 }

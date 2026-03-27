@@ -41,6 +41,8 @@
                             <option value="Wednesday">Środa</option>
                             <option value="Thursday">Czwartek</option>
                             <option value="Friday">Piątek</option>
+                            <option value="Saturday">Sobota</option>
+                            <option value="Sunday">Niedziela</option>
                         </select>
                     </div>
                     
@@ -114,12 +116,14 @@
                     </div>
                 </div>
 
-                <div class="table-container">
-                    <table id="scheduleTable">
+                <div class="table-scroll-container">
+                    <table class="schedule-table" id="scheduleTable">
                         <thead>
                             <tr>
                                 <th>ID</th>
                                 <th>Przedmiot</th>
+                                <th>Grupa</th>
+                                <th>Specjalność</th>
                                 <th>Dzień</th>
                                 <th>Godziny</th>
                                 <th>Sala</th>
@@ -174,11 +178,22 @@
 
                             <div class="form-row">
                                 <div class="form-group">
+                                    <label for="groupNumber"> Numer grupy (opcjonalnie)</label>
+                                    <input type="number" id="groupNumber" placeholder="np. 1" min="1">
+                                </div>
+                                <div class="form-group">
+                                    <label for="specialization"> Specjalność (opcjonalnie)</label>
+                                    <input type="text" id="specialization" placeholder="np. Metody i techniki programowania">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
                                     <label for="classType"> Typ zajęć</label>
                                     <select id="classType" required>
                                         <option value="WYKLAD">Wykład</option>
                                         <option value="CWICZENIA">Ćwiczenia laboratoryjne</option>
-                                        <!-- <option value="LABORATORIUM">Laboratorium</option> -->
+                                        <option value="LABORATORIUM">Laboratorium</option>
                                         <option value="PROJEKT">Projekt zespołowy</option>
                                         <option value="SEMINARIUM">Seminarium</option>
                                         <option value="KONSULTACJE">Konsultacje</option>
@@ -196,6 +211,8 @@
                                         <option value="Wednesday">Środa</option>
                                         <option value="Thursday">Czwartek</option>
                                         <option value="Friday">Piątek</option>
+                                        <option value="Saturday">Sobota</option>
+                                        <option value="Sunday">Niedziela</option>
                                     </select>
                                 </div>
 
@@ -300,12 +317,30 @@
                         </div>
                         <h3>Uwaga</h3>
                         <p class="text-muted" id="deleteModalText">
-                            Czy na pewno chcesz usunąć te zajęcia?<br>
+                            Czy na pewno chcesz usunąć te zajęcia?
                         </p>
                     </div>
                     <div class="modal-footer-centered">
                         <button class="btn-text-gray" id="btnCancelDelete">Anuluj</button>
                         <button class="btn-danger-block" id="btnConfirmDelete">Usuń zajęcia</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collision Warning Modal -->
+            <div class="modal-overlay" id="collisionModal">
+                <div class="modal-card modal-center-content">
+                    <div class="modal-body-centered">
+                        <div class="modal-icon-wrapper warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h3>Wykryto kolizję!</h3>
+                        <div id="collisionDetails" class="collision-details"></div>
+                        <p class="text-muted">Czy mimo to chcesz zapisać te zajęcia?</p>
+                    </div>
+                    <div class="modal-footer-centered">
+                        <button class="btn-text-gray" id="btnCancelCollision">Anuluj</button>
+                        <button class="btn-warning-block" id="btnConfirmCollision">Zapisz mimo to (wymuś)</button>
                     </div>
                 </div>
             </div>

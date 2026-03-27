@@ -55,7 +55,7 @@ public class AdminController {
         model.addAttribute("activePage", "announcement");
 
         // Zwrocenie widoku HTML
-        return "admin/announcement";
+        return "admin/admin-announcement";
     }
 
     // Endpoint: /admin/post-control

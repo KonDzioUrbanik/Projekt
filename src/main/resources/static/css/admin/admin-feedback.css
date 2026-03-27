@@ -145,6 +145,12 @@
     letter-spacing: 0.5px;
     white-space: nowrap;
     transition: background-color 0.15s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.feedback-table th:last-child {
+    border-right: none;
 }
 
 .feedback-table th:hover {
@@ -153,9 +159,14 @@
 
 .feedback-table td {
     padding: 1rem;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+    border-right: 1px solid rgba(229, 231, 235, 0.4);
     color: var(--text-main);
     vertical-align: middle;
+}
+
+.feedback-table td:last-child {
+    border-right: none;
 }
 
 .feedback-table tr:hover {
@@ -170,6 +181,12 @@
 
 [data-theme="dark"] .feedback-table th {
     border-bottom: 2px solid var(--color-primary);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .feedback-table td {
+    border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+    border-right: 1px solid rgba(75, 85, 99, 0.2);
 }
 
 [data-theme="dark"] .feedback-table th:hover {

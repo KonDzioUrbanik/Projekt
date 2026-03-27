@@ -1,5 +1,6 @@
 package com.pansgroup.projectbackend.module.announcement.dto;
 
+import com.pansgroup.projectbackend.module.announcement.AnnouncementPriority;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -16,6 +17,10 @@ public record AnnouncementCreateDto(
 
         Boolean global,
 
-        List<Long> targetGroupIds
+        List<Long> targetGroupIds,
+
+        AnnouncementPriority priority,
+
+        Boolean isPinned
 ) {
 }

@@ -24,7 +24,6 @@ class ScheduleManagement {
         this.scheduleData = [];
         this.filteredData = [];
         
-        // Paginacja
         this.currentPage = 1;
         this.pageSize = 50;
         this.totalPages = 1;
@@ -32,6 +31,9 @@ class ScheduleManagement {
         this.isEditing = false;
         this.currentEditId = null;
         this.allGroups = [];
+        this.pendingForceSave = false;
+        this.lastSavedFormData = null;
+        this.deletionTimers = new Map();
 
         this.initializeEventListeners();
         this.loadGroups();
@@ -39,18 +41,13 @@ class ScheduleManagement {
     }
 
     initializeEventListeners(){
-        // Modale i formularze
         document.getElementById('addScheduleBtn').addEventListener('click', () => this.openModal());
         document.getElementById('closeModal').addEventListener('click', () => this.closeModal());
         document.getElementById('cancelBtn').addEventListener('click', () => this.closeModal());
         
-        document.getElementById('scheduleModal').addEventListener('click', (e) => {
-            if(e.target.id === 'scheduleModal') { /* opcjonalnie zamknij */ }
-        });
-
         document.getElementById('scheduleForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            this.saveSchedule();
+            this.saveSchedule(false);
         });
 
         // Filtry
@@ -61,142 +58,82 @@ class ScheduleManagement {
         document.getElementById('showArchivedToggle').addEventListener('change', () => this.applyFilters());
         document.getElementById('weekType').addEventListener('change', () => this.toggleCustomWeeksField());
 
-        // Debounce na wyszukiwarce - 300ms opóźnienia dla lepszej wydajności
         const debouncedSearch = Utils.debounce(() => this.applyFilters(), 300);
         document.getElementById('searchInput').addEventListener('input', debouncedSearch);
-        
         document.getElementById('resetFilters').addEventListener('click', () => this.resetFilters());
         
-        // Masowe usuwanie
-        const clearBtn = document.getElementById('clearGroupScheduleBtn');
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => this.clearGroupSchedule());
-        }
-
-        const archiveActiveBtn = document.getElementById('archiveActiveBtn');
-        if (archiveActiveBtn) {
-            archiveActiveBtn.addEventListener('click', () => this.archiveActiveEntries());
-        }
+        // Masowe akcje
+        document.getElementById('clearGroupScheduleBtn')?.addEventListener('click', () => this.clearGroupSchedule());
+        document.getElementById('archiveActiveBtn')?.addEventListener('click', () => this.archiveActiveEntries());
 
         // Paginacja
         document.getElementById('prevPageTop').addEventListener('click', () => this.changePage(this.currentPage - 1));
         document.getElementById('nextPageTop').addEventListener('click', () => this.changePage(this.currentPage + 1));
         document.getElementById('pageSizeTop').addEventListener('change', (e) => this.handlePageSizeChange(e));
 
-        // Eksport CSV
-        const openExportBtn = document.getElementById('openExportModalBtn');
-        if (openExportBtn) {
-            openExportBtn.addEventListener('click', () => this.openExportModal());
-        }
+        // Eksport
+        document.getElementById('openExportModalBtn')?.addEventListener('click', () => this.openExportModal());
+        document.getElementById('closeExportModalBtn')?.addEventListener('click', () => this.closeExportModal());
+        document.getElementById('cancelExportBtn')?.addEventListener('click', () => this.closeExportModal());
+        document.getElementById('performExportBtn')?.addEventListener('click', () => this.exportCsv());
         
-        const closeExportBtn = document.getElementById('closeExportModalBtn');
-        if (closeExportBtn) {
-            closeExportBtn.addEventListener('click', () => this.closeExportModal());
-        }
+        document.getElementById('selectAllCols')?.addEventListener('click', () => {
+            document.querySelectorAll('.export-columns input[type="checkbox"]').forEach(ch => ch.checked = true);
+        });
+        document.getElementById('deselectAllCols')?.addEventListener('click', () => {
+            document.querySelectorAll('.export-columns input[type="checkbox"]').forEach(ch => ch.checked = false);
+        });
 
-        const cancelExportBtn = document.getElementById('cancelExportBtn');
-        if (cancelExportBtn) {
-            cancelExportBtn.addEventListener('click', () => this.closeExportModal());
-        }
-        
-        const performExportBtn = document.getElementById('performExportBtn');
-        if (performExportBtn) {
-            performExportBtn.addEventListener('click', () => this.exportCsv());
-        }
-        
-        // Zaznaczanie kolumn w eksporcie
-        const selectAllBtn = document.getElementById('selectAllCols');
-        if (selectAllBtn) {
-            selectAllBtn.addEventListener('click', () => {
-                document.querySelectorAll('.export-columns input[type="checkbox"]').forEach(ch => ch.checked = true);
-            });
-        }
-        const deselectAllBtn = document.getElementById('deselectAllCols');
-        if (deselectAllBtn) {
-            deselectAllBtn.addEventListener('click', () => {
-                document.querySelectorAll('.export-columns input[type="checkbox"]').forEach(ch => ch.checked = false);
-            });
-        }
+        // Kolizje
+        document.getElementById('btnCancelCollision')?.addEventListener('click', () => this.closeCollisionModal());
+        document.getElementById('btnConfirmCollision')?.addEventListener('click', () => this.saveSchedule(true));
 
-        // Obsługa akcji w tabeli (Delegacja zdarzeń)
+        // Delegacja tabeli
         const tableBody = document.getElementById('scheduleTableBody');
         if (tableBody) {
             tableBody.addEventListener('click', (e) => {
-                // Obsługa przycisku edycji (także kliknięcie w ikonę)
                 const editBtn = e.target.closest('.btn-edit');
                 if (editBtn) {
-                    const scheduleJson = editBtn.getAttribute('data-schedule');
-                    const scheduleData = Utils.safeJsonParse(scheduleJson, null);
-                    if (scheduleData) {
-                        this.openModal(scheduleData);
-                    } else {
-                        console.error('Błąd parsowania danych zajęć');
-                    }
+                    const data = Utils.safeJsonParse(editBtn.getAttribute('data-schedule'), null);
+                    if (data) this.openModal(data);
                     return;
                 }
-
-                // Obsługa przycisku usuwania
                 const deleteBtn = e.target.closest('.btn-delete');
                 if (deleteBtn) {
                     const id = deleteBtn.getAttribute('data-id');
-                    const schedTitle = deleteBtn.closest('tr').querySelector('strong') ? deleteBtn.closest('tr').querySelector('strong').innerText : 'te zajęcia';
-                    this.openDeleteConfirmModal(id, `Czy na pewno chcesz usunąć zajęcia <strong>${schedTitle}</strong>?`);
+                    const title = deleteBtn.closest('tr').querySelector('strong')?.innerText || 'te zajęcia';
+                    this.openDeleteConfirmModal(id, `Czy na pewno chcesz usunąć zajęcia <strong>${title}</strong>?`);
                     return;
                 }
-
                 const archiveBtn = e.target.closest('.btn-archive');
-                if (archiveBtn) {
-                    const id = archiveBtn.getAttribute('data-id');
-                    this.archiveSchedule(id);
-                    return;
-                }
-
+                if (archiveBtn) { this.archiveSchedule(archiveBtn.getAttribute('data-id')); return; }
                 const restoreBtn = e.target.closest('.btn-restore');
-                if (restoreBtn) {
-                    const id = restoreBtn.getAttribute('data-id');
-                    this.restoreSchedule(id);
-                    return;
-                }
+                if (restoreBtn) { this.restoreSchedule(restoreBtn.getAttribute('data-id')); return; }
             });
         }
         
-        // Modal Confirmations
-        const btnCancelDelete = document.getElementById('btnCancelDelete');
-        if (btnCancelDelete) {
-            btnCancelDelete.addEventListener('click', () => {
-                document.getElementById('deleteConfirmOverlay').classList.remove('active');
-                this.pendingDeleteId = null;
-                this.pendingDeleteType = null;
-            });
-        }
-        
-        const btnConfirmDelete = document.getElementById('btnConfirmDelete');
-        if (btnConfirmDelete) {
-            btnConfirmDelete.addEventListener('click', () => {
-                document.getElementById('deleteConfirmOverlay').classList.remove('active');
-                if (this.pendingDeleteType === 'single') {
-                    this.deleteSchedule(this.pendingDeleteId);
-                } else if (this.pendingDeleteType === 'bulk') {
-                    this.executeBulkDelete(this.pendingDeleteId);
-                }
-            });
-        }
+        // Modal usuwania
+        document.getElementById('btnCancelDelete')?.addEventListener('click', () => {
+            document.getElementById('deleteConfirmOverlay').classList.remove('active');
+        });
+        document.getElementById('btnConfirmDelete')?.addEventListener('click', () => {
+            document.getElementById('deleteConfirmOverlay').classList.remove('active');
+            if (this.pendingDeleteType === 'single') this.deleteSchedule(this.pendingDeleteId);
+            else if (this.pendingDeleteType === 'bulk') this.executeBulkDelete(this.pendingDeleteId);
+        });
     }
 
-    // Ładowanie danych
     async loadSchedule(){
         const loading = document.getElementById('loading');
         loading.classList.add('active');
-
         try {
             const response = await fetch(ScheduleManagement.CONFIG.API.SCHEDULE_ALL);
-            if(!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
+            if(!response.ok) throw new Error(`Status: ${response.status}`);
             this.scheduleData = await response.json();
-            this.populateTeacherFilter(); // Populate teachers after loading data
-            this.applyFilters(); // To wywoła renderTable (przez updatePaginationUI)
+            this.populateTeacherFilter();
+            this.applyFilters();
         } catch (error) {
-            console.error('Błąd ładowania:', error);
+            console.error('Błąd:', error);
             this.renderErrorState();
         } finally {
             loading.classList.remove('active');
@@ -205,120 +142,85 @@ class ScheduleManagement {
 
     async loadGroups(){
         try {
-            const response = await fetch(ScheduleManagement.CONFIG.API.GROUPS);
-            if(!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            this.allGroups = await response.json();
+            const res = await fetch(ScheduleManagement.CONFIG.API.GROUPS);
+            if(!res.ok) throw new Error(`Status: ${res.status}`);
+            this.allGroups = await res.json();
             this.populateGroupsSelect();
-            this.populateGroupFilter(); // Populate filter select
-        } catch (error) {
-            console.error('Błąd ładowania kierunków:', error);
-        }
+            this.populateGroupFilter();
+        } catch (error) { console.error('Błąd grup:', error); }
     }
 
     populateGroupsSelect(){
-        const groupsSelect = document.getElementById('studentGroups');
-        groupsSelect.innerHTML = '';
-        const sortedGroups = [...this.allGroups].sort((a, b) => a.name.localeCompare(b.name, 'pl'));
-        
-        sortedGroups.forEach(group => {
-            const option = document.createElement('option');
-            option.value = group.id;
-            option.textContent = group.name;
-            groupsSelect.appendChild(option);
+        const select = document.getElementById('studentGroups');
+        if (!select) return;
+        select.innerHTML = '';
+        [...this.allGroups].sort((a,b) => a.name.localeCompare(b.name, 'pl')).forEach(g => {
+            const opt = document.createElement('option');
+            opt.value = g.id;
+            opt.textContent = g.name;
+            select.appendChild(opt);
         });
     }
 
     populateGroupFilter(){
-        const groupFilter = document.getElementById('groupFilter');
-        // Keep first option (Wszystkie kierunki)
-        groupFilter.innerHTML = '<option value="">Wszystkie kierunki</option>';
-        
-        const sortedGroups = [...this.allGroups].sort((a, b) => a.name.localeCompare(b.name, 'pl'));
-        
-        sortedGroups.forEach(group => {
-            const option = document.createElement('option');
-            option.value = group.id; // Używamy ID zamiast nazwy dla precyzji
-            option.textContent = group.name;
-            groupFilter.appendChild(option);
+        const filter = document.getElementById('groupFilter');
+        if (!filter) return;
+        filter.innerHTML = '<option value="">Wszystkie kierunki</option>';
+        [...this.allGroups].sort((a,b) => a.name.localeCompare(b.name, 'pl')).forEach(g => {
+            const opt = document.createElement('option');
+            opt.value = g.id;
+            opt.textContent = g.name;
+            filter.appendChild(opt);
         });
     }
 
     populateTeacherFilter(){
-        const teacherFilter = document.getElementById('teacherFilter');
-        teacherFilter.innerHTML = '<option value="">Wszyscy wykładowcy</option>';
-
-        const teachers = [...new Set(this.scheduleData.map(item => item.teacher).filter(t => t))].sort((a,b) => a.localeCompare(b, 'pl'));
-        
-        teachers.forEach(teacher => {
-            const option = document.createElement('option');
-            option.value = teacher;
-            option.textContent = teacher;
-            teacherFilter.appendChild(option);
+        const filter = document.getElementById('teacherFilter');
+        if (!filter) return;
+        filter.innerHTML = '<option value="">Wszyscy wykładowcy</option>';
+        const teachers = [...new Set(this.scheduleData.map(i => i.teacher).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'pl'));
+        teachers.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t; opt.textContent = t; filter.appendChild(opt);
         });
     }
 
-    // Filtrowanie i Paginacja
     applyFilters(){
-        const dayFilter = document.getElementById('dayFilter').value;
-        const typeFilter = document.getElementById('typeFilter').value;
-        const groupFilter = document.getElementById('groupFilter').value;
-        const teacherFilter = document.getElementById('teacherFilter').value;
-        const searchText = document.getElementById('searchInput').value.toLowerCase().trim();
-        const showArchived = document.getElementById('showArchivedToggle').checked;
+        const day = document.getElementById('dayFilter').value;
+        const type = document.getElementById('typeFilter').value;
+        const group = document.getElementById('groupFilter').value;
+        const teacher = document.getElementById('teacherFilter').value;
+        const q = document.getElementById('searchInput').value.toLowerCase().trim();
+        const arch = document.getElementById('showArchivedToggle').checked;
 
         this.filteredData = this.scheduleData.filter(item => {
-            const dayMatch = !dayFilter || item.dayOfWeek === dayFilter;
-            const typeMatch = !typeFilter || item.classType === typeFilter;
-            const teacherMatch = !teacherFilter || item.teacher === teacherFilter;
-            
-            // Group Filter Logic
-            let groupMatch = true;
-            if (groupFilter) {
-                const selectedGroupId = parseInt(groupFilter);
-                if (!item.studentGroups) groupMatch = false;
-                else {
-                    // Check if any of the item's groups matches the selected group ID
-                    groupMatch = item.studentGroups.some(g => g.id === selectedGroupId);
-                }
+            if (day && item.dayOfWeek !== day) return false;
+            if (type && item.classType !== type) return false;
+            if (teacher && item.teacher !== teacher) return false;
+            if (group && (!item.studentGroups || !item.studentGroups.some(g => g.id.toString() === group))) return false;
+            if (q) {
+                const text = `${item.title} ${item.room} ${item.teacher} ${item.studentGroups?.map(g => g.name).join(' ')}`.toLowerCase();
+                if (!text.includes(q)) return false;
             }
-
-            const itemGroups = item.studentGroups ? item.studentGroups.map(g => g.name).join(' ').toLowerCase() : '';
-            
-            let searchMatch = true;
-            if (searchText) {
-                const title = (item.title || '').toLowerCase();
-                const room = (item.room || '').toLowerCase();
-                const teacher = (item.teacher || '').toLowerCase();
-                
-                searchMatch = title.includes(searchText) || 
-                              room.includes(searchText) || 
-                              teacher.includes(searchText) ||
-                              itemGroups.includes(searchText);
-            }
-
-            const archiveMatch = showArchived ? true : !item.archived;
-            return dayMatch && typeMatch && groupMatch && teacherMatch && searchMatch && archiveMatch;
+            if (!arch && item.archived) return false;
+            return true;
         });
 
-        this.updateResultsCounter();
-        this.currentPage = 1; // Reset do pierwszej strony po filtracji
+        const countSpan = document.getElementById('resultsCount');
+        if (countSpan) countSpan.textContent = this.filteredData.length;
+        this.currentPage = 1;
         this.updatePaginationUI();
-        this.toggleBulkDeleteButton(groupFilter);
+        this.toggleBulkDeleteButton(group);
     }
 
     toggleBulkDeleteButton(groupId) {
         const btn = document.getElementById('clearGroupScheduleBtn');
         if (!btn) return;
-
         if (groupId) {
             btn.style.display = 'flex';
-            const group = this.allGroups.find(g => g.id.toString() === groupId.toString());
-            if (group) {
-                btn.title = `Usuń wszystkie zajęcia dla: ${group.name}`;
-            }
-        } else {
-            btn.style.display = 'none';
-        }
+            const g = this.allGroups.find(x => x.id.toString() === groupId);
+            if (g) btn.title = `Wyczyść plan dla: ${g.name}`;
+        } else { btn.style.display = 'none'; }
     }
 
     resetFilters(){
@@ -330,105 +232,57 @@ class ScheduleManagement {
         document.getElementById('showArchivedToggle').checked = false;
         this.applyFilters();
     }
-    
-    updateResultsCounter() {
-        const countSpan = document.getElementById('resultsCount');
-        
-        if (countSpan) countSpan.textContent = this.filteredData.length;
-    }
 
     updatePaginationUI() {
-        const totalItems = this.filteredData.length;
-        
-        if (this.pageSize === 'all') {
-            this.totalPages = 1;
-        } else {
-            this.totalPages = Math.ceil(totalItems / this.pageSize);
-            if (this.totalPages < 1) this.totalPages = 1;
-        }
-
-        // Aktualizacja labeli
+        const total = this.filteredData.length;
+        this.totalPages = this.pageSize === 'all' ? 1 : Math.max(1, Math.ceil(total / this.pageSize));
         document.getElementById('currentPageTop').textContent = this.currentPage;
         document.getElementById('totalPagesTop').textContent = this.totalPages;
-
-        // Stan przycisków
         document.getElementById('prevPageTop').disabled = (this.currentPage <= 1);
         document.getElementById('nextPageTop').disabled = (this.currentPage >= this.totalPages);
-
         this.renderFilteredPage();
     }
 
     renderFilteredPage() {
-        let itemsToRender = [];
-
-        if (this.pageSize === 'all') {
-            itemsToRender = this.filteredData;
-        } else {
-            const startIndex = (this.currentPage - 1) * this.pageSize;
-            const endIndex = startIndex + parseInt(this.pageSize);
-            itemsToRender = this.filteredData.slice(startIndex, endIndex);
-        }
-
-        this.renderTable(itemsToRender);
+        const data = this.pageSize === 'all' ? this.filteredData : this.filteredData.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize);
+        this.renderTable(data);
     }
 
-    changePage(newPage) {
-        if (newPage >= 1 && newPage <= this.totalPages) {
-            this.currentPage = newPage;
-            this.updatePaginationUI();
-        }
-    }
-
-    handlePageSizeChange(e) {
-        this.pageSize = e.target.value === 'all' ? 'all' : parseInt(e.target.value);
-        this.currentPage = 1;
-        this.updatePaginationUI();
-    }
+    changePage(p) { if(p >= 1 && p <= this.totalPages) { this.currentPage = p; this.updatePaginationUI(); } }
+    handlePageSizeChange(e) { this.pageSize = e.target.value === 'all' ? 'all' : parseInt(e.target.value); this.currentPage = 1; this.updatePaginationUI(); }
 
     renderTable(data){
-        const tableBody = document.getElementById('scheduleTableBody');
-
+        const body = document.getElementById('scheduleTableBody');
         if(data.length === 0){
-            tableBody.innerHTML = `
-                <tr class="empty-row">
-                    <td colspan="10" style="text-align: center; padding: 2rem;">
-                        <div class="empty-state">
-                            <h3>Brak zajęć</h3>
-                            <p>Nie znaleziono żadnych zajęć spełniających kryteria.</p>
-                        </div>
-                    </td>
-                </tr>
-            `;
+            body.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2rem;">Brak wyników.</td></tr>`;
             return;
         }
 
-        tableBody.innerHTML = data.map(item => {
-            // Escapowanie danych (XSS prevention)
-            const safeTitle = Utils.escapeHtml(item.title);
-            const safeRoom = Utils.escapeHtml(item.room);
-            const safeTeacher = Utils.escapeHtml(item.teacher);
-            const dayName = ScheduleManagement.CONFIG.DAY_NAMES[item.dayOfWeek] || item.dayOfWeek;
-            const classTypeName = ScheduleManagement.CONFIG.CLASS_TYPES[item.classType] || item.classType;
-            const weekTypeName = this.formatWeekTypeLabel(item);
-            const groupNames = item.studentGroups && item.studentGroups.length > 0
-                ? item.studentGroups.map(g => Utils.escapeHtml(g.name)).join(', ') 
-                : '-';
-            const archiveBadge = item.archived ? '<span class="week-badge" style="background:#4b5563;margin-left:6px;">Archiwum</span>' : '';
-            const archiveActionBtn = item.archived
+        body.innerHTML = data.map(item => {
+            const day = ScheduleManagement.CONFIG.DAY_NAMES[item.dayOfWeek] || item.dayOfWeek;
+            const type = ScheduleManagement.CONFIG.CLASS_TYPES[item.classType] || item.classType;
+            const weeks = this.formatWeekTypeLabel(item);
+            const groups = item.studentGroups?.map(g => Utils.escapeHtml(g.name)).join(', ') || '-';
+            const groupNum = Utils.escapeHtml(item.groupNumber || '-');
+            const spec = Utils.escapeHtml(item.specialization || '-');
+            const archBadge = item.archived ? '<span class="week-badge" style="background:#4b5563;margin-left:6px;">Archiwum</span>' : '';
+            const archAction = item.archived
                 ? `<button class="action-btn btn-restore" title="Przywróć" data-id="${item.id}"><i class="fas fa-box-open"></i></button>`
                 : `<button class="action-btn btn-archive" title="Archiwizuj" data-id="${item.id}"><i class="fas fa-archive"></i></button>`;
 
             return `
             <tr>
                 <td>${item.id}</td>
-                <td><strong>${safeTitle}</strong></td>
-                <td><span class="day-badge">${dayName}</span></td>
-                <td>${Utils.formatTime(item.startTime)} - ${Utils.formatTime(item.endTime)}</td>
-                <td>${safeRoom}</td>
-                <td>${safeTeacher}</td>
-                <td><span class="class-type-badge ${item.classType}">${classTypeName}</span></td>
-                <td><span class="week-badge">${weekTypeName}</span>${archiveBadge}</td>
-                <td>${groupNames}</td>
+                <td><strong>${Utils.escapeHtml(item.title)}</strong></td>
+                <td>${groupNum}</td>
+                <td>${spec}</td>
+                <td><span class="day-badge">${day}</span></td>
+                <td>${this.formatTime(item.startTime)} - ${this.formatTime(item.endTime)}</td>
+                <td>${Utils.escapeHtml(item.room)}</td>
+                <td>${Utils.escapeHtml(item.teacher)}</td>
+                <td><span class="class-type-badge ${item.classType}">${type}</span></td>
+                <td><span class="week-badge">${weeks}</span>${archBadge}</td>
+                <td>${groups}</td>
                 <td>
                     <div class="action-buttons">
                         <button class="action-btn btn-edit" title="Edytuj" data-schedule='${JSON.stringify(item).replace(/'/g, "&#39;")}'>
@@ -437,65 +291,43 @@ class ScheduleManagement {
                         <button class="action-btn btn-delete" title="Usuń" data-id="${item.id}">
                             <i class="fas fa-trash-alt"></i>
                         </button>
-                        ${archiveActionBtn}
+                        ${archAction}
                     </div>
                 </td>
-            </tr>
-        `}).join('');
-    }
-    
-    renderErrorState() {
-        const tableBody = document.getElementById('scheduleTableBody');
-        tableBody.innerHTML = `
-            <tr class="empty-row">
-                <td colspan="10" style="text-align: center; padding: 2rem;">
-                    <div style="color: #ef4444;">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem;"></i>
-                        <p style="margin-top: 1rem;">Nie udało się załadować danych. Sprawdź połączenie.</p>
-                    </div>
-                </td>
-            </tr>
-        `;
+            </tr>`;
+        }).join('');
     }
 
-    // CRUD
+    renderErrorState() {
+        document.getElementById('scheduleTableBody').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2rem;color:red;">Błąd ładowania danych.</td></tr>`;
+    }
+
     openModal(data = null){
         const modal = document.getElementById('scheduleModal');
-        const modalTitle = document.getElementById('modalTitle');
         const form = document.getElementById('scheduleForm');
-
         form.reset();
-
         if(data){
-            this.isEditing = true;
-            this.currentEditId = data.id;
-            modalTitle.innerHTML = 'Edycja zajęć';
-
-            document.getElementById('scheduleId').value = data.id;
+            this.isEditing = true; this.currentEditId = data.id;
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Edycja zajęć';
             document.getElementById('title').value = data.title;
             document.getElementById('room').value = data.room;
             document.getElementById('teacher').value = data.teacher;
+            document.getElementById('groupNumber').value = data.groupNumber || '';
+            document.getElementById('specialization').value = data.specialization || '';
             document.getElementById('classType').value = data.classType;
             document.getElementById('weekType').value = data.weekType || 'ALL';
             document.getElementById('customWeeks').value = data.customWeeks || '';
             document.getElementById('dayOfWeek').value = data.dayOfWeek;
             document.getElementById('startTime').value = this.formatTimeForInput(data.startTime);
             document.getElementById('endTime').value = this.formatTimeForInput(data.endTime);
-            
-            const groupsSelect = document.getElementById('studentGroups');
-            if(data.studentGroups && data.studentGroups.length > 0){
-                const groupIds = data.studentGroups.map(g => g.id.toString());
-                Array.from(groupsSelect.options).forEach(option => {
-                    option.selected = groupIds.includes(option.value);
-                });
+            const select = document.getElementById('studentGroups');
+            if(data.studentGroups){
+                const ids = data.studentGroups.map(g => g.id.toString());
+                Array.from(select.options).forEach(o => o.selected = ids.includes(o.value));
             }
-        } 
-        else {
-            this.isEditing = false;
-            this.currentEditId = null;
-            modalTitle.innerHTML = 'Dodaj zajęcia';
-            document.getElementById('weekType').value = 'ALL';
-            document.getElementById('customWeeks').value = '';
+        } else {
+            this.isEditing = false; this.currentEditId = null;
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus"></i> Dodaj zajęcia';
         }
         this.toggleCustomWeeksField();
         modal.classList.add('active');
@@ -503,393 +335,322 @@ class ScheduleManagement {
 
     closeModal(){
         document.getElementById('scheduleModal').classList.remove('active');
-        this.isEditing = false;
-        this.currentEditId = null;
+        this.isEditing = false; this.currentEditId = null;
     }
 
-    async saveSchedule(){
-        const groupsSelect = document.getElementById('studentGroups');
-        const selectedGroupIds = Array.from(groupsSelect.selectedOptions).map(opt => parseInt(opt.value));
+    async saveSchedule(force = false){
         const weekType = document.getElementById('weekType').value;
-        const rawCustomWeeks = document.getElementById('customWeeks').value;
-        const normalizedCustomWeeks = weekType === 'CUSTOM' ? this.normalizeCustomWeeksInput(rawCustomWeeks) : null;
-
-        if (weekType === 'CUSTOM' && !normalizedCustomWeeks) {
-            Utils.showToast('Podaj poprawne numery tygodni 1-53, np. 1,3,5.', 'error');
-            return;
-        }
+        const normCustom = weekType === 'CUSTOM' ? this.normalizeCustomWeeksInput(document.getElementById('customWeeks').value) : null;
+        if (weekType === 'CUSTOM' && !normCustom) { Utils.showToast('Podaj poprawne tygodnie (np. 1,3,5).', 'error'); return; }
 
         const formData = {
             title: document.getElementById('title').value,
             room: document.getElementById('room').value,
             teacher: document.getElementById('teacher').value,
+            groupNumber: document.getElementById('groupNumber').value || null,
+            specialization: document.getElementById('specialization').value || null,
             classType: document.getElementById('classType').value,
             weekType,
-            customWeeks: normalizedCustomWeeks,
+            customWeeks: normCustom,
             dayOfWeek: document.getElementById('dayOfWeek').value,
             startTime: document.getElementById('startTime').value + ':00',
             endTime: document.getElementById('endTime').value + ':00',
-            studentGroupIds: selectedGroupIds
+            studentGroupIds: Array.from(document.getElementById('studentGroups').selectedOptions).map(o => parseInt(o.value))
         };
 
+        if (formData.startTime >= formData.endTime) {
+            Utils.showToast('Godzina zakończenia musi być późniejsza niż godzina rozpoczęcia.', 'error');
+            return;
+        }
+
+        this.lastSavedFormData = formData;
+        const url = this.isEditing ? `${ScheduleManagement.CONFIG.API.SCHEDULE}/${this.currentEditId}` : ScheduleManagement.CONFIG.API.SCHEDULE;
+        const method = this.isEditing ? 'PUT' : 'POST';
+
         try {
-            let response;
-            if(this.isEditing){
-                response = await fetch(`${ScheduleManagement.CONFIG.API.SCHEDULE}/${this.currentEditId}`, {
-                    method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(formData)
-                });
-            } else {
-                response = await fetch(ScheduleManagement.CONFIG.API.SCHEDULE, {
-                    method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(formData)
-                });
+            const res = await fetch(`${url}${force ? '?force=true' : ''}`, {
+                method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify(formData)
+            });
+
+            if (res.status === 409) {
+                const info = await res.json();
+                this.openCollisionModal(info.message || 'Wykryto kolizję w sali lub planie wykładowcy.');
+                return;
             }
 
-            if(!response.ok) {
-                let message = `Status: ${response.status}`;
-                try {
-                    const errorData = await response.json();
-                    message = errorData && (errorData.detail || errorData.message) ? (errorData.detail || errorData.message) : message;
-                } catch (_) {
-                    // fallback do statusu
-                }
-                throw new Error(message);
+            if(!res.ok) {
+                const err = await res.json().catch(() => ({message: `Status: ${res.status}`}));
+                throw new Error(err.message || err.detail || 'Błąd zapisu');
             }
 
             const wasEditing = this.isEditing;
             this.closeModal();
-            this.loadSchedule(); // Przeładuje dane i zaaplikuje filtry/paginację
-            Utils.showToast(wasEditing ? 'Zajęcia zaktualizowane.' : 'Zajęcia dodane.', 'success');
+            this.closeCollisionModal();
+            this.loadSchedule();
+            Utils.showToast(wasEditing ? 'Zaktualizowano pomyślnie.' : 'Zajęcia zostały dodane.', 'success');
         } catch (error) {
-            console.error('Błąd zapisu:', error);
-            const backendMessage = error && error.message ? error.message : 'Wystąpił błąd podczas zapisywania.';
-            Utils.showToast(backendMessage, 'error');
+            Utils.showToast(error.message, 'error');
         }
     }
 
-    async editSchedule(id){
-        const item = this.scheduleData.find(s => s.id === id);
-        if(item) this.openModal(item);
+    openCollisionModal(details) {
+        const detailsDiv = document.getElementById('collisionDetails');
+        if (detailsDiv) {
+            // Rozdziel ostrzeżenia średnikiem, a potem każde z nich sformatuj
+            const formatted = details.split(';')
+                .filter(d => d.trim().length > 0)
+                .map(d => {
+                    const escaped = Utils.escapeHtml(d.trim()).replace(/\n/g, '<br>');
+                    return `<span><i class="fas fa-exclamation-circle"></i> ${escaped}</span>`;
+                })
+                .join('');
+            detailsDiv.innerHTML = formatted;
+        }
+        document.getElementById('collisionModal')?.classList.add('active');
     }
 
-    openDeleteConfirmModal(id, message, type = 'single') {
+    closeCollisionModal() {
+        document.getElementById('collisionModal')?.classList.remove('active');
+    }
+
+    openDeleteConfirmModal(id, msg, type = 'single') {
         const overlay = document.getElementById('deleteConfirmOverlay');
-        const textElem = document.getElementById('deleteModalText');
-        
-        if (!overlay || !textElem) {
-            if(confirm(message.replace(/<[^>]*>?/gm, ''))) {
-                this.pendingDeleteId = id;
-                this.pendingDeleteType = type;
-                if (type === 'single') this.deleteSchedule(id);
-                else this.executeBulkDelete(id);
-            }
-            return;
-        }
-
-        this.pendingDeleteId = id;
-        this.pendingDeleteType = type;
-        
-        textElem.innerHTML = message;
+        document.getElementById('deleteModalText').innerHTML = msg;
+        this.pendingDeleteId = id; this.pendingDeleteType = type;
         overlay.classList.add('active');
     }
 
     async deleteSchedule(id) {
-        // Soft delete logic with toast undo
-        const itemToDelete = this.scheduleData.find(s => s.id.toString() === id.toString());
-        if (!itemToDelete) return;
-        
-        // Optimistically remove from UI
-        this.scheduleData = this.scheduleData.filter(s => s.id.toString() !== id.toString());
-        this.applyFilters();
-        
-        // Pokazujemy toast z opcją cofnij
-        const toastContainer = document.getElementById('toastContainer');
-        const toastId = 'toast-' + Date.now();
-        
-        const toast = document.createElement('div');
-        toast.className = 'toast success';
-        toast.id = toastId;
-        toast.innerHTML = `
-            <i class="fas fa-check-circle"></i>
-            <span>Zajęcia usunięte</span>
-            <button class="toast-undo-btn" id="undo-${toastId}">COFNIJ</button>
-        `;
-        toastContainer.appendChild(toast);
-        
-        let isUndone = false;
-        
-        const undoBtn = document.getElementById(`undo-${toastId}`);
-        if(undoBtn) {
-            undoBtn.addEventListener('click', () => {
-                isUndone = true;
-                toast.style.animation = 'fadeOut 0.3s forwards';
-                setTimeout(() => toast.remove(), 300);
-                
-                // Przywracamy dane
-                this.scheduleData.push(itemToDelete);
-                this.applyFilters();
-                Utils.showToast('Cofnięto usunięcie. Zajęcia przywrócone.', 'info');
-            });
-        }
-        
-        // Oczekujemy 4 sekundy, potem request właściwy
-        setTimeout(async () => {
-            if (!isUndone) {
-                const liveToast = document.getElementById(toastId);
-                if (liveToast) {
-                    liveToast.style.animation = 'fadeOut 0.3s forwards';
-                    setTimeout(() => liveToast.remove(), 300);
-                }
-                
-                try {
-                    const response = await fetch(`${ScheduleManagement.CONFIG.API.SCHEDULE}/${id}`, { method: 'DELETE' });
-                    if(!response.ok) throw new Error(`Status: ${response.status}`);
-                } catch (error) {
-                    console.error('Błąd usuwania:', error);
-                    Utils.showToast('Błąd usuwania: ' + error.message, 'error');
-                    // Przywracamy w razie błędu serwera
-                    this.scheduleData.push(itemToDelete);
-                    this.applyFilters();
-                }
-            }
-        }, 4000);
+        const row = Array.from(document.querySelectorAll('#scheduleTableBody tr'))
+            .find(tr => tr.querySelector('.btn-delete')?.getAttribute('data-id') === id.toString());
+
+        if (row) row.style.display = 'none';
+
+        const toastHtml = `<button class="btn-undo-toast" onclick="scheduleManager.undoDelete('${id}')">Cofnij</button>`;
+        const toast = Utils.showToast('Zajęcia zostały usunięte.', 'success', { 
+            actionHtml: toastHtml, 
+            duration: 0, 
+            closable: false 
+        });
+
+        const timerId = setTimeout(() => {
+            this.executeActualDelete(id, toast, row);
+        }, 5000);
+
+        this.deletionTimers.set(id.toString(), { timerId, toast, row });
     }
 
-    async clearGroupSchedule() {
-        const groupFilter = document.getElementById('groupFilter');
-        const groupId = groupFilter.value;
-        
-        if (!groupId) return;
+    undoDelete(id) {
+        const data = this.deletionTimers.get(id.toString());
+        if (!data) return;
 
-        const group = this.allGroups.find(g => g.id.toString() === groupId.toString());
-        const groupName = group ? group.name : 'tego kierunku';
+        clearTimeout(data.timerId);
+        if (data.row) data.row.style.display = '';
 
-        const count = this.filteredData.length;
-        if (count === 0) {
-            Utils.showToast('Brak zajęć do usunięcia dla tego kierunku.', 'info');
-            return;
+        if (data.toast && data.toast.parentElement) {
+            data.toast.classList.add('fade-out');
+            setTimeout(() => data.toast.remove(), 300);
         }
 
-        const confirmMsg = `Czy na pewno chcesz usunąć WSZYSTKIE zajęcia (<strong>${count}</strong>) dla kierunku: <strong>${groupName}</strong>?<br><br>Tej operacji nie można cofnąć.`;
-        this.openDeleteConfirmModal(groupId, confirmMsg, 'bulk');
+        Utils.showToast('Cofnięto usunięcie zajęć.', 'info');
+        this.deletionTimers.delete(id.toString());
+    }
+
+    async executeActualDelete(id, toast, row) {
+        this.deletionTimers.delete(id.toString());
+        try {
+            const res = await fetch(`${ScheduleManagement.CONFIG.API.SCHEDULE}/${id}`, { method: 'DELETE' });
+            if (toast && toast.parentElement) {
+                toast.classList.add('fade-out');
+                setTimeout(() => toast.remove(), 300);
+            }
+            if (!res.ok) throw new Error(`Status: ${res.status}`);
+            await this.loadSchedule();
+        } catch (e) {
+            if (row) row.style.display = '';
+            Utils.showToast('Nie udało się trwale usunąć zajęć.', 'error');
+        }
     }
 
     async executeBulkDelete(groupId) {
-        const group = this.allGroups.find(g => g.id.toString() === groupId.toString());
-        const groupName = group ? group.name : 'tego kierunku';
-
-        const loading = document.getElementById('loading');
-        loading.classList.add('active');
-
         try {
-            const response = await fetch(`${ScheduleManagement.CONFIG.API.SCHEDULE}/group/${groupId}`, {
-                method: 'DELETE'
-            });
-
-            if (!response.ok) throw new Error(`Status: ${response.status}`);
-
-            Utils.showToast(`Pomyślnie wyczyszczono plan zajęć dla: ${groupName}`, 'success');
+            const res = await fetch(`${ScheduleManagement.CONFIG.API.SCHEDULE}/group/${groupId}`, { method: 'DELETE' });
+            if(!res.ok) throw new Error(`Status: ${res.status}`);
+            Utils.showToast('Plan dla grupy został wyczyszczony.', 'success');
             await this.loadSchedule();
-        } catch (error) {
-            console.error('Błąd masowego usuwania:', error);
-            Utils.showToast('Wystąpił błąd podczas usuwania planu.', 'error');
-        } finally {
-            loading.classList.remove('active');
-        }
+        } catch (e) { Utils.showToast(e.message, 'error'); }
     }
 
     async archiveSchedule(id) {
         try {
-            const response = await fetch(`${ScheduleManagement.CONFIG.API.SCHEDULE}/${id}/archive`, { method: 'PUT' });
-            if (!response.ok) throw new Error(`Status: ${response.status}`);
-            Utils.showToast('Zajęcia zarchiwizowane.', 'success');
-            await this.loadSchedule();
-        } catch (error) {
-            console.error('Błąd archiwizacji:', error);
-            Utils.showToast('Nie udało się zarchiwizować zajęć.', 'error');
-        }
+            const res = await fetch(`${ScheduleManagement.CONFIG.API.SCHEDULE}/${id}/archive`, { method: 'PUT' });
+            if(!res.ok) throw new Error(`Status: ${res.status}`);
+            Utils.showToast('Zarchiwizowane.', 'success'); await this.loadSchedule();
+        } catch (e) { Utils.showToast(e.message, 'error'); }
     }
 
     async restoreSchedule(id) {
         try {
-            const response = await fetch(`${ScheduleManagement.CONFIG.API.SCHEDULE}/${id}/restore`, { method: 'PUT' });
-            if (!response.ok) throw new Error(`Status: ${response.status}`);
-            Utils.showToast('Zajęcia przywrócone z archiwum.', 'success');
-            await this.loadSchedule();
-        } catch (error) {
-            console.error('Błąd przywracania:', error);
-            Utils.showToast('Nie udało się przywrócić zajęć.', 'error');
-        }
+            const res = await fetch(`${ScheduleManagement.CONFIG.API.SCHEDULE}/${id}/restore`, { method: 'PUT' });
+            if(!res.ok) throw new Error(`Status: ${res.status}`);
+            Utils.showToast('Przywrócone.', 'success'); await this.loadSchedule();
+        } catch (e) { Utils.showToast(e.message, 'error'); }
     }
 
     async archiveActiveEntries() {
-        const yearPlan = window.prompt('Podaj rok/plan do archiwizacji (opcjonalnie, np. INFORMATYKA ROK III).\nPozostaw puste aby zarchiwizować wszystkie aktywne zajęcia:');
-        if (yearPlan === null) return;
-
-        const query = yearPlan.trim() ? `?yearPlan=${encodeURIComponent(yearPlan.trim())}` : '';
+        const year = window.prompt('Podaj nazwę planu (opcjonalnie):');
+        if (year === null) return;
+        const q = year.trim() ? `?yearPlan=${encodeURIComponent(year.trim())}` : '';
         try {
-            const response = await fetch(`${ScheduleManagement.CONFIG.API.SCHEDULE}/archive${query}`, { method: 'PUT' });
-            if (!response.ok) throw new Error(`Status: ${response.status}`);
-            const result = await response.json();
-            const archivedCount = result && result.archivedCount ? result.archivedCount : 0;
-            Utils.showToast(`Zarchiwizowano ${archivedCount} zajęć.`, 'success');
-            await this.loadSchedule();
-        } catch (error) {
-            console.error('Błąd archiwizacji semestru:', error);
-            Utils.showToast('Nie udało się wykonać archiwizacji.', 'error');
-        }
-    }
-
-    // Eksport CSV
-    openExportModal() {
-        document.getElementById('exportCount').textContent = this.filteredData.length;
-        document.getElementById('exportModal').classList.add('active');
-    }
-
-    closeExportModal() {
-        document.getElementById('exportModal').classList.remove('active');
+            const res = await fetch(`${ScheduleManagement.CONFIG.API.SCHEDULE}/archive${q}`, { method: 'PUT' });
+            if(!res.ok) throw new Error(`Status: ${res.status}`);
+            const r = await res.json();
+            Utils.showToast(`Zarchiwizowano ${r.archivedCount} zajęć.`, 'success'); await this.loadSchedule();
+        } catch (e) { Utils.showToast(e.message, 'error'); }
     }
 
     exportCsv() {
-        const includeId = document.getElementById('exId').checked;
-        const includeTitle = document.getElementById('exTitle').checked;
-        const includeDay = document.getElementById('exDay').checked;
-        const includeTime = document.getElementById('exTime').checked;
-        const includeRoom = document.getElementById('exRoom').checked;
-        const includeTeacher = document.getElementById('exTeacher').checked;
-        const includeType = document.getElementById('exType').checked;
-        const includeWeek = document.getElementById('exWeek').checked;
-        const includeGroups = document.getElementById('exGroups').checked;
-
-        let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // BOM
-        
-        let headers = [];
-        if (includeId) headers.push("ID");
-        if (includeTitle) headers.push("Przedmiot");
-        if (includeDay) headers.push("Dzień");
-        if (includeTime) headers.push("Godziny");
-        if (includeRoom) headers.push("Sala");
-        if (includeTeacher) headers.push("Prowadzący");
-        if (includeType) headers.push("Typ");
-        if (includeWeek) headers.push("Tydzień");
-        if (includeGroups) headers.push("Kierunki");
-        
-        csvContent += headers.join(";") + "\n";
-
-        this.filteredData.forEach(item => {
-            let row = [];
-            if (includeId) row.push(item.id);
-            if (includeTitle) row.push(`"${item.title.replace(/"/g, '""')}"`);
-            if (includeDay) row.push(ScheduleManagement.CONFIG.DAY_NAMES[item.dayOfWeek] || item.dayOfWeek);
-            if (includeTime) row.push(`${this.formatTime(item.startTime)} - ${this.formatTime(item.endTime)}`);
-            if (includeRoom) row.push(`"${item.room}"`);
-            if (includeTeacher) row.push(`"${item.teacher}"`);
-            if (includeType) row.push(ScheduleManagement.CONFIG.CLASS_TYPES[item.classType] || item.classType);
-            if (includeWeek) row.push(ScheduleManagement.CONFIG.WEEK_TYPES[item.weekType] || item.weekType || 'Każdy');
-            if (includeGroups) {
-                const groups = item.studentGroups ? item.studentGroups.map(g => g.name).join(', ') : '';
-                row.push(`"${groups}"`);
-            }
-            csvContent += row.join(";") + "\n";
+        const cols = { id: 'exId', title: 'exTitle', day: 'exDay', time: 'exTime', room: 'exRoom', teacher: 'exTeacher', type: 'exType', week: 'exWeek', groups: 'exGroups' };
+        let csv = "data:text/csv;charset=utf-8,\uFEFF";
+        let head = [];
+        if(document.getElementById(cols.id).checked) head.push("ID");
+        if(document.getElementById(cols.title).checked) head.push("Przedmiot");
+        if(document.getElementById(cols.day).checked) head.push("Dzień");
+        if(document.getElementById(cols.time).checked) head.push("Godziny");
+        if(document.getElementById(cols.room).checked) head.push("Sala");
+        if(document.getElementById(cols.teacher).checked) head.push("Prowadzący");
+        if(document.getElementById(cols.type).checked) head.push("Typ");
+        if(document.getElementById(cols.week).checked) head.push("Tydzień");
+        if(document.getElementById(cols.groups).checked) head.push("Kierunki");
+        csv += head.join(";") + "\n";
+        this.filteredData.forEach(i => {
+            let r = [];
+            if(document.getElementById(cols.id).checked) r.push(i.id);
+            if(document.getElementById(cols.title).checked) r.push(`"${i.title}"`);
+            if(document.getElementById(cols.day).checked) r.push(ScheduleManagement.CONFIG.DAY_NAMES[i.dayOfWeek] || i.dayOfWeek);
+            if(document.getElementById(cols.time).checked) r.push(`${this.formatTime(i.startTime)} - ${this.formatTime(i.endTime)}`);
+            if(document.getElementById(cols.room).checked) r.push(`"${i.room}"`);
+            if(document.getElementById(cols.teacher).checked) r.push(`"${i.teacher}"`);
+            if(document.getElementById(cols.type).checked) r.push(ScheduleManagement.CONFIG.CLASS_TYPES[i.classType] || i.classType);
+            if(document.getElementById(cols.week).checked) r.push(ScheduleManagement.CONFIG.WEEK_TYPES[i.weekType] || i.weekType);
+            if(document.getElementById(cols.groups).checked) r.push(`"${i.studentGroups?.map(g=>g.name).join(', ')}"`);
+            csv += r.join(";") + "\n";
         });
-
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "harmonogram_zajec.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
+        const link = document.createElement("a"); link.href = encodeURI(csv); link.download = "harmonogram.csv"; link.click();
         this.closeExportModal();
     }
 
-    // Helpery
-    formatTime(timeObj){
-        if(!timeObj) return '';
-        if(typeof timeObj === 'string') { const parts = timeObj.split(':'); return `${parts[0]}:${parts[1]}`; }
-        if(typeof timeObj === 'object' && timeObj.hour !== undefined) {
-             const h = String(timeObj.hour).padStart(2, '0');
-             const m = String(timeObj.minute).padStart(2, '0');
-             return `${h}:${m}`;
-        }
+    formatTime(t){
+        if(!t) return '';
+        if(typeof t === 'string') return t.substring(0, 5);
+        if(t.hour !== undefined) return `${String(t.hour).padStart(2,'0')}:${String(t.minute).padStart(2,'0')}`;
         return '';
     }
-
-    formatTimeForInput(timeObj){ return this.formatTime(timeObj); }
+    formatTimeForInput(t){ return this.formatTime(t); }
 
     toggleCustomWeeksField() {
-        const weekType = document.getElementById('weekType').value;
-        const customWeeksRow = document.getElementById('customWeeksRow');
-        if (!customWeeksRow) return;
-        customWeeksRow.style.display = weekType === 'CUSTOM' ? '' : 'none';
+        const row = document.getElementById('customWeeksRow');
+        if (row) {
+            const isCustom = document.getElementById('weekType').value === 'CUSTOM';
+            row.style.display = isCustom ? '' : 'none';
+            if (isCustom) this.updateCustomWeeksHint();
+        }
     }
 
-    normalizeCustomWeeksInput(rawValue) {
-        if (!rawValue || typeof rawValue !== 'string') return null;
-
-        const tokens = rawValue
-            .split(',')
-            .map(t => t.trim())
-            .filter(Boolean);
-
-        if (tokens.length === 0) return null;
-
-        const normalized = [];
-        for (const token of tokens) {
-            if (!/^\d{1,2}$/.test(token)) {
-                return null;
-            }
-            const weekNumber = parseInt(token, 10);
-            if (weekNumber < 1 || weekNumber > 53) {
-                return null;
-            }
-            if (!normalized.includes(weekNumber)) {
-                normalized.push(weekNumber);
-            }
-        }
-
-        return normalized.join(',');
+    updateCustomWeeksHint() {
+        const hint = document.querySelector('.form-hint');
+        if (!hint) return;
+        hint.innerHTML = 'Podaj numery tygodni oddzielone przecinkami.';
     }
 
-    formatWeekTypeLabel(item) {
-        if (item.weekType === 'CUSTOM') {
-            const customWeeks = (item.customWeeks || '').trim();
-            return customWeeks ? `Niestandardowy (${Utils.escapeHtml(customWeeks)})` : 'Niestandardowy';
+    normalizeCustomWeeksInput(v) {
+        if (!v) return null;
+        const tokens = v.split(',').map(t => t.trim()).filter(Boolean);
+        const norm = [];
+        for (const t of tokens) {
+            const w = parseInt(t, 10);
+            if (isNaN(w) || w < 1 || w > 53) return null;
+            if (!norm.includes(w)) norm.push(w);
         }
-        return ScheduleManagement.CONFIG.WEEK_TYPES[item.weekType] || item.weekType || 'Każdy';
+        return norm.sort((a,b)=>a-b).join(',');
+    }
+
+    formatWeekTypeLabel(i) {
+        if (i.weekType === 'CUSTOM') return `Niestandardowy (${i.customWeeks || ''})`;
+        return ScheduleManagement.CONFIG.WEEK_TYPES[i.weekType] || i.weekType || 'Każdy';
     }
 }
 
-// gloalna instancja
-let scheduleManagement;
-
-// inicjalizacja po zaladowaniu strony
-document.addEventListener('DOMContentLoaded', () => {
-    scheduleManagement = new ScheduleManagement();
+document.addEventListener('DOMContentLoaded', () => { 
+    window.scheduleManager = new ScheduleManagement(); 
 });
 
-// style dla animacji
 const style = document.createElement('style');
 style.textContent = `
-    @keyframes slideIn{
-        from{
-            transform: translateX(400px);
-            opacity: 0;
-        }
-        to{
-            transform: translateX(0);
-            opacity: 1;
-        }
+    .collision-details { 
+        background: #fffaf0; 
+        color: #9c4221; 
+        padding: 1.25rem; 
+        border-radius: 8px; 
+        margin-bottom: 1rem; 
+        font-size: 0.95rem; 
+        text-align: left; 
+        max-height: 250px; 
+        overflow-y: auto;
+        border: 1px solid #feebc8;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
     }
-    @keyframes slideOut{
-        from{
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to{
-            transform: translateX(400px);
-            opacity: 0;
-        }
+    .collision-details span {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        line-height: 1.4;
+    }
+    .collision-details i {
+        margin-top: 3px;
+        color: #dd6b20;
+    }
+    [data-theme="dark"] .collision-details {
+        background: rgba(221, 107, 32, 0.1);
+        color: #fbd38d;
+        border-color: rgba(221, 107, 32, 0.3);
+    }
+
+    .btn-undo-toast {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: #fff;
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        margin-left: 12px;
+        transition: all 0.2s ease;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        backdrop-filter: blur(4px);
+    }
+
+    .btn-undo-toast:hover {
+        background: rgba(255, 255, 255, 0.35);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-1px);
+    }
+
+    [data-theme="light"] .toast.success .btn-undo-toast {
+        background: rgba(6, 95, 70, 0.1);
+        color: #065f46;
+        border-color: rgba(6, 95, 70, 0.2);
+    }
+
+    [data-theme="light"] .toast.success .btn-undo-toast:hover {
+        background: rgba(6, 95, 70, 0.2);
+        border-color: rgba(6, 95, 70, 0.3);
     }
 `;
 document.head.appendChild(style);
