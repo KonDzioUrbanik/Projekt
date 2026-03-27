@@ -647,7 +647,7 @@ class DashboardHome {
             // Liczba zajęć dzisiaj
             if (scheduleResponse && scheduleResponse.ok) {
                 const allSchedule = await scheduleResponse.json();
-                const weekFilteredSchedule = allSchedule.filter(item => Utils.matchesScheduleRecurrence(item, new Date()));
+                const weekFilteredSchedule = allSchedule.filter(item => !item.archived && Utils.matchesScheduleRecurrence(item, new Date()));
                 const today = this.getDayOfWeek(new Date());
                 const todayClasses = weekFilteredSchedule.filter(c => c.dayOfWeek === today);
                 totalClassesToday = todayClasses.length;
@@ -790,7 +790,7 @@ class DashboardHome {
             
             // Filtrowanie zajęć na dzisiaj
             const today = this.getDayOfWeek(new Date());
-            const todayClasses = allSchedule.filter(c => c.dayOfWeek === today);
+            const todayClasses = allSchedule.filter(c => c.dayOfWeek === today && !c.archived);
             
             // Sortowanie po czasie rozpoczęcia
             todayClasses.sort((a, b) => {

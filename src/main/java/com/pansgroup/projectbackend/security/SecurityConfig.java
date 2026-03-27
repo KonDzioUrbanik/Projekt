@@ -157,7 +157,7 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.POST, "/api/feedback").permitAll()
 
                                 // API endpoints tylko dla ADMIN
-                                .requestMatchers(HttpMethod.POST, "/api/schedule/**", "/api/groups").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/api/schedule/**", "/api/groups").hasAnyRole("ADMIN", "STAROSTA")
                                 .requestMatchers(HttpMethod.PUT,
                                                 "/api/schedule/**",
                                                 "/api/groups/**",
@@ -166,8 +166,10 @@ public class SecurityConfig {
                                                 "/api/users/assignGroup/**",
                                                 "/api/users/activation/**",
                                                 "/api/users/block/**")
-                                .hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/schedule/**", "/api/groups/**",
+                                .hasAnyRole("ADMIN", "STAROSTA")
+                                .requestMatchers(HttpMethod.DELETE, "/api/schedule/**")
+                                .hasAnyRole("ADMIN", "STAROSTA")
+                                .requestMatchers(HttpMethod.DELETE, "/api/groups/**",
                                                 "/api/users/**")
                                 .hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.GET,
@@ -186,6 +188,13 @@ public class SecurityConfig {
                                 .hasAnyRole("STUDENT", "STAROSTA")
                                 .requestMatchers(HttpMethod.DELETE, "/api/announcements/*")
                                 .hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
+                                // Nowe endpointy v1.4.0
+                                .requestMatchers(HttpMethod.GET, "/api/announcements/*/read-details")
+                                .hasAnyRole("STAROSTA", "ADMIN")
+                                .requestMatchers(HttpMethod.PATCH, "/api/announcements/*/pin")
+                                .hasAnyRole("STAROSTA", "ADMIN")
+                                .requestMatchers(HttpMethod.GET, "/api/announcements/attachments/**")
+                                .authenticated()
 
                                 // Widoki admin tylko dla ADMIN
                                 .requestMatchers("/admin/**").hasRole("ADMIN")

@@ -7,7 +7,8 @@
 
     if (!listEl || !emptyEl || !errorEl) return;
 
-    const LIMIT = 3;
+    const LIMIT = 5;
+    const API_URL = `/api/announcements/dashboard-feed?limit=${LIMIT}`;
 
     document.addEventListener('DOMContentLoaded', loadAnnouncements);
 
@@ -15,24 +16,14 @@
         hideAllStates();
 
         try {
-            let announcements = await fetchAnnouncements('/api/announcements/group');
-
-            // Dla admina bez grupy fallback do pełnej listy systemowej.
-            if (Array.isArray(announcements) && announcements.length === 0) {
-                try {
-                    announcements = await fetchAnnouncements('/api/announcements/all');
-                } catch (_) {
-                    // Dla nie-admina endpoint /all jest niedostępny - ignorujemy fallback.
-                }
-            }
-
-            const latest = Array.isArray(announcements) ? announcements.slice(0, LIMIT) : [];
-            if (latest.length === 0) {
+            const announcements = await fetchAnnouncements(API_URL);
+            
+            if (!Array.isArray(announcements) || announcements.length === 0) {
                 emptyEl.style.display = '';
                 return;
             }
 
-            listEl.innerHTML = latest.map(renderAnnouncementCard).join('');
+            listEl.innerHTML = announcements.map(renderAnnouncementCard).join('');
         } catch (_) {
             errorEl.style.display = '';
         }
@@ -55,12 +46,22 @@
         const groupName = Utils.escapeHtml(item.targetGroupName || 'Brak grupy');
         const authorName = Utils.escapeHtml([item.authorFirstName, item.authorLastName].filter(Boolean).join(' ') || 'Nieznany autor');
 
+        // Dynamiczny kicker na podstawie typu ogłoszenia
+        const kickerIcon = item.isGlobal ? 'fa-university' : 'fa-users';
+        const kickerText = item.isGlobal ? 'Aktualność Uczelniana' : 'Powiadomienie Grupy';
+        const kickerClass = item.isGlobal ? 'home-ann-kicker-global' : 'home-ann-kicker-group';
+
         return `
             <article class="home-ann-card">
                 <div class="home-ann-card-header">
                     <div class="home-ann-heading">
-                        <span class="home-ann-kicker">Ostatnie ogłoszenie</span>
-                        <h4 class="home-ann-title">${title}</h4>
+                        <span class="home-ann-kicker ${kickerClass}">
+                            <i class="fas ${kickerIcon}"></i> ${kickerText}
+                        </span>
+                        <h4 class="home-ann-title">
+                            ${title}
+                            ${item.isPinned ? '<span class="home-ann-pinned"><i class="fas fa-thumbtack"></i> Przypięte</span>' : ''}
+                        </h4>
                     </div>
                     <span class="home-ann-date">
                         <i class="fas fa-clock"></i>

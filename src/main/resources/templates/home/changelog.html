@@ -18,12 +18,62 @@
                 </div>
 
                 <div class="timeline">
+                    <!-- Marzec 2026 - Modernizacja Systemu -->
+                    <details id="v1-3-5" class="version-block latest" open>
+                        <summary class="version-summary-header">
+                            <div class="version-title">
+                                <span class="version-number">Marzec 2026 - v1.3.5</span>
+                                <span class="latest-badge" style="margin-left: 0.5rem;">Aktualna wersja</span>
+                            </div>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </summary>
+                        <div class="version-content">
+                            <div class="version-desc">
+                                Kompleksowa aktualizacja modułów ogłoszeń oraz harmonogramu. Wdrożono nową logikę uprawnień, obsługę załączników oraz system detekcji kolizji. Przebudowano architekturę plików i interfejs użytkownika w celu zwiększenia spójności danych oraz bezpieczeństwa operacyjnego.
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
+                                <ul class="change-list added">
+                                    <li><strong>Załączniki:</strong> Obsługa plików (do 5MB) z walidacją typów MIME (Apache Tika). Przechowywanie danych w formacie LOB bezpośrednio w bazie danych.</li>
+                                    <li><strong>News Feed:</strong> Wdrożenie mechanizmu kategoryzacji ogłoszeń na podstawie zasięgu (globalne/grupowe) z wykorzystaniem oznaczeń typów na dashboardzie.</li>
+                                    <li><strong>Potwierdzenia Odczytu:</strong> Moduł weryfikacji zapoznania się z treścią przez użytkowników (modal z listą i znacznikami czasu).</li>
+                                    <li><strong>Zarządzanie (Pinned):</strong> Implementacja mechanizmu priorytetyzacji ogłoszeń poprzez flagowanie wpisów jako przypięte.</li>
+                                    <li><strong>Widok Tabelaryczny (Starosta):</strong> Migracja zarządzania ogłoszeniami na strukturę tabelaryczną z obsługą rozwijanych wierszy szczegółowych.</li>
+                                    <li><strong>Weryfikacja Kolizji:</strong> Algorytm sprawdzający dostępność zasobów (sale, prowadzący, grupy) w czasie rzeczywistym z obsługą statusu 409 Conflict.</li>
+                                    <li><strong>Rozszerzenie Zakresu:</strong> Implementacja obsługi dni weekendowych oraz pól specjalności i numerów podgrup w planie zajęć.</li>
+                                    <li><strong>Uprawnienia Starosty:</strong> Ograniczenie zakresu edycji danych harmonogramu wyłącznie do przypisanej grupy studenckiej.</li>
+                                    <li><strong>Logika Tygodni:</strong> Rozszerzenie obsługi tygodni akademickich o tryb niestandardowy (Custom) z walidacją zakresów.</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
+                                <ul class="change-list changed">
+                                    <li><strong>Standaryzacja Tabel:</strong> Ujednolicenie wizualne siatki danych (Grid UI) w modułach Harmonogramu, Ogłoszeń oraz Feedbacku.</li>
+                                    <li><strong>Harmonogram Studenta (v2):</strong> Modernizacja wizualna planu zajęć na dashboardzie studenta z wdrożeniem standardu Grid UI i poprawą czytelności kart.</li>
+                                    <li><strong>Architektura URL:</strong> Optymalizacja ścieżek dostępu i ujednolicenie nazewnictwa plików szablonów (admin-announcement).</li>
+                                    <li><strong>Nawigacja:</strong> Wdrożenie systemu dynamicznych Breadcrumbs oraz ujednolicenie stylistyki elementów interaktywnych.</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
+                                <ul class="change-list fixed">
+                                    <li><strong>Izolacja Danych:</strong> Kontrola dostępu do ogłoszeń i załączników w oparciu o przynależność użytkownika do grup studenckich.</li>
+                                    <li><strong>Sanityzacja:</strong> Filtry zapobiegające Header Injection oraz zabezpieczenie przesyłu nazw plików (Content-Disposition).</li>
+                                    <li><strong>Synchronizacja DB:</strong> Aktualizacja schematu bazy danych w celu zapewnienia spójności z polami is_pinned i attachments.</li>
+                                    <li><strong>Stabilność JS:</strong> Wdrożenie opcjonalnego łańcuchowania (Optional Chaining) w skryptach frontendowych celem eliminacji błędów runtime.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </details>
+
                     <!-- Marzec 2026 – Bezpieczeństwo i UX -->
-                    <details id="v1-3-3" class="version-block latest" open>
+                    <details id="v1-3-3" class="version-block">
                         <summary class="version-summary-header">
                             <div class="version-title">
                                 <span class="version-number">Marzec 2026 - v1.3.3</span>
-                                <span class="latest-badge" style="margin-left: 0.5rem;">Aktualna wersja</span>
                             </div>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </summary>

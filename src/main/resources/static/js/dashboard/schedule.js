@@ -37,7 +37,7 @@ class ScheduleCalendar{
         const loading = document.getElementById('loading');
         const grid = document.getElementById('scheduleGrid');
         
-        if (loading) loading.classList.add('active');
+        loading?.classList.add('active');
         if (grid) grid.style.display = 'none';
 
         try {
@@ -62,7 +62,7 @@ class ScheduleCalendar{
                 grid.style.display = 'block';
             }
         } finally {
-            if (loading) loading.classList.remove('active');
+            if (loading) loading?.classList.remove('active');
             if (grid && grid.style.display === 'none') {
                  grid.style.display = 'grid';
             }
@@ -173,7 +173,8 @@ class ScheduleCalendar{
 
         const weekType = this.getWeekType(start);
         const weekName = weekType === 'WEEK_A' ? 'Tydzień A (Nieparzysty)' : 'Tydzień B (Parzysty)';
-        document.getElementById('weekTypeLabel').textContent = weekName;
+        const weekTypeLabel = document.getElementById('weekTypeLabel');
+        if (weekTypeLabel) weekTypeLabel.textContent = weekName;
     }
 
     // Obliczanie numeru tygodnia - używa Utils
@@ -347,6 +348,8 @@ class ScheduleCalendar{
                         const safeRoom = Utils.escapeHtml(c.room);
                         const safeClassType = Utils.escapeHtml(classTypeName);
                         const safeYearPlan = Utils.escapeHtml(c.yearPlan);
+                        const safeGroupNum = c.groupNumber ? `<div class="class-group-num-mini">Gr: ${Utils.escapeHtml(c.groupNumber)}</div>` : '';
+                        const safeSpec = c.specialization ? `<div class="class-spec-mini" title="${Utils.escapeHtml(c.specialization)}">${Utils.escapeHtml(c.specialization)}</div>` : '';
                         
                         classItem.innerHTML = `
                             <div class="class-title">${safeTitle}</div>
@@ -354,6 +357,8 @@ class ScheduleCalendar{
                             ${c.teacher ? `<div class="class-teacher">${safeTeacher}</div>` : ''}
                             ${c.room ? `<div class="class-room">${safeRoom}</div>` : ''}
                             ${classTypeName ? `<div class="class-type">${safeClassType}</div>` : ''}
+                            ${safeGroupNum}
+                            ${safeSpec}
                             ${c.yearPlan ? `<div class="class-year-plan">${safeYearPlan}</div>` : ''}
                         `;
                         grid.appendChild(classItem);
@@ -533,9 +538,9 @@ class ScheduleCalendar{
         });
         
         // Nawigacja
-        document.getElementById('prevWeekBtn').addEventListener('click', () => this.changeWeek(-1));
-        document.getElementById('nextWeekBtn').addEventListener('click', () => this.changeWeek(1));
-        document.getElementById('todayBtn').addEventListener('click', () => this.resetToToday());
+        document.getElementById('prevWeekBtn')?.addEventListener('click', () => this.changeWeek(-1));
+        document.getElementById('nextWeekBtn')?.addEventListener('click', () => this.changeWeek(1));
+        document.getElementById('todayBtn')?.addEventListener('click', () => this.resetToToday());
 
         // Uruchomienie timera do aktualizacji "Next Class" i linii czasu
         this.updateRealTimeFeatures();
@@ -747,6 +752,25 @@ class ScheduleCalendar{
 
         const typeName = ScheduleCalendar.CONFIG.CLASS_TYPES[classData.classType] || classData.classType || 'Zajęcia';
         document.getElementById('modalClassType').textContent = typeName;
+
+        // Numer grupy i specjalność
+        const gnEl = document.getElementById('modalClassGroupNumber');
+        const gnRow = document.getElementById('modalGroupNumberRow');
+        if (gnEl && gnRow) {
+            if (classData.groupNumber) {
+                gnEl.textContent = classData.groupNumber;
+                gnRow.style.display = '';
+            } else { gnRow.style.display = 'none'; }
+        }
+
+        const spEl = document.getElementById('modalClassSpecialization');
+        const spRow = document.getElementById('modalSpecializationRow');
+        if (spEl && spRow) {
+            if (classData.specialization) {
+                spEl.textContent = classData.specialization;
+                spRow.style.display = '';
+            } else { spRow.style.display = 'none'; }
+        }
         
         // Kolory
         const colorClass = `class-type-${(classData.classType || '').toLowerCase()}`;

@@ -8,7 +8,9 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -33,6 +35,13 @@ public class Announcement {
     @Column(length = 64)
     private String broadcastKey;
 
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private AnnouncementPriority priority = AnnouncementPriority.INFO;
+
+    @Column(nullable = false)
+    private boolean isPinned = false;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
@@ -43,4 +52,7 @@ public class Announcement {
 
     @OneToMany(mappedBy = "announcement", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<AnnouncementReadConfirmation> readConfirmations = new HashSet<>();
+
+    @OneToMany(mappedBy = "announcement", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AnnouncementAttachment> attachments = new ArrayList<>();
 }

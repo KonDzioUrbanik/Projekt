@@ -29,5 +29,9 @@ public record ScheduleEntryCreateDto(
 
                 @NotNull(message = "Typ tygodnia jest wymagany.") WeekType weekType,
 
-                @Size(max = 512, message = "Niestandardowe tygodnie mogą mieć maksymalnie {max} znaków.") String customWeeks) {
+                @Size(max = 512, message = "Niestandardowe tygodnie mogą mieć maksymalnie {max} znaków.") String customWeeks,
+
+                @Size(max = 20) String groupNumber,
+
+                @Size(max = 100) String specialization) {
 }

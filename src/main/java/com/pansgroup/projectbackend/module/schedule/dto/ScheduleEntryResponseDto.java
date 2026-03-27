@@ -22,5 +22,7 @@ public record ScheduleEntryResponseDto(
                 WeekType weekType,
                 String customWeeks,
                 Boolean archived,
-                LocalDateTime archivedAt) {
+                LocalDateTime archivedAt,
+                String groupNumber,
+                String specialization) {
 }

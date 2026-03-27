@@ -17,9 +17,9 @@ public class LoginFailureListener {
     @EventListener
     public void onAuthenticationFailure(AuthenticationFailureBadCredentialsEvent event) {
         String email = event.getAuthentication().getName();
-        
+
         if (email != null && !email.isEmpty() && !email.equals("anonymousUser")) {
-            log.warn("Nieudana próba logowania dla użytkownika: {}. Inkrementacja licznika.", email);
+            log.warn("Nieudana próba logowania dla użytkownika: {}.", email);
             userService.incrementFailedAttempts(email);
         }
     }

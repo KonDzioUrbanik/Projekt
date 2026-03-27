@@ -3,7 +3,7 @@
     <head>
         <title>Ogłoszenia</title>
         <th:block layout:fragment="page-styles">
-            <link rel="stylesheet" th:href="@{/css/admin/announcement.css}">
+            <link rel="stylesheet" th:href="@{/css/admin/admin-announcement.css}">
         </th:block>
     </head>
     <body>
@@ -11,7 +11,7 @@
 
             <div class="admin-header">
                 <div>
-                    <h1><i class="fas fa-bullhorn" style="color: var(--color-primary); margin-right: 0.5rem;"></i>Ogłoszenia</h1>
+                    <h1>Ogłoszenia</h1>
                     <p>Przeglądaj i zarządzaj wszystkimi ogłoszeniami w systemie</p>
                 </div>
             </div>
@@ -22,9 +22,6 @@
             <!-- New Announcement Form (Admin) -->
             <div class="ann-form-card">
                 <div class="ann-form-card-header">
-                    <div class="ann-form-card-icon">
-                        <i class="fas fa-paper-plane"></i>
-                    </div>
                     <div class="ann-form-card-title">
                         <h2>Nowe ogłoszenie administracyjne</h2>
                         <p>Wyślij ogłoszenie globalnie lub tylko do wybranych kierunków</p>
@@ -69,6 +66,39 @@
                             <div class="ann-target-help">Wybierz konkretny kierunek albo opcję globalną.</div>
                         </div>
 
+                        <div class="ann-form-row">
+                            <div class="ann-form-group">
+                                <label class="ann-form-label" for="prioritySelect">
+                                    Priorytet
+                                </label>
+                                <select id="prioritySelect" class="ann-form-input">
+                                    <option value="INFO">Info (domyślny)</option>
+                                    <option value="IMPORTANT">Ważne</option>
+                                    <option value="ORGANIZATIONAL">Organizacyjne</option>
+                                </select>
+                            </div>
+                            <div class="ann-form-group ann-form-group--inline">
+                                <label class="ann-form-label">&nbsp;</label>
+                                <label class="ann-pin-label">
+                                    <input type="checkbox" id="isPinnedCheckbox" class="ann-pin-checkbox">
+                                    Przypnij ogłoszenie na górze
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="ann-form-group">
+                            <label class="ann-form-label" for="announcementFiles">
+                                <i class="fas fa-paperclip"></i> Załączniki (max 5, po 5 MB)
+                            </label>
+                            <input type="file"
+                                   id="announcementFiles"
+                                   class="ann-form-file"
+                                   multiple
+                                   accept=".jpg,.jpeg,.png,.webp,.pdf,.docx">
+                            <div id="fileList" class="ann-file-list"></div>
+                            <div class="ann-target-help">Dozwolone: JPG, PNG, WEBP, PDF, DOCX</div>
+                        </div>
+
                         <div class="ann-form-footer">
                             <button type="submit" class="ann-btn-submit" id="submitBtn">
                                 <span class="ann-btn-spinner"></span>
@@ -79,6 +109,14 @@
                         </div>
                     </form>
                 </div>
+            </div>
+
+            <div class="ann-section-header">
+                <div class="ann-section-line"></div>
+                <div class="ann-section-title">
+                    <i class="fas fa-tasks"></i> Zarządzanie i listowanie ogłoszeń
+                </div>
+                <div class="ann-section-line"></div>
             </div>
 
             <!-- Filters -->
@@ -99,6 +137,13 @@
                         <label for="groupFilter"><i class="fas fa-users"></i> Grupa</label>
                         <select id="groupFilter" class="ann-filter-select">
                             <option value="">Wszystkie grupy</option>
+                        </select>
+                    </div>
+
+                    <div class="ann-filter-group">
+                        <label for="authorFilter"><i class="fas fa-user-edit"></i> Autor</label>
+                        <select id="authorFilter" class="ann-filter-select">
+                            <option value="">Wszyscy autorzy</option>
                         </select>
                     </div>
 
@@ -149,9 +194,6 @@
             <!-- Delete confirmation modal -->
             <div class="ann-modal-overlay" id="deleteModal">
                 <div class="ann-modal-card">
-                    <div class="ann-modal-icon">
-                        <i class="fas fa-trash-alt"></i>
-                    </div>
                     <h3>Usuń ogłoszenie</h3>
                     <p id="deleteModalText">Czy na pewno chcesz usunąć to ogłoszenie? Tej operacji nie można cofnąć.</p>
                     <div class="ann-modal-actions">
@@ -159,6 +201,38 @@
                         <button class="ann-btn-confirm-delete" id="modalConfirmBtn">
                             <i class="fas fa-trash-alt"></i> Usuń
                         </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success Modal -->
+            <div class="modal-overlay" id="successModal" style="display: none;">
+                <div class="modal-card modal-sm modal-center-content">
+                    <div class="modal-body-centered">
+                        <div class="modal-icon-wrapper success">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <h3>Sukces!</h3>
+                        <p class="text-muted" id="successModalText">
+                            Ogłoszenie zostało pomyślnie opublikowane.
+                        </p>
+                    </div>
+                    <div class="modal-footer-centered">
+                        <button class="btn btn-primary-block" id="successModalClose">OK</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Read Details Modal -->
+            <div class="modal-overlay" id="readDetailsModal" style="display: none;">
+                <div class="modal-card ann-modal-wide">
+                    <div class="modal-icon" style="background: var(--color-primary-alpha)">
+                        <i class="fas fa-eye" style="color: var(--color-primary)"></i>
+                    </div>
+                    <h3>Kto przeczytał</h3>
+                    <div id="readDetailsList" class="ann-readers-list"></div>
+                    <div class="modal-footer-centered">
+                        <button class="btn btn-tertiary" id="readDetailsClose">Zamknij</button>
                     </div>
                 </div>
             </div>
