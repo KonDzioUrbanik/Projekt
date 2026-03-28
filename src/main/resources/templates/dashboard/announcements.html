@@ -4,7 +4,7 @@
     <head>
         <title>Ogłoszenia</title>
         <th:block layout:fragment="page-styles">
-            <link rel="stylesheet" th:href="@{/css/admin/admin-announcement.css}">
+            <link rel="stylesheet" th:href="@{/css/admin/admin-announcement.css(v=${#dates.createNow().getTime()})}">
         </th:block>
     </head>
     <body>
@@ -70,7 +70,7 @@
         </div>
 
         <th:block layout:fragment="page-scripts">
-            <script th:src="@{/js/dashboard/announcements.js}" defer></script>
+            <script th:src="@{/js/dashboard/announcements.js(v=${#dates.createNow().getTime()})}" defer></script>
         </th:block>
     </body>
 </html>

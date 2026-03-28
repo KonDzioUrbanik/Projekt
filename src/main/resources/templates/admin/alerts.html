@@ -3,7 +3,7 @@
     <head>
         <title>Alerty</title>
         <th:block layout:fragment="page-styles">
-            <link rel="stylesheet" th:href="@{/css/admin/admin-users.css}" href="../../static/css/admin/admin-users.css">
+            <link rel="stylesheet" th:href="@{/css/admin/admin-users.css(v=${#dates.createNow().getTime()})}" href="../../static/css/admin/admin-users.css">
         </th:block>
     </head>
     <body>

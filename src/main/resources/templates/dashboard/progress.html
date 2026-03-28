@@ -6,7 +6,7 @@
 <head>
     <title>Postęp semestru</title>
     <th:block layout:fragment="page-styles">
-        <link rel="stylesheet" th:href="@{/css/dashboard/progress.css}">
+        <link rel="stylesheet" th:href="@{/css/dashboard/progress.css(v=${#dates.createNow().getTime()})}">
     </th:block>
 </head>
 <body>
@@ -100,7 +100,7 @@
 
     <!-- Page Scripts -->
     <th:block layout:fragment="page-scripts">
-        <script th:src="@{/js/dashboard/progress.js}"></script>
+        <script th:src="@{/js/dashboard/progress.js(v=${#dates.createNow().getTime()})}"></script>
     </th:block>
 </body>
 </html>

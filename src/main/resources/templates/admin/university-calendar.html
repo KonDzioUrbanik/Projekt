@@ -3,7 +3,7 @@
     <head>
         <title>Kalendarz akademicki</title>
         <th:block layout:fragment="page-styles">
-            <link rel="stylesheet" th:href="@{/css/admin/university-calendar.css}">
+            <link rel="stylesheet" th:href="@{/css/admin/university-calendar.css(v=${#dates.createNow().getTime()})}">
         </th:block>
     </head>
     <body>
@@ -382,7 +382,7 @@
                 </div>
             </div>
 
-            <script th:src="@{/js/admin/university-calendar.js}"></script>
+            <script th:src="@{/js/admin/university-calendar.js(v=${#dates.createNow().getTime()})}"></script>
         </div>
     </body>
 </html>

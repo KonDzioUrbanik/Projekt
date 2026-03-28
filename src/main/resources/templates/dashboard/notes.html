@@ -6,7 +6,7 @@
     </head>
     <body>
         <th:block layout:fragment="page-styles">
-            <link rel="stylesheet" th:href="@{/css/dashboard/notes.css}">
+            <link rel="stylesheet" th:href="@{/css/dashboard/notes.css(v=${#dates.createNow().getTime()})}">
             <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" integrity="sha384-ecIckRi4QlKYya/FQUbBUjS4qp65jF/J87Guw5uzTbO1C1Jfa/6kYmd6dXUF6D7i" crossorigin="anonymous">
         </th:block>
 
@@ -197,7 +197,7 @@
 
         <th:block layout:fragment="page-scripts">
             <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js" integrity="sha384-utBUCeG4SYaCm4m7GQZYr8Hy8Fpy3V4KGjBZaf4WTKOcwhCYpt/0PfeEe3HNlwx8" crossorigin="anonymous"></script>
-            <script th:src="@{/js/dashboard/notes.js}"></script>
+            <script th:src="@{/js/dashboard/notes.js(v=${#dates.createNow().getTime()})}"></script>
         </th:block>
     </body>
 </html>
