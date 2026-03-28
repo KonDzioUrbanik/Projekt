@@ -79,7 +79,7 @@
         </div>
 
         <th:block layout:fragment="page-scripts">
-            <script th:src="@{/js/dashboard/dashboard.js}" defer></script>
+            <script th:src="@{/js/dashboard/dashboard.js(v=${#dates.createNow().getTime()})}" defer></script>
         </th:block>
     </body>
 </html>

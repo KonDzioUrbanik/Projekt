@@ -13,8 +13,8 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
 
         <!-- Główny arkusz stylów -->
-        <link rel="stylesheet" th:href="@{/css/common/style.css}" href="../../static/css/common/style.css">
-        <link rel="stylesheet" th:href="@{/css/common/theme.css}">
+        <link rel="stylesheet" th:href="@{/css/common/style.css(v=${#dates.createNow().getTime()})}" href="../../static/css/common/style.css">
+        <link rel="stylesheet" th:href="@{/css/common/theme.css(v=${#dates.createNow().getTime()})}">
 
         <script>
             (function() {
@@ -85,8 +85,8 @@
         </div>
         
         <!-- JS -->
-        <script th:src="@{/js/common/auth-utils.js(v=2)}" src="../static/js/common/auth-utils.js" defer></script>
-        <script th:src="@{/js/auth/login.js(v=2)}" src="../static/js/auth/login.js" defer></script>
-        <script th:src="@{/js/common/theme.js}" defer></script>
+        <script th:src="@{/js/common/auth-utils.js(v=${#dates.createNow().getTime()})}" src="../static/js/common/auth-utils.js" defer></script>
+        <script th:src="@{/js/auth/login.js(v=${#dates.createNow().getTime()})}" src="../static/js/auth/login.js" defer></script>
+        <script th:src="@{/js/common/theme.js(v=${#dates.createNow().getTime()})}" defer></script>
     </body>
 </html>

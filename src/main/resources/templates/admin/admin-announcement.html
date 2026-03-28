@@ -3,7 +3,7 @@
     <head>
         <title>Ogłoszenia</title>
         <th:block layout:fragment="page-styles">
-            <link rel="stylesheet" th:href="@{/css/admin/admin-announcement.css}">
+            <link rel="stylesheet" th:href="@{/css/admin/admin-announcement.css(v=${#dates.createNow().getTime()})}">
         </th:block>
     </head>
     <body>
@@ -240,7 +240,7 @@
         </div>
 
         <th:block layout:fragment="page-scripts">
-            <script th:src="@{/js/admin/admin-announcement.js}"></script>
+            <script th:src="@{/js/admin/admin-announcement.js(v=${#dates.createNow().getTime()})}"></script>
         </th:block>
     </body>
 </html>

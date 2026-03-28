@@ -4,7 +4,7 @@
 <head>
     <title>Twój Profil</title>
     <th:block layout:fragment="page-styles">
-        <link rel="stylesheet" th:href="@{/css/dashboard/profile.css}">
+        <link rel="stylesheet" th:href="@{/css/dashboard/profile.css(v=${#dates.createNow().getTime()})}">
     </th:block>
 </head>
 <body>
@@ -166,7 +166,7 @@
     </div>
 
     <th:block layout:fragment="page-scripts">
-        <script th:src="@{/js/dashboard/profile.js}"></script>
+        <script th:src="@{/js/dashboard/profile.js(v=${#dates.createNow().getTime()})}"></script>
     </th:block>
 </body>
 </html>

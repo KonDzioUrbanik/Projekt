@@ -30,6 +30,9 @@
     /* Naglowek */
     --header-bg: #212020;
     --navbar-left-bg: #262727;
+
+    /* Nowoczesna siatka tła */
+    --grid-line: rgba(0, 0, 0, 0.04);
 }
 
 /* CZCIONKI I STYLE GLOBALNE */
@@ -62,6 +65,11 @@ body {
     justify-content: center;
     align-items: center;
     padding: 20px;
+    background-image: 
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 30px 30px;
+    background-attachment: fixed;
 }
 
 .profile-container {

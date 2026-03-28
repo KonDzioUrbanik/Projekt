@@ -33,6 +33,9 @@
     --navbar-left-btn: #005efa;
     --navbar-left-btn-hover: #114092;
     --navbar-btn-hover: #ebedef;
+
+    /* Nowoczesna siatka tła */
+    --grid-line: rgba(0, 0, 0, 0.04);
 }
 
 /* STYLE GLOBALNE */
@@ -457,6 +460,11 @@ body {
     padding: 2rem 3rem;
     overflow-y: auto;
     background-color: var(--bg-main);
+    background-image:
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 30px 30px;
+    background-attachment: local;
     scroll-behavior: smooth;
 }
 
@@ -512,6 +520,7 @@ body {
 
     .dashboard-container {
         flex-direction: column;
+        min-height: calc(100vh - 70px);
         height: auto;
         overflow: visible;
     }
@@ -1323,6 +1332,7 @@ body {
     line-height: 1.6;
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }

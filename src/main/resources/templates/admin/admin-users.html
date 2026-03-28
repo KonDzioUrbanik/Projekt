@@ -3,7 +3,7 @@
     <head>
         <title>Zarządzanie użytkownikami</title>
         <th:block layout:fragment="page-styles">
-            <link rel="stylesheet" th:href="@{/css/admin/admin-users.css}" href="../../static/css/admin/admin-users.css">
+            <link rel="stylesheet" th:href="@{/css/admin/admin-users.css(v=${#dates.createNow().getTime()})}" href="../../static/css/admin/admin-users.css">
         </th:block>
     </head>
     <body>
@@ -448,7 +448,7 @@
         </div> 
 
         <th:block layout:fragment="page-scripts">
-            <script th:src="@{/js/admin/admin-users.js}"></script>
+            <script th:src="@{/js/admin/admin-users.js(v=${#dates.createNow().getTime()})}"></script>
         </th:block>
 
         <!-- Toasts Container -->

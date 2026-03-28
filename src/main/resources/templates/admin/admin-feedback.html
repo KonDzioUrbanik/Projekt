@@ -3,7 +3,7 @@
     <head>
         <title>Zgłoszenia i feedback</title>
         <th:block layout:fragment="page-styles">
-            <link rel="stylesheet" th:href="@{/css/admin/admin-feedback.css}" href="../../static/css/admin/admin-feedback.css">
+            <link rel="stylesheet" th:href="@{/css/admin/admin-feedback.css(v=${#dates.createNow().getTime()})}" href="../../static/css/admin/admin-feedback.css">
         </th:block>
     </head>
     <body>
@@ -164,7 +164,7 @@
         </div>
 
         <th:block layout:fragment="page-scripts">
-            <script th:src="@{/js/admin/admin-feedback.js}"></script>
+            <script th:src="@{/js/admin/admin-feedback.js(v=${#dates.createNow().getTime()})}"></script>
         </th:block>
 
         <!-- Kontener na toasty -->

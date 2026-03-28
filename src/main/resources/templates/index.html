@@ -15,8 +15,8 @@
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
 
-        <link rel="stylesheet" th:href="@{/css/common/style.css}">
-        <link rel="stylesheet" th:href="@{/css/common/theme.css}">
+        <link rel="stylesheet" th:href="@{/css/common/style.css(v=${#dates.createNow().getTime()})}">
+        <link rel="stylesheet" th:href="@{/css/common/theme.css(v=${#dates.createNow().getTime()})}">
 
         <script>
             (function() {
@@ -27,7 +27,7 @@
             })();
         </script>
     </head>
-    <body>
+    <body class="landing-body">
         <button class="theme-toggle-btn" id="themeToggleBtn" title="Zmień motyw">
             <i class="fas fa-moon"></i>
             <i class="fas fa-sun"></i>
@@ -163,8 +163,8 @@
             <p>&copy; 2026 PANSportal. Wszelkie prawa zastrzeżone.</p>
         </footer>
 
-        <script th:src="@{/js/landing/landing.js}" src="../static/js/landing/landing.js"></script>
-        <script th:src="@{/js/common/theme.js}" defer></script>
+        <script th:src="@{/js/landing/landing.js(v=${#dates.createNow().getTime()})}" src="../static/js/landing/landing.js"></script>
+        <script th:src="@{/js/common/theme.js(v=${#dates.createNow().getTime()})}" defer></script>
 
     </body>
 </html>

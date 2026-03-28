@@ -132,6 +132,9 @@
     --sidebar-width: 260px;
     --sidebar-width-collapsed: 70px;
     --transition-speed: 0.3s;
+
+    /* Nowoczesna siatka tła */
+    --grid-line: rgba(255, 255, 255, 0.03);
 }
 
 /* CIEMNY MOTYW */
@@ -139,13 +142,11 @@
 /* Tło strony dla ciemnego motywu */
 [data-theme="dark"] body {
     background-color: var(--bg-body);
-    background-image: none;
     color: var(--text-main);
 }
 
 /* Karty i kontenery */
 [data-theme="dark"] .auth-container,
-[data-theme="dark"] .feature-card,
 [data-theme="dark"] .dashboard-card,
 [data-theme="dark"] .settings-card,
 [data-theme="dark"] .profile-container {
@@ -153,10 +154,18 @@
     border-color: var(--border-color);
 }
 
-/* Karty funkcji - hover */
+[data-theme="dark"] .feature-card {
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
 [data-theme="dark"] .feature-card:hover {
+    background: rgba(30, 41, 59, 0.85);
     border-color: var(--color-primary);
-    box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.4);
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
 [data-theme="dark"] .feature-card {
@@ -164,8 +173,8 @@
 }
 
 [data-theme="dark"] .feature-icon {
-    background-color: var(--bg-main);
-    color: var(--text-light);
+    background-color: rgba(74, 158, 255, 0.15);
+    color: var(--color-primary);
     transition: all 0.25s ease;
 }
 
@@ -433,6 +442,12 @@
 [data-theme="dark"] .hero-badge {
     background-color: var(--primary-light);
     color: var(--color-primary);
+}
+
+[data-theme="dark"] .features-grid::before {
+    background: #1a1f26;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
 }
 
 [data-theme="dark"] .university-branding {
