@@ -103,6 +103,39 @@
     font-weight: 600;
 }
 
+/* Nowy select nawigacji po tygodniach */
+.week-type-select {
+    cursor: pointer;
+    background-color: #f8fafc;
+    color: #1e293b;
+    border: 1px solid #cbd5e1;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.4rem 2rem 0.4rem 0.8rem;
+    border-radius: 8px;
+    appearance: auto;
+    outline: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.week-type-select:hover {
+    border-color: #94a3b8;
+    background-color: #f1f5f9;
+}
+
+.week-type-select optgroup {
+    font-weight: bold;
+    color: #0f172a;
+    background: #e2e8f0;
+}
+
+.week-type-select option {
+    font-weight: normal;
+    color: #334155;
+    background: #ffffff;
+}
+
 /* Dark Mode Navigation */
 [data-theme="dark"] .schedule-controls {
     background: #1f2937;
@@ -127,6 +160,27 @@
 [data-theme="dark"] .week-type-badge {
     background: rgba(3, 105, 161, 0.3);
     color: #7dd3fc;
+}
+
+[data-theme="dark"] .week-type-select {
+    background: #374151;
+    color: #7dd3fc;
+    border-color: #4b5563;
+}
+
+[data-theme="dark"] .week-type-select:hover {
+    border-color: #6b7280;
+    background-color: #4b5563;
+}
+
+[data-theme="dark"] .week-type-select optgroup {
+    color: #f8fafc;
+    background: #1e293b;
+}
+
+[data-theme="dark"] .week-type-select option {
+    color: #e2e8f0;
+    background: #1f2937;
 }
 
 .header-date {
@@ -836,13 +890,13 @@
 }
 
 .special-day-cell {
-    background: #fee2e2;
-    border-color: #fca5a5;
-    background-image: repeating-linear-gradient(45deg,
-            #fee2e2,
-            #fee2e2 10px,
-            #fecaca 10px,
-            #fecaca 20px);
+    background-color: #fdf2f2;
+    border-color: rgba(239, 68, 68, 0.2);
+    background-image: repeating-linear-gradient(135deg,
+            rgba(239, 68, 68, 0.03),
+            rgba(239, 68, 68, 0.03) 10px,
+            rgba(239, 68, 68, 0.06) 10px,
+            rgba(239, 68, 68, 0.06) 20px);
 }
 
 [data-theme="dark"] .special-day-header {
@@ -850,13 +904,13 @@
 }
 
 [data-theme="dark"] .special-day-cell {
-    background: #450a0a;
-    border-color: #7f1d1d;
-    background-image: repeating-linear-gradient(45deg,
-            #450a0a,
-            #450a0a 10px,
-            #7f1d1d 10px,
-            #7f1d1d 20px);
+    background-color: #211516;
+    border-color: rgba(239, 68, 68, 0.15);
+    background-image: repeating-linear-gradient(135deg,
+            rgba(239, 68, 68, 0.02),
+            rgba(239, 68, 68, 0.02) 10px,
+            rgba(239, 68, 68, 0.05) 10px,
+            rgba(239, 68, 68, 0.05) 20px);
 }
 
 [data-theme="dark"] .empty-schedule p {
@@ -925,4 +979,53 @@
     background: #60a5fa;
     color: #111827;
     border-color: #60a5fa;
+}
+
+/* RESPONSYWNOŚĆ */
+@media (max-width: 768px) {
+    .schedule-wrapper {
+        padding: 1rem;
+    }
+
+    .schedule-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1.25rem;
+        padding: 1rem;
+    }
+
+    .week-navigation {
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .current-week-info {
+        text-align: center;
+        width: 100%;
+    }
+
+    .week-type-select {
+        width: 100%;
+        text-align: center;
+    }
+
+    .schedule-filters {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .class-type-filter-btn {
+        flex: 1 1 calc(50% - 0.5rem);
+        justify-content: center;
+        text-align: center;
+    }
+
+    .next-class-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .next-class-icon {
+        margin-bottom: 0.5rem;
+    }
 }

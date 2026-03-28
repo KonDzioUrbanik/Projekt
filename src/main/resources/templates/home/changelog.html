@@ -42,18 +42,22 @@
                                     <li><strong>Widok Tabelaryczny (Starosta):</strong> Migracja zarządzania ogłoszeniami na strukturę tabelaryczną z obsługą rozwijanych wierszy szczegółowych.</li>
                                     <li><strong>Weryfikacja Kolizji:</strong> Algorytm sprawdzający dostępność zasobów (sale, prowadzący, grupy) w czasie rzeczywistym z obsługą statusu 409 Conflict.</li>
                                     <li><strong>Rozszerzenie Zakresu:</strong> Implementacja obsługi dni weekendowych oraz pól specjalności i numerów podgrup w planie zajęć.</li>
+                                    <li><strong>Konfiguracja Roku Akademickiego:</strong> Dodano system globalnego zarządzania kalendarzem (AcademicYearConfig z dedykowanym API) z opcją ustawiania ram semestru przez Administratora.</li>
+                                    <li><strong>Narzędzia Administracyjne:</strong> Zastąpiono tekstowe wejścia dla powtarzalności niestandardowych (CUSTOM) ergonomiczną, interaktywną siatką checkboxów dla tygodni edukacyjnych 1-15.</li>
                                     <li><strong>Uprawnienia Starosty:</strong> Ograniczenie zakresu edycji danych harmonogramu wyłącznie do przypisanej grupy studenckiej.</li>
-                                    <li><strong>Logika Tygodni:</strong> Rozszerzenie obsługi tygodni akademickich o tryb niestandardowy (Custom) z walidacją zakresów.</li>
+                                    <li><strong>Logika Tygodni:</strong> Rozszerzenie obsługi tygodni akademickich o tryb niestandardowy (Custom) z walidacją zakresów. Zastąpiono sztywne numery ISO na wygodną numerację wewnątrz-semestralną (Tydzień 1-15).</li>
                                 </ul>
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
                                 <ul class="change-list changed">
+                                    <li><strong>Nawigacja Harmonogramu:</strong> System wyboru tygodni przebudowano na rozwijaną listę (Dropdown) z automatycznym podziałem (optgroup) na semestr zimowy i letni, zachowując restrykcje roczne (bounds).</li>
+                                    <li><strong>UX Mobilny (Harmonogram):</strong> Automatyczne, płynne wyśrodkowanie widoku na dzisiejszej kolumnie (oś X) oraz detekcja kontenera przewijania dla osi Y (aktualna godzina).</li>
                                     <li><strong>Standaryzacja Tabel:</strong> Ujednolicenie wizualne siatki danych (Grid UI) w modułach Harmonogramu, Ogłoszeń oraz Feedbacku.</li>
-                                    <li><strong>Harmonogram Studenta (v2):</strong> Modernizacja wizualna planu zajęć na dashboardzie studenta z wdrożeniem standardu Grid UI i poprawą czytelności kart.</li>
+                                    <li><strong>Harmonogram Studenta (v2):</strong> Modernizacja wizualna planu zajęć na dashboardzie studenta z wdrożeniem standardu Grid UI i poprawą czytelności kart oraz estetyki dni wolnych (gradienty).</li>
                                     <li><strong>Architektura URL:</strong> Optymalizacja ścieżek dostępu i ujednolicenie nazewnictwa plików szablonów (admin-announcement).</li>
-                                    <li><strong>Nawigacja:</strong> Wdrożenie systemu dynamicznych Breadcrumbs oraz ujednolicenie stylistyki elementów interaktywnych.</li>
+                                    <li><strong>Nawigacja:</strong> Wdrożenie systemu dynamicznych Breadcrumbs z dedykowaną obsługą łamania i zawijania długiego tekstu na wyświetlaczach mobilnych.</li>
                                 </ul>
                             </div>
 
@@ -64,6 +68,7 @@
                                     <li><strong>Sanityzacja:</strong> Filtry zapobiegające Header Injection oraz zabezpieczenie przesyłu nazw plików (Content-Disposition).</li>
                                     <li><strong>Synchronizacja DB:</strong> Aktualizacja schematu bazy danych w celu zapewnienia spójności z polami is_pinned i attachments.</li>
                                     <li><strong>Stabilność JS:</strong> Wdrożenie opcjonalnego łańcuchowania (Optional Chaining) w skryptach frontendowych celem eliminacji błędów runtime.</li>
+                                    <li><strong>Scroll Conflict:</strong> Rozwiązano konflikt przewijania osi X (centrowania dnia) oraz osi Y (linii czasu) przy użyciu absolutnych koordynatów DOM.</li>
                                 </ul>
                             </div>
                         </div>

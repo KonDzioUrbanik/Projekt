@@ -50,7 +50,8 @@
         <main>
             <header class="hero-section">
                 <div class="hero-content">
-                    <span class="hero-badge">Nowy Rok Akademicki 2025/26</span>
+                    <span class="hero-badge"
+                          th:text="'Rok Akademicki ' + (${academicYear} != null ? ${academicYear} : '2025/2026')">Nowy Rok Akademicki 2025/26</span>
                     
                     <h1 class="hero-title">Witamy w PANSportal</h1>
                     

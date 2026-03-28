@@ -302,10 +302,14 @@ class ScheduleManagement {
         document.getElementById('scheduleTableBody').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2rem;color:red;">Błąd ładowania danych.</td></tr>`;
     }
 
-    openModal(data = null){
+    async openModal(data = null){
         const modal = document.getElementById('scheduleModal');
         const form = document.getElementById('scheduleForm');
         form.reset();
+        
+        if (!Utils.AcademicConfig) {
+            await Utils.initAcademicConfig();
+        }
         if(data){
             this.isEditing = true; this.currentEditId = data.id;
             document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Edycja zajęć';
@@ -316,7 +320,13 @@ class ScheduleManagement {
             document.getElementById('specialization').value = data.specialization || '';
             document.getElementById('classType').value = data.classType;
             document.getElementById('weekType').value = data.weekType || 'ALL';
-            document.getElementById('customWeeks').value = data.customWeeks || '';
+            
+            // Checkboxy tygodni
+            this.generateCustomWeeksCheckboxes();
+            const customWeeksArr = (data.customWeeks || '').split(',').map(s=>s.trim());
+            document.querySelectorAll('input[name="customWeek"]').forEach(cb => {
+                cb.checked = customWeeksArr.includes(cb.value);
+            });
             document.getElementById('dayOfWeek').value = data.dayOfWeek;
             document.getElementById('startTime').value = this.formatTimeForInput(data.startTime);
             document.getElementById('endTime').value = this.formatTimeForInput(data.endTime);
@@ -328,6 +338,8 @@ class ScheduleManagement {
         } else {
             this.isEditing = false; this.currentEditId = null;
             document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus"></i> Dodaj zajęcia';
+            this.generateCustomWeeksCheckboxes();
+            document.querySelectorAll('input[name="customWeek"]').forEach(cb => cb.checked = false);
         }
         this.toggleCustomWeeksField();
         modal.classList.add('active');
@@ -340,8 +352,16 @@ class ScheduleManagement {
 
     async saveSchedule(force = false){
         const weekType = document.getElementById('weekType').value;
-        const normCustom = weekType === 'CUSTOM' ? this.normalizeCustomWeeksInput(document.getElementById('customWeeks').value) : null;
-        if (weekType === 'CUSTOM' && !normCustom) { Utils.showToast('Podaj poprawne tygodnie (np. 1,3,5).', 'error'); return; }
+        
+        let normCustom = null;
+        if (weekType === 'CUSTOM') {
+             const customCheckboxes = document.querySelectorAll('input[name="customWeek"]:checked');
+             normCustom = Array.from(customCheckboxes).map(cb => cb.value).join(',');
+             if (!normCustom) { 
+                 Utils.showToast('Zaznacz przynajmniej jeden tydzień niestandardowy.', 'error'); 
+                 return; 
+             }
+        }
 
         const formData = {
             title: document.getElementById('title').value,
@@ -553,26 +573,32 @@ class ScheduleManagement {
         if (row) {
             const isCustom = document.getElementById('weekType').value === 'CUSTOM';
             row.style.display = isCustom ? '' : 'none';
-            if (isCustom) this.updateCustomWeeksHint();
         }
     }
 
-    updateCustomWeeksHint() {
-        const hint = document.querySelector('.form-hint');
-        if (!hint) return;
-        hint.innerHTML = 'Podaj numery tygodni oddzielone przecinkami.';
-    }
-
-    normalizeCustomWeeksInput(v) {
-        if (!v) return null;
-        const tokens = v.split(',').map(t => t.trim()).filter(Boolean);
-        const norm = [];
-        for (const t of tokens) {
-            const w = parseInt(t, 10);
-            if (isNaN(w) || w < 1 || w > 53) return null;
-            if (!norm.includes(w)) norm.push(w);
+    generateCustomWeeksCheckboxes() {
+        const container = document.getElementById('customWeeksContainer');
+        if (!container || !Utils.AcademicConfig || container.children.length > 0) return;
+        
+        const winterStart = new Date(Utils.AcademicConfig.winterSemesterStart).getTime();
+        const summerStart = new Date(Utils.AcademicConfig.summerSemesterStart).getTime();
+        const summerEnd = new Date(Utils.AcademicConfig.summerSemesterEnd).getTime();
+        
+        const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+        const winterWeeks = Math.ceil((summerStart - winterStart) / msPerWeek);
+        const summerWeeks = Math.ceil((summerEnd - summerStart) / msPerWeek);
+        const maxWeeks = Math.max(winterWeeks, summerWeeks);
+        
+        let html = '';
+        for(let i=1; i<=maxWeeks; i++) {
+            html += `
+                <label class="week-checkbox">
+                    <input type="checkbox" name="customWeek" value="${i}">
+                    <span>Tydz. ${i}</span>
+                </label>
+            `;
         }
-        return norm.sort((a,b)=>a-b).join(',');
+        container.innerHTML = html;
     }
 
     formatWeekTypeLabel(i) {

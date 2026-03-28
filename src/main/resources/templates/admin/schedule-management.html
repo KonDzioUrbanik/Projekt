@@ -241,9 +241,11 @@
 
                             <div class="form-row" id="customWeeksRow" style="display:none;">
                                 <div class="form-group full-width">
-                                    <label for="customWeeks"> Niestandardowe tygodnie (ISO)</label>
-                                    <input type="text" id="customWeeks" placeholder="np. 1,3,5,9,12" inputmode="numeric" pattern="\d{1,2}(\s*,\s*\d{1,2})*" title="Podaj numery tygodni 1-53, oddzielone przecinkami, np. 1,3,5">
-                                    <small class="form-hint">Podaj numery tygodni oddzielone przecinkami.</small>
+                                    <label> Niestandardowe tygodnie (numery w danym semestrze)</label>
+                                    <div class="custom-weeks-grid" id="customWeeksContainer">
+                                        <!-- Wypełniane dynamicznie w JS (Tygodnie 1-15) -->
+                                    </div>
+                                    <small class="form-hint">Zaznacz tygodnie, w których planowo mają odbyć się dane zajęcia.</small>
                                 </div>
                             </div>
 

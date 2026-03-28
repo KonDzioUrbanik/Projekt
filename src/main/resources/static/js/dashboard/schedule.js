@@ -42,10 +42,12 @@ class ScheduleCalendar{
 
         try {
             await Promise.all([
+                this.loadAcademicConfig(),
                 this.loadCalendarEvents(),
                 this.loadSchedule()
             ]);
             
+            this.populateWeekSelector(); // Generujemy listę wyboru dla nawigacji
             this.renderFilters(); // Wygenerowanie przycisków filtrujących
             this.renderSchedule();
             this.updateControls(); // Aktualizacja etykiet daty
@@ -85,6 +87,20 @@ class ScheduleCalendar{
         }
     }
     
+    // Pobranie konfiguracji roku akademickiego
+    async loadAcademicConfig() {
+        try {
+            const response = await fetch('/api/academic-year/current');
+            if(response.ok) {
+                Utils.AcademicConfig = await response.json();
+            } else {
+                console.warn("Failed to load academic year config. Falling back to default iso numbering.");
+            }
+        } catch (e) {
+            console.error("Error loading academic year config:", e);
+        }
+    }
+
     // Pomocnicza metoda do formatowania daty lokalnie do YYYY-MM-DD
     formatDateLocal(date) {
         const year = date.getFullYear();
@@ -171,10 +187,113 @@ class ScheduleCalendar{
         const rangeText = `${start.toLocaleDateString('pl-PL', options)} - ${end.toLocaleDateString('pl-PL', options)}`;
         document.getElementById('dateRangeLabel').textContent = rangeText;
 
-        const weekType = this.getWeekType(start);
-        const weekName = weekType === 'WEEK_A' ? 'Tydzień A (Nieparzysty)' : 'Tydzień B (Parzysty)';
-        const weekTypeLabel = document.getElementById('weekTypeLabel');
-        if (weekTypeLabel) weekTypeLabel.textContent = weekName;
+        // Ograniczenia nawigacji (Bounds)
+        const prevBtn = document.getElementById('prevWeekBtn');
+        const nextBtn = document.getElementById('nextWeekBtn');
+        if (Utils.AcademicConfig) {
+            const winterStart = new Date(Utils.AcademicConfig.winterSemesterStart + 'T00:00:00');
+            const summerEnd = new Date(Utils.AcademicConfig.summerSemesterEnd + 'T23:59:59');
+            
+            // Blokuj poprzedni tydzień, jeśli zeszliśmy przed start zimowego semestru
+            const earlyBound = new Date(start); 
+            earlyBound.setDate(earlyBound.getDate() - 7);
+            if (earlyBound < winterStart && start <= winterStart) {
+                if (prevBtn) { prevBtn.disabled = true; prevBtn.style.opacity = '0.3'; }
+            } else {
+                if (prevBtn) { prevBtn.disabled = false; prevBtn.style.opacity = '1'; }
+            }
+
+            // Blokuj następny tydzień, jeśli wyszliśmy już za koniec semestru letniego
+            if (end > summerEnd) {
+                if (nextBtn) { nextBtn.disabled = true; nextBtn.style.opacity = '0.3'; }
+            } else {
+                if (nextBtn) { nextBtn.disabled = false; nextBtn.style.opacity = '1'; }
+            }
+        }
+
+        const weekSelector = document.getElementById('weekSelector');
+        if (weekSelector) {
+            const startStr = this.formatDateLocal(start);
+            // Wybierz odpowiadającą option jeśli istnieje
+            const opt = Array.from(weekSelector.options).find(o => o.value === startStr);
+            if (opt) {
+                weekSelector.value = startStr;
+            } else {
+                // Jeśli użytkownik zjechał zupełnie poza wygenerowaną listę, budujemy awaryjnie w locie powiadomienie
+                const eduWeek = Utils.getEducationalWeekNumber ? Utils.getEducationalWeekNumber(start) : this.getWeekNumber(start);
+                const weekTypeName = this.getWeekType(start) === 'WEEK_A' ? 'A (Nieparzysty)' : 'B (Parzysty)';
+                
+                let customOpt = weekSelector.querySelector(`option[value="${startStr}"]`);
+                if (!customOpt) {
+                     customOpt = document.createElement('option');
+                     customOpt.value = startStr;
+                     customOpt.textContent = `Poza zakresem (Tydzień ${eduWeek} › ${weekTypeName})`;
+                     weekSelector.appendChild(customOpt);
+                }
+                weekSelector.value = startStr;
+            }
+        }
+    }
+
+    // Pobiera i wypełnia dropdown miesiącami
+    populateWeekSelector() {
+        const selector = document.getElementById('weekSelector');
+        if (!selector || !Utils.AcademicConfig) return;
+        
+        selector.innerHTML = '';
+
+        const winterStart = new Date(Utils.AcademicConfig.winterSemesterStart + 'T00:00:00');
+        const summerStart = new Date(Utils.AcademicConfig.summerSemesterStart + 'T00:00:00');
+        const summerEnd = new Date(Utils.AcademicConfig.summerSemesterEnd + 'T23:59:59');
+        
+        const optGroupWinter = document.createElement('optgroup');
+        optGroupWinter.label = '❄️ Semestr Zimowy';
+        
+        const optGroupSummer = document.createElement('optgroup');
+        optGroupSummer.label = '☀️ Semestr Letni';
+
+        let curr = this.getStartOfWeek(winterStart);
+        while (curr <= summerEnd) {
+             const eduWeek = Utils.getEducationalWeekNumber(curr);
+             const type = this.getWeekType(curr);
+             const typeName = type === 'WEEK_A' ? 'A (Nieparzysty)' : 'B (Parzysty)';
+             
+             let label = `Tydzień ${eduWeek} › ${typeName}`;
+             
+             // Uproszczone oznaczanie sesji/przerw tylko poprzez flagę na samym spodzie opcji, nie banner
+             const specialStart = this.getSpecialDayInfo(curr);
+             const endOfWeek = new Date(curr); endOfWeek.setDate(endOfWeek.getDate() + 6);
+             const specialEnd = this.getSpecialDayInfo(endOfWeek);
+             if (specialStart && specialEnd && specialStart.type === specialEnd.type) {
+                 if (specialStart.type === 'EXAM') label += ' [Sesja]';
+                 else if (specialStart.type === 'BREAK' || specialStart.type === 'HOLIDAY') label += ' [Przerwa]';
+             }
+             
+             const opt = document.createElement('option');
+             opt.value = this.formatDateLocal(curr);
+             opt.textContent = label;
+             
+             if (curr < summerStart) {
+                 optGroupWinter.appendChild(opt);
+             } else {
+                 optGroupSummer.appendChild(opt);
+             }
+             
+             curr.setDate(curr.getDate() + 7);
+        }
+        
+        selector.appendChild(optGroupWinter);
+        selector.appendChild(optGroupSummer);
+        
+        selector.addEventListener('change', (e) => {
+            if (e.target.value) {
+                this.currentWeekStart = new Date(e.target.value + 'T00:00:00');
+                this.currentDate = new Date(this.currentWeekStart);
+                this.renderSchedule();
+                this.updateControls();
+                this.updateRealTimeFeatures();
+            }
+        });
     }
 
     // Obliczanie numeru tygodnia - używa Utils
@@ -859,23 +978,66 @@ class ScheduleCalendar{
         });
     }
 
-    // Auto-Scroll do aktualnej godziny (Płynne przewijanie)
+    // Przewija widok siatki do aktualnego czasu (pion) i dnia (poziom)
     scrollToCurrentTime() {
+        const grid = document.getElementById('scheduleGrid');
+        if (!grid) return;
+        
+        const todayStr = this.formatDateLocal(new Date());
+        const todayHeader = document.querySelector(`.day-header[data-date="${todayStr}"]`);
+        
+        // 1. Oś X (Poziom) - Centrowanie dnia na telefonach
+        if (todayHeader && window.innerWidth < 1024) {
+            const gridRect = grid.getBoundingClientRect();
+            const headerRect = todayHeader.getBoundingClientRect();
+            
+            // Obliczamy pozycję nagłówka wewnątrz scrollowalnego obszaru siatki
+            const relativeLeft = headerRect.left - gridRect.left + grid.scrollLeft;
+            const headerCenter = relativeLeft + (headerRect.width / 2);
+            const containerWidth = grid.clientWidth;
+            
+            grid.scrollTo({
+                left: Math.max(0, headerCenter - (containerWidth / 2)),
+                behavior: 'smooth'
+            });
+        }
+
+        // 2. Oś Y (Pion) - Wykrywanie właściwego kontenera przewijania (Window vs .navbar-middle)
         const timeLine = document.getElementById('currentTimeLine');
+        let targetEl = null;
+
         if (timeLine) {
-            timeLine.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-        } else {
-            // Jeśli nie ma linii (np. poza godzinami 8-20 dzisiaj), znajdź najwcześniejsze dzisiejsze zajęcia
+            targetEl = timeLine;
+        } else if (todayHeader) {
             const todayClasses = document.querySelectorAll('.current-day-col.class-item');
             if (todayClasses.length > 0) {
-                todayClasses[0].scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                targetEl = todayClasses[0];
             } else {
-                // Jeśli w ogóle nie ma dzisiaj zajęć, zjedź chociaż do nagłówka
-                const todayHeader = document.querySelector('.day-header.current-day');
-                if (todayHeader) {
-                    todayHeader.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'center' });
-                }
+                targetEl = todayHeader;
             }
+        }
+
+        if (targetEl) {
+            const scrollContainer = document.querySelector('.navbar-middle') || document.documentElement;
+            const styles = window.getComputedStyle(scrollContainer);
+            
+            // Na komórkach .navbar-middle ma zazwyczaj overflow: visible i scrollem jest okno (window)
+            // lub w trybie mobilnym layout wymusza scroll na body/window
+            const isWindowScroll = styles.overflowY === 'visible' || styles.overflowY === 'unset' || window.innerWidth <= 992;
+            const targetScrollable = isWindowScroll ? window : scrollContainer;
+            
+            const containerRect = isWindowScroll ? { top: 0, height: window.innerHeight } : scrollContainer.getBoundingClientRect();
+            const targetRect = targetEl.getBoundingClientRect();
+            
+            // Wyznaczamy absolutną pozycję Y docelową
+            const currentScrollTop = isWindowScroll ? window.pageYOffset : scrollContainer.scrollTop;
+            const absoluteTargetTop = targetRect.top - containerRect.top + currentScrollTop;
+            const targetY = absoluteTargetTop - (containerRect.height / 2) + (targetRect.height / 2);
+
+            targetScrollable.scrollTo({
+                top: Math.max(0, targetY),
+                behavior: 'smooth'
+            });
         }
     }
 }

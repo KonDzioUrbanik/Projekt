@@ -1,5 +1,7 @@
 package com.pansgroup.projectbackend.module.calendar;
 
+import com.pansgroup.projectbackend.module.academic.AcademicYearConfigDto;
+import com.pansgroup.projectbackend.module.academic.AcademicYearConfigService;
 import com.pansgroup.projectbackend.module.calendar.dto.AcademicProgressDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,43 +18,20 @@ import java.util.stream.Collectors;
 public class AcademicProgressService {
 
     private final CalendarEventRepository calendarEventRepository;
+    private final AcademicYearConfigService academicYearConfigService;
 
     public AcademicProgressDto getProgress(LocalDate date) {
         List<CalendarEvent> allEvents = calendarEventRepository.findAll();
+        
+        // 1. Pobierz dynamiczne ramy semestrów z globalnej konfiguracji roku
+        AcademicYearConfigDto config = academicYearConfigService.getCurrent();
+        
+        LocalDate winterSemStart = config.getWinterSemesterStart();
+        LocalDate winterSessionEnd = config.getWinterSemesterEnd();
+        LocalDate summerSemStart = config.getSummerSemesterStart();
+        LocalDate summerSessionEnd = config.getSummerSemesterEnd();
 
-        // 1. Zdefiniuj rok akademicki na podstawie przekazanej daty
-        int academicYearStart = date.getMonthValue() >= 10 ? date.getYear() : date.getYear() - 1;
-
-        // Szukaj zgrubnych ram semestrów na podstawie wydarzeń DIDACTIC
-        LocalDate winterSemStart = allEvents.stream()
-                .filter(e -> e.getType() == CalendarEventType.DIDACTIC)
-                .filter(e -> e.getDateFrom().getYear() == academicYearStart && e.getDateFrom().getMonthValue() >= 9)
-                .map(CalendarEvent::getDateFrom)
-                .min(Comparator.naturalOrder())
-                .orElse(LocalDate.of(academicYearStart, 10, 1)); // Domyślnie 1 października
-
-        LocalDate winterSessionEnd = allEvents.stream()
-                .filter(e -> e.getType() == CalendarEventType.EXAM)
-                .filter(e -> e.getDateFrom().getYear() == academicYearStart + 1 && e.getDateFrom().getMonthValue() <= 3)
-                .map(CalendarEvent::getDateTo)
-                .max(Comparator.naturalOrder())
-                .orElse(LocalDate.of(academicYearStart + 1, 2, 28)); // Domyślnie koniec lutego
-
-        LocalDate summerSemStart = allEvents.stream()
-                .filter(e -> e.getType() == CalendarEventType.DIDACTIC)
-                .filter(e -> e.getDateFrom().getYear() == academicYearStart + 1 && e.getDateFrom().getMonthValue() >= 2 && e.getDateFrom().getMonthValue() <= 4)
-                .map(CalendarEvent::getDateFrom)
-                .min(Comparator.naturalOrder())
-                .orElse(winterSessionEnd.plusDays(1)); // Domyślnie start po sesji zimowej
-
-        LocalDate summerSessionEnd = allEvents.stream()
-                .filter(e -> e.getType() == CalendarEventType.EXAM)
-                .filter(e -> e.getDateTo().getYear() == academicYearStart + 1 && e.getDateTo().getMonthValue() >= 6 && e.getDateTo().getMonthValue() <= 7)
-                .map(CalendarEvent::getDateTo)
-                .max(Comparator.naturalOrder())
-                .orElse(LocalDate.of(academicYearStart + 1, 6, 30)); // Domyślnie końcówka czerwca
-
-        // Ustal, w którym semestrze jesteśmy
+        // Ustal, w którym semestrze jesteśmy na podstawie dat z konfiguracji
         boolean isWinterSemester = !date.isBefore(winterSemStart) && date.isBefore(summerSemStart);
         
         LocalDate currentSemStart = isWinterSemester ? winterSemStart : summerSemStart;

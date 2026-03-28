@@ -11,7 +11,7 @@
             <div class="calendar-wrapper" th:data-server-date="${currentDate}">
                 <div class="calendar-header">
                     <h2>Kalendarz akademicki</h2>
-                    <p>Rok akademicki 2025/2026</p>
+                    <p th:text="'Rok akademicki ' + (${academicYearConfig} != null ? ${academicYearConfig.academicYear} : '2025/2026')">Rok akademicki</p>
                 </div>
 
                 <div class="management-panel" sec:authorize="hasRole('ADMIN')">
@@ -21,6 +21,7 @@
                     <div class="panel-actions">
                         <button class="btn-panel btn-panel-secondary" id="btnExportPdf"><i class="fas fa-file-pdf"></i> Eksportuj PDF</button>
                         <button class="btn-panel btn-panel-primary" id="btnAddEvent"><i class="fas fa-plus"></i> Dodaj wydarzenie</button>
+                        <button class="btn-panel btn-panel-warning" id="btnEditAcademicYear"><i class="fas fa-calendar-edit"></i> Konfiguracja roku</button>
                     </div>
                 </div>
 
@@ -30,7 +31,8 @@
                     <div class="semester-card">
                         <div class="semester-header">
                             <span><i class="fas fa-snowflake"></i> Semestr Zimowy</span>
-                            <small>1 października 2025 - 22 lutego 2026</small>
+                            <small id="winterSemesterDates"
+                                  th:text="${academicYearConfig} != null ? ${academicYearConfig.winterSemesterLabel} : '1 października 2025 - 22 lutego 2026'">1 października 2025 - 22 lutego 2026</small>
                         </div>
                         <div class="semester-body">
                             <ul class="events-list" id="winterReviewList">
@@ -43,7 +45,8 @@
                     <div class="semester-card">
                         <div class="semester-header">
                             <span><i class="fas fa-sun"></i> Semestr Letni</span>
-                            <small>23 lutego 2026 - 30 września 2026</small>
+                            <small id="summerSemesterDates"
+                                  th:text="${academicYearConfig} != null ? ${academicYearConfig.summerSemesterLabel} : '23 lutego 2026 - 30 września 2026'">23 lutego 2026 - 30 września 2026</small>
                         </div>
                         <div class="semester-body">
                             <ul class="events-list" id="summerReviewList">
@@ -320,7 +323,47 @@
                 </div>
             </div>
 
-            <!-- Delete Confirmation Modal -->
+            <div class="modal" id="academicYearModal" style="display:none;" sec:authorize="hasRole('ADMIN')">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Konfiguracja roku akademickiego</h3>
+                        <button class="close-btn" id="closeAcademicYearModal">&times;</button>
+                    </div>
+                    <form id="academicYearForm">
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="ay-academicYear">Nazwa roku akademickiego</label>
+                                <input type="text" id="ay-academicYear" placeholder="np. 2025/2026" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-snowflake" style="color:#3b82f6;"></i> Semestr zimowy - rozpoczęcie</label>
+                                    <input type="date" id="ay-winterStart" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Semestr zimowy - zakończenie</label>
+                                    <input type="date" id="ay-winterEnd" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-sun" style="color:#f59e0b;"></i> Semestr letni - rozpoczęcie</label>
+                                    <input type="date" id="ay-summerStart" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Semestr letni - zakończenie</label>
+                                    <input type="date" id="ay-summerEnd" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn-tertiary" id="cancelAcademicYearModal">Anuluj</button>
+                            <button type="submit" class="btn-primary"> Zapisz konfigurację</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div class="modal-overlay" id="deleteConfirmOverlay">
                 <div class="modal-card modal-sm modal-center-content">
                     <div class="modal-body-centered">
@@ -339,7 +382,6 @@
                 </div>
             </div>
 
-            <!-- Scripts -->
             <script th:src="@{/js/admin/university-calendar.js}"></script>
         </div>
     </body>
