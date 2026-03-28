@@ -3,6 +3,21 @@
 /* WSPÓLNE NARZĘDZIA POMOCNICZE */
 
 const Utils = {
+    AcademicConfig: null, // Przechowuje aktualną konfigurację roku akademickiego
+
+    async initAcademicConfig() {
+        if (this.AcademicConfig) return this.AcademicConfig;
+        try {
+            const res = await fetch('/api/academic-year/current');
+            if (res.ok) {
+                this.AcademicConfig = await res.json();
+            }
+        } catch (e) {
+            console.error('Błąd inicjalizacji konfiguracji roku akademickiego:', e);
+        }
+        return this.AcademicConfig;
+    },
+
     /* Formatuje datę na format relatywny (np. "przed chwilą", "5 min temu", "wczoraj") */
     formatDate(dateString) {
         if (!dateString) return '';
@@ -148,26 +163,61 @@ const Utils = {
     /* Typ tygodnia: A (nieparzysty), B (parzysty) - z uwzględnieniem semestrów */
     getWeekType(date) {
         const weekNumber = this.getWeekNumber(date);
-        
         const checkDate = new Date(date);
         checkDate.setHours(0, 0, 0, 0);
 
-        // Konfiguracja dat początku semestrów letnich (aktualizuj na nowy rok akademicki)
-        // Format: { year, month (0-indexed), day }
-        const SUMMER_SEMESTER_START = { year: 2026, month: 1, day: 23 }; // 23 luty 2026
-        const semesterSwitch = new Date(
-            SUMMER_SEMESTER_START.year,
-            SUMMER_SEMESTER_START.month,
-            SUMMER_SEMESTER_START.day
-        );
+        if (!this.AcademicConfig) {
+            // Fallback (awaryjnie, gdy brak połączenia API)
+            const fallbackSummerStart = new Date(2026, 1, 23); // 23 lut 2026
+            if (checkDate < fallbackSummerStart) {
+                return weekNumber % 2 === 0 ? 'WEEK_A' : 'WEEK_B';
+            } else {
+                return weekNumber % 2 !== 0 ? 'WEEK_A' : 'WEEK_B';
+            }
+        }
 
-        if (checkDate < semesterSwitch) {
-            // SEMESTR ZIMOWY
+        const summerStart = new Date(this.AcademicConfig.summerSemesterStart + 'T00:00:00');
+        if (checkDate < summerStart) {
+            // Semestr Zimowy: ISO parzysty = A 
             return weekNumber % 2 === 0 ? 'WEEK_A' : 'WEEK_B';
         } else {
-            // SEMESTR LETNI
+            // Semestr Letni: ISO nieparzysty = A
             return weekNumber % 2 !== 0 ? 'WEEK_A' : 'WEEK_B';
         }
+    },
+
+    /* Obliczanie numeru tygodnia edukacyjnego (od 1 dla każdego semestru oddzielnie) */
+    getEducationalWeekNumber(date) {
+        if (!this.AcademicConfig) {
+            return this.getWeekNumber(date); // Fallback: po prostu numer ISO
+        }
+
+        const checkDate = new Date(date);
+        checkDate.setHours(0, 0, 0, 0);
+
+        const winterStart = new Date(this.AcademicConfig.winterSemesterStart + 'T00:00:00');
+        const summerStart = new Date(this.AcademicConfig.summerSemesterStart + 'T00:00:00');
+        
+        let semesterStart;
+        if (checkDate < summerStart) {
+            semesterStart = winterStart;
+        } else {
+            semesterStart = summerStart;
+        }
+
+        const isoCurrent = this.getWeekNumber(checkDate);
+        const isoStart = this.getWeekNumber(semesterStart);
+
+        let diff = isoCurrent - isoStart;
+        if (diff < 0) {
+            // Przejście przez przełom roku kalendarzowego dla tygodni ISO (52 -> 1)
+            const d = new Date(semesterStart.getFullYear(), 11, 31);
+            let week = this.getWeekNumber(d);
+            const weeksInYear = (week === 1) ? this.getWeekNumber(new Date(semesterStart.getFullYear(), 11, 24)) : week;
+            diff = (isoCurrent + weeksInYear) - isoStart;
+        }
+
+        return diff + 1;
     },
 
     parseCustomWeeks(customWeeks) {
@@ -187,8 +237,14 @@ const Utils = {
         if (!item.weekType || item.weekType === 'ALL') return true;
         if (item.weekType === 'WEEK_A' || item.weekType === 'WEEK_B') return item.weekType === weekType;
         if (item.weekType === 'CUSTOM') {
-            const currentWeekNumber = this.getWeekNumber(date);
-            return this.parseCustomWeeks(item.customWeeks).includes(currentWeekNumber);
+            const eduWeek = this.getEducationalWeekNumber(date);
+            const parsed = this.parseCustomWeeks(item.customWeeks);
+            if (parsed.includes(eduWeek)) return true;
+            
+            if (!this.AcademicConfig || parsed.some(n => n > 20)) {
+                const isoWeek = this.getWeekNumber(date);
+                if (parsed.includes(isoWeek)) return true;
+            }
         }
 
         return false;

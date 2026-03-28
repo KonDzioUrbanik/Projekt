@@ -1,7 +1,116 @@
 document.addEventListener('DOMContentLoaded', function() {
     loadEvents();
     setupManagementButtons();
+    setupAcademicYearPanel();
 });
+
+// Konfiguracja Roku Akademickiego
+
+function setupAcademicYearPanel() {
+    const btn = document.getElementById('btnEditAcademicYear');
+    const modal = document.getElementById('academicYearModal');
+    const form = document.getElementById('academicYearForm');
+    const closeBtn = document.getElementById('closeAcademicYearModal');
+    const cancelBtn = document.getElementById('cancelAcademicYearModal');
+
+    if (!btn || !modal) return;
+
+    const closeModal = () => { modal.style.display = 'none'; };
+
+    btn.addEventListener('click', async () => {
+        // Załaduj aktualne dane do formularza
+        try {
+            const res = await fetch('/api/academic-year/current');
+            if (res.ok) {
+                const cfg = await res.json();
+                document.getElementById('ay-academicYear').value = cfg.academicYear || '';
+                document.getElementById('ay-winterStart').value = cfg.winterSemesterStart || '';
+                document.getElementById('ay-winterEnd').value = cfg.winterSemesterEnd || '';
+                document.getElementById('ay-summerStart').value = cfg.summerSemesterStart || '';
+                document.getElementById('ay-summerEnd').value = cfg.summerSemesterEnd || '';
+            }
+        } catch (e) {
+            console.warn('Brak konfiguracji roku – formularz pusty:', e);
+        }
+        modal.style.display = 'flex';
+    });
+
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+    window.addEventListener('click', e => {
+        if (e.target === modal) closeModal();
+    });
+
+    if (form) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const payload = {
+                academicYear: document.getElementById('ay-academicYear').value.trim(),
+                winterSemesterStart: document.getElementById('ay-winterStart').value,
+                winterSemesterEnd: document.getElementById('ay-winterEnd').value,
+                summerSemesterStart: document.getElementById('ay-summerStart').value,
+                summerSemesterEnd: document.getElementById('ay-summerEnd').value,
+                weekAStartDate: null // pole pomocnicze, nieużywane aktualnie w UI
+            };
+
+            // Walidacja po stronie klienta
+            if (payload.winterSemesterStart >= payload.winterSemesterEnd) {
+                Utils.showToast('Data zakończenia semestru zimowego musi być późniejsza niż data rozpoczęcia.', 'error');
+                return;
+            }
+            if (payload.summerSemesterStart >= payload.summerSemesterEnd) {
+                Utils.showToast('Data zakończenia semestru letniego musi być późniejsza niż data rozpoczęcia.', 'error');
+                return;
+            }
+            if (payload.summerSemesterStart <= payload.winterSemesterEnd) {
+                Utils.showToast('Semestr letni musi rozpocząć się po zakończeniu semestru zimowego.', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/academic-year', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => null);
+                    throw new Error(err?.message || `Błąd serwera: ${res.status}`);
+                }
+
+                closeModal();
+                Utils.showToast('Konfiguracja roku akademickiego została zaktualizowana.', 'success');
+
+                // Odśwież widoczne daty semestrów bez przeładowania strony
+                updateSemesterDatesDisplay(payload);
+
+            } catch (err) {
+                Utils.showToast(err.message, 'error');
+            }
+        });
+    }
+}
+
+/** Aktualizuje wyświetlane daty semestrów w widoku po zapisie bez przeładowania. */
+function updateSemesterDatesDisplay(cfg) {
+    const fmt = (dateStr) => {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' });
+    };
+
+    const headerEl = document.querySelector('.calendar-header p');
+    if (headerEl) headerEl.textContent = `Rok akademicki ${cfg.academicYear}`;
+
+    const winterEl = document.getElementById('winterSemesterDates');
+    if (winterEl) winterEl.textContent = `${fmt(cfg.winterSemesterStart)} - ${fmt(cfg.winterSemesterEnd)}`;
+
+    const summerEl = document.getElementById('summerSemesterDates');
+    if (summerEl) summerEl.textContent = `${fmt(cfg.summerSemesterStart)} - ${fmt(cfg.summerSemesterEnd)}`;
+}
 
 // Konfiguracja przycisków panelu
 const deletionTimers = new Map();

@@ -1,6 +1,7 @@
 package com.pansgroup.projectbackend.controller;
 
 import com.pansgroup.projectbackend.exception.UsernameNotFoundException;
+import com.pansgroup.projectbackend.module.academic.AcademicYearConfigService;
 import com.pansgroup.projectbackend.module.dashboard.DashboardService;
 import com.pansgroup.projectbackend.module.dashboard.dto.DashboardResponseDto;
 import com.pansgroup.projectbackend.module.landing.LandingStatsService;
@@ -21,16 +22,23 @@ public class MainController {
     private final DashboardService dashboardService;
     private final UserService userService;
     private final LandingStatsService landingStatsService;
+    private final AcademicYearConfigService academicYearConfigService;
 
-    public MainController(DashboardService dashboardService, UserService userService, LandingStatsService landingStatsService) {
+    public MainController(DashboardService dashboardService, UserService userService,
+                          LandingStatsService landingStatsService,
+                          AcademicYearConfigService academicYearConfigService) {
         this.dashboardService = dashboardService;
         this.userService = userService;
         this.landingStatsService = landingStatsService;
+        this.academicYearConfigService = academicYearConfigService;
     }
 
     @GetMapping("/")
     public String mainView(Model model) {
         model.addAttribute("landingStats", landingStatsService.getLandingStats());
+        // Dynamiczny rok akademicki na stronie startowej
+        academicYearConfigService.findCurrent()
+                .ifPresent(cfg -> model.addAttribute("academicYear", cfg.getAcademicYear()));
         return "index";
     }
 
@@ -177,6 +185,8 @@ public class MainController {
     public String universityCalendarView(Model model) {
         model.addAttribute("activePage", "university-calendar-public");
         model.addAttribute("currentDate", java.time.LocalDate.now());
+        academicYearConfigService.findCurrent()
+                .ifPresent(cfg -> model.addAttribute("academicYearConfig", cfg));
         return "admin/university-calendar";
     }
 

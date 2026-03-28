@@ -1103,6 +1103,24 @@ a.breadcrumb-item:hover {
     user-select: none;
 }
 
+@media (max-width: 768px) {
+    .breadcrumbs {
+        flex-wrap: wrap;
+        margin: 10px 15px 15px;
+        padding: 8px 12px;
+        font-size: 0.75rem;
+        max-width: 100%;
+        overflow: hidden;
+    }
+    
+    .breadcrumb-item {
+        white-space: normal;
+        line-height: 1.4;
+        word-break: break-word; /* Łamanie długich nazw */
+        overflow-wrap: break-word;
+    }
+}
+
 /* VIEW TRANSITIONS API - płynne przejścia między stronami */
 @view-transition {
     navigation: auto;

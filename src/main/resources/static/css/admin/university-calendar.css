@@ -798,6 +798,39 @@
 
 .form-row .form-group {
     flex: 1;
+    min-width: 0; /* prevent overflow with long labels */
+}
+
+/* Etykiety w form-row: jednolita wysokość min aby wyrównać inputy */
+.form-row .form-group label {
+    min-height: 2.6rem;
+    display: flex;
+    align-items: flex-end;
+    gap: 0.4rem;
+    padding-bottom: 0.35rem;
+}
+
+.form-row .form-group label i {
+    padding-bottom: 2px; /* wizualna korekta wyrównania ikony z tekstem */
+}
+
+/* Modal konfiguracji roku – nieco szerszy, by dwa pola obok siebie się mieściły */
+#academicYearModal .modal-content {
+    max-width: 580px;
+}
+
+/* Responsywność form-row – stos na małych ekranach */
+@media (max-width: 540px) {
+    #academicYearModal .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    #academicYearModal .form-row .form-group label {
+        min-height: unset;
+        align-items: flex-start;
+        padding-bottom: 0;
+    }
 }
 
 /* Dark Mode Modal */

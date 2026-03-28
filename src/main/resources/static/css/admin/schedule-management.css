@@ -833,6 +833,31 @@
     box-shadow: 0 3px 6px rgba(16, 185, 129, 0.3);
 }
 
+/* CUSTOM WEEKS GRID */
+.custom-weeks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+    padding: 5px 0;
+}
+
+.week-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.week-checkbox input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    cursor: pointer;
+}
+
 /* DARK MODE */
 [data-theme="dark"] .modal-content {
     background-color: var(--bg-card);

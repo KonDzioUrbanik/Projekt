@@ -1,5 +1,6 @@
 package com.pansgroup.projectbackend.controller;
 
+import com.pansgroup.projectbackend.module.academic.AcademicYearConfigService;
 import com.pansgroup.projectbackend.module.user.UserService;
 import com.pansgroup.projectbackend.module.user.dto.UserResponseDto;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,14 +14,16 @@ import java.security.Principal;
 import java.util.List;
 
 @Controller
-@RequestMapping("/admin") // Wszystkie metody bbeda zaczynac sis od /admin
-@PreAuthorize("hasRole('ADMIN')") // Zabezpieczenie: Tylko admin wejdzie do tej klasy
+@RequestMapping("/admin")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
     private final UserService userService;
+    private final AcademicYearConfigService academicYearConfigService;
 
-    public AdminController(UserService userService) {
+    public AdminController(UserService userService, AcademicYearConfigService academicYearConfigService) {
         this.userService = userService;
+        this.academicYearConfigService = academicYearConfigService;
     }
 
     @ModelAttribute("currentUser")
@@ -34,71 +37,55 @@ public class AdminController {
     // Endpoint: /admin/users
     @GetMapping("/users")
     public String usersView(Model model) {
-        // Pobieranie listy wszystkich uzytkownikow z serwisu
         List<UserResponseDto> users = userService.findAll();
-
-        // Wrzucenie do modelu
         model.addAttribute("users", users);
-
-        // Ustawienie aktywnej strony dla sidebara
         model.addAttribute("activePage", "users");
-
-        // Zwrocenie widoku HTML
         return "admin/admin-users";
     }
 
     // Endpoint: /admin/announcement
     @GetMapping("/announcement")
     public String announcementView(Model model) {
-
-        // Ustawienie aktywnej strony dla sidebara
         model.addAttribute("activePage", "announcement");
-
-        // Zwrocenie widoku HTML
         return "admin/admin-announcement";
     }
 
     // Endpoint: /admin/post-control
     @GetMapping("/post-control")
     public String postControlView(Model model) {
-
-        // Ustawienie aktywnej strony dla sidebara
         model.addAttribute("activePage", "post-control");
-
-        // Zwrocenie widoku HTML
         return "admin/post-control";
     }
 
     // Endpoint: /admin/university-calendar
     @GetMapping("/university-calendar")
     public String universityCalendarView(Model model) {
-
-        // Ustawienie aktywnej strony dla sidebara
         model.addAttribute("activePage", "university-calendar");
         model.addAttribute("currentDate", java.time.LocalDate.now());
-
-        // Zwrocenie widoku HTML
+        // Przekazanie konfiguracji roku akademickiego do widoku
+        academicYearConfigService.findCurrent()
+                .ifPresent(cfg -> model.addAttribute("academicYearConfig", cfg));
         return "admin/university-calendar";
     }
 
     // Endpoint: /admin/alerts
     @GetMapping("/alerts")
     public String alertsView(Model model) {
-
-        // Ustawienie aktywnej strony dla sidebara
         model.addAttribute("activePage", "alerts");
-
-        // Zwrocenie widoku HTML
         return "admin/alerts";
     }
 
     // Endpoint: /admin/feedback
     @GetMapping("/feedback")
     public String feedbackView(Model model) {
-        // Ustawienie aktywnej strony dla sidebara
         model.addAttribute("activePage", "feedback");
-
-        // Zwrocenie widoku HTML
         return "admin/admin-feedback";
+    }
+
+    // Endpoint: /admin/schedule
+    @GetMapping("/schedule")
+    public String scheduleView(Model model) {
+        model.addAttribute("activePage", "schedule");
+        return "admin/schedule-management";
     }
 }
