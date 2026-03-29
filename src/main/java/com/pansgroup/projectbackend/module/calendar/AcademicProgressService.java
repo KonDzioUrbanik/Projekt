@@ -3,6 +3,7 @@ package com.pansgroup.projectbackend.module.calendar;
 import com.pansgroup.projectbackend.module.academic.AcademicYearConfigDto;
 import com.pansgroup.projectbackend.module.academic.AcademicYearConfigService;
 import com.pansgroup.projectbackend.module.calendar.dto.AcademicProgressDto;
+import com.pansgroup.projectbackend.module.calendar.dto.MilestoneDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,10 +23,10 @@ public class AcademicProgressService {
 
     public AcademicProgressDto getProgress(LocalDate date) {
         List<CalendarEvent> allEvents = calendarEventRepository.findAll();
-        
+
         // 1. Pobierz dynamiczne ramy semestrów z globalnej konfiguracji roku
         AcademicYearConfigDto config = academicYearConfigService.getCurrent();
-        
+
         LocalDate winterSemStart = config.getWinterSemesterStart();
         LocalDate winterSessionEnd = config.getWinterSemesterEnd();
         LocalDate summerSemStart = config.getSummerSemesterStart();
@@ -33,7 +34,7 @@ public class AcademicProgressService {
 
         // Ustal, w którym semestrze jesteśmy na podstawie dat z konfiguracji
         boolean isWinterSemester = !date.isBefore(winterSemStart) && date.isBefore(summerSemStart);
-        
+
         LocalDate currentSemStart = isWinterSemester ? winterSemStart : summerSemStart;
         LocalDate currentSemEnd = isWinterSemester ? winterSessionEnd : summerSessionEnd;
 
@@ -42,7 +43,7 @@ public class AcademicProgressService {
             currentSemStart = winterSemStart;
             currentSemEnd = winterSessionEnd;
         }
-        
+
         // Obliczanie postępu na podstawie nowych ram semestru
         int totalDays = (int) ChronoUnit.DAYS.between(currentSemStart, currentSemEnd) + 1;
         int currentDay = 0;
@@ -59,28 +60,46 @@ public class AcademicProgressService {
             progress = (double) currentDay / totalDays * 100;
         }
 
+        // Obliczanie tygodni
+        int totalWeeks = (int) ChronoUnit.WEEKS.between(currentSemStart, currentSemEnd) + 1;
+        int currentWeek = 0;
+        if (!date.isBefore(currentSemStart)) {
+            currentWeek = (int) ChronoUnit.WEEKS.between(currentSemStart, date) + 1;
+        }
+        if (currentWeek > totalWeeks)
+            currentWeek = totalWeeks;
+
         // 2. Tydzień A/B
         String weekType = calculateWeekType(date, summerSemStart);
 
         // 3. Najbliższa przerwa (BREAK lub HOLIDAY)
         CalendarEvent nearestBreak = allEvents.stream()
                 .filter(e -> e.getType() == CalendarEventType.BREAK || e.getType() == CalendarEventType.HOLIDAY)
-                .filter(e -> e.getDateFrom().isAfter(date) || (!date.isBefore(e.getDateFrom()) && !date.isAfter(e.getDateTo())))
+                .filter(e -> e.getDateFrom().isAfter(date)
+                        || (!date.isBefore(e.getDateFrom()) && !date.isAfter(e.getDateTo())))
                 .min(Comparator.comparing(CalendarEvent::getDateFrom))
                 .orElse(null);
 
         // 4. Najbliższa sesja (EXAM)
         CalendarEvent nearestSession = allEvents.stream()
                 .filter(e -> e.getType() == CalendarEventType.EXAM)
-                .filter(e -> e.getDateFrom().isAfter(date) || (!date.isBefore(e.getDateFrom()) && !date.isAfter(e.getDateTo())))
+                .filter(e -> e.getDateFrom().isAfter(date)
+                        || (!date.isBefore(e.getDateFrom()) && !date.isAfter(e.getDateTo())))
                 .min(Comparator.comparing(CalendarEvent::getDateFrom))
                 .orElse(null);
 
         // 5. Timeline (wszystkie wydarzenia w obrębie danego semestru)
         LocalDate finalSemStart = currentSemStart;
         LocalDate finalSemEnd = currentSemEnd;
-        List<CalendarEventDto> timeline = allEvents.stream()
+
+        List<CalendarEvent> semEvents = allEvents.stream()
                 .filter(e -> !e.getDateTo().isBefore(finalSemStart) && !e.getDateFrom().isAfter(finalSemEnd))
+                .toList();
+
+        // Oblicz punkty kontrolne na podstawie realnych danych
+        List<MilestoneDto> milestones = calculateMilestones(semEvents, finalSemStart, totalDays);
+
+        List<CalendarEventDto> timeline = semEvents.stream()
                 .sorted(Comparator.comparing(CalendarEvent::getDateFrom))
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
@@ -97,13 +116,44 @@ public class AcademicProgressService {
                 .daysToSession(nearestSession != null ? calculateDaysLeft(date, nearestSession.getDateFrom()) : null)
                 .semesterStart(currentSemStart)
                 .semesterEnd(currentSemEnd)
+                .currentWeek(currentWeek)
+                .totalWeeks(totalWeeks)
+                .milestones(milestones)
                 .timelineEvents(timeline)
                 .build();
     }
 
+    private List<MilestoneDto> calculateMilestones(List<CalendarEvent> events, LocalDate start, int totalDays) {
+        List<MilestoneDto> milestones = new java.util.ArrayList<>();
+        
+        // Koniec zajęć (max DIDACTIC)
+        events.stream()
+            .filter(e -> e.getType() == CalendarEventType.DIDACTIC)
+            .map(CalendarEvent::getDateTo)
+            .max(LocalDate::compareTo)
+            .ifPresent(dateTo -> milestones.add(new MilestoneDto(
+                    "Koniec zajęć", 
+                    computeProgress(start, dateTo, totalDays),
+                    formatPolishDate(dateTo)
+            )));
+            
+        return milestones;
+    }
+
+    private String formatPolishDate(LocalDate date) {
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("d MMMM", java.util.Locale.forLanguageTag("pl-PL"));
+        return date.format(formatter);
+    }
+
+    private double computeProgress(LocalDate start, LocalDate dateTo, int totalDays) {
+        long days = ChronoUnit.DAYS.between(start, dateTo) + 1;
+        double prog = (double) days / totalDays * 100;
+        return Math.round(prog * 10.0) / 10.0;
+    }
+
     private String calculateWeekType(LocalDate date, LocalDate summerStart) {
         int weekNumber = date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
-        
+
         if (date.isBefore(summerStart)) {
             // Zimowy: Parzysty = A, Nieparzysty = B
             return weekNumber % 2 == 0 ? "WEEK_A" : "WEEK_B";
@@ -114,12 +164,14 @@ public class AcademicProgressService {
     }
 
     private Long calculateDaysLeft(LocalDate today, LocalDate eventStart) {
-        if (!today.isBefore(eventStart)) return 0L;
+        if (!today.isBefore(eventStart))
+            return 0L;
         return ChronoUnit.DAYS.between(today, eventStart);
     }
 
     private CalendarEventDto mapToDto(CalendarEvent event) {
-        if (event == null) return null;
+        if (event == null)
+            return null;
         return CalendarEventDto.builder()
                 .id(event.getId())
                 .title(event.getTitle())

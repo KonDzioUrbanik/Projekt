@@ -140,18 +140,25 @@
     white-space: nowrap;
 }
 
-/* Priority Badges */
 .ann-priority-badge {
     display: inline-flex;
     align-items: center;
-    padding: 0.15rem 0.6rem;
+    gap: 0.45rem;
+    padding: 0.25rem 0.75rem;
     border-radius: 12px;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.3px;
-    margin-top: 0.35rem;
+    margin-top: 0.4rem;
+    white-space: nowrap;
 }
+
+.ann-priority-badge i {
+    font-size: 0.85rem;
+    line-height: 1;
+}
+
 
 .ann-priority-badge.priority-important {
     background: rgba(239, 68, 68, 0.12);
@@ -393,7 +400,7 @@
     }
 }
 
-/* --- List Section Header --- */
+/* List Section Header */
 .ann-section-header {
     display: flex;
     justify-content: space-between;
@@ -404,26 +411,38 @@
 .ann-section-title {
     font-size: 1.05rem;
     font-weight: 700;
-    color: var(--text-dark);
+    color: var(--text-dark) !important;
+    opacity: 1 !important;
     display: flex;
     align-items: center;
     gap: 0.6rem;
     margin: 0;
 }
 
-.ann-count-badge {
-    background: rgba(0, 94, 250, 0.09);
+.ann-section-title i {
+    opacity: 1 !important;
     color: var(--color-primary);
-    border: 1px solid rgba(0, 94, 250, 0.18);
+}
+
+
+.ann-count-badge {
+    background: #eef2ff;
+    color: var(--color-primary);
+    border: 1px solid #dbeafe;
     padding: 0.2rem 0.6rem;
     border-radius: 20px;
     font-size: 0.78rem;
     font-weight: 600;
 }
 
-/* ============================================================
-   FORM CARD (Starosta new announcement)
-   ============================================================ */
+[data-theme="dark"] .ann-count-badge {
+    background: #1e293b;
+    color: #60a5fa;
+    border: 1px solid #334155;
+}
+
+
+/* FORM CARD  */
 .ann-form-card {
     background: var(--bg-card);
     border-radius: 20px;
@@ -626,9 +645,7 @@
     display: none;
 }
 
-/* ============================================================
-   ADMIN PANEL - Filters + Table
-   ============================================================ */
+/* ADMIN PANEL */
 .ann-filters-card {
     background: var(--bg-card);
     border-radius: 16px;
@@ -1381,9 +1398,7 @@
     box-shadow: 0 6px 18px rgba(239, 68, 68, 0.4);
 }
 
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
+/* RESPONSYWNOSC */
 @media (max-width: 768px) {
     .ann-filters-row {
         flex-direction: column;
@@ -1430,9 +1445,6 @@
     }
 }
 
-/* --- Added v1.4.4.0 --- */
-
-/* Count badges in admin table */
 .ann-attach-count {
     display: inline-flex;
     align-items: center;
@@ -1458,7 +1470,6 @@
     filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.3));
 }
 
-/* Card Content Aesthetic Polish */
 .announcement-content {
     background: rgba(148, 163, 184, 0.03);
     padding: 1.25rem;
@@ -1471,7 +1482,6 @@
     background: rgba(255, 255, 255, 0.015);
 }
 
-/* Attachments Layout for Student View */
 .ann-card-attachments {
     display: flex;
     flex-wrap: wrap;
@@ -1523,10 +1533,9 @@
     border-color: var(--color-primary);
 }
 
-/* Visual highlight for pinned cards in Dashboard */
 .announcement-card.pinned {
     border-left: 6px solid #f59e0b !important;
-    background: linear-gradient(to right, rgba(245, 158, 11, 0.03), transparent) !important;
+    background: #fff9eb !important;
 }
 
 .announcement-card.pinned::before {
@@ -1535,7 +1544,7 @@
 
 [data-theme="dark"] .announcement-card.pinned {
     border-left: 6px solid #fbbf24 !important;
-    background: linear-gradient(to right, rgba(251, 191, 36, 0.04), transparent) !important;
+    background: #2d2412 !important;
 }
 
 .ann-pinned-badge {
@@ -1745,7 +1754,22 @@
     background: rgba(255, 255, 255, 0.05);
 }
 
-/* Section Header / Divider */
+.ann-section-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-dark) !important;
+    opacity: 1 !important;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0;
+}
+
+.ann-section-title i {
+    opacity: 1 !important;
+    color: var(--color-primary);
+}
+
 .ann-section-header {
     display: flex;
     align-items: center;

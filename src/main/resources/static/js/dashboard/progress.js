@@ -74,13 +74,18 @@ class AcademicProgress {
         if (percentage) percentage.textContent = `${progressValue}%`;
         
         if (dayCount) {
+             let text = '';
              if (this.data.currentDay === 0 && progressValue === 0) {
-                 dayCount.textContent = `Semestr jeszcze się nie rozpoczął`;
+                 text = `Semestr jeszcze się nie rozpoczął`;
              } else if (progressValue === 100) {
-                 dayCount.textContent = `Semestr zakończony`;
+                 text = `Semestr zakończony`;
              } else {
-                 dayCount.textContent = `Dzień ${this.data.currentDay} z ${this.data.totalDays}`;
+                 text = `Dzień ${this.data.currentDay} z ${this.data.totalDays}`;
+                 if (this.data.currentWeek && this.data.totalWeeks) {
+                     text += ` • Tydzień ${this.data.currentWeek}/${this.data.totalWeeks}`;
+                 }
              }
+             dayCount.textContent = text;
         }
 
         if (dates && this.data.semesterStart && this.data.semesterEnd) {
@@ -88,6 +93,36 @@ class AcademicProgress {
             const endStr = this.formatDate(this.data.semesterEnd);
             dates.textContent = `${startStr} - ${endStr}`;
         }
+        
+        this.renderMarkers();
+    }
+
+    renderMarkers() {
+        const wrapper = document.querySelector('.progress-bar-wrapper');
+        if (!wrapper) return;
+
+        // Clear existing markers
+        wrapper.querySelectorAll('.progress-marker, .progress-marker-label').forEach(el => el.remove());
+
+        if (this.data.milestones && this.data.milestones.length > 0) {
+            this.data.milestones.forEach(milestone => {
+                this.createMarker(wrapper, milestone.progress, milestone.label, milestone.date);
+            });
+        }
+    }
+
+    createMarker(container, position, label, date) {
+        const marker = document.createElement('div');
+        marker.className = 'progress-marker';
+        marker.style.left = `${position}%`;
+        
+        const labelEl = document.createElement('div');
+        labelEl.className = 'progress-marker-label';
+        labelEl.style.left = `${position}%`;
+        labelEl.innerHTML = `${label}<span class="marker-tooltip">${date}</span>`;
+        
+        container.appendChild(marker);
+        container.appendChild(labelEl);
     }
 
     renderCountdowns() {
@@ -98,7 +133,10 @@ class AcademicProgress {
         
         if (this.data.nearestBreak) {
             if (breakName) breakName.textContent = this.data.nearestBreak.title;
-            if (daysToBreak) daysToBreak.textContent = this.data.daysToBreak;
+            if (daysToBreak) {
+                const days = this.data.daysToBreak;
+                daysToBreak.textContent = days > 0 ? `za ${days}` : days;
+            }
             if (this.data.daysToBreak === 0) {
                 if (breakName) breakName.textContent = `${this.data.nearestBreak.title} (Trwa)`;
                 breakCard?.classList.add('active-event');
@@ -115,7 +153,10 @@ class AcademicProgress {
 
         if (this.data.nearestSession) {
             if (sessionName) sessionName.textContent = this.data.nearestSession.title;
-            if (daysToSession) daysToSession.textContent = this.data.daysToSession;
+            if (daysToSession) {
+                const days = this.data.daysToSession;
+                daysToSession.textContent = days > 0 ? `za ${days}` : days;
+            }
             if (this.data.daysToSession === 0) {
                 if (sessionName) sessionName.textContent = `${this.data.nearestSession.title} (Trwa)`;
                 sessionCard?.classList.add('active-event');
@@ -163,7 +204,7 @@ class AcademicProgress {
                 const diffTime = eventDate - today;
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 
-                let daysText = `<div class="event-days">${diffDays}</div><div class="event-days-label">dni</div>`;
+                let daysText = `<div class="event-days">za ${diffDays}</div><div class="event-days-label">dni</div>`;
                 if (diffDays === 0) daysText = `<div class="event-days" style="color:var(--progress-accent);">Dzisiaj</div>`;
                 else if (diffDays === 1) daysText = `<div class="event-days">Jutro</div>`;
 

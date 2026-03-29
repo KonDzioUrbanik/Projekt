@@ -25,6 +25,10 @@ public class AcademicProgressDto {
     
     private LocalDate semesterStart;
     private LocalDate semesterEnd;
+    private int currentWeek;
+    private int totalWeeks;
+    
+    private List<MilestoneDto> milestones;
     
     private List<CalendarEventDto> timelineEvents;
 }
