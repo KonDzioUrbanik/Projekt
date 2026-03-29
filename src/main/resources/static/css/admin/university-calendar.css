@@ -635,15 +635,26 @@
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    transition: all 0.2s;
+    justify-content: center;
+    gap: 0.6rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     border: none;
 }
 
 .btn-panel-primary {
     background: #005efa;
-    color: white;
+    color: #ffffff !important;
 }
+
+.btn-panel-warning {
+    background: #d97706;
+    color: #ffffff !important;
+}
+
+.btn-panel-warning:hover {
+    background: #b45309;
+}
+
 
 .btn-panel-primary:hover {
     background: #0046b8;
@@ -669,16 +680,29 @@
     color: var(--text-main);
 }
 
-[data-theme="dark"] .btn-panel-secondary {
-    background: var(--bg-step);
-    color: var(--text-secondary);
-    border-color: var(--border-color);
-}
-
 [data-theme="dark"] .btn-panel-secondary:hover {
     background: var(--bg-background);
     color: var(--text-main);
 }
+
+[data-theme="dark"] .btn-panel-warning {
+    background: #f59e0b;
+    /* Jaśniejszy Amber w Dark Mode dla widoczności */
+    color: #000000 !important;
+    /* Czarny tekst dla kontrastu na jasnym amberze? Nie, użytkownik prosił o BIAŁY */
+}
+
+/* Korekta pod prośbę użytkownika: Zwiększenie kontrastu BIELI */
+[data-theme="dark"] .btn-panel-warning {
+    background: #ea580c;
+    /* Deep Orange dla kontrastu z białym tekstem */
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-panel-warning:hover {
+    background: #c2410c;
+}
+
 
 /* MODAL STYLES */
 .modal {
@@ -798,7 +822,8 @@
 
 .form-row .form-group {
     flex: 1;
-    min-width: 0; /* prevent overflow with long labels */
+    min-width: 0;
+    /* prevent overflow with long labels */
 }
 
 /* Etykiety w form-row: jednolita wysokość min aby wyrównać inputy */
@@ -811,7 +836,8 @@
 }
 
 .form-row .form-group label i {
-    padding-bottom: 2px; /* wizualna korekta wyrównania ikony z tekstem */
+    padding-bottom: 2px;
+    /* wizualna korekta wyrównania ikony z tekstem */
 }
 
 /* Modal konfiguracji roku – nieco szerszy, by dwa pola obok siebie się mieściły */

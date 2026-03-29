@@ -98,7 +98,7 @@
 
 /* Fix for dark mode card headers */
 [data-theme="dark"] .card-header {
-    background: rgba(255,255,255,0.02);
+    background: rgba(255, 255, 255, 0.02);
 }
 
 .card-title {
@@ -124,16 +124,98 @@
     height: 14px;
     background: var(--progress-bg);
     border-radius: 999px;
-    overflow: hidden;
-    margin-bottom: 1rem;
+    margin-bottom: 3.5rem;
     position: relative;
     border: 1px solid var(--progress-border);
+    display: flex;
+    align-items: center;
+}
+
+.progress-marker {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.6);
+    z-index: 5;
+    pointer-events: none;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+}
+
+.progress-marker-label {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--progress-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    pointer-events: auto;
+    background: var(--progress-card-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--progress-border);
+    transition: transform 0.2s ease;
+    z-index: 20;
+}
+
+.progress-marker-label:hover {
+    transform: translateX(-50%) translateY(-2px);
+    border-color: var(--progress-accent);
+    color: var(--progress-accent);
+}
+
+.marker-tooltip {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: #1e293b;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+}
+
+.marker-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: #1e293b transparent transparent transparent;
+}
+
+.progress-marker-label:hover .marker-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+[data-theme="dark"] .marker-tooltip {
+    background: #f8fafc;
+    color: #1e293b;
+}
+
+[data-theme="dark"] .marker-tooltip::after {
+    border-color: #f8fafc transparent transparent transparent;
 }
 
 .progress-bar-fill {
     height: 100%;
     background: var(--progress-gradient);
-    border-radius: 999px;
+    border-radius: inherit;
     transition: width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     box-shadow: 0 0 10px rgba(0, 94, 250, 0.3);
 }
@@ -155,7 +237,35 @@
     font-size: 0.875rem;
     font-weight: 500;
     color: var(--progress-text-muted);
+    transition: color 0.3s ease;
 }
+
+@media (max-width: 500px) {
+    .progress-stats {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 0.5rem;
+    }
+
+    .stats-value {
+        font-size: 2.25rem;
+    }
+
+    .stats-label {
+        font-size: 0.8rem;
+        line-height: 1.4;
+    }
+
+    .stats-separator {
+        display: block;
+        /* Łamanie linii zamiast kropki na mobile */
+        height: 0;
+        visibility: hidden;
+        margin: 0;
+    }
+}
+
 
 .semester-range {
     margin-top: 1.25rem;
@@ -181,8 +291,13 @@
     border-left: 4px solid var(--progress-border);
 }
 
-.break-card { border-left-color: var(--progress-warning); }
-.session-card { border-left-color: var(--progress-accent); }
+.break-card {
+    border-left-color: var(--progress-warning);
+}
+
+.session-card {
+    border-left-color: var(--progress-accent);
+}
 
 .countdown-card .card-body {
     display: flex;
@@ -203,14 +318,14 @@
     border: 1px solid var(--progress-border);
 }
 
-.break-card .countdown-icon { 
-    background: rgba(245, 158, 11, 0.1); 
-    color: var(--progress-warning); 
+.break-card .countdown-icon {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--progress-warning);
     border-color: rgba(245, 158, 11, 0.2);
 }
 
-.session-card .countdown-icon { 
-    background: var(--primary-light); 
+.session-card .countdown-icon {
+    background: var(--primary-light);
     color: var(--progress-accent);
 }
 
@@ -264,11 +379,11 @@
 }
 
 .event-list-item:hover {
-    background: rgba(0,0,0,0.02);
+    background: rgba(0, 0, 0, 0.02);
 }
 
 [data-theme="dark"] .event-list-item:hover {
-    background: rgba(255,255,255,0.02);
+    background: rgba(255, 255, 255, 0.02);
 }
 
 .event-icon-wrapper {
@@ -285,7 +400,8 @@
 
 .event-details {
     flex: 1;
-    min-width: 0; /* for text truncation */
+    min-width: 0;
+    /* for text truncation */
 }
 
 .event-title {
@@ -323,14 +439,32 @@
 }
 
 /* Event Types Colors */
-.type-holiday .event-icon-wrapper { background: rgba(239, 68, 68, 0.1); color: var(--progress-danger); }
-.type-exam .event-icon-wrapper { background: rgba(74, 144, 226, 0.1); color: var(--progress-accent); }
-.type-break .event-icon-wrapper { background: rgba(245, 158, 11, 0.1); color: var(--progress-warning); }
+.type-holiday .event-icon-wrapper {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--progress-danger);
+}
+
+.type-exam .event-icon-wrapper {
+    background: rgba(74, 144, 226, 0.1);
+    color: var(--progress-accent);
+}
+
+.type-break .event-icon-wrapper {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--progress-warning);
+}
 
 /* Animations */
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Responsive */
@@ -338,7 +472,7 @@
     .progress-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .countdown-group {
         flex-direction: row;
     }
@@ -371,5 +505,3 @@
     align-items: center;
     gap: 0.75rem;
 }
-
-
