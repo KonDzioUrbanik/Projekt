@@ -35,6 +35,7 @@
                             <div class="change-category">
                                 <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
                                 <ul class="change-list added">
+                                    <li><strong>Zarządzanie Grupami & Harmonogram:</strong> Modernizacja interfejsu (nowy design kart, tooltipy) oraz wdrożenie pełnej responsywności dla wszystkich sekcji filtrów i przycisków akcji.</li>
                                     <li><strong>Załączniki:</strong> Obsługa plików (do 5MB) z walidacją typów MIME (Apache Tika). Przechowywanie danych w formacie LOB bezpośrednio w bazie danych.</li>
                                     <li><strong>News Feed:</strong> Wdrożenie mechanizmu kategoryzacji ogłoszeń na podstawie zasięgu (globalne/grupowe) z wykorzystaniem oznaczeń typów na dashboardzie.</li>
                                     <li><strong>Potwierdzenia Odczytu:</strong> Moduł weryfikacji zapoznania się z treścią przez użytkowników (modal z listą i znacznikami czasu).</li>
@@ -54,6 +55,7 @@
                             <div class="change-category">
                                 <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
                                 <ul class="change-list changed">
+                                    <li><strong>Standard Paginacji:</strong> Ujednolicenie wyglądu i zachowania modułu paginacji we wszystkich panelach administratora celem poprawy UX na urządzeniach mobilnych.</li>
                                     <li><strong>Nawigacja Harmonogramu:</strong> System wyboru tygodni przebudowano na rozwijaną listę (Dropdown) z automatycznym podziałem (optgroup) na semestr zimowy i letni, zachowując restrykcje roczne (bounds).</li>
                                     <li><strong>UX Mobilny (Harmonogram):</strong> Automatyczne, płynne wyśrodkowanie widoku na dzisiejszej kolumnie (oś X) oraz detekcja kontenera przewijania dla osi Y (aktualna godzina).</li>
                                     <li><strong>Standaryzacja Tabel:</strong> Ujednolicenie wizualne siatki danych (Grid UI) w modułach Harmonogramu, Ogłoszeń oraz Feedbacku.</li>
@@ -67,6 +69,7 @@
                             <div class="change-category">
                                 <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
                                 <ul class="change-list fixed">
+                                    <li><strong>Integralność Grup:</strong> Rozwiązano błąd 409 (Conflict) poprzez implementację kaskadowego usuwania powiązanych ogłoszeń i wpisów harmonogramu oraz dodano system blokady usuwania grup posiadających przypisanych studentów.</li>
                                     <li><strong>Izolacja Danych:</strong> Kontrola dostępu do ogłoszeń i załączników w oparciu o przynależność użytkownika do grup studenckich.</li>
                                     <li><strong>Sanityzacja:</strong> Filtry zapobiegające Header Injection oraz zabezpieczenie przesyłu nazw plików (Content-Disposition).</li>
                                     <li><strong>Synchronizacja DB:</strong> Aktualizacja schematu bazy danych w celu zapewnienia spójności z polami is_pinned i attachments.</li>

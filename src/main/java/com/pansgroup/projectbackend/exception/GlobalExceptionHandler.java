@@ -234,6 +234,12 @@ public class GlobalExceptionHandler {
                 ex.getMessage(), req, "student_group_exists");
     }
 
+    @ExceptionHandler(StudentGroupInUseException.class)
+    public ProblemDetail handleStudentGroupInUse(StudentGroupInUseException ex, HttpServletRequest req) {
+        return pd(HttpStatus.CONFLICT, "Group in use",
+                ex.getMessage(), req, "group_in_use");
+    }
+
     /* 409: naruszenie constraint DB. */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail handleDataIntegrity(DataIntegrityViolationException ex, HttpServletRequest req) {

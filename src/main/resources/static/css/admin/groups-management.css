@@ -199,19 +199,22 @@
 }
 
 .group-card {
-    background: #f8f9fa;
-    border: 2px solid #e0e0e0;
-    border-radius: 12px;
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 16px;
     padding: 1.5rem;
-    transition: all 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 .group-card:hover {
-    border-color: #005efa;
-    box-shadow: 0 4px 12px rgba(0, 94, 250, 0.15);
-    transform: translateY(-2px);
+    border-color: var(--color-primary);
+    box-shadow: 0 10px 15px -3px rgba(0, 94, 250, 0.1), 0 4px 6px -2px rgba(0, 94, 250, 0.05);
+    transform: translateY(-4px);
 }
 
 .group-card-header {
@@ -223,38 +226,52 @@
 }
 
 .group-icon {
-    width: 50px;
-    height: 50px;
-    background: linear-gradient(135deg, #005efa, #0047b3);
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--color-primary, #005efa), var(--color-primary-dark, #0047b3));
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0, 94, 250, 0.2);
 }
 
-.group-info h3 {
-    margin: 0;
-    color: #2c3e50;
-    font-size: 1.2rem;
+.group-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    overflow: hidden;
 }
 
 .group-info h4 {
     margin: 0;
-    color: #2c3e50;
+    color: var(--text-main, #1e293b);
     font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .group-info h4 mark {
-    background: #ffeb3b;
-    padding: 2px 4px;
-    border-radius: 3px;
+    background: rgba(255, 235, 59, 0.3);
+    color: inherit;
+    padding: 0 2px;
+    border-radius: 2px;
 }
 
 .group-id {
-    color: #6c757d;
-    font-size: 0.85rem;
+    color: var(--text-muted, #64748b);
+    font-size: 0.8rem;
+    font-family: var(--font-mono, monospace);
+    background: var(--bg-step, #f1f5f9);
+    padding: 2px 8px;
+    border-radius: 100px;
+    width: fit-content;
 }
 
 .group-actions {
@@ -267,9 +284,9 @@
 .btn-edit,
 .btn-delete {
     flex: 1;
-    padding: 0.6rem;
+    padding: 0.7rem;
     border: none;
-    border-radius: 6px;
+    border-radius: 10px;
     cursor: pointer;
     font-weight: 600;
     transition: all 0.2s;
@@ -277,24 +294,30 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    font-size: 0.9rem;
 }
 
 .btn-edit {
-    background: #3b82f6;
-    color: white;
+    background: var(--bg-step, #f1f5f9);
+    color: var(--color-primary);
+    border: 1px solid transparent;
 }
 
 .btn-edit:hover {
-    background: #2563eb;
-}
-
-.btn-delete {
-    background: #ef4444;
+    background: var(--color-primary);
     color: white;
 }
 
+.btn-delete {
+    background: transparent;
+    color: var(--error-text, #ef4444);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
 .btn-delete:hover {
-    background: #dc2626;
+    background: var(--error-text, #ef4444);
+    color: white;
+    border-color: transparent;
 }
 
 /* LOADING */
@@ -579,8 +602,32 @@
         grid-template-columns: 1fr;
     }
 
+    .group-card {
+        padding: 1.25rem;
+    }
+
+    .group-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+
+    .group-info h4 {
+        font-size: 1rem;
+    }
+
     .modal-content {
         width: 95%;
+    }
+}
+
+@media (max-width: 400px) {
+    .group-actions {
+        flex-direction: column;
+    }
+
+    .btn-edit, .btn-delete {
+        width: 100%;
     }
 }
 
@@ -971,6 +1018,47 @@
     background: rgba(255, 255, 255, 0.15);
     border-color: rgba(255, 255, 255, 0.3);
     color: #ffffff;
+}
+
+@media (max-width: 768px) {
+    .header-section {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .header-section h2 {
+        font-size: 1.5rem;
+    }
+
+    .btn-add {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .filters-section {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1.25rem;
+        padding: 1.25rem;
+    }
+
+    .search-box {
+        min-width: 100%;
+    }
+
+    .filter-box, .sort-box {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .filter-box select, .sort-box select {
+        width: 100%;
+        min-width: none;
+    }
 }
 
 @keyframes toastSlideInRight {
