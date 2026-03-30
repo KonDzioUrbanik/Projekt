@@ -1190,3 +1190,36 @@ a.breadcrumb-item:hover {
         opacity: 1;
     }
 }
+
+/* MODUŁY W PRZYGOTOWANIU */
+.feature-under-development {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 6rem 2rem;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    margin: 2rem 0;
+    min-height: 350px;
+}
+
+.feature-under-development h2 {
+    font-size: 2rem;
+    color: var(--text-main);
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.feature-under-development p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 550px;
+    line-height: 1.7;
+    margin: 0 auto;
+    font-weight: 450;
+}

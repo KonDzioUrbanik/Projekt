@@ -360,8 +360,11 @@ const AdminAnnouncement = {
             tr.dataset.id = item.id;
 
             const created = item.createdAt
-                ? new Date(item.createdAt).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })
+                ? Utils.formatDate(item.createdAt)
                 : '-';
+            const createdFull = item.createdAt
+                ? Utils.formatFullDate(item.createdAt)
+                : '';
             const author = [item.authorFirstName, item.authorLastName].filter(Boolean).join(' ') || '-';
             const pinnedIcon = item.isPinned
                 ? `<i class="fas fa-thumbtack ann-pin-active" title="Przypięte"></i> `
@@ -390,7 +393,7 @@ const AdminAnnouncement = {
                     </span>
                 </td>
                 <td class="ann-td-date">${Number(item.readConfirmationsCount || 0)}</td>
-                <td class="ann-td-date">${Utils.escapeHtml(created)}</td>
+                <td class="ann-td-date" title="${createdFull}">${Utils.escapeHtml(created)}</td>
                 <td class="ann-td-actions">
                     <div class="ann-action-group">
                         <button class="ann-action-btn ann-btn-view" data-id="${item.id}" title="Rozwiń treść">
@@ -513,12 +516,12 @@ const AdminAnnouncement = {
 
             readDetailsList.innerHTML = list.map(r => {
                 const when = r.confirmedAt
-                    ? new Date(r.confirmedAt).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })
+                    ? Utils.formatDate(r.confirmedAt)
                     : '';
                 return `<div class="ann-reader-item">
                     <i class="fas fa-user-check"></i>
                     <span class="ann-reader-name">${Utils.escapeHtml((r.firstName || '') + ' ' + (r.lastName || ''))}</span>
-                    <span class="ann-reader-date">${when}</span>
+                    <span class="ann-reader-date" title="${r.confirmedAt ? Utils.formatFullDate(r.confirmedAt) : ''}">${when}</span>
                 </div>`;
             }).join('');
         } catch (err) {

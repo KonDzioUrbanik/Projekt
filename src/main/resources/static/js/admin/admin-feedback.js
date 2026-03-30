@@ -134,7 +134,7 @@ const FeedbackManager = {
                 </td>
                 <td>${item.email ? Utils.escapeHtml(item.email) : '<span class="text-muted">-</span>'}</td>
                 <td>${this.renderStatus(item.status)}</td>
-                <td>${Utils.formatDate(item.createdAt)}</td>
+                <td title="${Utils.formatFullDate(item.createdAt)}">${Utils.formatDate(item.createdAt)}</td>
                 <td>
                     <button class="action-btn btn-view" onclick="FeedbackManager.openModal(${item.id})" title="Szczegóły">
                         <i class="fas fa-eye"></i>
@@ -207,7 +207,9 @@ const FeedbackManager = {
         // Wypełnianie danych
         document.getElementById('modalTitle').textContent = item.title;
         document.getElementById('modalStatus').innerHTML = this.renderStatus(item.status);
-        document.getElementById('modalDate').textContent = Utils.formatDate(item.createdAt);
+        const modalDateEl = document.getElementById('modalDate');
+        modalDateEl.textContent = Utils.formatDate(item.createdAt);
+        modalDateEl.title = Utils.formatFullDate(item.createdAt);
         document.getElementById('modalType').textContent = this.translateType(item.type);
         document.getElementById('modalEmail').textContent = item.email || 'Anonim';
         document.getElementById('modalDescription').textContent = item.description;
@@ -215,12 +217,17 @@ const FeedbackManager = {
         // Załącznik
         const attachmentRow = document.getElementById('attachmentRow');
         const attachmentDiv = document.getElementById('modalAttachment');
-        if (item.attachmentId) {
+        if (item.originalFileName) {
             attachmentRow.style.display = 'block';
-            const safeFileName = Utils.escapeHtml(item.originalFileName || 'Załącznik');
+            const safeFileName = Utils.escapeHtml(item.originalFileName);
+            const isImage = item.contentType && item.contentType.startsWith('image/');
+            const icon = isImage ? 'fa-file-image' : 'fa-file-pdf';
+            
             attachmentDiv.innerHTML = `
-                <a href="/api/feedback/attachments/${item.attachmentId}" target="_blank" class="attachment-link">
-                    <i class="fas fa-paperclip"></i> ${safeFileName}
+                <a href="/api/feedback/${item.id}/attachment" target="_blank" class="attachment-link">
+                    <i class="fas ${icon}"></i> 
+                    <span>${safeFileName}</span>
+                    <i class="fas fa-external-link-alt" style="font-size: 0.8rem; margin-left: 0.5rem; opacity: 0.7;"></i>
                 </a>
             `;
         } else {

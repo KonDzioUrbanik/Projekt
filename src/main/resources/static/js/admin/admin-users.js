@@ -373,6 +373,7 @@ function openSecurityModal(user) {
     }
 
     createdElem.textContent = user.createdAt ? Utils.formatDate(user.createdAt) : '-';
+    createdElem.title = user.createdAt ? Utils.formatFullDate(user.createdAt) : '';
 
     // Status blokady
     const blockStatusElem = document.getElementById('securityModalBlockStatus');

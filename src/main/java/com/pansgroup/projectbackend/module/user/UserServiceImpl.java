@@ -185,7 +185,8 @@ public class UserServiceImpl implements UserService {
                 u.getLastLogin(),
                 u.getCreatedAt(),
                 u.getLastLoginIp(),
-                u.getFailedLoginAttempts());
+                u.getFailedLoginAttempts(),
+                u.getPreviousLogin());
     }
 
     private Integer extractYearFromGroupName(String groupName) {
@@ -495,7 +496,8 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void updateLastLogin(String email, String ip) {
         userRepository.findByEmail(email.toLowerCase(Locale.ROOT)).ifPresent(user -> {
-            user.setLastLogin(java.time.LocalDateTime.now());
+            user.setPreviousLogin(user.getLastLogin()); // Zapamiętaj poprzedni czas
+            user.setLastLogin(java.time.LocalDateTime.now()); // Ustaw nowy czas
             user.setLastLoginIp(ip);
             user.setFailedLoginAttempts(0); // Reset przy udanym logowaniu
             userRepository.save(user);

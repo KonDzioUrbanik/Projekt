@@ -34,5 +34,6 @@ public record UserResponseDto(
         LocalDateTime lastLogin,
         LocalDateTime createdAt,
         String lastLoginIp,
-        Integer failedLoginAttempts) {
+        Integer failedLoginAttempts,
+        LocalDateTime previousLogin) {
 }
