@@ -89,7 +89,7 @@
     font-size: 0.9rem;
     font-weight: 500;
     border-left: 4px solid transparent;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease, border-left-color 0.2s ease;
     white-space: nowrap;
     /* Zapobiega łamaniu tekstu */
 }
@@ -118,7 +118,6 @@
 
 .link-text {
     opacity: 1;
-    transition: opacity 0.2s ease;
 }
 
 .navbar-left.collapsed .link-text {

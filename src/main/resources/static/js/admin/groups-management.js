@@ -79,11 +79,7 @@ class GroupsManagement{
             this.closeModal();
         });
 
-        document.getElementById('groupModal').addEventListener('click', (e) => {
-            if(e.target.id === 'groupModal'){
-                this.closeModal();
-            }
-        });
+
 
         document.getElementById('groupForm').addEventListener('submit', (e) => {
             e.preventDefault();
@@ -402,7 +398,12 @@ class GroupsManagement{
 
             const wasEditing = this.isEditing;
             
-            this.closeModal();
+            if (wasEditing) {
+                this.closeModal();
+            } else {
+                document.getElementById('groupForm').reset();
+            }
+
             this.loadGroups();
             
             Utils.showToast(

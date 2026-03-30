@@ -167,9 +167,13 @@
                                 
                                 <td class="col-album" th:text="${user.nrAlbumu != null} ? ${user.nrAlbumu} : '-'"> </td>
                                 
-                                <td class="col-date" th:text="${user.createdAt != null} ? ${#temporals.format(user.createdAt, 'yyyy-MM-dd HH:mm')} : '-'"> </td>
+                                <td class="col-date" 
+                                    th:text="${user.createdAt != null} ? ${#temporals.format(user.createdAt, 'yyyy-MM-dd HH:mm')} : '-'"
+                                    th:title="${user.createdAt != null} ? ${#temporals.format(user.createdAt, 'yyyy-MM-dd HH:mm:ss')} : ''"> </td>
 
-                                <td class="col-date" th:text="${user.lastLogin != null} ? ${#temporals.format(user.lastLogin, 'yyyy-MM-dd HH:mm')} : 'Nigdy'"> </td>
+                                <td class="col-date" 
+                                    th:text="${user.lastLogin != null} ? ${#temporals.format(user.lastLogin, 'yyyy-MM-dd HH:mm')} : 'Nigdy'"
+                                    th:title="${user.lastLogin != null} ? ${#temporals.format(user.lastLogin, 'yyyy-MM-dd HH:mm:ss')} : ''"> </td>
 
                                 <td class="actions-cell">
                                     <div class="action-buttons" th:if="${user.role != 'ADMIN'}">

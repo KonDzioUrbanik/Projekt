@@ -681,7 +681,7 @@ function renderNotesList() {
             <h3>${Utils.escapeHtml(Utils.stripMarkdown(note.title))}</h3>
             <p>${Utils.escapeHtml(preview)}</p>
             <div class="note-card-footer">
-                <span>${Utils.formatDate(note.updatedAt || note.createdAt)}</span>
+                <span title="${Utils.formatFullDate(note.updatedAt || note.createdAt)}">${Utils.formatDate(note.updatedAt || note.createdAt)}</span>
                 <span class="note-card-visibility ${(note.visibility || 'PRIVATE').toLowerCase().replace('_', '-')}">
                     <i class="fas ${visibilityIcons[note.visibility || 'PRIVATE']}"></i>
                 </span>
@@ -782,7 +782,7 @@ function renderMasonryGrid() {
                     }</div>` : ''
                 }
                 <div class="masonry-card-footer">
-                    <span class="masonry-card-date">${Utils.formatDate(note.updatedAt || note.createdAt)}</span>
+                    <span class="masonry-card-date" title="${Utils.formatFullDate(note.updatedAt || note.createdAt)}">${Utils.formatDate(note.updatedAt || note.createdAt)}</span>
                     ${note.isFavorited ? '<i class="fas fa-star masonry-star"></i>' : ''}
                 </div>
             </div>
@@ -820,14 +820,17 @@ function renderNoteView(note) {
 
     
     if (DOM.noteAuthor) DOM.noteAuthor.textContent = getNoteAuthorName(note);
-    if (DOM.noteCreatedAt) DOM.noteCreatedAt.textContent = Utils.formatDate(note.createdAt);
+    if (DOM.noteCreatedAt) {
+        DOM.noteCreatedAt.textContent = Utils.formatDate(note.createdAt);
+        DOM.noteCreatedAt.title = Utils.formatFullDate(note.createdAt);
+    }
 
     // Sprawdź czy notatka była edytowana (updatedAt != null)
     const isEdited = note.updatedAt !== null && note.updatedAt !== undefined;
     if (DOM.noteEditedMeta) {
         DOM.noteEditedMeta.style.display = isEdited ? 'inline-block' : 'none';
         if (isEdited) {
-            DOM.noteEditedMeta.title = `Ostatnia edycja: ${Utils.formatDate(note.updatedAt)}`;
+            DOM.noteEditedMeta.title = `Ostatnia edycja: ${Utils.formatFullDate(note.updatedAt)}`;
         }
     }
 

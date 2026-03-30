@@ -29,7 +29,7 @@
                         </summary>
                         <div class="version-content">
                             <div class="version-desc">
-                                Kompleksowa aktualizacja modułów ogłoszeń oraz harmonogramu. Wdrożono nową logikę uprawnień, obsługę załączników oraz system detekcji kolizji. Przebudowano architekturę plików i interfejs użytkownika w celu zwiększenia spójności danych oraz bezpieczeństwa operacyjnego.
+                                Kompleksowa aktualizacja modułów ogłoszeń, harmonogramu oraz profilu użytkownika. Wdrożono nową logikę uprawnień, obsługę załączników, system detekcji kolizji oraz rzetelne śledzenie sesji. Przebudowano interfejs użytkownika w celu zwiększenia spójności danych, responsywności i bezpieczeństwa operacyjnego.
                             </div>
 
                             <div class="change-category">
@@ -47,6 +47,7 @@
                                     <li><strong>Narzędzia Administracyjne:</strong> Zastąpiono tekstowe wejścia dla powtarzalności niestandardowych (CUSTOM) ergonomiczną, interaktywną siatką checkboxów dla tygodni edukacyjnych 1-15.</li>
                                     <li><strong>Uprawnienia Starosty:</strong> Ograniczenie zakresu edycji danych harmonogramu wyłącznie do przypisanej grupy studenckiej.</li>
                                     <li><strong>Logika Tygodni:</strong> Rozszerzenie obsługi tygodni akademickich o tryb niestandardowy (Custom) z walidacją zakresów. Zastąpiono sztywne numery ISO na wygodną numerację wewnątrz-semestralną (Tydzień 1-15).</li>
+                                    <li><strong>Profil Użytkownika:</strong> Wdrożenie dynamicznych statystyk aktywności (Notatki, Posty, Ogłoszenia) oraz precyzyjnego licznika stażu konta.</li>
                                 </ul>
                             </div>
 
@@ -59,6 +60,7 @@
                                     <li><strong>Harmonogram Studenta (v2):</strong> Modernizacja wizualna planu zajęć na dashboardzie studenta z wdrożeniem standardu Grid UI i poprawą czytelności kart oraz estetyki dni wolnych (gradienty).</li>
                                     <li><strong>Architektura URL:</strong> Optymalizacja ścieżek dostępu i ujednolicenie nazewnictwa plików szablonów (admin-announcement).</li>
                                     <li><strong>Nawigacja:</strong> Wdrożenie systemu dynamicznych Breadcrumbs z dedykowaną obsługą łamania i zawijania długiego tekstu na wyświetlaczach mobilnych.</li>
+                                    <li><strong>Responsywność Profilu:</strong> Optymalizacja układu statystyk na telefonach (inteligentne przełączanie między 2 kolumnami a widokiem kafelkowym).</li>
                                 </ul>
                             </div>
 
@@ -71,6 +73,7 @@
                                     <li><strong>Stabilność JS:</strong> Wdrożenie opcjonalnego łańcuchowania (Optional Chaining) w skryptach frontendowych celem eliminacji błędów runtime.</li>
                                     <li><strong>Scroll Conflict:</strong> Rozwiązano konflikt przewijania osi X (centrowania dnia) oraz osi Y (linii czasu) przy użyciu absolutnych koordynatów DOM.</li>
                                     <li><strong>Globalny Cache-Busting:</strong> Wdrożenie mechanizmu wymuszania odświeżania zasobów (`v=${timestamp}`) dla wszystkich plików CSS i JS w szablonach aplikacji, eliminując błędy odświeżania na urządzeniach mobilnych.</li>
+                                    <li><strong>Logika Logowania:</strong> Naprawa rzetelności daty ostatniej sesji poprzez wprowadzenie pola <i>previousLogin</i>, eliminując błąd "Przed chwilą" po wejściu do systemu.</li>
                                 </ul>
                             </div>
                         </div>

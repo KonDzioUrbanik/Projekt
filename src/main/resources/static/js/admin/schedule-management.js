@@ -404,7 +404,12 @@ class ScheduleManagement {
             }
 
             const wasEditing = this.isEditing;
-            this.closeModal();
+            if (wasEditing) {
+                this.closeModal();
+            } else {
+                document.getElementById('scheduleForm').reset();
+            }
+
             this.closeCollisionModal();
             this.loadSchedule();
             Utils.showToast(wasEditing ? 'Zaktualizowano pomyślnie.' : 'Zajęcia zostały dodane.', 'success');

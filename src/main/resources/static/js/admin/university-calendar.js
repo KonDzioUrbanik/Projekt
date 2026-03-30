@@ -38,9 +38,7 @@ function setupAcademicYearPanel() {
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
     if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
 
-    window.addEventListener('click', e => {
-        if (e.target === modal) closeModal();
-    });
+
 
     if (form) {
         form.addEventListener('submit', async function(e) {
@@ -153,11 +151,7 @@ function setupManagementButtons() {
     // Event listeners for closing modal
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
     if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
-    window.addEventListener('click', function(event) {
-        if (event.target == modal) {
-            closeModal();
-        }
-    });
+
 
     // Event listener for event type change
     const eventTypeSelect = document.getElementById('event-type');
@@ -264,7 +258,13 @@ function setupManagementButtons() {
                     throw new Error('Network response was not ok');
                 })
                 .then(() => {
-                    closeModal();
+                    if (id) {
+                        closeModal();
+                    } else {
+                        eventForm.reset();
+                        delete eventForm.dataset.eventId;
+                        toggleColorPicker();
+                    }
                     loadEvents(); // Reload all
                     Utils.showToast(id ? 'Wydarzenie zaktualizowane pomyślnie' : 'Wydarzenie dodane pomyślnie', 'success');
                 })

@@ -357,7 +357,8 @@ public class NoteServiceImpl implements NoteService {
                 u.getLastLogin(),
                 u.getCreatedAt(),
                 u.getLastLoginIp(),
-                u.getFailedLoginAttempts());
+                u.getFailedLoginAttempts(),
+                u.getPreviousLogin());
     }
 
     private Note findNoteByIdAndEnsureOwnership(Long noteId) {

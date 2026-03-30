@@ -55,6 +55,7 @@ public class User {
 
     private String avatarContentType;
     private java.time.LocalDateTime lastLogin;
+    private java.time.LocalDateTime previousLogin;
 
     private String lastLoginIp;
 

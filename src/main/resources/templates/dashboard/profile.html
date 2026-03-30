@@ -37,24 +37,57 @@
 
             <div class="stats-container" sec:authorize="hasAnyRole('STUDENT', 'STAROSTA')">
                 <div class="stat-card">
-                    <i class="fas fa-sticky-note"></i>
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-sticky-note"></i>
+                    </div>
                     <div class="stat-info">
                         <span class="stat-value" id="stats-notes">0</span>
                         <span class="stat-label">Notatek</span>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <i class="fas fa-comments"></i>
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-comments"></i>
+                    </div>
                     <div class="stat-info">
                         <span class="stat-value" id="stats-posts">0</span>
                         <span class="stat-label">Postów</span>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <i class="fas fa-reply"></i>
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-reply"></i>
+                    </div>
                     <div class="stat-info">
                         <span class="stat-value" id="stats-comments">0</span>
                         <span class="stat-label">Komentarzy</span>
+                    </div>
+                </div>
+                <div class="stat-card" sec:authorize="hasRole('STAROSTA')">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stats-announcements-starosta">0</span>
+                        <span class="stat-label">Twoje ogłoszenia dla grupy</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-user-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stats-seniority">-</span>
+                        <span class="stat-label">Staż konta</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stats-last-login" style="font-size: 1.1rem; font-weight: 600;">-</span>
+                        <span class="stat-label">Ostatnia sesja</span>
                     </div>
                 </div>
             </div>
@@ -98,27 +131,33 @@
                 </div>
 
             </div>
-        <!-- Sekcje dostępne tylko dla Administratora -->
+            <!-- Sekcje dostępne tylko dla Administratora -->
             <div class="stats-container" sec:authorize="hasRole('ADMIN')">
                 <div class="stat-card">
-                    <i class="fas fa-users-cog"></i>
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
                     <div class="stat-info">
-                        <span class="stat-value">Admin</span>
-                        <span class="stat-label">Rola systemowa</span>
+                        <span class="stat-value" id="stats-announcements">0</span>
+                        <span class="stat-label">Twoje ogłoszenia</span>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <i class="fas fa-shield-alt"></i>
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-user-clock"></i>
+                    </div>
                     <div class="stat-info">
-                        <span class="stat-value">Pełny</span>
-                        <span class="stat-label">Poziom dostępu</span>
+                        <span class="stat-value" id="stats-seniority-admin">-</span>
+                        <span class="stat-label">Staż w zespole</span>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <i class="fas fa-server"></i>
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-history"></i>
+                    </div>
                     <div class="stat-info">
-                        <span class="stat-value">Aktywny</span>
-                        <span class="stat-label">Status portalu</span>
+                        <span class="stat-value" id="stats-last-login-admin" style="font-size: 1.1rem; font-weight: 600;">-</span>
+                        <span class="stat-label">Ostatnia sesja</span>
                     </div>
                 </div>
             </div>

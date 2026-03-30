@@ -67,6 +67,21 @@ const Utils = {
         });
     },
 
+    /* Formatuje datę na pełny format (np. "17 marca 2026, 11:56:00") */
+    formatFullDate(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '';
+        return date.toLocaleString('pl-PL', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    },
+
     /* Escapuje znaki HTML w tekście (ZAPOBIEGA XSS) */
     escapeHtml(text) {
         if (text === null || text === undefined) return '';
