@@ -297,7 +297,7 @@ class GroupsManagement{
                         <i class="fas fa-users"></i>
                     </div>
                     <div class="group-info">
-                        <h4>${displayName}</h4>
+                        <h4 title="${Utils.escapeHtml(group.name)}">${displayName}</h4>
                         <span class="group-id">ID: ${group.id}</span>
                     </div>
                 </div>
@@ -490,14 +490,30 @@ class GroupsManagement{
 
                 try {
                     const response = await fetch(`${GroupsManagement.CONFIG.API_ENDPOINT}/${id}`, { method: 'DELETE' });
-                    if (!response.ok) throw new Error('Network error');
+                    
+                    if (!response.ok) {
+                        let errorMessage = 'Wystąpił błąd podczas usuwania kierunku.';
+                        try {
+                            const errorData = await response.json();
+                            errorMessage = errorData.detail || errorData.message || errorMessage;
+                        } catch (e) {
+                            // Jeśli nie jest to JSON, spróbuj odczytać jako tekst
+                            try {
+                                const text = await response.text();
+                                if (text) errorMessage = text;
+                            } catch (e2) {}
+                        }
+                        throw new Error(errorMessage);
+                    }
                     console.log('Kierunek trwale usunięty z serwera.');
                 } catch (error) {
                     console.error('Błąd usuwania:', error);
                     // Jeśli błąd, przywracamy po cichu do danych
-                    this.groups.push(groupToDelete);
-                    this.applyFiltersAndSort();
-                    Utils.showToast('Błąd usuwania z serwera.', 'error');
+                    if (!this.groups.some(g => g.id === groupToDelete.id)) {
+                        this.groups.push(groupToDelete);
+                        this.applyFiltersAndSort();
+                    }
+                    Utils.showToast(error.message || 'Błąd usuwania z serwera.', 'error');
                 }
             }
         }, 5000);

@@ -774,38 +774,104 @@
 
     .header-section {
         flex-direction: column;
-        gap: 1rem;
         align-items: stretch;
+        gap: 1.5rem;
+        text-align: center;
+        padding-bottom: 1.5rem;
+    }
+
+    .header-section h2 {
+        font-size: 1.5rem;
+    }
+
+    /* Kontener przycisków w nagłówku */
+    .header-section>div {
+        flex-direction: column !important;
+        width: 100%;
+        gap: 0.75rem !important;
+    }
+
+    .header-section button {
+        width: 100%;
+        justify-content: center;
+        padding: 0.8rem !important;
     }
 
     .filters-section {
         flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+        padding: 1.25rem;
+    }
+
+    .search-box {
+        width: 100% !important;
+        min-width: 0 !important;
+        flex: none;
     }
 
     .filter-group {
-        min-width: 100%;
+        width: 100%;
+        min-width: 0 !important;
+        flex: none;
     }
 
-    .table-container {
-        overflow-x: scroll;
+    .filter-group select {
+        width: 100%;
+        min-width: 0 !important;
+    }
+
+    .btn-reset,
+    .btn-bulk-delete {
+        width: 100%;
+        justify-content: center;
+        align-self: stretch;
+        padding: 0.8rem !important;
+    }
+
+    /* Paginacja wzorowana na module Użytkownicy */
+    .pagination-controls {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 1.25rem !important;
+        padding: 1.25rem !important;
+    }
+
+    .pagination-info {
+        text-align: center !important;
+    }
+
+    .pagination-buttons {
+        justify-content: center !important;
+        width: 100%;
+    }
+
+    .pagination-btn {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .pagination-size {
+        justify-content: center !important;
+        width: 100%;
+    }
+
+    .pagination-size select {
+        flex: 1;
+    }
+
+    .table-scroll-container {
+        margin: 0 -10px;
+        border-radius: 0;
     }
 
     #scheduleTable {
-        font-size: 0.85rem;
-    }
-
-    #scheduleTable th,
-    #scheduleTable td {
-        padding: 0.6rem;
+        font-size: 0.8rem;
     }
 
     .modal-content {
         width: 95%;
-        padding: 1.5rem;
-    }
-
-    .form-row {
-        grid-template-columns: 1fr;
+        padding: 0;
     }
 
     .form-row {

@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface ScheduleRepository extends JpaRepository<ScheduleEntry,Long> {
     List<ScheduleEntry> findByStudentGroups(StudentGroup studentGroup);
+    long countByStudentGroups(StudentGroup studentGroup);
     List<ScheduleEntry> findByYearPlanIgnoreCase(String yearPlan);
 }
