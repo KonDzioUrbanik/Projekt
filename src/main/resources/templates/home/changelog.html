@@ -18,12 +18,61 @@
                 </div>
 
                 <div class="timeline">
+                    <!-- Kwiecień 2026 - System Security & Maintenance -->
+                    <details id="v1-4-0" class="version-block latest" open>
+                        <summary class="version-summary-header">
+                            <div class="version-title">
+                                <span class="version-number">Kwiecień 2026 - v1.4.0</span>
+                                <span class="latest-badge" style="margin-left: 0.5rem;">Aktualna wersja</span>
+                            </div>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </summary>
+                        <div class="version-content">
+                            <div class="version-desc">
+                                Kompleksowa modernizacja administracyjna i bezpieczeństwa. Wdrożono globalny tryb konserwacji z systemem bezpiecznego dostępu dla administratorów, feature toggles dla modułów oraz ujednolicono interfejs panelu systemowego. Przeprowadzono audyt bezpieczeństwa w celu wzmocnienia odporności systemu i walidacji danych.
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
+                                <ul class="change-list added">
+                                    <li><strong>Tryb Konserwacji (Maintenance Mode):</strong> Możliwość całkowitego wyłączenia dostępu do platformy z poziomu panelu administratora.</li>
+                                    <li><strong>Admin Bypass:</strong> Bezpieczny mechanizm dostępu do systemu dla administratorów podczas trwania przerwy technicznej.</li>
+                                    <li><strong>Zarządzanie Modułami:</strong> Feature Toggles pozwalające na niezależne włączanie/wyłączanie poszczególnych sekcji (Rejestracja, Logowanie, moduły - Ogłoszenia, Harmonogram, Notatki itd.).</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
+                                <ul class="change-list changed">
+                                    <li><strong>Panel Administracyjny "System":</strong> Przebudowany interfejs zarządzania stanem platformy z ulepszonym układem i ergonomią pracy.</li>
+                                    <li><strong>Usprawnienia UX:</strong> Wprowadzenie liczników znaków dla bannerów oraz dynamicznych widżetów na dashboardzie odpornych na wyłączenie modułów.</li>
+                                    <li><strong>Obsługa Komunikatów:</strong> Ujednolicona sygnalizacja stanów powodzenia i błędów (Toast) przy operacjach systemowych.</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title added" style="background: rgba(var(--primary-rgb), 0.1); color: var(--primary);"><i class="fas fa-shield-alt"></i> Bezpieczeństwo</div>
+                                <ul class="change-list added" style="border-left-color: var(--primary);">
+                                    <li><strong>Ochrona Logów:</strong> Wzmocnienie mechanizmów ochrony i integralności logów systemowych.</li>
+                                    <li><strong>Parametry Systemowe:</strong> Wprowadzenie mechanizmów ograniczających edycję kluczowych parametrów systemowych do bezpiecznej, predefiniowanej listy.</li>
+                                    <li><strong>Weryfikacja Danych:</strong> Implementacja wzmocnionych mechanizmów walidacji danych wejściowych w celu zwiększenia odporności systemu.</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
+                                <ul class="change-list fixed">
+                                    <li><strong>Logika Redirectów:</strong> Rozwiązano błąd pętli przekierowań przy omijaniu konserwacji poprzez czyszczenie sesji i ciasteczek remember-me dla nieuprzywilejowanych kont.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </details>
+
                     <!-- Marzec 2026 - Modernizacja Systemu -->
-                    <details id="v1-3-5" class="version-block latest" open>
+                    <details id="v1-3-5" class="version-block">
                         <summary class="version-summary-header">
                             <div class="version-title">
                                 <span class="version-number">Marzec 2026 - v1.3.5</span>
-                                <span class="latest-badge" style="margin-left: 0.5rem;">Aktualna wersja</span>
                             </div>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </summary>

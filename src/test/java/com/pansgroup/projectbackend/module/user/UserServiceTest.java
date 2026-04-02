@@ -21,6 +21,9 @@ class UserServiceTest {
     @Mock // Udajemy repozytorium (nie łączy się z bazą)
     private UserRepository userRepository;
 
+    @Mock
+    private com.pansgroup.projectbackend.module.system.SystemService systemService;
+
     @InjectMocks // Wstrzykujemy fałszywe repozytorium do prawdziwego serwisu
     private UserServiceImpl userService;
 

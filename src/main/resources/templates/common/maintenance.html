@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Przerwa techniczna - PANSportal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/common/maintenance.css}">
+    <script>
+        // Wczesna synchronizacja motywu, przed renderowaniem strony
+        (function () {
+            var t = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
+</head>
+<body>
+    <div class="maint-container">
+        <div class="maint-icon-box">
+            <i class="fas fa-gear" aria-hidden="true"></i>
+        </div>
+        <h1>Przerwa techniczna</h1>
+        <p>Platforma jest chwilowo niedostępna z powodu trwających prac konserwacyjnych.<br>Przepraszamy za utrudnienia.</p>
+
+        <div class="maint-status-badge" role="status" aria-live="polite">
+            <div class="maint-pulse" aria-hidden="true"></div>
+            Prace w toku
+        </div>
+
+        <!-- Ukryty bypass dla administratora — widoczny dopiero po kliknięciu -->
+        <div class="maint-bypass-section">
+            <button class="maint-bypass-toggle" id="bypassToggle"
+                    onclick="toggleBypassForm()" aria-expanded="false"
+                    title="Panel administracyjny">
+                ···
+            </button>
+            <div class="maint-bypass-form" id="bypassForm" role="form" aria-label="Dostęp administracyjny">
+                <div class="maint-bypass-input-group">
+                    <input type="password" class="maint-bypass-input" id="bypassTokenInput"
+                           placeholder="Token administracyjny" autocomplete="off"
+                           onkeydown="if(event.key==='Enter') submitBypass()">
+                    <button class="maint-bypass-btn" onclick="submitBypass()" aria-label="Potwierdź token">
+                        <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="maint-bypass-error" id="bypassError" role="alert">Nieprawidłowy token.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleBypassForm() {
+            var form = document.getElementById('bypassForm');
+            var btn  = document.getElementById('bypassToggle');
+            var open = form.classList.toggle('visible');
+            btn.setAttribute('aria-expanded', open.toString());
+            if (open) {
+                setTimeout(function () {
+                    document.getElementById('bypassTokenInput').focus();
+                }, 50);
+            }
+        }
+
+        /* Waliduje, czy token zawiera wyłącznie bezpieczne znaki */
+        function isValidTokenFormat(token) {
+            return token.length > 0
+                && token.length <= 128
+                && /^[a-zA-Z0-9\-_]+$/.test(token);
+        }
+
+        function submitBypass() {
+            var raw   = document.getElementById('bypassTokenInput').value;
+            var token = raw.trim();
+            var errorEl = document.getElementById('bypassError');
+
+            if (!token) return;
+
+            if (!isValidTokenFormat(token)) {
+                errorEl.textContent = 'Nieprawidłowy format tokenu.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            // encodeURIComponent koduje wszystkie znaki specjalne przed wysłaniem
+            window.location.href = '/maintenance?bypass=' + encodeURIComponent(token);
+        }
+
+        // Ukryj komunikat błędu przy kolejnym wpisywaniu
+        document.addEventListener('DOMContentLoaded', function () {
+            var input = document.getElementById('bypassTokenInput');
+            if (input) {
+                input.addEventListener('input', function () {
+                    var errorEl = document.getElementById('bypassError');
+                    if (errorEl) errorEl.style.display = 'none';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

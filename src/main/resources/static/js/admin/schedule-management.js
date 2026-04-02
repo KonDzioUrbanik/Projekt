@@ -648,40 +648,5 @@ style.textContent = `
         color: #fbd38d;
         border-color: rgba(221, 107, 32, 0.3);
     }
-
-    .btn-undo-toast {
-        background: rgba(255, 255, 255, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        color: #fff;
-        padding: 4px 12px;
-        border-radius: 6px;
-        font-size: 0.8rem;
-        cursor: pointer;
-        margin-left: 12px;
-        transition: all 0.2s ease;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        display: inline-flex;
-        align-items: center;
-        backdrop-filter: blur(4px);
-    }
-
-    .btn-undo-toast:hover {
-        background: rgba(255, 255, 255, 0.35);
-        border-color: rgba(255, 255, 255, 0.5);
-        transform: translateY(-1px);
-    }
-
-    [data-theme="light"] .toast.success .btn-undo-toast {
-        background: rgba(6, 95, 70, 0.1);
-        color: #065f46;
-        border-color: rgba(6, 95, 70, 0.2);
-    }
-
-    [data-theme="light"] .toast.success .btn-undo-toast:hover {
-        background: rgba(6, 95, 70, 0.2);
-        border-color: rgba(6, 95, 70, 0.3);
-    }
 `;
 document.head.appendChild(style);

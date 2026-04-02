@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moduł niedostępny - PANSportal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/common/maintenance.css}">
+    <style>
+        /* Nadpisania specyficzne dla module-maintenance */
+        :root { --maint-primary: #f59e0b; }
+        [data-theme="dark"] { --maint-primary: #fbbf24; }
+
+        .maint-status-badge {
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .maint-pulse {
+            animation-name: maintPulseAmber;
+        }
+
+        @keyframes maintPulseAmber {
+            0%   { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.45); }
+            70%  { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+    </style>
+    <script>
+        (function () {
+            var t = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
+</head>
+<body>
+    <div class="maint-container">
+        <div class="maint-icon-box">
+            <i class="fas fa-toolbox" aria-hidden="true"></i>
+        </div>
+        <h1>Prace serwisowe</h1>
+        <p>
+            Moduł <span class="maint-module-badge" th:text="${param.module}">Nieznany</span>
+            jest chwilowo niedostępny ze względu na prace serwisowe.<br>
+            Przepraszamy za utrudnienia.
+        </p>
+
+        <div class="maint-status-badge" role="status">
+            <div class="maint-pulse" aria-hidden="true"></div>
+            Serwis w toku
+        </div>
+
+        <a href="/home" class="maint-btn-home" style="margin-top: 1.75rem;">
+            <i class="fas fa-arrow-left" aria-hidden="true"></i>
+            Wróć na stronę główną
+        </a>
+    </div>
+</body>
+</html>

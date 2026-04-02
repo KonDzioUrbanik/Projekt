@@ -1748,105 +1748,7 @@ select {
 
 /* POWIADOMIENIA (TOAST) */
 
-.toast-container {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    z-index: 2000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
 
-.toast {
-    background: var(--bg-white);
-    padding: 16px 20px;
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-lg);
-    border-left: 4px solid var(--primary);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 300px;
-    animation: slideInRight 0.3s ease;
-    font-size: 0.95rem;
-    color: var(--text-main);
-}
-
-.toast.success {
-    border-color: #10b981;
-}
-
-.toast.error {
-    border-color: var(--danger);
-}
-
-.toast i {
-    font-size: 1.2rem;
-}
-
-.toast.success i {
-    color: #10b981;
-}
-
-.toast.error i {
-    color: var(--danger);
-}
-
-/* Przycisk Cofnij w Toaście */
-.btn-undo-toast {
-    margin-left: 10px;
-    padding: 6px 12px;
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    border-radius: 6px;
-    color: #1d4ed8;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.2s ease;
-}
-
-.btn-undo-toast:hover {
-    background: #dbeafe;
-    border-color: #93c5fd;
-    color: #1e40af;
-}
-
-/* DARK MODE - TOASTY */
-
-[data-theme="dark"] .toast {
-    background: var(--bg-white);
-    color: var(--text-main);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.6);
-}
-
-[data-theme="dark"] .toast.success {
-    border-color: #10b981;
-}
-
-[data-theme="dark"] .toast.success i {
-    color: #34d399;
-}
-
-[data-theme="dark"] .toast.error {
-    border-color: var(--danger);
-}
-
-[data-theme="dark"] .toast.error i {
-    color: #f87171;
-}
-
-[data-theme="dark"] .btn-undo-toast {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #e8eaed;
-}
-
-[data-theme="dark"] .btn-undo-toast:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.3);
-    color: #ffffff;
-}
 
 @keyframes slideInRight {
     from {
@@ -2130,17 +2032,7 @@ select {
         padding: 12px;
     }
 
-    .toast {
-        min-width: auto;
-        width: calc(100vw - 32px);
-        font-size: 0.85rem;
-    }
 
-    .toast-container {
-        right: 16px;
-        left: 16px;
-        bottom: 16px;
-    }
 }
 
 /* STYLE DLA WSPÓŁDZIELENIA I TAGÓW */

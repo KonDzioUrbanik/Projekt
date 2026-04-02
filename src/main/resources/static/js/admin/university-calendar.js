@@ -216,7 +216,7 @@ function setupManagementButtons() {
                 
                 // Read ID from DOM
                 const id = eventForm.dataset.eventId;
-                console.log("Submitting form. ID found in dataset:", id); 
+                console.log("Submitting form. ID found in dataset:", id || "NEW EVENT"); 
 
                 const typeSelectval = document.getElementById('event-type').value;
                 let markerColor = null;
@@ -317,12 +317,9 @@ function setupManagementButtons() {
                     const toast = document.createElement('div');
                     toast.className = `toast success soft-undo-toast`;
                     toast.innerHTML = `
-                        <i class="fas fa-trash-restore"></i>
                         <span>
                             Wydarzenie usunięte. 
-                            <button id="undo-btn-cal-${eventId}" class="btn-undo-toast">
-                                Cofnij
-                            </button>
+                            <button id="undo-btn-cal-${eventId}" class="btn-undo-toast">Cofnij</button>
                         </span>
                     `;
                     toastContainer.appendChild(toast);

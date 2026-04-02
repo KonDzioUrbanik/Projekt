@@ -123,8 +123,10 @@ function getErrorMessage(response, data = {}) {
             errorMsg = data.message || 'Usługa jest tymczasowo niedostępna. Spróbuj ponownie za chwilę.';
             break;
         case 500:
-            errorMsg = 'Błąd serwera. Spróbuj ponownie później lub skontaktuj się z administratorem.';
+            // Pole 'reason' zawiera czytelny opis systemowy (np. o wyłączonej rejestracji)
+            errorMsg = data.reason || data.message || 'Błąd serwera. Spróbuj ponownie później lub skontaktuj się z administratorem.';
             break;
+
         default:
             errorMsg = data.message || data.detail || 'Wystąpił nieoczekiwany błąd. Proszę skontaktować się z administratorem, jeśli problem będzie się powtarzać.';
     }

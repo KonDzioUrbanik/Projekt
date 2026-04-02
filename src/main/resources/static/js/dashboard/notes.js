@@ -92,7 +92,6 @@ const DOM = {
     btnCancelForm: document.getElementById('btnCancelForm'),
     btnSubmitForm: document.getElementById('btnSubmitForm'),
     submitBtnText: document.getElementById('submitBtnText'),
-    formError: document.getElementById('formError'),
     
     deleteConfirmOverlay: document.getElementById('deleteConfirmOverlay'),
     btnCancelDelete: document.getElementById('btnCancelDelete'),
@@ -222,10 +221,13 @@ function setupEventListeners() {
     if (DOM.btnCopy) DOM.btnCopy.addEventListener('click', handleCopyNote);
 
     // Eksport i Resize
+    const btnTextInc = document.getElementById('btnTextInc');
+    const btnTextDec = document.getElementById('btnTextDec');
+    
     if (DOM.btnExportPdf) DOM.btnExportPdf.addEventListener('click', exportToPdf);
     if (DOM.btnExportDocx) DOM.btnExportDocx.addEventListener('click', exportToDocx);
-    if (DOM.btnTextInc) DOM.btnTextInc.addEventListener('click', () => changeFontSize(2, 'noteContent'));
-    if (DOM.btnTextDec) DOM.btnTextDec.addEventListener('click', () => changeFontSize(-2, 'noteContent'));
+    if (btnTextInc) btnTextInc.addEventListener('click', () => changeFontSize(2, 'noteContent'));
+    if (btnTextDec) btnTextDec.addEventListener('click', () => changeFontSize(-2, 'noteContent'));
 
 
 
@@ -409,11 +411,11 @@ async function handleFormSubmit(e) {
     const tags = DOM.formNoteTags ? DOM.formNoteTags.value.trim() : '';
     const visibility = DOM.formNoteVisibility ? DOM.formNoteVisibility.value : 'PRIVATE';
 
-    if (!title) { showFormError('Wpisz tytuł notatki'); return; }
-    if (!content) { showFormError('Wpisz treść notatki'); return; }
+    if (!title) { Utils.showToast('Wpisz tytuł notatki', 'error'); return; }
+    if (!content) { Utils.showToast('Wpisz treść notatki', 'error'); return; }
     
     if (visibility === 'SHARED_WITH_USERS' && AppState.selectedUsers.length === 0) {
-        showFormError('Wybierz użytkowników, którym chcesz udostępnić notatkę');
+        Utils.showToast('Wybierz użytkowników, którym chcesz udostępnić notatkę', 'error');
         return;
     }
 
@@ -508,7 +510,7 @@ async function handleFormSubmit(e) {
 
     } catch (error) {
         console.error(error);
-        showFormError(error.message || 'Wystąpił nieoczekiwany błąd.');
+        Utils.showToast(error.message || 'Wystąpił nieoczekiwany błąd.', 'error');
     } finally {
         DOM.btnSubmitForm.disabled = false;
         DOM.submitBtnText.textContent = 'Zapisz';
@@ -550,24 +552,21 @@ function handleDeleteConfirm() {
     closeDeleteConfirmation();
 
     // Pokaż Toast z przyciskiem Cofnij (Undo)
-    if (!DOM.toastContainer) return;
-    const toast = document.createElement('div');
-    toast.className = `toast success soft-undo-toast`;
-    toast.innerHTML = `
-        <i class="fas fa-trash-restore"></i>
-        <span>
-            Notatka usunięta. 
-            <button id="undo-btn-${noteId}" class="btn-undo-toast">
-                Cofnij
-            </button>
-        </span>
-    `;
-    DOM.toastContainer.appendChild(toast);
+    const toast = Utils.showToast('Notatka usunięta', 'success', {
+        actionHtml: `<button id="undo-btn-${noteId}" class="btn-undo-toast">Cofnij</button>`,
+        duration: 5000
+    });
+
+    if (!toast) {
+        // Fallback jeśli toast się nie udał, usuwamy od razu
+        sendActualDelete(noteId);
+        return;
+    }
 
     // Timeout dla ostatecznego usunięcia (w tym zniknięcia toasta) za 5s
     const timer = setTimeout(() => {
-        if (toast.parentNode) {
-            toast.style.animation = 'fadeOut 0.3s forwards';
+        if (toast.parentElement) {
+            toast.classList.add('fade-out');
             setTimeout(() => toast.remove(), 300);
         }
         deletionTimers.delete(noteId);
@@ -579,7 +578,7 @@ function handleDeleteConfirm() {
     deletionTimers.set(noteId, timer);
 
     // 3. Logika Cofania (Przywrócenie)
-    const undoBtn = document.getElementById(`undo-btn-${noteId}`);
+    const undoBtn = toast.querySelector(`#undo-btn-${noteId}`);
     if (undoBtn) {
         undoBtn.onclick = (e) => {
             e.stopPropagation();
@@ -600,12 +599,11 @@ function handleDeleteConfirm() {
             updateUrl(noteId);
             
             // Zwiń stary Toast i pokaż info o przywróceniu
-            toast.style.animation = 'fadeOut 0.3s forwards';
+            toast.classList.add('fade-out');
             setTimeout(() => toast.remove(), 300);
             
             Utils.showToast('Cofnięto usunięcie. Notatka przywrócona.', 'info');
         };
-        
     }
 }
 
@@ -982,7 +980,6 @@ function openCreateModal() {
     DOM.formNoteTitle.value = '';
     DOM.formNoteTags.value = '';
     DOM.formNoteVisibility.value = 'PRIVATE';
-    DOM.formError.style.display = 'none';
     
     // Wyczyść Quill
     if (AppState.quill) {
@@ -1022,7 +1019,6 @@ async function openEditModal() {
     DOM.formNoteTitle.value = AppState.selectedNote.title;
     DOM.formNoteTags.value = AppState.selectedNote.tags || '';
     DOM.formNoteVisibility.value = AppState.selectedNote.visibility || 'PRIVATE';
-    DOM.formError.style.display = 'none';
     
     // Wczytaj treść do Quill
     if (AppState.quill) {
@@ -1112,10 +1108,6 @@ function closeDeleteConfirmation() {
     DOM.deleteConfirmOverlay.style.display = 'none';
 }
 
-function showFormError(msg) {
-    DOM.formError.textContent = msg;
-    DOM.formError.style.display = 'block';
-}
 
 // FUNKCJE WSPÓŁDZIELENIA I ULUBIONE
 
@@ -1226,7 +1218,6 @@ async function openShareModal() {
         renderSelectedUsers();
     }
     
-    DOM.formError.style.display = 'none';
     DOM.noteFormOverlay.style.display = 'flex';
 }
 
@@ -1409,19 +1400,21 @@ window.removeSelectedUser = function(userId) {
     renderSelectedUsers();
 };
 
-// ROZSZERZENIA: PDF I RESIZE
-
 function changeFontSize(delta, targetId) {
     const el = document.getElementById(targetId);
     if (!el) return;
 
-    const currentSize = window.getComputedStyle(el, null).getPropertyValue('font-size');
-    const newSize = (parseFloat(currentSize) + delta);
-
-    // Limity
+    let currentSizeStr = window.getComputedStyle(el, null).getPropertyValue('font-size');
+    let currentSize = parseFloat(currentSizeStr);
+    
+    if (isNaN(currentSize)) {
+        currentSize = 16;
+    }
+    
+    const newSize = currentSize + delta;
     if (newSize < 10 || newSize > 40) return;
 
-    el.style.fontSize = newSize + 'px';
+    el.style.setProperty('font-size', newSize + 'px', 'important');
 }
 
 async function exportToPdf() {
@@ -1475,10 +1468,6 @@ async function exportToPdf() {
             </div>
         </div>
     `;
-
-    // Hack dla stylów (html2pdf używa stylów strony, ale nasze są w CSS)
-    // html2pdf radzi sobie ze stylami inline lub stylami w <style>.
-    // Spróbujmy wygenerować prosto z kontenera.
     
     html2pdf().set(opt).from(container).save().then(() => {
         Utils.showToast('Pobrano plik PDF.', 'success');

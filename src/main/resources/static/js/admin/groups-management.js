@@ -441,7 +441,6 @@ class GroupsManagement{
     }
 
     executeDelete(id) {
-        // Soft delete logic with toast undo
         const groupToDelete = this.groups.find(s => s.id === id);
         if (!groupToDelete) return;
 
@@ -449,63 +448,43 @@ class GroupsManagement{
         this.groups = this.groups.filter(item => item.id !== id);
         this.applyFiltersAndSort();
 
-        // Pokazujemy toast z opcją cofnij
-        const toastContainer = document.getElementById('toastContainer');
-        const toastId = 'toast-' + Date.now();
-
-        const toast = document.createElement('div');
-        toast.className = 'toast success';
-        toast.id = toastId;
-        toast.innerHTML = `
-            <i class="fas fa-check-circle"></i>
-            <span>Kierunek usunięty</span>
-            <button class="toast-undo-btn" id="undo-${toastId}">COFNIJ</button>
-        `;
-        toastContainer.appendChild(toast);
-
         let isUndone = false;
+        
+        const toast = Utils.showToast('Kierunek usunięty', 'success', {
+            actionHtml: '<button class="btn-undo-toast" id="undo-btn">COFNIJ</button>',
+            duration: 5000
+        });
 
-        const undoBtn = document.getElementById(`undo-${toastId}`);
-        if(undoBtn) {
-            undoBtn.addEventListener('click', () => {
-                isUndone = true;
-                toast.style.animation = 'fadeOut 0.3s forwards';
-                setTimeout(() => toast.remove(), 300);
+        if (toast) {
+            const undoBtn = toast.querySelector('#undo-btn');
+            if (undoBtn) {
+                undoBtn.addEventListener('click', () => {
+                    isUndone = true;
+                    toast.classList.add('fade-out');
+                    setTimeout(() => toast.remove(), 300);
 
-                // Przywracamy dane
-                this.groups.push(groupToDelete);
-                this.applyFiltersAndSort();
-                Utils.showToast('Cofnięto usunięcie. Kierunek przywrócony.', 'info');
-            });
+                    // Przywracamy dane
+                    this.groups.push(groupToDelete);
+                    this.applyFiltersAndSort();
+                    Utils.showToast('Cofnięto usunięcie. Kierunek przywrócony.', 'info');
+                });
+            }
         }
 
-        // Oczekujemy 5 sekundy, potem request właściwy
+        // Oczekujemy 5 sekund, potem request właściwy
         setTimeout(async () => {
             if (!isUndone) {
-                const liveToast = document.getElementById(toastId);
-                if (liveToast) {
-                    liveToast.style.animation = 'fadeOut 0.3s forwards';
-                    setTimeout(() => liveToast.remove(), 300);
+                if (toast && toast.parentElement) {
+                    toast.classList.add('fade-out');
+                    setTimeout(() => toast.remove(), 300);
                 }
 
                 try {
                     const response = await fetch(`${GroupsManagement.CONFIG.API_ENDPOINT}/${id}`, { method: 'DELETE' });
                     
                     if (!response.ok) {
-                        let errorMessage = 'Wystąpił błąd podczas usuwania kierunku.';
-                        try {
-                            const errorData = await response.json();
-                            errorMessage = errorData.detail || errorData.message || errorMessage;
-                        } catch (e) {
-                            // Jeśli nie jest to JSON, spróbuj odczytać jako tekst
-                            try {
-                                const text = await response.text();
-                                if (text) errorMessage = text;
-                            } catch (e2) {}
-                        }
-                        throw new Error(errorMessage);
+                        throw new Error('Nie udało się trwale usunąć kierunku.');
                     }
-                    console.log('Kierunek trwale usunięty z serwera.');
                 } catch (error) {
                     console.error('Błąd usuwania:', error);
                     // Jeśli błąd, przywracamy po cichu do danych

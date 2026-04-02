@@ -28,7 +28,6 @@ const AdminAnnouncement = {
         authorFilter: document.getElementById('authorFilter'),
         resetBtn: document.getElementById('resetFilters'),
         resultsCount: document.getElementById('resultsCount'),
-        msgEl: document.getElementById('announcementMessage'),
         deleteModal: document.getElementById('deleteModal'),
         cancelBtn: document.getElementById('modalCancelBtn'),
         confirmBtn: document.getElementById('modalConfirmBtn'),
@@ -152,7 +151,6 @@ const AdminAnnouncement = {
     // ── Create announcement ─────────────────────────────────────────────────
     async handleSubmit(event) {
         event.preventDefault();
-        this.clearMessage();
 
         const title   = (this.elements.titleInput?.value || '').trim();
         const content = (this.elements.contentInput?.value || '').trim();
@@ -577,25 +575,10 @@ const AdminAnnouncement = {
     },
 
     // ── Messages ─────────────────────────────────────────────────────────────
-    showSuccess(text) { this.showAlert(text, 'success', 'fa-check-circle'); },
-    showError(text)   { this.showAlert(text, 'error',   'fa-exclamation-circle'); },
+    showSuccess(text) { Utils.showToast(text, 'success'); },
+    showError(text)   { Utils.showToast(text, 'error'); },
 
-    showAlert(text, type, icon) {
-        if (!this.elements.msgEl) return;
-        this.elements.msgEl.innerHTML = `
-            <div class="ann-alert ${type}">
-                <i class="fas ${icon}"></i>
-                <span>${Utils.escapeHtml(text)}</span>
-            </div>
-        `;
-        if (type === 'success') {
-            setTimeout(() => { this.elements.msgEl.innerHTML = ''; }, 4000);
-        }
-    },
 
-    clearMessage() {
-        if (this.elements.msgEl) this.elements.msgEl.innerHTML = '';
-    },
 
     readErrorText(text) {
         const raw = (text || '').trim();

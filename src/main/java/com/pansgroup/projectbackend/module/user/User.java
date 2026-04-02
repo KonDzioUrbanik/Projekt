@@ -33,6 +33,10 @@ public class User {
     @ManyToOne
     StudentGroup studentGroup;
 
+    public String getGroupName() {
+        return studentGroup != null ? studentGroup.getName() : null;
+    }
+
     @OneToOne
     @JoinColumn(name = "confirmation_token_id")
     ConfirmationToken confirmationToken;
@@ -43,7 +47,7 @@ public class User {
     private String nickName;
     private String phoneNumber;
     private String fieldOfStudy;
-    private Integer YearOfStudy;
+    private Integer yearOfStudy;
     private String studyMode;
 
     @Column(length = 500)

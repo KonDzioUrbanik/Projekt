@@ -168,26 +168,6 @@ document.addEventListener('DOMContentLoaded', function(){
 
 
 
-    // Wyświetlanie komunikatów w formularzu
-    function showMessage(message, type){
-        if(messageTimeout) {
-            clearTimeout(messageTimeout);
-            messageTimeout = null;
-        }
-        
-        messageDiv.innerHTML = `<i class="fas ${icon}"></i> <span id="msgTxt"></span>`;
-        messageDiv.querySelector('#msgTxt').textContent = message;
-        messageDiv.style.display = 'block';
-        
-        messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        
-        messageTimeout = setTimeout(() => {
-            messageDiv.style.display = 'none';
-            messageDiv.className = 'form-message';
-            messageDiv.innerHTML = '';
-            messageTimeout = null;
-        }, 5000);
-    }
 
     // Generowanie awatara z inicjałów
     function initializeAvatar(){
@@ -473,7 +453,7 @@ document.addEventListener('DOMContentLoaded', function(){
             // Walidacja rozszerzenia (po nazwie pliku)
             const allowedExtensions = /(\.jpg|\.jpeg|\.png|\.gif)$/i;
             if (!allowedExtensions.exec(file.name)) {
-                showMessage('Niedozwolone rozszerzenie pliku. Dozwolone są tylko: JPG, JPEG, PNG, GIF.', 'error');
+                Utils.showToast('Niedozwolone rozszerzenie pliku. Dozwolone są tylko: JPG, JPEG, PNG, GIF.', 'error');
                 avatarFile = null; // Reset
                 if (avatarInput) avatarInput.value = ''; // Reset input
                 return;
@@ -481,14 +461,14 @@ document.addEventListener('DOMContentLoaded', function(){
 
             // Walidacja typu MIME (dodatkowe zabezpieczenie)
             if (!file.type.match('image.*')) {
-                showMessage('Proszę wybrać plik obrazu (JPG, PNG, GIF).', 'error');
+                Utils.showToast('Proszę wybrać plik obrazu (JPG, PNG, GIF).', 'error');
                 avatarFile = null;
                 if (avatarInput) avatarInput.value = '';
                 return;
             }
 
             if (file.size > 5 * 1024 * 1024) {
-                showMessage('Plik jest za duży. Maksymalny rozmiar to 5MB.', 'error');
+                Utils.showToast('Plik jest za duży. Maksymalny rozmiar to 5MB.', 'error');
                 avatarFile = null;
                 if (avatarInput) avatarInput.value = '';
                 return;
@@ -587,21 +567,6 @@ document.addEventListener('DOMContentLoaded', function(){
             }
         });
 
-        function showMessage(text, type) {
-            if (msgBox) {
-                msgBox.innerHTML = '<span id="msgBoxTxt"></span>';
-                msgBox.querySelector('#msgBoxTxt').textContent = text;
-                msgBox.className = 'form-message ' + (type === 'error' ? 'error' : 'success');
-                msgBox.style.display = 'block';
-                msgBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                
-                if (type === 'error') {
-                    setTimeout(() => {
-                        if (msgBox.className.includes('error')) msgBox.style.display = 'none';
-                    }, 5000);
-                }
-            }
-        }
 
         function validateForm() {
             const bio = bioTextarea ? bioTextarea.value.trim() : '';
@@ -609,30 +574,30 @@ document.addEventListener('DOMContentLoaded', function(){
             
             // Walidacja selectów (tylko jeśli były wcześniej ustawione)
             if (fieldOfStudySelect && fieldOfStudySelect.dataset.wasSet === 'true' && fieldOfStudySelect.value === '') {
-                 showMessage('Musisz wybrać kierunek studiów.', 'error');
+                 Utils.showToast('Musisz wybrać kierunek studiów.', 'error');
                  return false;
             }
 
             if (yearOfStudySelect && yearOfStudySelect.dataset.wasSet === 'true' && yearOfStudySelect.value === '') {
-                 showMessage('Musisz wybrać rok studiów.', 'error');
+                 Utils.showToast('Musisz wybrać rok studiów.', 'error');
                  return false;
             }
 
             if (studyModeSelect && studyModeSelect.dataset.wasSet === 'true' && studyModeSelect.value === '') {
-                 showMessage('Musisz wybrać tryb studiów.', 'error');
+                 Utils.showToast('Musisz wybrać tryb studiów.', 'error');
                  return false;
             }
 
             // Walidacja bio
             if(bio && bio.length > 500){
-                showMessage('Opis "O mnie" może mieć maksymalnie 500 znaków', 'error');
+                Utils.showToast('Opis "O mnie" może mieć maksymalnie 500 znaków', 'error');
                 return false;
             }
 
             // Walidacja telefonu (proste 9 cyfr)
             if(phoneNumber && phoneNumber.length > 0) {
                  if (!/^\d{9}$/.test(phoneNumber)) {
-                     showMessage('Numer telefonu musi składać się z 9 cyfr', 'error');
+                     Utils.showToast('Numer telefonu musi składać się z 9 cyfr', 'error');
                      return false;
                 }
             }
@@ -669,7 +634,7 @@ document.addEventListener('DOMContentLoaded', function(){
                 const studyMode = studyModeSelect.value;
 
                 if(!firstName || !lastName){
-                    showMessage('Imię i nazwisko są wymagane', 'error');
+                    Utils.showToast('Imię i nazwisko są wymagane', 'error');
                     return;
                 }
 
@@ -736,7 +701,10 @@ document.addEventListener('DOMContentLoaded', function(){
 
                         const updatedUser = await response.json();
                         
-                        // Sukces - animacja
+                        // Sukces - Toast zamiast animacji nakładki (lub obok)
+                        Utils.showToast('Twój profil został pomyślnie zaktualizowany!', 'success');
+                        
+                        // Sukces - animacja nakładki (zostawiamy bo ładna)
                         if (typeof showSuccessAnimation === 'function') {
                             showSuccessAnimation();
                         }
@@ -761,11 +729,11 @@ document.addEventListener('DOMContentLoaded', function(){
                         }
                         
                         // Jeśli error validation backendu
-                        showMessage(errorMessage, 'error');
+                        Utils.showToast(errorMessage, 'error');
                     }
                 } catch(error){
                     console.error('Błąd:', error);
-                    showMessage(error.message || 'Wystąpił błąd połączenia.', 'error');  
+                    Utils.showToast(error.message || 'Wystąpił błąd połączenia.', 'error');  
                 } finally{
                     const btn = document.getElementById('saveButton');
                     if(btn) {

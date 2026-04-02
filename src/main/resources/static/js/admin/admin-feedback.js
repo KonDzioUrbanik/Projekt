@@ -340,7 +340,6 @@ const FeedbackManager = {
     },
 
     executeDelete(id) {
-        // Soft delete logic with toast undo
         const itemToDelete = this.state.feedback.find(s => s.id === id);
         if (!itemToDelete) return;
 
@@ -349,59 +348,50 @@ const FeedbackManager = {
         this.applyFilters();
         if (this.state.currentId === id) this.closeModal();
 
-        // Pokazujemy toast z opcją cofnij
-        const toastContainer = document.getElementById('toastContainer');
-        const toastId = 'toast-' + Date.now();
-
-        const toast = document.createElement('div');
-        toast.className = 'toast success';
-        toast.id = toastId;
-        toast.innerHTML = `
-            <i class="fas fa-check-circle"></i>
-            <span>Zgłoszenie usunięte</span>
-            <button class="toast-undo-btn" id="undo-${toastId}">COFNIJ</button>
-        `;
-        toastContainer.appendChild(toast);
-
         let isUndone = false;
+        
+        const toast = Utils.showToast('Zgłoszenie usunięte', 'success', {
+            actionHtml: '<button class="btn-undo-toast" id="undo-btn">COFNIJ</button>',
+            duration: 5000
+        });
 
-        const undoBtn = document.getElementById(`undo-${toastId}`);
-        if(undoBtn) {
-            undoBtn.addEventListener('click', () => {
-                isUndone = true;
-                toast.style.animation = 'fadeOut 0.3s forwards';
-                setTimeout(() => toast.remove(), 300);
+        if (toast) {
+            const undoBtn = toast.querySelector('#undo-btn');
+            if (undoBtn) {
+                undoBtn.addEventListener('click', () => {
+                    isUndone = true;
+                    toast.classList.add('fade-out');
+                    setTimeout(() => toast.remove(), 300);
 
-                // Przywracamy dane
-                this.state.feedback.push(itemToDelete);
-                // Sortujemy po dacie malejąco żeby utrzymać porządek (najnowsze u góry)
-                this.state.feedback.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                
-                this.applyFilters();
-                Utils.showToast('Cofnięto usunięcie. Zgłoszenie przywrócone.', 'info');
-            });
+                    // Przywracamy dane
+                    this.state.feedback.push(itemToDelete);
+                    this.state.feedback.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    this.applyFilters();
+                    Utils.showToast('Cofnięto usunięcie. Zgłoszenie przywrócone.', 'info');
+                });
+            }
         }
 
-        // Oczekujemy 5 sekundy, potem request właściwy
+        // Oczekujemy 5 sekund, potem request właściwy
         setTimeout(async () => {
             if (!isUndone) {
-                const liveToast = document.getElementById(toastId);
-                if (liveToast) {
-                    liveToast.style.animation = 'fadeOut 0.3s forwards';
-                    setTimeout(() => liveToast.remove(), 300);
+                if (toast && toast.parentElement) {
+                    toast.classList.add('fade-out');
+                    setTimeout(() => toast.remove(), 300);
                 }
 
                 try {
                     const response = await fetch(`/api/feedback/${id}`, { method: 'DELETE' });
-                    if (!response.ok) throw new Error('Network error');
-                    console.log('Zgłoszenie trwale usunięte z serwera.');
+                    if (!response.ok) throw new Error('Nie udało się trwale usunąć zgłoszenia.');
                 } catch (error) {
                     console.error('Błąd usuwania:', error);
                     // Jeśli błąd, przywracamy po cichu do danych
-                    this.state.feedback.push(itemToDelete);
-                    this.state.feedback.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                    this.applyFilters();
-                    Utils.showToast('Błąd usuwania z serwera.', 'error');
+                    if (!this.state.feedback.some(f => f.id === itemToDelete.id)) {
+                        this.state.feedback.push(itemToDelete);
+                        this.state.feedback.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                        this.applyFilters();
+                    }
+                    Utils.showToast(error.message || 'Błąd usuwania z serwera.', 'error');
                 }
             }
         }, 5000);
