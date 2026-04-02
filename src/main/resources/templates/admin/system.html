@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/main-layout}">
+<head>
+    <title>Zarządzanie systemem - PANSportal</title>
+    <th:block layout:fragment="page-styles">
+        <link rel="stylesheet" th:href="@{/css/admin/admin-system.css(v=${#dates.createNow().getTime()})}">
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="system-management-wrapper">
+            <div class="header-section">
+                <h2><i class="fas fa-cogs"></i> Centrum Zarządzania Systemem</h2>
+                <div class="header-actions">
+                    <span class="last-sync">Ostatnia aktualizacja: <span id="lastSyncTime">-</span></span>
+                </div>
+            </div>
+
+            <div class="system-grid">
+
+                <div class="system-card health-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-heartbeat"></i> Stan usług</h3>
+                        <button class="btn-refresh" id="refreshHealth"><i class="fas fa-sync-alt"></i></button>
+                    </div>
+                    <div class="health-list">
+                        <div class="health-item">
+                            <div class="health-info">
+                                <i class="fas fa-database"></i>
+                                <span>Baza danych (PostgreSQL)</span>
+                            </div>
+                            <div class="health-status-indicator" id="dbStatus">
+                                <span class="status-dot"></span>
+                                <span class="status-text">Sprawdzanie...</span>
+                            </div>
+                        </div>
+                        <div class="health-item">
+                            <div class="health-info">
+                                <i class="fas fa-envelope"></i>
+                                <span>Serwer SMTP (Poczta)</span>
+                            </div>
+                            <div class="health-status-indicator" id="smtpStatus">
+                                <span class="status-dot"></span>
+                                <span class="status-text">Sprawdzanie...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="system-card modules-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-toggle-on"></i> Kontrola dostępności</h3>
+                    </div>
+                    <div class="modules-list">
+                        <div class="module-item danger">
+                            <div class="module-info">
+                                <strong>Tryb konserwacji (globalny)</strong>
+                                <p>Blokuje dostęp do całej platformy - łącznie z logowaniem i rejestracją. Dostęp wyłącznie przez token administracyjny.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-global_maintenance">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="admin-divider"></div>
+                        <div class="module-item">
+                            <div class="module-info">
+                                <strong>Rejestracja kont</strong>
+                                <p>Umożliwia zakładanie nowych kont przez studentów.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-registration_enabled">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="module-item">
+                            <div class="module-info">
+                                <strong>Logowanie do platformy</strong>
+                                <p>Blokuje możliwość logowania (nie dotyczy administratorów).</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-login_enabled">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="module-item">
+                            <div class="module-info">
+                                <strong>Moduł Notatek</strong>
+                                <p>Dostęp do edytora notatek.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-module_notes">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="module-item">
+                            <div class="module-info">
+                                <strong>Moduł Harmonogramu zajęć</strong>
+                                <p>Dostęp do widoku planu zajęć danego kierunku studiów.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-module_schedule">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="module-item">
+                            <div class="module-info">
+                                <strong>Moduł Ogłoszeń grupy</strong>
+                                <p>Dostęp do przeglądania ogłoszeń przypisanych do kierunku studiów użytkownika.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-module_announcements">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="module-item">
+                            <div class="module-info">
+                                <strong>Moduł Kalendarza</strong>
+                                <p>Dostęp do osobistego terminarza studenta umożliwiającego dodawanie, edycję i usuwanie własnych wydarzeń i przypomnień.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-module_calendar">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="module-item">
+                            <div class="module-info">
+                                <strong>Moduł Obecności</strong>
+                                <p>Dostęp do podglądu ewidencji frekwencji studenta na zajęciach w bieżącym semestrze.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-module_attendance">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="module-item">
+                            <div class="module-info">
+                                <strong>Moduł Forum</strong>
+                                <p>Dostęp do platformy dyskusyjnej umożliwiającej wymianę wiadomości i plików między użytkownikami w ramach grupy.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-module_forum">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="module-item">
+                            <div class="module-info">
+                                <strong>Moduł Kalendarza akademickiego</strong>
+                                <p>Dostęp do widoku kluczowych wydarzeń roku akademickiego.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-module_university_calendar">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="module-item">
+                            <div class="module-info">
+                                <strong>Moduł Postępu semestru</strong>
+                                <p>Dostęp do widoku procentowego zaawansowania bieżącego semestru.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-module_semester_progress">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="admin-divider"></div>
+                        <div class="module-item starosta-feature">
+                            <div class="module-info">
+                                <strong>Moduł Ogłoszeń starosty</strong>
+                                <p>Dostęp do uprawnienia starosty do tworzenia i publikowania ogłoszeń dla własnej grupy studenckiej.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-module_starosta_announcements">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="system-card banner-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-bullhorn"></i> Komunikat globalny</h3>
+                    </div>
+                    <div class="banner-form">
+                        <p class="description">Treść wyświetlana na górze strony u wszystkich zalogowanych użytkowników.</p>
+                        <textarea id="bannerText" maxlength="500"
+                                  placeholder="Wpisz treść komunikatu..."
+                                  oninput="document.getElementById('bannerCharCount').textContent = this.value.length"></textarea>
+                        <div style="text-align: right; font-size: 0.8rem; opacity: 0.6; margin-top: 0.25rem;">
+                            <span id="bannerCharCount">0</span> / 500 znaków
+                        </div>
+                        <div class="banner-actions">
+                            <button class="btn-secondary" id="clearBanner">Wyczyść</button>
+                            <button class="btn-primary" id="saveBanner">Zapisz i publikuj</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="system-card logs-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-terminal"></i> Ostatnie błędy (logi)</h3>
+                        <span class="badge">Ostatnie 10</span>
+                    </div>
+                    <div class="logs-container">
+                        <div class="logs-empty" id="logsEmpty">Brak krytycznych błędów w ostatnim czasie.</div>
+                        <div class="logs-list" id="logsList" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="maintenanceConfirmModal" role="dialog" aria-modal="true" aria-labelledby="maintenanceModalTitle">
+        <div class="modal-card modal-sm modal-center-content">
+            <div class="modal-body-centered">
+                <div class="modal-icon-wrapper danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3 id="maintenanceModalTitle">Włączyć tryb konserwacji?</h3>
+                <p class="text-muted">
+                    Globalna przerwa techniczna zablokuje dostęp do platformy<br>
+                    dla <strong>wszystkich użytkowników</strong>, łącznie z logowaniem i rejestracją.<br><br>
+                    Dostęp administracyjny możliwy wyłącznie przez <strong>token bypass</strong>.<br>
+                    Upewnij się, że masz do niego dostęp przed kontynuowaniem.
+                </p>
+            </div>
+            <div class="modal-footer-centered">
+                <button class="btn-text-gray" id="btnCancelMaintenance">Anuluj</button>
+                <button class="btn-danger-block" id="btnConfirmMaintenance">Włącz tryb konserwacji</button>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="page-scripts">
+        <script th:src="@{/js/admin/admin-system.js(v=${#dates.createNow().getTime()})}"></script>
+    </th:block>
+</body>
+</html>

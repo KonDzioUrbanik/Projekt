@@ -1223,3 +1223,239 @@ a.breadcrumb-item:hover {
     margin: 0 auto;
     font-weight: 450;
 }
+
+/* TOAST NOTIFICATIONS (GLOBAL SYSTEM) */
+
+.toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+    z-index: 20000;
+    pointer-events: none;
+    transition: all 0.4s ease;
+}
+
+.toast {
+    background: #ffffff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: fit-content;
+    min-width: 200px;
+    max-width: 90vw;
+    white-space: nowrap;
+    animation: toastSlideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    font-size: 0.95rem;
+    color: var(--text-main);
+    pointer-events: auto;
+    position: relative;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    overflow: hidden;
+}
+
+/* Responsywność dla urządzeń mobilnych */
+@media (max-width: 768px) {
+    .toast-container {
+        bottom: 16px;
+        right: 16px;
+        left: 16px;
+    }
+
+    .toast {
+        width: calc(100% - 32px);
+        white-space: normal;
+        max-width: 100%;
+        animation: toastSlideInBottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+}
+
+.toast.success {
+    border-left-color: #10b981;
+    /* Żywszy zielony */
+}
+
+.toast.error {
+    border-left-color: #ef4444;
+    /* Żywszy czerwony */
+}
+
+.toast.info {
+    border-left-color: #005efa;
+    /* Żywszy niebieski */
+}
+
+.toast.warning {
+    border-left-color: #f59e0b;
+}
+
+.toast i {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.toast.success i {
+    color: #10b981;
+}
+
+.toast.error i {
+    color: #ef4444;
+}
+
+.toast.info i {
+    color: #005efa;
+}
+
+.toast.warning i {
+    color: #f59e0b;
+}
+
+.toast span {
+    flex: 1;
+    line-height: 1.4;
+}
+
+.toast-close {
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.toast-close:hover {
+    opacity: 1;
+}
+
+/* Przycisk akcji "Cofnij" w powiadomieniach */
+.btn-undo-toast {
+    background: transparent;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin-left: 15px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-undo-toast:hover {
+    background: rgba(var(--primary-rgb), 0.1);
+    opacity: 0.8;
+}
+
+/* Dark Mode dla przycisku Cofnij */
+[data-theme="dark"] .btn-undo-toast {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+[data-theme="dark"] .btn-undo-toast:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.toast.fade-out {
+    animation: toastFadeOutRight 0.3s ease forwards;
+}
+
+@media (max-width: 768px) {
+    .toast.fade-out {
+        animation: toastFadeOutBottom 0.3s ease forwards;
+    }
+}
+
+/* Dark mode overrides - naprawa paska bocznego */
+[data-theme="dark"] .toast {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    /* Ramka ogólna */
+    border-left-width: 5px;
+    /* Pogrubiony pasek lewy */
+    color: var(--text-main);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+/* Specyficzne kolory w trybie Dark - muszą być po ogólnym .toast */
+[data-theme="dark"] .toast.success {
+    border-left-color: #10b981;
+}
+
+[data-theme="dark"] .toast.error {
+    border-left-color: #ef4444;
+}
+
+[data-theme="dark"] .toast.info {
+    border-left-color: #005efa;
+}
+
+[data-theme="dark"] .toast.warning {
+    border-left-color: #f59e0b;
+}
+
+[data-theme="dark"] .toast-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Animations */
+@keyframes toastSlideInRight {
+    from {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes toastFadeOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+}
+
+@keyframes toastSlideInBottom {
+    from {
+        transform: translateY(120%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes toastFadeOutBottom {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateY(120%);
+        opacity: 0;
+    }
+}
+
+/* Skalowanie tekstu w notatkach */
+#noteContent.ql-editor p,
+#noteContent.ql-editor span,
+#noteContent.ql-editor li {
+    font-size: inherit !important;
+}

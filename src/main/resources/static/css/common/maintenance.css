@@ -1,0 +1,289 @@
+/* Wspólne style dla stron konserwacji: /maintenance i /module-maintenance */
+
+:root {
+    --maint-primary: #005efa;
+    --maint-bg: #f8fafc;
+    --maint-text: #1e293b;
+    --maint-card-bg: rgba(255, 255, 255, 0.85);
+    --maint-subtle: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] {
+    --maint-primary: #4d9fff;
+    --maint-bg: #0f172a;
+    --maint-text: #f1f5f9;
+    --maint-card-bg: rgba(30, 41, 59, 0.85);
+    --maint-subtle: rgba(255, 255, 255, 0.05);
+}
+
+/* Reset + baza */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+}
+
+body {
+    margin: 0;
+    padding: 1rem;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--maint-bg);
+    color: var(--maint-text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Karta centralna */
+.maint-container {
+    text-align: center;
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 480px;
+    background: var(--maint-card-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    animation: maintFadeIn 0.7s ease-out both;
+}
+
+/* Ikona */
+.maint-icon-box {
+    font-size: 3.5rem;
+    color: var(--maint-primary);
+    margin-bottom: 1.5rem;
+    display: inline-block;
+}
+
+.maint-icon-box .fa-gear {
+    animation: maintSpin 5s linear infinite;
+}
+
+/* Typografia */
+.maint-container h1 {
+    font-size: clamp(1.4rem, 4vw, 1.9rem);
+    font-weight: 800;
+    margin: 0 0 0.75rem;
+}
+
+.maint-container p {
+    line-height: 1.7;
+    opacity: 0.75;
+    margin: 0 0 1.75rem;
+    font-size: 0.97rem;
+}
+
+/* Badge modułu */
+.maint-module-badge {
+    display: inline-block;
+    background: rgba(245, 158, 11, 0.12);
+    color: #d97706;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+[data-theme="dark"] .maint-module-badge {
+    background: rgba(245, 158, 11, 0.18);
+    color: #fbbf24;
+}
+
+/* Pulsujący badge statusu */
+.maint-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.1rem;
+    background: rgba(0, 94, 250, 0.1);
+    color: var(--maint-primary);
+    border-radius: 100px;
+    font-size: 0.84rem;
+    font-weight: 600;
+}
+
+.maint-pulse {
+    width: 8px;
+    height: 8px;
+    background: var(--maint-primary);
+    border-radius: 50%;
+    flex-shrink: 0;
+    animation: maintPulse 1.6s ease-in-out infinite;
+}
+
+/* Przycisk "Wróć na stronę główną" */
+.maint-btn-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: #1e293b;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: opacity 0.2s, transform 0.2s;
+    margin-top: 0.25rem;
+}
+
+[data-theme="dark"] .maint-btn-home {
+    background: #334155;
+}
+
+.maint-btn-home:hover {
+    opacity: 0.88;
+    transform: translateY(-2px);
+}
+
+/* Bypass (sekcja admin) */
+.maint-bypass-section {
+    margin-top: 2.25rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid rgba(128, 128, 128, 0.15);
+}
+
+.maint-bypass-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    color: var(--maint-text);
+    opacity: 0.18;
+    padding: 0.25rem 0.5rem;
+    transition: opacity 0.25s;
+    border-radius: 4px;
+}
+
+.maint-bypass-toggle:hover {
+    opacity: 0.45;
+}
+
+.maint-bypass-toggle:focus-visible {
+    outline: 2px solid var(--maint-primary);
+    opacity: 0.45;
+}
+
+.maint-bypass-form {
+    display: none;
+    margin-top: 1rem;
+    animation: maintFadeIn 0.25s ease both;
+}
+
+.maint-bypass-form.visible {
+    display: block;
+}
+
+.maint-bypass-input-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.maint-bypass-input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    border: 1px solid rgba(128, 128, 128, 0.22);
+    background: var(--maint-subtle);
+    color: var(--maint-text);
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.maint-bypass-input:focus {
+    border-color: var(--maint-primary);
+}
+
+.maint-bypass-btn {
+    flex-shrink: 0;
+    padding: 0.6rem 1rem;
+    background: var(--maint-primary);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.88rem;
+    font-weight: 600;
+    transition: opacity 0.2s;
+}
+
+.maint-bypass-btn:hover {
+    opacity: 0.85;
+}
+
+.maint-bypass-error {
+    display: none;
+    color: #ef4444;
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+    text-align: left;
+}
+
+/* Animacje */
+@keyframes maintFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes maintSpin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes maintPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 94, 250, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 8px rgba(0, 94, 250, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 94, 250, 0);
+    }
+}
+
+/* Responsywność */
+@media (max-width: 480px) {
+    .maint-container {
+        padding: 2rem 1.25rem;
+        border-radius: 18px;
+    }
+
+    .maint-icon-box {
+        font-size: 3rem;
+    }
+
+    .maint-bypass-input-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .maint-bypass-btn {
+        width: 100%;
+    }
+}

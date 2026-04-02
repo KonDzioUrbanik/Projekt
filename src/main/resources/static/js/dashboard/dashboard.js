@@ -8,7 +8,7 @@ class DashboardHome {
         API: {
             SCHEDULE: '/api/schedule',
             SCHEDULE_ALL: '/api/schedule/all',
-            ANNOUNCEMENTS: '/api/announcements/group',
+            ANNOUNCEMENTS: '/api/announcements/dashboard-feed',
             USERS: '/api/users',
             GROUPS: '/api/groups',
             CALENDAR_ACTIVE: '/api/calendar/active'
@@ -90,6 +90,13 @@ class DashboardHome {
 
         try {
             const response = await fetch(DashboardHome.CONFIG.API.ANNOUNCEMENTS);
+
+            // Moduł wyłączony — serwer zwraca 503 z JSON {error: "maintenance"}
+            if (response.status === 503) {
+                errorDiv.style.display = 'flex';
+                errorDiv.innerHTML = '<i class="fas fa-toolbox"></i><p>Moduł ogłoszeń jest chwilowo niedostępny.</p>';
+                return;
+            }
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -235,7 +242,17 @@ class DashboardHome {
             await this.loadActiveSpecialPeriod();
             
             const response = await fetch(DashboardHome.CONFIG.API.SCHEDULE);
-            
+
+            // Moduł wyłączony — serwer zwraca 503
+            if (response.status === 503) {
+                if (loader) loader.style.display = 'none';
+                if (errorDiv) {
+                    errorDiv.style.display = 'flex';
+                    errorDiv.innerHTML = '<i class="fas fa-toolbox"></i><p>Moduł harmonogramu jest chwilowo niedostępny.</p>';
+                }
+                return;
+            }
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }

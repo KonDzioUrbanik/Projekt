@@ -560,8 +560,28 @@ document.getElementById("editUserForm").addEventListener("submit", async functio
     const newRole = document.getElementById("editRole").value;
     const groupId = document.getElementById("editGroup").value;
 
+    // Walidacja: Starosta musi mieć przypisany kierunek
+    if (newRole === 'STAROSTA' && (!groupId || groupId === "")) {
+        Utils.showToast("Użytkownik z rolą Starosty musi być przypisany do konkretnego kierunku.", "error");
+        return;
+    }
+
     try {
-        // zmiana roli
+        // Przypisanie do kierunku (najpierw, aby backend widział grupę przy zmianie roli)
+        const groupResponse = await fetch(`/api/users/assignGroup/${email}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ groupId: groupId ? parseInt(groupId) : null })
+        });
+
+        if(!groupResponse.ok){
+            const errorData = await groupResponse.json();
+            throw new Error(errorData.message || 'Błąd podczas przypisywania do kierunku');
+        }
+
+        // Zmiana roli
         const roleResponse = await fetch(`/api/users/role/update/${email}`, {
             method: 'PUT',
             headers: {
@@ -573,29 +593,17 @@ document.getElementById("editUserForm").addEventListener("submit", async functio
         });
 
         if(!roleResponse.ok){
-            throw new Error('Błąd podczas zmiany roli');
-        }
-
-        // przypisanie do kierunku (zawsze wywołaj, nawet jeśli groupId jest puste - wtedy wyśle null)
-        const groupResponse = await fetch(`/api/users/assignGroup/${email}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ groupId: groupId ? parseInt(groupId) : null })
-        });
-
-        if(!groupResponse.ok){
-            throw new Error('Błąd podczas przypisywania do kierunku');
+            const errorData = await roleResponse.json();
+            throw new Error(errorData.message || 'Błąd podczas zmiany roli');
         }
 
         Utils.showToast("Zmiany zostały pomyślnie zapisane. Odświeżanie okna...", "success");
         closeEditModal();
-        setTimeout(() => location.reload(), 1500); // przeladowanie strony aby zachowac kolejnosc z backendu
+        setTimeout(() => location.reload(), 1500); 
     } 
     catch (error){
         console.error('Błąd:', error);
-        Utils.showToast("Wystąpił błąd podczas zapisywania zmian. Sprawdź połączenie i spróbuj ponownie.", "error");
+        Utils.showToast(error.message || "Wystąpił błąd podczas zapisywania zmian.", "error");
     }
 });
 
@@ -920,14 +928,37 @@ document.getElementById('btnConfirmDelete')?.addEventListener('click', () => {
     
     rowToRemove.style.display = 'none';
     
-    const toastHtml = `<button class="btn-undo-toast" onclick="undoUserDelete('${userId}')">Cofnij</button>`;
-    const toast = Utils.showToast('Użytkownik usunięty.', 'success', { actionHtml: toastHtml, duration: 0, closable: true });
+    // Pokaż Toast z przyciskiem Cofnij
+    const toast = Utils.showToast('Użytkownik usunięty.', 'success', { 
+        actionHtml: `<button id="undo-btn-${userId}" class="btn-undo-toast">Cofnij</button>`, 
+        duration: 5000 
+    });
+
+    if (!toast) {
+        // Fallback
+        sendActualDelete(userId, null, rowToRemove);
+        return;
+    }
     
     const timerId = setTimeout(() => {
+        if (toast.parentElement) {
+            toast.classList.add('fade-out');
+            setTimeout(() => toast.remove(), 300);
+        }
+        deletionTimers.delete(userId);
         sendActualDelete(userId, toast, rowToRemove);
     }, 5000);
     
     deletionTimers.set(userId, { timerId, toast, row: rowToRemove });
+
+    // Obsługa przycisku Cofnij (Undo)
+    const undoBtn = toast.querySelector(`#undo-btn-${userId}`);
+    if (undoBtn) {
+        undoBtn.onclick = (e) => {
+            e.stopPropagation();
+            undoUserDelete(userId);
+        };
+    }
 });
 
 function undoUserDelete(userId) {

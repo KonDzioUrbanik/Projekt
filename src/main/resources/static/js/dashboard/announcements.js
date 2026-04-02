@@ -2,7 +2,6 @@
     'use strict';
 
     // Element references
-    const msgEl = document.getElementById('announcementMessage');
     const formEl = document.getElementById('announcementForm');
     const loadingEl = document.getElementById('annLoading');
     const emptyEl = document.getElementById('annEmpty');
@@ -35,7 +34,7 @@
     const readDetailsList = document.getElementById('readDetailsList');
     const readDetailsClose = document.getElementById('readDetailsClose');
 
-    if (!formEl || !msgEl) return;
+    if (!formEl) return;
 
     const mode = formEl.dataset.mode || 'student'; // 'student' | 'starosta'
     let pendingDeleteId = null;
@@ -84,7 +83,7 @@
         fileInput.addEventListener('change', () => {
             const files = Array.from(fileInput.files || []);
             if (files.length > 5) {
-                showMessage('Możesz dodać maksymalnie 5 załączników.', 'error');
+                Utils.showToast('Możesz dodać maksymalnie 5 załączników.', 'error');
                 fileInput.value = '';
                 fileList.innerHTML = '';
                 return;
@@ -172,7 +171,7 @@
         const content = (contentInput?.value || '').trim();
 
         if (!title || !content) {
-            showMessage('Uzupełnij tytuł i treść ogłoszenia.', 'error');
+            Utils.showToast('Uzupełnij tytuł i treść ogłoszenia.', 'error');
             return;
         }
 
@@ -211,7 +210,7 @@
             showMessage('Ogłoszenie zostało opublikowane!', 'success');
             await loadAnnouncements();
         } catch (err) {
-            showMessage(readError(err), 'error');
+            Utils.showToast(readError(err), 'error');
         } finally {
             setSubmitLoading(false);
         }
@@ -231,10 +230,10 @@
                 const errText = await response.text();
                 throw new Error(errText || 'Nie udało się usunąć ogłoszenia.');
             }
-            showMessage('Ogłoszenie zostało usunięte.', 'success');
+            Utils.showToast('Ogłoszenie zostało usunięte.', 'success');
             await loadAnnouncements();
         } catch (err) {
-            showMessage(readError(err), 'error');
+            Utils.showToast(readError(err), 'error');
         }
     }
 
@@ -245,10 +244,10 @@
                 const errText = await response.text();
                 throw new Error(errText || 'Nie udało się potwierdzić przeczytania ogłoszenia.');
             }
-            showMessage('Potwierdzono przeczytanie ogłoszenia.', 'success');
+            Utils.showToast('Potwierdzono przeczytanie ogłoszenia.', 'success');
             await loadAnnouncements();
         } catch (err) {
-            showMessage(readError(err), 'error');
+            Utils.showToast(readError(err), 'error');
         }
     }
 
@@ -273,7 +272,7 @@
             }
         } catch (err) {
             showLoading(false);
-            showMessage(readError(err), 'error');
+            Utils.showToast(readError(err), 'error');
         }
     }
 
@@ -425,7 +424,7 @@
                     if (!res.ok) throw new Error('Nie udało się zmienić stanu przypięcia.');
                     await loadAnnouncements();
                 } catch (err) {
-                    showMessage(readError(err), 'error');
+                    Utils.showToast(readError(err), 'error');
                 }
             });
 
@@ -579,21 +578,11 @@
     }
 
     function showMessage(text, type) {
-        if (!msgEl) return;
-        const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
-        msgEl.innerHTML = `
-            <div class="ann-alert ${type}">
-                <i class="fas ${icon}"></i>
-                <span>${Utils.escapeHtml(text)}</span>
-            </div>
-        `;
-        if (type === 'success') {
-            setTimeout(() => { if (msgEl) msgEl.innerHTML = ''; }, 4000);
-        }
+        Utils.showToast(text, type);
     }
 
     function clearMessage() {
-        if (msgEl) msgEl.innerHTML = '';
+        // Obsolete
     }
 
     function readError(err) {

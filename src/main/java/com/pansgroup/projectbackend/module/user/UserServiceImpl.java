@@ -9,6 +9,7 @@ import com.pansgroup.projectbackend.module.user.confirmation.ConfirmationTokenRe
 import com.pansgroup.projectbackend.module.user.dto.*;
 import com.pansgroup.projectbackend.module.user.passwordReset.PasswordResetToken;
 import com.pansgroup.projectbackend.module.user.passwordReset.PasswordResetTokenRepository;
+import com.pansgroup.projectbackend.module.system.SystemService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -41,17 +42,22 @@ public class UserServiceImpl implements UserService {
     private final ConcurrentHashMap<String, LocalDateTime> confirmationAttemptsCooldown = new ConcurrentHashMap<>();
     private static final long CONFIRMATION_COOLDOWN_SECONDS = 5;
 
+    private final SystemService systemService;
+
     public UserServiceImpl(UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             StudentGroupRepository studentGroupRepository,
-            EmailService emailService, ConfirmationTokenRepository confirmationTokenRepository,
-            PasswordResetTokenRepository passwordResetTokenRepository) {
+            EmailService emailService,
+            ConfirmationTokenRepository confirmationTokenRepository,
+            PasswordResetTokenRepository passwordResetTokenRepository,
+            SystemService systemService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.studentGroupRepository = studentGroupRepository;
         this.emailService = emailService;
         this.confirmationTokenRepository = confirmationTokenRepository;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
+        this.systemService = systemService;
     }
 
     @Override
@@ -64,6 +70,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto create(UserCreateDto dto) {
+        if (!systemService.isModuleEnabled("registration_enabled")) {
+            throw new RegistrationDisabledException();
+        }
         String normalizedEmail = dto.email().trim().toLowerCase(Locale.ROOT);
         Integer indexNumber = extractIndexNumberFromEmail(normalizedEmail);
         if (indexNumber != null) {
@@ -189,28 +198,15 @@ public class UserServiceImpl implements UserService {
                 u.getPreviousLogin());
     }
 
-    private Integer extractYearFromGroupName(String groupName) {
-        if (groupName == null || groupName.isEmpty()) {
-            return null;
-        }
-
-        // Szukanie rzymskich cyfr oznaczających rok (I-V)
-        // \b zapewnia, że jest to całe słowo (np. żeby nie złapać 'I' w słowie
-        // 'Informatyka')
-        // Sprawdzamy najpierw IV, żeby nie złapało I czy V
-        if (groupName.matches(".*\\bIV\\b.*"))
-            return 4;
-        if (groupName.matches(".*\\bIII\\b.*"))
-            return 3;
-        if (groupName.matches(".*\\bII\\b.*"))
-            return 2;
-        if (groupName.matches(".*\\bI\\b.*"))
-            return 1;
-        if (groupName.matches(".*\\bV\\b.*"))
-            return 5;
-
-        return null;
-    }
+    /*
+     * Metoda została zastąpiona nową logiką w serwisie systemowym,
+     * zostawiam jako komentarz jeśli byłaby potrzebna w przyszłości
+     */
+    /*
+     * private Integer extractYearFromGroupName(String groupName) {
+     * ...
+     * }
+     */
 
     @Override
     @Transactional
@@ -266,7 +262,15 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto updateRoleUser(String email, UserRoleUpdateDto dto) {
         User userToUpdate = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Taki email nie istnieje: " + email));
-        userToUpdate.setRole(dto.newRole().trim().toUpperCase(Locale.ROOT));
+        
+        String newRole = dto.newRole().trim().toUpperCase(Locale.ROOT);
+        
+        // Zabezpieczenie: Starosta musi mieć przypisany kierunek
+        if ("STAROSTA".equals(newRole) && userToUpdate.getStudentGroup() == null) {
+            throw new IllegalStateException("Nie można przypisać roli Starosty użytkownikowi bez przypisanego kierunku.");
+        }
+
+        userToUpdate.setRole(newRole);
         return mapToResponseDto(userRepository.save(userToUpdate));
     }
 
@@ -295,6 +299,10 @@ public class UserServiceImpl implements UserService {
 
         // 2. Znajdź encję kierunku lub usuń przypisanie (jeśli groupId == null)
         if (dto.groupId() == null) {
+            // Zabezpieczenie: Nie można usunąć kierunku Staroście
+            if ("STAROSTA".equalsIgnoreCase(userToUpdate.getRole())) {
+                throw new IllegalStateException("Nie można usunąć kierunku użytkownikowi z rolą Starosty. Najpierw zmień jego rolę.");
+            }
             // usunięcie przypisania do kierunku
             userToUpdate.setStudentGroup(null);
         } else {
@@ -391,6 +399,16 @@ public class UserServiceImpl implements UserService {
                     "Nie można usunąć konta administratora. Konta z uprawnieniami administratora są chronione.");
         }
 
+        // Usuwamy tokeny powiązane
+        confirmationTokenRepository.deleteByUser(user);
+        passwordResetTokenRepository.deleteByUser(user);
+
+        // Odłączamy od grupy (ManyToOne)
+        user.setStudentGroup(null);
+
+        // Czyścimy pole w User (OneToOne)
+        user.setConfirmationToken(null);
+
         userRepository.delete(user);
     }
 
@@ -468,8 +486,6 @@ public class UserServiceImpl implements UserService {
             throw new org.springframework.web.server.ResponseStatusException(
                     org.springframework.http.HttpStatus.NOT_FOUND, "Użytkownik nie ma awatara");
         }
-        // Force load LOB data within transaction
-        int len = user.getAvatarData().length;
         return user;
     }
 
@@ -528,12 +544,12 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto toggleBlock(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("Nie znaleziono użytkownika o ID: " + userId));
-        
+
         // Zabezpieczenie przed blokowaniem administratorów
         if ("ADMIN".equalsIgnoreCase(user.getRole())) {
             throw new IllegalStateException("Nie można zablokować konta administratora.");
         }
-        
+
         user.setBlocked(!user.isBlocked());
         return mapToResponseDto(userRepository.save(user));
     }

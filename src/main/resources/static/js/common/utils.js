@@ -316,10 +316,6 @@ const Utils = {
         const icon = iconMap[type] || 'info-circle';
 
         /* Budowa HTML */
-        const closeBtnHtml = closable
-            ? `<button class="toast-close" onclick="this.parentElement.classList.add('fade-out'); setTimeout(() => this.parentElement.remove(), 300);">&times;</button>`
-            : '';
-
         const actionBlock = actionHtml
             ? `<div class="toast-actions">${actionHtml}</div>`
             : '';
@@ -328,7 +324,6 @@ const Utils = {
             <i class="fas fa-${icon}"></i>
             <span style="flex:1;">${finalMessage}</span>
             ${actionBlock}
-            ${closeBtnHtml}
         `;
 
         container.appendChild(toast);
@@ -386,6 +381,54 @@ const Utils = {
         });
     },
 
+    /* Globalny interceptor dla fetch - obsługuje tryb konserwacji (503) */
+    initFetchInterceptor() {
+        const originalFetch = window.fetch;
+
+        // Ścieżki stron modułów — tylko z nich interceptor robi pełny redirect.
+        // Na pozostałych stronach (np. /home) 503 jest obsługiwane przez kod strony.
+        const MODULE_PAGE_PREFIXES = [
+            '/student/notes',
+            '/student/schedule',
+            '/student/announcements',
+            '/student/calendar',
+            '/student/attendance',
+            '/student/forum',
+            '/student/university-calendar',
+            '/student/academic-progress',
+            '/starosta/announcements',
+        ];
+
+        const isOnModulePage = () => {
+            const path = window.location.pathname;
+            return MODULE_PAGE_PREFIXES.some(prefix => path.startsWith(prefix));
+        };
+
+        window.fetch = async (...args) => {
+            try {
+                const response = await originalFetch(...args);
+
+                if (response.status === 503 && isOnModulePage()) {
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        const data = await response.clone().json();
+                        if (data.error === 'maintenance') {
+                            const moduleQuery = data.module
+                                ? `?module=${encodeURIComponent(data.module)}`
+                                : '';
+                            window.location.href = `/module-maintenance${moduleQuery}`;
+                            return new Promise(() => {}); // Zablokuj dalsze przetwarzanie
+                        }
+                    }
+                }
+
+                return response;
+            } catch (error) {
+                throw error;
+            }
+        };
+    },
+
     /* Przenosi modale (.modal-overlay) z wnętrza .navbar-middle na document.body, żeby nie były przycinane przez overflow: hidden na .dashboard-container */
     portalModals() {
         const SELECTOR = '.navbar-middle .modal-overlay, .navbar-middle .modal';
@@ -419,6 +462,7 @@ const Utils = {
 
 // Automatyczne odpalenie przyjaznych globalnych skryptów interfejsu
 document.addEventListener('DOMContentLoaded', () => {
+    Utils.initFetchInterceptor();
     Utils.initGoToTop();
     Utils.portalModals();
 });

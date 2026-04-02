@@ -2,6 +2,7 @@ package com.pansgroup.projectbackend.security;
 
 import com.pansgroup.projectbackend.module.user.User;
 import com.pansgroup.projectbackend.module.user.UserService;
+import com.pansgroup.projectbackend.module.system.SystemService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -9,7 +10,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -25,23 +25,20 @@ import org.springframework.security.web.access.intercept.AuthorizationFilter;
 public class SecurityConfig {
 
         @Bean
-        public WebSecurityCustomizer webSecurityCustomizer() {
-                return (web) -> web.ignoring().requestMatchers(
-                                "/static/**",
-                                "/favicon.png",
-                                "/favicon.ico",
-                                "/css/**",
-                                "/js/**",
-                                "/images/**");
-        }
-
-        @Bean
-        public UserDetailsService userDetailsService(UserService userService) {
+        public UserDetailsService userDetailsService(UserService userService, SystemService systemService) {
                 return email -> {
                         User user = userService.findUserByEmailInternal(email);
                         if (user == null) {
                                 throw new UsernameNotFoundException("Nie znaleziono użytkownika: " + email);
                         }
+
+                        // Blokada logowania dla użytkowników (nie dotyczy ADMIN)
+                        if (!systemService.isModuleEnabled("login_enabled")
+                                        && !"ADMIN".equalsIgnoreCase(user.getRole())) {
+                                throw new DisabledException(
+                                                "Logowanie jest obecnie wyłączone ze względu na prace konserwacyjne. Przepraszamy za niedogodności.");
+                        }
+
                         if (user.isBlocked()) {
                                 throw new DisabledException(
                                                 "Twoje konto zostało zablokowane przez administratora. Skontaktuj się z obsługą.");
@@ -66,11 +63,16 @@ public class SecurityConfig {
         @org.springframework.beans.factory.annotation.Value("${app.security.remember-me.key}")
         private String rememberMeKey;
 
+        @org.springframework.beans.factory.annotation.Value("${app.maintenance.bypass-token:}")
+        private String maintenanceBypassToken;
+
         @Bean
         public PersistentTokenRepository persistentTokenRepository(
-                        javax.sql.DataSource dataSource) {
+                        @org.springframework.lang.NonNull javax.sql.DataSource dataSource) {
                 org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl tokenRepository = new org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl();
-                tokenRepository.setDataSource(dataSource);
+                if (dataSource != null) {
+                        tokenRepository.setDataSource(dataSource);
+                }
                 return tokenRepository;
         }
 
@@ -108,15 +110,25 @@ public class SecurityConfig {
         }
 
         @Bean
+        public SystemMaintenanceFilter systemMaintenanceFilter(SystemService systemService) {
+                SystemMaintenanceFilter filter = new SystemMaintenanceFilter(systemService);
+                filter.setBypassToken(maintenanceBypassToken);
+                return filter;
+        }
+
+        @Bean
         public SecurityFilterChain filterChain(HttpSecurity http,
                         RememberMeServices rememberMeServices,
-                        AccountStatusFilter accountStatusFilter)
+                        AccountStatusFilter accountStatusFilter,
+                        SystemMaintenanceFilter systemMaintenanceFilter)
                         throws Exception {
 
                 http.csrf(AbstractHttpConfigurer::disable);
                 http.httpBasic(AbstractHttpConfigurer::disable);
 
-                // Rejestracja filtra sprawdzającego status konta (blokady)
+                // Rejestracja filtra sprawdzającego status konta (blokady) oraz tryb
+                // konserwacji
+                http.addFilterBefore(systemMaintenanceFilter, AuthorizationFilter.class);
                 http.addFilterBefore(accountStatusFilter, AuthorizationFilter.class);
 
                 // Dzięki temu Spring wie, że jak ktoś nie ma dostępu, to trzeba go rzucić na
@@ -135,8 +147,6 @@ public class SecurityConfig {
 
                 http.authorizeHttpRequests(auth -> auth
                                 .requestMatchers(
-                                                "/favicon.ico",
-                                                "/favicon.png",
                                                 "/",
                                                 "/login",
                                                 "/register",
@@ -150,14 +160,24 @@ public class SecurityConfig {
                                                 "/password-reset-expired",
                                                 "/token-error",
                                                 "/contact",
-                                                "/error/**")
+                                                "/error/**",
+                                                "/maintenance",
+                                                "/module-maintenance",
+                                                "/api/system/module-status/**",
+                                                "/static/**",
+                                                "/css/**",
+                                                "/js/**",
+                                                "/images/**",
+                                                "/favicon.ico",
+                                                "/favicon.png")
                                 .permitAll()
 
                                 // API feedback dla niezalogowanych
                                 .requestMatchers(HttpMethod.POST, "/api/feedback").permitAll()
 
                                 // API endpoints tylko dla ADMIN
-                                .requestMatchers(HttpMethod.POST, "/api/schedule/**", "/api/groups").hasAnyRole("ADMIN", "STAROSTA")
+                                .requestMatchers(HttpMethod.POST, "/api/schedule/**", "/api/groups")
+                                .hasAnyRole("ADMIN", "STAROSTA")
                                 .requestMatchers(HttpMethod.PUT,
                                                 "/api/schedule/**",
                                                 "/api/groups/**",

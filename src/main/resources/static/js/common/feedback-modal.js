@@ -30,7 +30,6 @@ const FeedbackModal = {
             cancelBtn: document.getElementById('cancelFeedback'),
             form: document.getElementById('feedbackForm'),
             submitBtn: document.getElementById('submitFeedback'),
-            message: document.getElementById('feedbackMessage'),
             description: document.getElementById('feedback-description'),
             charCount: document.getElementById('charCount'),
             fileInput: document.getElementById('feedback-file')
@@ -74,7 +73,7 @@ const FeedbackModal = {
 
         // Walidacja rozmiaru (5MB)
         if (file.size > 5 * 1024 * 1024) {
-            this.showMessage('Plik jest zbyt duży (maksymalnie 5MB).', 'error');
+            Utils.showToast('Plik jest zbyt duży (maksymalnie 5MB).', 'error');
             input.value = ''; // Reset input
             return;
         }
@@ -85,19 +84,16 @@ const FeedbackModal = {
         const isValid = allowedExtensions.some(ext => fileName.endsWith('.' + ext));
 
         if (!isValid) {
-            this.showMessage('Niedozwolony format pliku. Dozwolone: jpg, jpeg, png, pdf.', 'error');
+            Utils.showToast('Niedozwolony format pliku. Dozwolone: jpg, jpeg, png, pdf.', 'error');
             input.value = ''; // Reset input
             return;
         }
-
-        this.hideMessage();
     },
 
     // Otwieranie modalu
     open() {
         this.elements.modal.classList.add('active');
         document.body.style.overflow = 'hidden';
-        this.hideMessage();
     },
 
     // Zamykanie modalu
@@ -111,7 +107,6 @@ const FeedbackModal = {
     reset() {
         this.elements.form.reset();
         this.updateCharCount();
-        this.hideMessage();
     },
 
     // Aktualizacja licznika znaków
@@ -124,16 +119,7 @@ const FeedbackModal = {
         }
     },
 
-    // Pokazywanie wiadomości
-    showMessage(text, type = 'success') {
-        this.elements.message.textContent = text;
-        this.elements.message.className = `feedback-message ${type}`;
-    },
-
-    // Ukrywanie wiadomości
-    hideMessage() {
-        this.elements.message.className = 'feedback-message';
-    },
+    // Obsolete local message functions removed
 
     // Wysyłanie formularza
     async submit() {
@@ -151,23 +137,23 @@ const FeedbackModal = {
 
         // Walidacja
         if (!title || !description) {
-            this.showMessage('Wszystkie wymagane pola muszą zostać wypełnione.', 'error');
+            Utils.showToast('Wszystkie wymagane pola muszą zostać wypełnione.', 'error');
             return;
         }
 
         if (title.length < 5) {
-            this.showMessage('Tytuł musi zawierać minimum 5 znaków.', 'error');
+            Utils.showToast('Tytuł musi zawierać minimum 5 znaków.', 'error');
             return;
         }
 
         if (description.length < 10) {
-            this.showMessage('Opis musi zawierać minimum 10 znaków.', 'error');
+            Utils.showToast('Opis musi zawierać minimum 10 znaków.', 'error');
             return;
         }
 
         // Walidacja pliku (rozmiar)
         if (file && file.size > 0 && file.size > 5 * 1024 * 1024) { // 5MB
-            this.showMessage('Plik jest zbyt duży (maksymalnie 5MB).', 'error');
+            Utils.showToast('Plik jest zbyt duży (maksymalnie 5MB).', 'error');
             return;
         }
 
@@ -200,17 +186,13 @@ const FeedbackModal = {
             const result = await response.json();
 
             // Sukces
-            this.showMessage('Dziękujemy za zgłoszenie. Wkrótce się tym zajmiemy.', 'success');
-            
-            // Zamknięcie modalu po 2 sekundach
-            setTimeout(() => {
-                this.close();
-            }, 2000);
+            this.close();
+            Utils.showToast('Dziękujemy za zgłoszenie. Wkrótce się tym zajmiemy.', 'success');
 
         } 
         catch (error) {
             console.error('Błąd wysyłania zgłoszenia:', error);
-            this.showMessage(error.message || 'Nie udało się wysłać zgłoszenia. Sprawdź połączenie internetowe i spróbuj ponownie.', 'error');
+            Utils.showToast(error.message || 'Nie udało się wysłać zgłoszenia. Sprawdź połączenie internetowe i spróbuj ponownie.', 'error');
         } 
         finally {
             // Enable button

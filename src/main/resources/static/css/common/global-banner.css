@@ -1,0 +1,30 @@
+.global-system-banner {
+    background: linear-gradient(90deg, var(--primary, #005efa) 0%, #0047d1 100%);
+    color: white;
+    padding: 0.6rem 1rem;
+    text-align: center;
+    font-weight: 500;
+    font-size: 0.85rem;
+    position: relative;
+    z-index: 1100;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    animation: slideDown 0.5s ease-out;
+}
+
+.global-system-banner i {
+    font-size: 1rem;
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(0); }
+}
+
+[data-theme="dark"] .global-system-banner {
+    background: linear-gradient(90deg, #1e293b 0%, #0047d1 100%);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}

@@ -20,6 +20,7 @@
         <link rel="stylesheet" th:href="@{/css/common/feedback-modal.css(v=${#dates.createNow().getTime()})}">
         <link rel="stylesheet" th:href="@{/css/common/style.css(v=${#dates.createNow().getTime()})}">
         <link rel="stylesheet" th:href="@{/css/common/theme.css(v=${#dates.createNow().getTime()})}">
+        <link rel="stylesheet" th:href="@{/css/common/global-banner.css(v=${#dates.createNow().getTime()})}">
 
         <th:block layout:fragment="page-styles"></th:block>
         
@@ -36,6 +37,12 @@
     </head>
     
     <body>
+        <!-- Globalny baner systemowy -->
+        <div th:if="${globalBannerText}" class="global-system-banner">
+            <i class="fas fa-bullhorn"></i>
+            <span th:text="${globalBannerText}">Powiadomienie systemowe</span>
+        </div>
+
         <div th:replace="~{fragments/header :: header}"></div>
 
         <div class="dashboard-container">
@@ -74,7 +81,6 @@
                 </div>
                 
                 <div class="feedback-modal-body">
-                    <div class="feedback-message" id="feedbackMessage"></div>
                     
                     <form id="feedbackForm">
                         <div class="feedback-form-group">

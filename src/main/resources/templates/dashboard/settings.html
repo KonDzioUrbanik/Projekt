@@ -11,11 +11,20 @@
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
 
-        <!-- osobny arkusz stylow -->
+        <!-- Style globalne (toasty itp) -->
+        <link rel="stylesheet" th:href="@{/css/common/style.css(v=${#dates.createNow().getTime()})}">
+        <!-- Osobny arkusz stylow dla ustawień -->
         <link rel="stylesheet" th:href="@{/css/dashboard/settings.css(v=${#dates.createNow().getTime()})}" href="../static/css/dashboard/settings.css">
-        <!-- Theme CSS -->
+        <!-- Theme CSS (zawsze na końcu dla poprawnego dark mode) -->
         <link rel="stylesheet" th:href="@{/css/common/theme.css(v=${#dates.createNow().getTime()})}">
 
+        <style>
+            /* Reset body layout for standalone settings page to avoid conflicts with global style.css */
+            body {
+                display: block !important;
+                min-height: auto !important;
+            }
+        </style>
         <script>
             (function() {
                 var t = localStorage.getItem('theme');
@@ -312,8 +321,12 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Kontener na toasty -->
+        <div id="toastContainer" class="toast-container"></div>
 
         <!-- osobny plik JS -->
+        <script th:src="@{/js/common/utils.js(v=${#dates.createNow().getTime()})}" defer></script>
         <script th:src="@{/js/dashboard/settings.js(v=${#dates.createNow().getTime()})}" src="../../static/js/dashboard/settings.js" defer></script>
         <script th:src="@{/js/common/theme.js(v=${#dates.createNow().getTime()})}" defer></script>
     </body>
