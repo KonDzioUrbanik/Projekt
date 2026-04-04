@@ -2295,13 +2295,7 @@ body {
     margin-bottom: 8px;
 }
 
-.special-period-dates {
-    font-size: 0.85rem;
-    color: var(--color-primary);
-    font-weight: 500;
-}
-
-/* Warianty kolorystyczne dla różnych typów okresów */
+/* Warianty kolorystyczne — ikona i daty per typ */
 .special-period-card.special-exam {
     background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.05));
     border-color: rgba(245, 158, 11, 0.3);

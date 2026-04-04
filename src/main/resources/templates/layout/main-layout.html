@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="pl"
       xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <meta name="view-transition" content="same-origin" />
+        <meta name="user-role" th:content="${#authorization.expression('hasRole(''ADMIN'')') ? 'ROLE_ADMIN' : 'ROLE_USER'}">
         <title layout:title-pattern="$CONTENT_TITLE - PANSportal">PANSportal</title>
 
         <link rel="icon" th:href="@{/favicon.png}" type="image/png">
@@ -181,6 +183,9 @@
         <script th:src="@{/js/common/feedback-modal.js(v=${#dates.createNow().getTime()})}" defer></script>
         <script th:src="@{/js/common/breadcrumbs.js(v=${#dates.createNow().getTime()})}" defer></script>
 
+        <script th:src="@{/js/common/pans-events.js(v=${#dates.createNow().getTime()})}" defer></script>
+
         <th:block layout:fragment="page-scripts"></th:block>
+
     </body>
 </html>

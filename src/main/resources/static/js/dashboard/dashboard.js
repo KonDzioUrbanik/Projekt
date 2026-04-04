@@ -384,12 +384,12 @@ class DashboardHome {
         }
         
         specialPeriodDiv.innerHTML = `
-        <div class="special-period-card">
-            <div class="special-period-header">
+        <div class="special-period-card ${cssClass}">
+            <div class="special-period-icon">
                 <i class="fas ${icon}"></i>
-                <span class="special-period-title">${Utils.escapeHtml(period.title)}</span>
             </div>
-            <div class="special-period-body">
+            <div class="special-period-content">
+                <h3>${Utils.escapeHtml(period.title)}</h3>
                 <p>${message}</p>
                 <span class="special-period-dates">${Utils.escapeHtml(period.formattedDateRange)}</span>
             </div>
