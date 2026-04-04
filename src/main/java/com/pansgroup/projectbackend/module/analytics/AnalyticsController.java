@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 
+import com.pansgroup.projectbackend.module.system.SystemService;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/preferences")
@@ -18,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AnalyticsController {
 
     private final AnalyticsService service;
+    private final SystemService systemService;
 
     /**
      * Endpoint do odbioru zdarzeń analitycznych z frontendu.
@@ -27,6 +30,10 @@ public class AnalyticsController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> track(@Valid @RequestBody AnalyticsEventDto dto,
             Authentication auth) {
+        if (!systemService.isModuleEnabled("module_analytics")) {
+            // Zwracamy ciche 200 OK, aby nie spamować konsoli błędami po stronie klienta
+            return ResponseEntity.ok().build();
+        }
         try {
             service.saveEvent(dto, auth);
             return ResponseEntity.ok().build();
