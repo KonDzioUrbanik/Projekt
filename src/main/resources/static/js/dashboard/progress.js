@@ -176,11 +176,10 @@ class AcademicProgress {
             const today = new Date();
             today.setHours(0,0,0,0);
             
-            // Filter future events and sort
             const upcoming = this.data.timelineEvents
                 .filter(e => new Date(e.dateTo || e.dateFrom) >= today && e.type !== 'DIDACTIC')
                 .sort((a, b) => new Date(a.dateFrom) - new Date(b.dateFrom))
-                .slice(0, 5); // Take top 5
+                .slice(0, 5);
                 
             if (upcoming.length === 0) {
                 container.innerHTML = '<div class="text-muted text-center w-100" style="padding: 2rem;">Brak nadchodzących wydarzeń w tym semestrze</div>';
@@ -198,15 +197,27 @@ class AcademicProgress {
                 if (event.type === 'BREAK') iconClass = 'fas fa-umbrella-beach';
                 if (event.type === 'HOLIDAY') iconClass = 'fas fa-flag';
                 
-                // Calculate days left
-                const eventDate = new Date(event.dateFrom);
-                eventDate.setHours(0,0,0,0);
-                const diffTime = eventDate - today;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const dateFrom = new Date(event.dateFrom);
+                dateFrom.setHours(0, 0, 0, 0);
+                const dateTo = new Date(event.dateTo || event.dateFrom);
+                dateTo.setHours(23, 59, 59, 999);
                 
-                let daysText = `<div class="event-days">za ${diffDays}</div><div class="event-days-label">dni</div>`;
-                if (diffDays === 0) daysText = `<div class="event-days" style="color:var(--progress-accent);">Dzisiaj</div>`;
-                else if (diffDays === 1) daysText = `<div class="event-days">Jutro</div>`;
+                let daysText = '';
+                
+                if (today >= dateFrom && today <= dateTo) {
+                    daysText = `<div class="event-days" style="color:var(--progress-accent); font-size: 0.95rem; font-weight: 700;">Trwa</div>`;
+                } else {
+                    const diffTime = dateFrom - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    if (diffDays === 0) {
+                        daysText = `<div class="event-days" style="color:var(--progress-accent);">Dzisiaj</div>`;
+                    } else if (diffDays === 1) {
+                        daysText = `<div class="event-days">Jutro</div>`;
+                    } else {
+                        daysText = `<div class="event-days">za ${diffDays}</div><div class="event-days-label">dni</div>`;
+                    }
+                }
 
                 item.innerHTML = `
                     <div class="event-icon-wrapper">
