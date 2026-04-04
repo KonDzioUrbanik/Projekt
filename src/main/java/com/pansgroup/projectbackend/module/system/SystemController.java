@@ -37,6 +37,7 @@ public class SystemController {
             "module_university_calendar",
             "module_semester_progress",
             "module_starosta_announcements",
+            "module_analytics",
             "global_banner_text");
 
     /**
@@ -54,6 +55,7 @@ public class SystemController {
             "module_forum",
             "module_university_calendar",
             "module_semester_progress",
+            "module_analytics",
             "module_starosta_announcements");
 
     private static final int BANNER_MAX_LENGTH = 500;

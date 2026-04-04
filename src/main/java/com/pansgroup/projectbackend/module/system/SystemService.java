@@ -26,7 +26,8 @@ public class SystemService {
 
     @PostConstruct
     public void initSettings() {
-        createSettingIfAbsent("global_maintenance", "false", "Globalny tryb konserwacji - blokuje dostęp wszystkim poza adminami");
+        createSettingIfAbsent("global_maintenance", "false",
+                "Globalny tryb konserwacji - blokuje dostęp wszystkim poza adminami");
         createSettingIfAbsent("registration_enabled", "true", "Zezwalaj na rejestrację nowych użytkowników");
         createSettingIfAbsent("login_enabled", "true", "Zezwalaj na logowanie do platformy");
         createSettingIfAbsent("module_notes", "true", "Status modułu Notatki");
@@ -38,8 +39,9 @@ public class SystemService {
         createSettingIfAbsent("module_university_calendar", "true", "Status modułu Kalendarz akademicki");
         createSettingIfAbsent("module_semester_progress", "true", "Status modułu Postęp semestru");
         createSettingIfAbsent("module_starosta_announcements", "true", "Status modułu Wyślij ogłoszenie (Starosta)");
+        createSettingIfAbsent("module_analytics", "true", "Status modułu Telemetrii analitycznej");
         createSettingIfAbsent("global_banner_text", "", "Treść komunikatu wyświetlanego wszystkim użytkownikom");
-        
+
         // Populate cache
         repository.findAll().forEach(s -> settingsCache.put(s.getSettingKey(), s.getSettingValue()));
     }
@@ -53,19 +55,16 @@ public class SystemService {
                     .build());
         }
     }
-
-    // Cache dla ułatwienia (opcjonalnie, tu na razie bez cache dla pewności DB)
-
+    
     @Transactional(readOnly = true)
     public String getSetting(String key, String defaultValue) {
-        return settingsCache.getOrDefault(key, 
-            repository.findBySettingKey(key)
-                .map(s -> {
-                    settingsCache.put(key, s.getSettingValue());
-                    return s.getSettingValue();
-                })
-                .orElse(defaultValue)
-        );
+        return settingsCache.getOrDefault(key,
+                repository.findBySettingKey(key)
+                        .map(s -> {
+                            settingsCache.put(key, s.getSettingValue());
+                            return s.getSettingValue();
+                        })
+                        .orElse(defaultValue));
     }
 
     @Transactional
