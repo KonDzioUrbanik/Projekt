@@ -5,9 +5,9 @@
     var userRole = roleMeta ? roleMeta.getAttribute('content') : '';
     if (userRole === 'ROLE_ADMIN' || userRole === 'ADMIN') return;
 
-    var ENDPOINT = '/api/activity/event';
-    var SESSION_KEY = 'pans_analytics_sid';
-    var SESSION_TS_KEY = 'pans_analytics_ts';
+    var ENDPOINT = '/api/preferences/sync';
+    var SESSION_KEY = 'pans_state_sid';
+    var SESSION_TS_KEY = 'pans_state_ts';
     var SESSION_TTL = 30 * 60 * 1000;
 
     function getOrCreateSession() {
@@ -37,6 +37,10 @@
 
     var sessionId = getOrCreateSession();
 
+    if (window.location.pathname.startsWith('/api') || window.location.pathname.startsWith('/preferences') || window.location.pathname.startsWith('/ws')) {
+        return;
+    }
+
     var currentPage = window.location.pathname;
     
     function sanitize(str, max) {
@@ -61,11 +65,18 @@
         } catch (e) {}
 
         try {
+            var csrfMeta = document.querySelector('meta[name="_csrf"]');
+            var csrfHeaderMeta = document.querySelector('meta[name="_csrf_header"]');
+            var csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+            var csrfHeader = csrfHeaderMeta ? csrfHeaderMeta.getAttribute('content') : 'X-CSRF-TOKEN';
+
             fetch(ENDPOINT, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: json,
-                keepalive: true
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
+                },
+                body: json
             }).catch(function () {});
         } catch (e) {}
     }

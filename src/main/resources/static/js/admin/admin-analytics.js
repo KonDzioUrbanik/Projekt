@@ -9,7 +9,7 @@
 
     async function loadAnalytics() {
         try {
-            const res = await fetch('/api/activity/summary', {
+            const res = await fetch('/api/preferences/state', {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
             if (!res.ok) throw new Error('Błąd pobierania danych');
