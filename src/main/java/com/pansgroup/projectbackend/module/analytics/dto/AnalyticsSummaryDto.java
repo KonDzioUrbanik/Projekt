@@ -9,5 +9,8 @@ public record AnalyticsSummaryDto(
         List<PageStatDto> topPages,
         List<ClickStatDto> topClicks,
         List<DailyStatDto> dailyStats,
-        List<UserActivityDto> userActivity
-) {}
+        List<UserActivityDto> userActivity,
+        List<DeviceStatDto> deviceStats,
+        List<ClickStatDto> recentErrors,
+        List<ClickStatDto> scrollDepthStats) {
+}

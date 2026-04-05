@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 public record AnalyticsEventDto(
         @NotBlank @Size(max = 64) String sessionId,
         @NotNull EventType eventType,
-        @Size(max = 128) String eventName,
+        @Size(max = 255) String eventName,
         @NotBlank @Size(max = 255) String page,
         Long durationMs
 ) {}

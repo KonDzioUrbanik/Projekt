@@ -32,7 +32,7 @@ public class AnalyticsEvent {
     @Column(name = "event_type", nullable = false, length = 32)
     private EventType eventType;
 
-    @Column(name = "event_name", length = 128)
+    @Column(name = "event_name", length = 255)
     private String eventName;
 
     @Column(name = "page", nullable = false, length = 255)
@@ -50,6 +50,6 @@ public class AnalyticsEvent {
     }
 
     public enum EventType {
-        PAGE_VIEW, CLICK, FORM_SUBMIT
+        PAGE_VIEW, CLICK, FORM_SUBMIT, SCROLL_DEPTH, ERROR, DEVICE_INFO
     }
 }
