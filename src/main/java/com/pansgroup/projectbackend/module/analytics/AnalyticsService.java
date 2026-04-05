@@ -6,6 +6,7 @@ import com.pansgroup.projectbackend.module.analytics.dto.PageStatDto;
 import com.pansgroup.projectbackend.module.analytics.dto.ClickStatDto;
 import com.pansgroup.projectbackend.module.analytics.dto.DailyStatDto;
 import com.pansgroup.projectbackend.module.analytics.dto.UserActivityDto;
+import com.pansgroup.projectbackend.module.analytics.dto.DeviceStatDto;
 import com.pansgroup.projectbackend.module.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -47,7 +48,13 @@ public class AnalyticsService {
                         return;
 
                 // Backend Anti-Spam: max 1 event per 100ms na sessionId
-                if (rateLimiter.size() > 10000) rateLimiter.clear(); // safe clear
+                if (dto.sessionId() == null || dto.sessionId().isBlank()) {
+                        log.warn("Zdarzenie odrzucone (brak SESSION_ID)");
+                        return;
+                }
+
+                if (rateLimiter.size() > 10000)
+                        rateLimiter.clear(); // safe clear
                 long now = System.currentTimeMillis();
                 Long lastEventTime = rateLimiter.get(dto.sessionId());
                 if (lastEventTime != null && (now - lastEventTime) < 100) {
@@ -56,7 +63,8 @@ public class AnalyticsService {
                 }
                 rateLimiter.put(dto.sessionId(), now);
 
-                log.info("Zdarzenie odebrane: sessionId={}, eventType={}, page={}", dto.sessionId(), dto.eventType(), dto.page());
+                log.info("Zdarzenie odebrane: sessionId={}, eventType={}, page={}", dto.sessionId(), dto.eventType(),
+                                dto.page());
 
                 // Odrzuć administratorów
                 boolean isAdmin = auth.getAuthorities().stream()
@@ -66,13 +74,8 @@ public class AnalyticsService {
                         return;
                 }
 
-                // Odrzuć puste/nieprawidłowe dane
                 if (dto.page() == null || dto.page().isBlank()) {
                         log.warn("Zdarzenie odrzucone (brak PAGE)");
-                        return;
-                }
-                if (dto.sessionId() == null || dto.sessionId().isBlank()) {
-                        log.warn("Zdarzenie odrzucone (brak SESSION_ID)");
                         return;
                 }
 
@@ -91,7 +94,10 @@ public class AnalyticsService {
                 event.setPage(sanitizePage(dto.page()));
                 event.setDurationMs(dto.durationMs());
 
-                repository.save(event);
+                log.info("Zapisywanie zdarzenia: {} {} na stronie {}", event.getEventType(), event.getEventName(),
+                                event.getPage());
+                AnalyticsEvent saved = repository.save(event);
+                log.info("Zdarzenie zapisane pomyślnie. ID={}", saved.getId());
         }
 
         /**
@@ -129,8 +135,36 @@ public class AnalyticsService {
                 long totalSessions = repository.countUniqueSessionsSince(thirtyDaysAgo);
                 long totalClicksCount = repository.countClicksSince(thirtyDaysAgo);
 
+                List<DeviceStatDto> deviceStats = repository.findDeviceStats(TOP_20).stream()
+                                .map(row -> new DeviceStatDto(
+                                                (String) row[0],
+                                                ((Number) row[1]).longValue()))
+                                .collect(Collectors.toList());
+
+                List<ClickStatDto> recentErrors = repository.findRecentErrors(TOP_50).stream()
+                                .map(row -> new ClickStatDto(
+                                                (String) row[0],
+                                                ((Number) row[1]).longValue()))
+                                .collect(Collectors.toList());
+
+                List<ClickStatDto> scrollStats = repository.findScrollDepthStats().stream()
+                                .map(row -> new ClickStatDto(
+                                                (String) row[0],
+                                                ((Number) row[1]).longValue()))
+                                .sorted((a, b) -> {
+                                        try {
+                                                int valA = Integer.parseInt(a.eventName().replaceAll("\\D+", ""));
+                                                int valB = Integer.parseInt(b.eventName().replaceAll("\\D+", ""));
+                                                return Integer.compare(valA, valB);
+                                        } catch (Exception e) {
+                                                return a.eventName().compareTo(b.eventName());
+                                        }
+                                })
+                                .collect(Collectors.toList());
+
                 return new AnalyticsSummaryDto(
-                                totalPageViews, totalSessions, totalClicksCount, topPages, topClicks, daily, users);
+                                totalPageViews, totalSessions, totalClicksCount, topPages, topClicks, daily, users,
+                                deviceStats, recentErrors, scrollStats);
         }
 
         private List<UserActivityDto> buildUserActivity() {
@@ -142,8 +176,11 @@ public class AnalyticsService {
                                         // Zabezpieczenie RODO/GDPR - pseudonimizacja w widoku panelu.
                                         String name = userRepository.findById(uid)
                                                         .map(u -> {
-                                                                String rola = u.getRole() != null ? u.getRole().replace("ROLE_", "") : "UŻYTKOWNIK";
-                                                                return rola + " #" + u.getId() + " (" + u.getFirstName().charAt(0) + "***)";
+                                                                String rola = u.getRole() != null
+                                                                                ? u.getRole().replace("ROLE_", "")
+                                                                                : "UŻYTKOWNIK";
+                                                                return rola + " #" + u.getId() + " ("
+                                                                                + u.getFirstName().charAt(0) + "***)";
                                                         })
                                                         .orElse("Konto usunięte");
                                         return new UserActivityDto(uid, name, sessions, events);
@@ -158,9 +195,7 @@ public class AnalyticsService {
         private String sanitizePage(String page) {
                 if (page == null)
                         return "/";
-                int q = page.indexOf('?');
-                if (q >= 0)
-                        page = page.substring(0, q);
+                // Zachowujemy parametry query (?userId=...), ale usuwamy fragmenty (#...)
                 int h = page.indexOf('#');
                 if (h >= 0)
                         page = page.substring(0, h);
