@@ -1,5 +1,6 @@
 package com.pansgroup.projectbackend.module.note;
 
+import com.pansgroup.projectbackend.module.note.dto.NoteDTO;
 import com.pansgroup.projectbackend.module.note.dto.NoteCreateDto;
 import com.pansgroup.projectbackend.module.note.dto.NoteResponseDto;
 import com.pansgroup.projectbackend.module.note.dto.NoteUpdateDto;
@@ -13,7 +14,7 @@ public interface NoteService {
 
     void delete(Long id);
 
-    NoteResponseDto findById(Long id);
+    NoteDTO findById(Long id);
 
     List<NoteResponseDto> findAll();
 

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/main-layout}"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Profil Użytkownika</title>
+    <th:block layout:fragment="page-styles">
+        <link rel="stylesheet" th:href="@{/css/dashboard/user-profile.css(v=${#dates.createNow().getTime()})}">
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="user-profile-wrapper">
+            <!-- Header Section -->
+            <div class="up-header card">
+                <div class="up-cover"></div>
+                <div class="up-header-content">
+                    <div class="up-avatar-container">
+                        <div class="up-avatar-inner">
+                            <img id="userAvatar" src="" alt="Avatar" class="up-avatar-img" style="display: none;">
+                            <div id="userInitials" class="up-avatar-initials"></div>
+                        </div>
+                    </div>
+                    <div class="up-user-info">
+                        <div class="up-name-row">
+                            <h1 id="userName"></h1>
+                            <span id="userRole" class="up-role-badge"></span>
+                        </div>
+                        <p id="userEmail" class="up-email"></p>
+                        <div class="up-meta-pills">
+                            <span id="userField" class="up-pill"><i class="fas fa-graduation-cap"></i></span>
+                            <span id="userYear" class="up-pill"><i class="fas fa-calendar-alt"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="up-grid">
+                <!-- Sidebar Info -->
+                <div class="up-sidebar">
+                    <div class="up-section card">
+                        <h2 class="up-section-title"><i class="fas fa-info-circle"></i> O użytkowniku</h2>
+                        <div class="up-bio" id="userBio">Brak biogramu.</div>
+                        <div class="up-info-list">
+                            <div class="up-info-item">
+                                <span class="label">Płeć</span>
+                                <span class="value" id="userStudyMode">--</span>
+                            </div>
+                            <div class="up-info-item">
+                                <span class="label">Członek od</span>
+                                <span class="value" id="userJoined">--</span>
+                            </div>
+                            <div class="up-info-item">
+                                <span class="label">Ostatnio widziany</span>
+                                <span class="value" id="userLastSeen">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="up-section card">
+                        <h2 class="up-section-title"><i class="fas fa-chart-line"></i> Statystyki</h2>
+                        <div class="up-stats-grid">
+                            <div class="up-stat-box">
+                                <span class="val" id="statPosts">0</span>
+                                <span class="lbl">Posty</span>
+                            </div>
+                            <div class="up-stat-box">
+                                <span class="val" id="statComments">0</span>
+                                <span class="lbl">Komentarze</span>
+                            </div>
+                            <div class="up-stat-box">
+                                <span class="val" id="statNotes">0</span>
+                                <span class="lbl">Notatki</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Activity -->
+                <div class="up-main">
+                    <div class="up-section card">
+                        <h2 class="up-section-title"><i class="fas fa-history"></i> Ostatnia aktywność</h2>
+                        <div id="activityList" class="up-activity-list">
+                            <div class="up-empty-activity">
+                                <i class="fas fa-ghost"></i>
+                                <p>Brak publicznej aktywności do wyświetlenia.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="page-scripts">
+        <script th:src="@{/js/dashboard/user-profile.js(v=${#dates.createNow().getTime()})}"></script>
+    </th:block>
+</body>
+</html>

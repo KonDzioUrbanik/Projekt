@@ -78,6 +78,11 @@
             href: '/profile',
             parent: 'home'
         },
+        'user-profile': {
+            label: 'Profil użytkownika',
+            href: '#',
+            parent: 'home'
+        },
         settings: {
             label: 'Edycja profilu',
             href: '/settings',

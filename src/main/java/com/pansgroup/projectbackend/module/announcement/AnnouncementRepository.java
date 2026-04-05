@@ -22,6 +22,8 @@ public interface AnnouncementRepository extends JpaRepository<Announcement, Long
 
     List<Announcement> findByBroadcastKeyOrderByCreatedAtDesc(String broadcastKey);
 
+    long countByAuthor_Id(Long authorId);
+
     @Modifying
     @Query("UPDATE Announcement a SET a.isPinned = :isPinned WHERE a.broadcastKey = :broadcastKey")
     void updateIsPinnedByBroadcastKey(String broadcastKey, boolean isPinned);

@@ -145,9 +145,26 @@ public class SystemMaintenanceFilter extends OncePerRequestFilter {
             if (checkModuleBlock(request, response, path, "/starosta/announcements", "module_starosta_announcements",
                     "Ogłoszenia starosty"))
                 return;
+            if (checkChatBlock(request, response, path))
+                return;
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Zabezpiecza moduł Chat — blokuje UI (/student/chat), API (/api/chat) oraz
+     * wstępny handshake WebSocket (/ws/chat).
+     */
+    private boolean checkChatBlock(HttpServletRequest request, HttpServletResponse response, String path)
+            throws IOException {
+        boolean isChatPath = path.startsWith("/student/chat") || path.startsWith("/api/chat")
+                || path.startsWith("/ws/chat");
+        if (isChatPath && !systemService.isModuleEnabled("module_chat")) {
+            redirectOrJson(request, response, "Moduł Chat");
+            return true;
+        }
+        return false;
     }
 
     /**

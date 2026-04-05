@@ -44,12 +44,22 @@ class ProfileModule {
     // Pobieranie danych użytkownika dla stażu i ostatniego logowania
     async loadUserStats() {
         try {
-            const response = await fetch(ProfileModule.CONFIG.API.ME);
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('userId');
+            
+            const apiUrl = userId ? `/api/users/${userId}` : ProfileModule.CONFIG.API.ME;
+            const response = await fetch(apiUrl);
+            
             if (!response.ok) throw new Error('Nie udało się pobrać danych użytkownika');
             
             const user = await response.json();
             this.renderUserPersonalStats(user);
             
+            // Jeśli przeglądamy profil kogoś innego (mamy userId w URL), możemy ukryć elementy edycji
+            if (userId) {
+                document.querySelectorAll('.only-me').forEach(el => el.style.display = 'none');
+            }
+
             // Jeśli Admin lub Starosta, załaduj dodatkowo jego ogłoszenia
             if (this.statsAnnouncements && user.role && (user.role.includes('ADMIN') || user.role.includes('STAROSTA'))) {
                 this.loadAuthorAnnouncementsCount(user.id);
@@ -134,15 +144,13 @@ class ProfileModule {
 
     async loadAuthorAnnouncementsCount(userId) {
         try {
-            const response = await fetch(ProfileModule.CONFIG.API.ALL_ANNOUNCEMENTS);
-            if (!response.ok) return;
+            const response = await fetch(`/api/announcements/count/author/${userId}`);
+            if (!response.ok || response.redirected || response.url.includes('/login')) return;
             
-            const announcements = await response.json();
-            // Filtrujemy ogłoszenia, których autorem jest bieżący użytkownik
-            const ownAnnouncements = announcements.filter(a => a.authorId === userId);
+            const count = await response.json();
             
             if (this.statsAnnouncements) {
-                this.statsAnnouncements.textContent = ownAnnouncements.length;
+                this.statsAnnouncements.textContent = count;
             }
         } catch (error) {
             console.error('Błąd ładowania liczby ogłoszeń:', error);

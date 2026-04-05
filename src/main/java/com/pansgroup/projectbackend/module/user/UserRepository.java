@@ -22,4 +22,15 @@ public interface UserRepository extends JpaRepository<User,Long> {
            "LOWER(u.email) LIKE :pattern " +
            "ORDER BY u.lastName, u.firstName")
     List<User> searchByNameOrEmail(@Param("pattern") String pattern);
+
+    /** Search users for chat — excludes ADMIN and self. */
+    @Query("SELECT u FROM User u WHERE " +
+           "u.role NOT IN ('ADMIN', 'ROLE_ADMIN') AND " +
+           "u.id <> :excludeId AND " +
+           "u.isActivated = true AND " +
+           "u.isBlocked = false AND " +
+           "(LOWER(u.firstName) LIKE :q OR LOWER(u.lastName) LIKE :q OR " +
+           "LOWER(CONCAT(u.firstName, ' ', u.lastName)) LIKE :q) " +
+           "ORDER BY u.lastName, u.firstName")
+    List<User> searchChatUsers(@Param("q") String q, @Param("excludeId") Long excludeId);
 }

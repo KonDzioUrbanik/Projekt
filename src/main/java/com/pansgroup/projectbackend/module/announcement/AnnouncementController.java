@@ -46,6 +46,11 @@ public class AnnouncementController {
         return announcementService.getDashboardFeed(limit);
     }
 
+    @GetMapping("/count/author/{userId}")
+    public long countByAuthor(@PathVariable Long userId) {
+        return announcementService.countByAuthorId(userId);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {

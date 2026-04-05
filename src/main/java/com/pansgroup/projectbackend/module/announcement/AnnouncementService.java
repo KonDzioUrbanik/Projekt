@@ -23,5 +23,7 @@ public interface AnnouncementService {
 
     void checkAttachmentAccess(AnnouncementAttachment attachment);
 
+    long countByAuthorId(Long authorId);
+
     List<AnnouncementResponseDto> getDashboardFeed(int limit);
 }

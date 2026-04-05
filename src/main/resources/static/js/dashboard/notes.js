@@ -366,20 +366,41 @@ async function loadNotes() {
         const noteIdParam = urlParams.get('id');
 
         if (noteIdParam) {
-            // Używamy '==' żeby porównać string z URL z liczbą ID z API
-            const targetNote = AppState.notes.find(n => n.id == noteIdParam);
+            let targetNote = AppState.notes.find(n => n.id == noteIdParam);
             
-            if (targetNote) {
-                // Wybierz notatkę i wyświetl
-                selectNote(targetNote.id);
-                
-                // Poczekaj chwilę aż DOM się odświeży i przewiń listę
+            const finalizeDeepLink = (note) => {
+                selectNote(note.id);
                 setTimeout(() => {
-                    const activeCard = document.querySelector(`.note-card[data-note-id="${targetNote.id}"]`);
+                    const activeCard = document.querySelector(`.note-card[data-note-id="${note.id}"]`);
                     if (activeCard) {
                         activeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                 }, 100);
+            };
+
+            if (targetNote) {
+                finalizeDeepLink(targetNote);
+            } else {
+                // Fallback: spróbuj pobrać notatkę bezpośrednio jeśli nie ma jej na liście (może być poza aktualnym filtrem)
+                try {
+                    const resp = await fetch(CONFIG.API.NOTE_BY_ID(noteIdParam));
+                    if (resp.ok) {
+                        const fetchedNote = await resp.json();
+                        // Dodaj na początek listy
+                        AppState.notes.unshift(fetchedNote);
+                        applyCurrentFilter(); // Zaktualizuj filtrowaną listę
+                        
+                        // Jeśli filtr by ją ukrył, dodaj wymuszenie do filteredNotes
+                        if (!AppState.filteredNotes.find(n => n.id === fetchedNote.id)) {
+                            AppState.filteredNotes.unshift(fetchedNote);
+                        }
+                        
+                        renderNotesList();
+                        finalizeDeepLink(fetchedNote);
+                    }
+                } catch (err) {
+                    console.error('Deep link fetch failed:', err);
+                }
             }
         }
     } catch (error) {
