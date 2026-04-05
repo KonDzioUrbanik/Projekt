@@ -25,8 +25,8 @@ public class MainController {
     private final AcademicYearConfigService academicYearConfigService;
 
     public MainController(DashboardService dashboardService, UserService userService,
-                          LandingStatsService landingStatsService,
-                          AcademicYearConfigService academicYearConfigService) {
+            LandingStatsService landingStatsService,
+            AcademicYearConfigService academicYearConfigService) {
         this.dashboardService = dashboardService;
         this.userService = userService;
         this.landingStatsService = landingStatsService;
@@ -161,6 +161,31 @@ public class MainController {
     public String profileView(Model model) {
         model.addAttribute("activePage", "profile");
         return "dashboard/profile";
+    }
+
+    @GetMapping("/profile/user")
+    public String userProfileView(@RequestParam Long userId, Principal principal, Model model) {
+        if (principal == null)
+            return "redirect:/login";
+
+        try {
+            UserResponseDto targetUser = userService.findById(userId);
+            UserResponseDto currentUser = userService.findByEmail(principal.getName());
+
+            boolean isTargetAdmin = "ADMIN".equalsIgnoreCase(targetUser.role())
+                    || "ROLE_ADMIN".equalsIgnoreCase(targetUser.role());
+            boolean isCurrentUserAdmin = "ADMIN".equalsIgnoreCase(currentUser.role())
+                    || "ROLE_ADMIN".equalsIgnoreCase(currentUser.role());
+
+            if (isTargetAdmin && !isCurrentUserAdmin) {
+                return "redirect:/home";
+            }
+        } catch (Exception e) {
+            return "redirect:/home";
+        }
+
+        model.addAttribute("activePage", "user-profile");
+        return "dashboard/user-profile";
     }
 
     @GetMapping("/settings")

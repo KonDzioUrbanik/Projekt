@@ -35,7 +35,7 @@ public class NoteController {
     }
 
     @GetMapping("/{id}")
-    public NoteResponseDto getById(@PathVariable Long id) {
+    public NoteDTO getById(@PathVariable Long id) {
         return noteService.findById(id);
     }
 

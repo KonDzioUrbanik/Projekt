@@ -213,7 +213,7 @@ public class SecurityConfig {
                                 .hasAnyRole("STAROSTA", "ADMIN")
                                 .requestMatchers(HttpMethod.PATCH, "/api/announcements/*/pin")
                                 .hasAnyRole("STAROSTA", "ADMIN")
-                                .requestMatchers(HttpMethod.GET, "/api/announcements/attachments/**")
+                                .requestMatchers(HttpMethod.GET, "/api/announcements/attachments/**", "/api/announcements/count/author/**")
                                 .authenticated()
 
                                 // Widoki admin tylko dla ADMIN
@@ -242,6 +242,10 @@ public class SecurityConfig {
                                                 "/settings" // formularz ustawien
                                 ).hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
 
+                                // Czat — tylko niezablokowani STUDENT/STAROSTA
+                                .requestMatchers("/student/chat/**").hasAnyRole("STUDENT", "STAROSTA")
+                                .requestMatchers("/api/chat/**").hasAnyRole("STUDENT", "STAROSTA")
+
                                 .anyRequest().authenticated());
 
                 http.rememberMe(rememberMe -> rememberMe
@@ -269,7 +273,7 @@ public class SecurityConfig {
                                                                 "https://fonts.gstatic.com " +
                                                                 "https://cdnjs.cloudflare.com; " +
                                                                 "img-src 'self' data: blob:; " +
-                                                                "connect-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+                                                                "connect-src 'self' ws://localhost:8090 wss://localhost:8090 https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
                                                                 +
                                                                 "frame-ancestors 'none'; " +
                                                                 "base-uri 'self'; " +

@@ -67,14 +67,15 @@ public class NoteServiceImpl implements NoteService {
     }
 
     @Override
-    public NoteResponseDto findById(Long id) {
+    public NoteDTO findById(Long id) {
         Note note = noteRepository.findById(id)
                 .orElseThrow(() -> new NoteNotFoundException(id));
 
         note.incrementViewCount();
         noteRepository.save(note);
 
-        return toResponse(note);
+        User currentUser = getCurrentUser();
+        return NoteDTO.fromEntity(note, currentUser);
     }
 
     @Override
@@ -89,7 +90,12 @@ public class NoteServiceImpl implements NoteService {
         if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException(userId);
         }
-        return noteRepository.findByAuthor_Id(userId).stream()
+        
+        User currentUser = getCurrentUser();
+        List<Note> allUserNotes = noteRepository.findByAuthor_Id(userId);
+        
+        return allUserNotes.stream()
+                .filter(note -> hasAccessToNote(note, currentUser))
                 .map(this::toResponse)
                 .toList();
     }

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/main-layout}"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Czat</title>
+</head>
+<body>
+    <th:block layout:fragment="page-styles">
+        <link rel="stylesheet" th:href="@{/css/dashboard/chat.css(v=${#dates.createNow().getTime()})}">
+    </th:block>
+
+    <div layout:fragment="content">
+
+        <meta id="currentUserEmail" th:name="current-user-email"
+              th:content="${#authentication.name}">
+        <meta id="openConversationId" name="open-conversation-id"
+              th:content="${openConversationId != null ? openConversationId : ''}">
+
+        <div class="chat-layout" id="chatLayout">
+            <aside class="chat-sidebar" id="chatSidebar">
+                <div class="chat-sidebar-header">
+                    <h2 class="chat-sidebar-title">Wiadomości</h2>
+                    <button class="chat-new-btn" id="btnNewChat" title="Nowa rozmowa">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+
+                <div class="chat-search-wrap">
+                    <i class="fas fa-search chat-search-icon"></i>
+                    <input type="text" id="chatSearchInput" class="chat-search-input"
+                           placeholder="Szukaj lub napisz nową..." autocomplete="off">
+                </div>
+
+                <div class="chat-user-results" id="chatUserResults" style="display:none;"></div>
+
+                <div class="chat-conv-list" id="chatConvList">
+                    <div class="chat-skeleton" id="convSkeleton">
+                        <div class="skeleton-item"></div>
+                        <div class="skeleton-item"></div>
+                        <div class="skeleton-item"></div>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="chat-main" id="chatMain">
+                <div class="chat-empty-state" id="chatEmptyState">
+                    <div class="chat-empty-icon">
+                        <i class="fas fa-comment-dots"></i>
+                    </div>
+                    <h3>Wybierz rozmowę</h3>
+                    <p>Wybierz istniejącą rozmowę lub zacznij nową.</p>
+                </div>
+
+                <div class="chat-window" id="chatWindow" style="display:none;">
+                    <div class="chat-header" id="chatHeader">
+                        <button class="chat-back-btn" id="btnBackToSidebar" title="Wróć">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div class="chat-header-avatar" id="chatHeaderAvatar">
+                            <img src="" alt="" id="chatHeaderAvatarImg" class="chat-avatar">
+                            <span class="chat-avatar-initials" id="chatHeaderInitials"></span>
+                        </div>
+                        <div class="chat-header-info">
+                            <div class="chat-header-name" id="chatHeaderName"></div>
+                            <div class="chat-header-sub">
+                                <span id="chatHeaderSub"></span>
+                                <span class="chat-typing-indicator" id="typingIndicator" style="display:none;">
+                                    <span class="typing-dot"></span>
+                                    <span class="typing-dot"></span>
+                                    <span class="typing-dot"></span>
+                                    pisze…
+                                </span>
+                            </div>
+                        </div>
+                        <div class="chat-header-actions">
+                            <button class="chat-icon-btn" id="btnToggleInfo" title="Informacje">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="chat-skeleton msg-skeleton" id="msgSkeleton">
+                            <div class="skeleton-msg skeleton-msg--right"></div>
+                            <div class="skeleton-msg skeleton-msg--left"></div>
+                            <div class="skeleton-msg skeleton-msg--right"></div>
+                        </div>
+                        <div class="chat-load-more" id="chatLoadMore" style="display:none;">
+                            <button id="btnLoadMore">Załaduj starsze</button>
+                        </div>
+                    </div>
+
+                    <div class="chat-input-area">
+                        <textarea id="chatInput" class="chat-input" rows="1"
+                                  placeholder="Napisz wiadomość…"
+                                  maxlength="4000"></textarea>
+                        <button class="chat-send-btn" id="btnSend" title="Wyślij (Enter)">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </main>
+
+            <aside class="chat-info-panel" id="chatInfoPanel">
+                <div class="chat-info-header">
+                    <span>Informacje</span>
+                    <button class="chat-icon-btn" id="btnCloseInfo" title="Zamknij">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="chat-info-body" id="chatInfoBody">
+                    <div class="chat-info-avatar-wrap">
+                        <img src="" alt="" id="infoAvatarImg" class="chat-info-avatar">
+                        <span class="chat-info-initials" id="infoInitials"></span>
+                    </div>
+                    <div class="chat-info-name" id="infoName"></div>
+                    <div class="chat-info-meta" id="infoMeta"></div>
+                    <div class="chat-info-actions">
+                        <a href="#" class="chat-info-action-btn" id="btnInfoProfile">
+                            <i class="fas fa-user"></i> Zobacz profil
+                        </a>
+                        <button class="chat-info-action-btn" id="btnAddFriend">
+                            <i class="fas fa-user-plus"></i> Dodaj do znajomych
+                        </button>
+                    </div>
+
+                    <div class="chat-info-divider"></div>
+
+                    <div class="chat-info-section">
+                        <div class="chat-info-section-title">Udostępnione multimedia</div>
+                        <div class="chat-info-files-empty">
+                            <i class="fas fa-images"></i>
+                            <p>Brak udostępnionych plików.<br>Wkrótce dostępne!</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <div class="chat-context-menu" id="chatContextMenu" style="display:none;">
+            <button id="ctxEdit"><i class="fas fa-pen"></i> Edytuj</button>
+            <button id="ctxDelete"><i class="fas fa-trash"></i> Usuń</button>
+        </div>
+
+        <div class="modal-overlay" id="editMsgOverlay" style="display:none;">
+            <div class="modal-card chat-edit-modal">
+                <div class="modal-header">
+                    <h3>Edytuj wiadomość</h3>
+                    <button class="btn-close" id="btnCloseEditModal"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="modal-body">
+                    <textarea id="editMsgInput" class="chat-edit-input" rows="4" maxlength="4000"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-text" id="btnCancelEdit">Anuluj</button>
+                    <button class="btn-primary" id="btnSaveEdit">Zapisz</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="page-scripts">
+        <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+        <script type="module" th:src="@{/js/dashboard/chat/main.js(v=${#dates.createNow().getTime()})}"></script>
+    </th:block>
+</body>
+</html>

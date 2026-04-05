@@ -18,12 +18,58 @@
                 </div>
 
                 <div class="timeline">
+                    <!-- Kwiecień 2026 - User Profiles, Chat & Analytics -->
+                    <details id="v1-4-1" class="version-block latest" open>
+                        <summary class="version-summary-header">
+                            <div class="version-title">
+                                <span class="version-number">Kwiecień 2026 - v1.4.1</span>
+                                <span class="latest-badge" style="margin-left: 0.5rem;">Aktualna wersja</span>
+                            </div>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </summary>
+                        <div class="version-content">
+                            <div class="version-desc">
+                                Aktualizacja wprowadzająca moduł komunikacji, system analityki oraz odświeżone profile użytkowników z osią aktywności.
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
+                                <ul class="change-list added">
+                                    <li><strong>Komunikacja w czasie rzeczywistym:</strong> Nowy moduł czatu z obsługą edycji treści, usuwania wiadomości oraz statusami odczytu.</li>
+                                    <li><strong>Bezpieczeństwo wiadomości:</strong> Stałe szyfrowanie wszystkich rozmów na poziomie bazy danych.</li>
+                                    <li><strong>Liczniki nieprzeczytanych treści:</strong> System powiadomień o nowych wiadomościach w liście rozmów.</li>
+                                    <li><strong>Panel informacyjny:</strong> Boczna sekcja w oknie czatu z dostępem do profilu rozmówcy i multimediów.</li>
+                                    <li><strong>Nowoczesne profile publiczne:</strong> Odświeżony widok prezentujący statystyki aktywności i staż konta.</li>
+                                    <li><strong>Oś aktywności:</strong> Zestawienie ogłoszeń oraz udostępnionych notatek bezpośrednio na profilu studenta.</li>
+                                    <li><strong>Statystyki ruchu:</strong> System zbierania anonimowych danych w celu optymalizacji interfejsu.</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
+                                <ul class="change-list changed">
+                                    <li><strong>Responsywność czatu:</strong> Pełne wsparcie dla szerokich monitorów oraz poprawienie stabilności układu wiadomości.</li>
+                                    <li><strong>Linkowanie notatek:</strong> Szybsze i stabilniejsze otwieranie konkretnych materiałów z linków zewnętrznych.</li>
+                                    <li><strong>Ochrona prywatności:</strong> Blokada dostępu do kont administracyjnych oraz lepsza izolacja treści prywatnych.</li>
+                                    <li><strong>Wydajność aplikacji:</strong> Optymalizacja kodu frontendowego dla płynniejszego działania stron.</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
+                                <ul class="change-list fixed">
+                                    <li><strong>Błędy nawigacji:</strong> Usunięto błędy 404 przy przechodzeniu między profilem a modułem notatek.</li>
+                                    <li><strong>Stabilność interfejsu:</strong> Rozwiązano błędy skryptów występujące przy ładowaniu niektórych elementów profilu.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </details>
+
                     <!-- Kwiecień 2026 - System Security & Maintenance -->
-                    <details id="v1-4-0" class="version-block latest" open>
+                    <details id="v1-4-0" class="version-block">
                         <summary class="version-summary-header">
                             <div class="version-title">
                                 <span class="version-number">Kwiecień 2026 - v1.4.0</span>
-                                <span class="latest-badge" style="margin-left: 0.5rem;">Aktualna wersja</span>
                             </div>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </summary>
@@ -84,48 +130,37 @@
                             <div class="change-category">
                                 <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
                                 <ul class="change-list added">
-                                    <li><strong>Zarządzanie Grupami & Harmonogram:</strong> Modernizacja interfejsu (nowy design kart, tooltipy) oraz wdrożenie pełnej responsywności dla wszystkich sekcji filtrów i przycisków akcji.</li>
-                                    <li><strong>Załączniki:</strong> Obsługa plików (do 5MB) z walidacją typów MIME (Apache Tika). Przechowywanie danych w formacie LOB bezpośrednio w bazie danych.</li>
-                                    <li><strong>News Feed:</strong> Wdrożenie mechanizmu kategoryzacji ogłoszeń na podstawie zasięgu (globalne/grupowe) z wykorzystaniem oznaczeń typów na dashboardzie.</li>
-                                    <li><strong>Potwierdzenia Odczytu:</strong> Moduł weryfikacji zapoznania się z treścią przez użytkowników (modal z listą i znacznikami czasu).</li>
-                                    <li><strong>Zarządzanie (Pinned):</strong> Implementacja mechanizmu priorytetyzacji ogłoszeń poprzez flagowanie wpisów jako przypięte.</li>
-                                    <li><strong>Modernizacja Wizualna:</strong> Implementacja technicznego tła siatkowanego (Grid Background) w głównych sekcjach aplikacji (Auth, Dashboard, Landing) oraz odświeżenie kart funkcji (`feature-card`) w estetyce Glassmorphism.</li>
-                                    <li><strong>Widok Tabelaryczny (Starosta):</strong> Migracja zarządzania ogłoszeniami na strukturę tabelaryczną z obsługą rozwijanych wierszy szczegółowych.</li>
-                                    <li><strong>Weryfikacja Kolizji:</strong> Algorytm sprawdzający dostępność zasobów (sale, prowadzący, grupy) w czasie rzeczywistym z obsługą statusu 409 Conflict.</li>
-                                    <li><strong>Rozszerzenie Zakresu:</strong> Implementacja obsługi dni weekendowych oraz pól specjalności i numerów podgrup w planie zajęć.</li>
-                                    <li><strong>Konfiguracja Roku Akademickiego:</strong> Dodano system globalnego zarządzania kalendarzem (AcademicYearConfig z dedykowanym API) z opcją ustawiania ram semestru przez Administratora.</li>
-                                    <li><strong>Narzędzia Administracyjne:</strong> Zastąpiono tekstowe wejścia dla powtarzalności niestandardowych (CUSTOM) ergonomiczną, interaktywną siatką checkboxów dla tygodni edukacyjnych 1-15.</li>
-                                    <li><strong>Uprawnienia Starosty:</strong> Ograniczenie zakresu edycji danych harmonogramu wyłącznie do przypisanej grupy studenckiej.</li>
-                                    <li><strong>Logika Tygodni:</strong> Rozszerzenie obsługi tygodni akademickich o tryb niestandardowy (Custom) z walidacją zakresów. Zastąpiono sztywne numery ISO na wygodną numerację wewnątrz-semestralną (Tydzień 1-15).</li>
-                                    <li><strong>Profil Użytkownika:</strong> Wdrożenie dynamicznych statystyk aktywności (Notatki, Posty, Ogłoszenia) oraz precyzyjnego licznika stażu konta.</li>
+                                    <li><strong>Zarządzanie grupami i planem:</strong> Nowy wygląd kart, pomocne wskazówki (tooltipy) oraz pełna responsywność wszystkich sekcji.</li>
+                                    <li><strong>Obsługa załączników:</strong> Możliwość przesyłania plików do 5MB z automatyczną weryfikacją ich formatu.</li>
+                                    <li><strong>Tablica ogłoszeń:</strong> Kategoryzacja wpisów na globalne i grupowe z wyraźnymi oznaczeniami na pulpicie.</li>
+                                    <li><strong>Potwierdzenia odczytu:</strong> System weryfikacji zapoznania się z treścią ogłoszeń przez studentów.</li>
+                                    <li><strong>Przypięte ogłoszenia:</strong> Skuteczniejsza prezentacja priorytetowych informacji.</li>
+                                    <li><strong>Asystent Starosty:</strong> Nowy widok tabelaryczny ułatwiający zarządzanie komunikatami.</li>
+                                    <li><strong>Weryfikacja terminów:</strong> Automatyczne sprawdzanie dostępności sal i prowadzących w czasie rzeczywistym.</li>
+                                    <li><strong>Rejestracja roku akademickiego:</strong> Narzędzia do definiowania ram semestru i sprawne zarządzanie numeracją tygodni zajęć.</li>
+                                    <li><strong>Statystyki profilu:</strong> Dynamiczne liczniki aktywności oraz precyzyjny wskaźnik stażu konta użytkownika.</li>
                                 </ul>
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
                                 <ul class="change-list changed">
-                                    <li><strong>Standard Paginacji:</strong> Ujednolicenie wyglądu i zachowania modułu paginacji we wszystkich panelach administratora celem poprawy UX na urządzeniach mobilnych.</li>
-                                    <li><strong>Nawigacja Harmonogramu:</strong> System wyboru tygodni przebudowano na rozwijaną listę (Dropdown) z automatycznym podziałem (optgroup) na semestr zimowy i letni, zachowując restrykcje roczne (bounds).</li>
-                                    <li><strong>UX Mobilny (Harmonogram):</strong> Automatyczne, płynne wyśrodkowanie widoku na dzisiejszej kolumnie (oś X) oraz detekcja kontenera przewijania dla osi Y (aktualna godzina).</li>
-                                    <li><strong>Standaryzacja Tabel:</strong> Ujednolicenie wizualne siatki danych (Grid UI) w modułach Harmonogramu, Ogłoszeń oraz Feedbacku.</li>
-                                    <li><strong>Harmonogram Studenta (v2):</strong> Modernizacja wizualna planu zajęć na dashboardzie studenta z wdrożeniem standardu Grid UI i poprawą czytelności kart oraz estetyki dni wolnych (gradienty).</li>
-                                    <li><strong>Architektura URL:</strong> Optymalizacja ścieżek dostępu i ujednolicenie nazewnictwa plików szablonów (admin-announcement).</li>
-                                    <li><strong>Nawigacja:</strong> Wdrożenie systemu dynamicznych Breadcrumbs z dedykowaną obsługą łamania i zawijania długiego tekstu na wyświetlaczach mobilnych.</li>
-                                    <li><strong>Responsywność Profilu:</strong> Optymalizacja układu statystyk na telefonach (inteligentne przełączanie między 2 kolumnami a widokiem kafelkowym).</li>
+                                    <li><strong>Standard list i tabel:</strong> Ujednolicony wygląd paginacji oraz siatki danych (Grid UI) w całej aplikacji.</li>
+                                    <li><strong>Nawigacja w planie zajęć:</strong> Wygodniejszy wybór tygodni z automatycznym podziałem na semestr zimowy i letni.</li>
+                                    <li><strong>Mobilny plan zajęć:</strong> Automatyczne wyśrodkowanie widoku na bieżącym dniu i godzinie.</li>
+                                    <li><strong>Ścieżki i linki:</strong> Optymalizacja adresów URL i ujednolicenie struktury plików systemowych.</li>
+                                    <li><strong>Menu i nawigacja:</strong> System "okruszków" (breadcrumbs) z lepszą obsługą długich tekstów na telefonach.</li>
                                 </ul>
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
                                 <ul class="change-list fixed">
-                                    <li><strong>Integralność Grup:</strong> Rozwiązano błąd 409 (Conflict) poprzez implementację kaskadowego usuwania powiązanych ogłoszeń i wpisów harmonogramu oraz dodano system blokady usuwania grup posiadających przypisanych studentów.</li>
-                                    <li><strong>Izolacja Danych:</strong> Kontrola dostępu do ogłoszeń i załączników w oparciu o przynależność użytkownika do grup studenckich.</li>
-                                    <li><strong>Sanityzacja:</strong> Filtry zapobiegające Header Injection oraz zabezpieczenie przesyłu nazw plików (Content-Disposition).</li>
-                                    <li><strong>Synchronizacja DB:</strong> Aktualizacja schematu bazy danych w celu zapewnienia spójności z polami is_pinned i attachments.</li>
-                                    <li><strong>Stabilność JS:</strong> Wdrożenie opcjonalnego łańcuchowania (Optional Chaining) w skryptach frontendowych celem eliminacji błędów runtime.</li>
-                                    <li><strong>Scroll Conflict:</strong> Rozwiązano konflikt przewijania osi X (centrowania dnia) oraz osi Y (linii czasu) przy użyciu absolutnych koordynatów DOM.</li>
-                                    <li><strong>Globalny Cache-Busting:</strong> Wdrożenie mechanizmu wymuszania odświeżania zasobów (`v=${timestamp}`) dla wszystkich plików CSS i JS w szablonach aplikacji, eliminując błędy odświeżania na urządzeniach mobilnych.</li>
-                                    <li><strong>Logika Logowania:</strong> Naprawa rzetelności daty ostatniej sesji poprzez wprowadzenie pola <i>previousLogin</i>, eliminując błąd "Przed chwilą" po wejściu do systemu.</li>
+                                    <li><strong>Zarządzanie danymi:</strong> Stabilne usuwanie grup i ogłoszeń bez ryzyka pozostawienia błędnych powiązań w bazie.</li>
+                                    <li><strong>Bezpieczeństwo danych:</strong> Uszczelnienie filtrów dostępu do plików i ograniczenie widoczności prywatnych notatek.</li>
+                                    <li><strong>Synchronizacja przeglądarki:</strong> Mechanizm wymuszający odświeżenie najnowszych stylów i skryptów po aktualizacji.</li>
+                                    <li><strong>Logika sesji:</strong> Naprawa daty ostatniego logowania, eliminująca błędy w wyświetlaniu czasu aktywności.</li>
+                                    <li><strong>Stabilność skryptów:</strong> Rozwiązanie problemów z przewijaniem harmonogramu i błędami przy ładowaniu danych.</li>
                                 </ul>
                             </div>
                         </div>

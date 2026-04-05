@@ -538,6 +538,11 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     }
 
     @Override
+    public long countByAuthorId(Long authorId) {
+        return announcementRepository.countByAuthor_Id(authorId);
+    }
+
+    @Override
     public List<AnnouncementResponseDto> getDashboardFeed(int limit) {
         User currentUser = getCurrentUser();
         String currentRole = normalizeRole(currentUser);

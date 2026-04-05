@@ -48,6 +48,11 @@
                     <span class="link-text">Forum</span>
                 </a>
 
+                <a th:href="@{/student/chat}" class="btn-navbar-left" th:classappend="${activePage == 'chat'} ? 'active'">
+                    <i class="fas fa-comment-dots"></i>
+                    <span class="link-text">Chat</span>
+                </a>
+
                 <a th:href="@{/student/notes}" class="btn-navbar-left" th:classappend="${activePage == 'notes'} ? 'active'">
                     <i class="fas fa-sticky-note"></i>
                     <span class="link-text">Notatki</span>

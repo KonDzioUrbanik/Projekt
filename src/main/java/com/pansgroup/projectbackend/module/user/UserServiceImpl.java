@@ -146,6 +146,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserResponseDto findById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+        return mapToResponseDto(user);
+    }
+
+    @Override
     public UserResponseDto findByEmail(String email) {
         String e = email.trim().toLowerCase(Locale.ROOT);
 

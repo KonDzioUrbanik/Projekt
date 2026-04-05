@@ -1,0 +1,39 @@
+export const state = {
+    currentConvId: null,
+    currentOtherUser: null,
+    oldestMsgId: null,
+    hasMoreMessages: false,
+    isNearBottom: true,
+    editMsgId: null,
+    contextMsgId: null,
+    myEmail: document.getElementById('currentUserEmail')?.getAttribute('content') || ''
+};
+
+export const DOM = {
+    sidebar: document.getElementById('chatSidebar'),
+    convList: document.getElementById('chatConvList'),
+    searchInput: document.getElementById('chatSearchInput'),
+    userResults: document.getElementById('chatUserResults'),
+    btnNewChat: document.getElementById('btnNewChat'),
+    chatEmpty: document.getElementById('chatEmptyState'),
+    chatWindow: document.getElementById('chatWindow'),
+    messages: document.getElementById('chatMessages'),
+    input: document.getElementById('chatInput'),
+    btnSend: document.getElementById('btnSend'),
+    headerName: document.getElementById('chatHeaderName'),
+    headerSub: document.getElementById('chatHeaderSub'),
+    headerInitials: document.getElementById('chatHeaderInitials'),
+    headerAvatarImg: document.getElementById('chatHeaderAvatarImg'),
+    typingIndicator: document.getElementById('typingIndicator'),
+    infoPanel: document.getElementById('chatInfoPanel'),
+    infoName: document.getElementById('infoName'),
+    infoMeta: document.getElementById('infoMeta'),
+    infoInitials: document.getElementById('infoInitials'),
+    infoAvatarImg: document.getElementById('infoAvatarImg'),
+    btnInfoProfile: document.getElementById('btnInfoProfile'),
+    contextMenu: document.getElementById('chatContextMenu'),
+    btnLoadMore: document.getElementById('btnLoadMore'),
+    msgSkeleton: document.getElementById('msgSkeleton'),
+    convSkeleton: document.getElementById('convSkeleton'),
+    chatLayout: document.getElementById('chatLayout')
+};

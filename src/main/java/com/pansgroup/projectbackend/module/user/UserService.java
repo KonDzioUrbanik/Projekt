@@ -11,6 +11,8 @@ public interface UserService {
     List<UserResponseDto> findAll();
 
     UserResponseDto findByEmail(String email);
+    
+    UserResponseDto findById(Long id);
 
     User authenticate(LoginRequestDto dto);
 

@@ -72,6 +72,12 @@ public class UserController {
         return userService.getCurrentUser(userDetails.getUsername());
     }
 
+    @Operation(summary = "Pobierz dane użytkownika po ID")
+    @GetMapping("/{id}")
+    public UserResponseDto getUserById(@PathVariable Long id) {
+        return userService.findById(id);
+    }
+
     @Operation(summary = "Zmiana roli użytkownika")
     @PutMapping("/role/update/{email}")
     public UserResponseDto updateRoleUser(@PathVariable String email, @Valid @RequestBody UserRoleUpdateDto dto) {
@@ -81,7 +87,7 @@ public class UserController {
     @Operation(summary = "Aktywacja lub dezaktywacja konta użytkownika")
     @PutMapping("/activation/{userId}")
     public UserResponseDto updateActivationStatus(@PathVariable Long userId,
-                                                  @Valid @RequestBody UserActivationUpdateDto dto) {
+            @Valid @RequestBody UserActivationUpdateDto dto) {
         return userService.updateActivationStatus(userId, dto);
     }
 
@@ -112,15 +118,22 @@ public class UserController {
     @Operation(summary = "Pobierz awatar użytkownika")
     @GetMapping("/{id}/avatar")
     public ResponseEntity<Resource> getAvatar(@PathVariable Long id) {
-        User user = userService.getAvatar(id);
-        String contentType = user.getAvatarContentType();
-        if (contentType == null) {
-            contentType = "application/octet-stream";
+        try {
+            User user = userService.getAvatar(id);
+            if (user == null || user.getAvatarData() == null) {
+                return ResponseEntity.noContent().build();
+            }
+            String contentType = user.getAvatarContentType();
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"avatar\"")
+                    .body(new ByteArrayResource(user.getAvatarData()));
+        } catch (Exception e) {
+            return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"avatar\"")
-                .body(new ByteArrayResource(user.getAvatarData()));
     }
 
     @Operation(summary = "Usuń awatar użytkownika")

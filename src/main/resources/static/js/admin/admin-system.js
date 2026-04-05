@@ -19,6 +19,8 @@ class AdminSystem {
             module_university_calendar:   'Moduł Kalendarza akademickiego',
             module_semester_progress:     'Moduł Postępu semestru',
             module_starosta_announcements:'Moduł Ogłoszeń starosty',
+            module_chat:                  'Moduł Chat',
+            module_analytics:             'Analityka użytkowników',
             global_banner_text:           'Komunikat globalny',
         };
 
