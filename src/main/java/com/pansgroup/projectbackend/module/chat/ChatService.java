@@ -31,14 +31,15 @@ public class ChatService {
     private final UserRepository userRepository;
     private final ChatCryptoService crypto;
 
-    // ─── User resolution helpers ───────────────────────────────────────────────
+    // User resolution helpers
 
     public User resolveUser(Authentication auth) {
         return userRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new EntityNotFoundException("Użytkownik nie znaleziony"));
     }
 
-    /** Package-accessible for WebSocket controller to route messages to correct user queues. */
+    // Package-accessible for WebSocket controller to route messages to correct user
+    // queues.
     public ChatConversation getConversationForWs(Long convId, User me) {
         return getConversationSecure(convId, me);
     }
@@ -49,7 +50,7 @@ public class ChatService {
         }
     }
 
-    // ─── User search ───────────────────────────────────────────────────────────
+    // User search
 
     public List<UserSearchResultDto> searchUsers(Authentication auth, String query) {
         User me = resolveUser(auth);
@@ -69,7 +70,7 @@ public class ChatService {
                 .collect(Collectors.toList());
     }
 
-    // ─── Conversations ─────────────────────────────────────────────────────────
+    // Conversations
 
     @Transactional
     public ConversationDto getOrCreateConversation(Authentication auth, Long otherUserId) {
@@ -129,7 +130,8 @@ public class ChatService {
                 .collect(Collectors.toList());
     }
 
-    private ConversationDto toConversationDto(ChatConversation conv, User me, long unread, String preview, LocalDateTime previewTs) {
+    private ConversationDto toConversationDto(ChatConversation conv, User me, long unread, String preview,
+            LocalDateTime previewTs) {
         User other = conv.getUserA().getId().equals(me.getId()) ? conv.getUserB() : conv.getUserA();
         return new ConversationDto(
                 conv.getId(),
@@ -143,7 +145,7 @@ public class ChatService {
                 previewTs);
     }
 
-    // ─── Messages ──────────────────────────────────────────────────────────────
+    // Messages
 
     public List<MessageDto> getMessages(Authentication auth, Long conversationId, Long beforeId) {
         User me = resolveUser(auth);
@@ -261,7 +263,18 @@ public class ChatService {
         return messageRepo.countTotalUnread(me.getId());
     }
 
-    // ─── Helpers ───────────────────────────────────────────────────────────────
+    public String getRecipientEmail(Authentication auth, Long convId) {
+        try {
+            User me = resolveUser(auth);
+            ChatConversation conv = getConversationSecure(convId, me);
+            User other = conv.getUserA().getId().equals(me.getId()) ? conv.getUserB() : conv.getUserA();
+            return other.getEmail();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    // Helpers
 
     private ChatConversation getConversationSecure(Long id, User me) {
         ChatConversation conv = conversationRepo.findById(id)

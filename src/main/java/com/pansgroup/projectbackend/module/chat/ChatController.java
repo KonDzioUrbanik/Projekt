@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ChatController {
 
     private final ChatService chatService;
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     /** Search users for a new conversation. */
     @GetMapping("/users/search")
@@ -81,13 +82,29 @@ public class ChatController {
             @PathVariable Long id,
             @RequestBody Map<String, @NotBlank @Size(max = 4000) String> body) {
         String content = body.get("content");
-        return ResponseEntity.ok(chatService.editMessage(auth, id, content));
+        MessageDto msg = chatService.editMessage(auth, id, content);
+
+        // Notify other participant via WebSocket
+        String otherEmail = chatService.getRecipientEmail(auth, msg.conversationId());
+        if (otherEmail != null) {
+            messagingTemplate.convertAndSendToUser(otherEmail, "/queue/edit", msg);
+        }
+
+        return ResponseEntity.ok(msg);
     }
 
     /** Soft-delete a message. */
     @DeleteMapping("/messages/{id}")
     public ResponseEntity<MessageDto> deleteMessage(Authentication auth, @PathVariable Long id) {
-        return ResponseEntity.ok(chatService.deleteMessage(auth, id));
+        MessageDto msg = chatService.deleteMessage(auth, id);
+
+        // Notify other participant via WebSocket
+        String otherEmail = chatService.getRecipientEmail(auth, msg.conversationId());
+        if (otherEmail != null) {
+            messagingTemplate.convertAndSendToUser(otherEmail, "/queue/delete", Map.of("msgId", msg.id()));
+        }
+
+        return ResponseEntity.ok(msg);
     }
 
     /** Total unread count for sidebar badge. */
