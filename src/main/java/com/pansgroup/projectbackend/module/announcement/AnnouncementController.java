@@ -15,12 +15,9 @@ import java.util.List;
 public class AnnouncementController {
 
     private final AnnouncementService announcementService;
-    private final AnnouncementAttachmentRepository attachmentRepository;
-
-    public AnnouncementController(AnnouncementService announcementService,
-                                  AnnouncementAttachmentRepository attachmentRepository) {
+    
+    public AnnouncementController(AnnouncementService announcementService) {
         this.announcementService = announcementService;
-        this.attachmentRepository = attachmentRepository;
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -79,12 +76,7 @@ public class AnnouncementController {
      */
     @GetMapping("/attachments/{attachmentId}")
     public ResponseEntity<Resource> downloadAttachment(@PathVariable Long attachmentId) {
-        AnnouncementAttachment attachment = attachmentRepository.findById(attachmentId)
-                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Załącznik nie znaleziony."));
-
-        // Weryfikacja uprawnień (Fix Senior+)
-        announcementService.checkAttachmentAccess(attachment);
+        AnnouncementAttachment attachment = announcementService.getAttachmentWithAccessCheck(attachmentId);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(attachment.getContentType()))

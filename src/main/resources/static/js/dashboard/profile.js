@@ -24,12 +24,6 @@ class ProfileModule {
         this.statsPosts = document.getElementById('stats-posts') || document.getElementById('statPosts');
         this.statsComments = document.getElementById('stats-comments') || document.getElementById('statComments');
         
-        console.log('ProfileModule initialized. Stat elements:', {
-            notes: !!this.statsNotes,
-            posts: !!this.statsPosts,
-            comments: !!this.statsComments
-        });
-        
         // Nowe statystyki (Staż, Logowanie)
         this.statsSeniority = document.getElementById('stats-seniority') || document.getElementById('stats-seniority-admin');
         this.statsLastLogin = document.getElementById('stats-last-login') || document.getElementById('stats-last-login-admin');

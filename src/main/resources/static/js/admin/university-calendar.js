@@ -216,7 +216,6 @@ function setupManagementButtons() {
                 
                 // Read ID from DOM
                 const id = eventForm.dataset.eventId;
-                console.log("Submitting form. ID found in dataset:", id || "NEW EVENT"); 
 
                 const typeSelectval = document.getElementById('event-type').value;
                 let markerColor = null;
@@ -377,7 +376,6 @@ async function sendActualEventDelete(eventId) {
     try {
         const response = await fetch(`/api/calendar/${eventId}`, { method: 'DELETE' });
         if (response.ok) {
-            console.log('Wydarzenie trwale usunięte z serwera.');
             allCalendarEvents = allCalendarEvents.filter(e => e.id.toString() !== eventId.toString());
             renderCalendar();
         } else {

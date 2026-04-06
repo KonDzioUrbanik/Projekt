@@ -40,8 +40,38 @@
                     <div class="kpi-icon"><i class="fas fa-users"></i></div>
                     <div class="kpi-data">
                         <span class="kpi-value" id="activeUsers">—</span>
-                        <span class="kpi-label">Aktywni użytkownicy</span>
+                        <span class="kpi-label">Użytkownicy Online</span>
                     </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon"><i class="fas fa-clock"></i></div>
+                    <div class="kpi-data">
+                        <span class="kpi-value" id="avgSessionDuration">—</span>
+                        <span class="kpi-label">Średni czas sesji</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="analytics-card full-width">
+                <div class="card-header">
+                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                        <h3><i class="fas fa-bolt"></i> Aktualnie Online</h3>
+                        <span class="badge-online">LIVE</span>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table class="analytics-table">
+                        <thead>
+                            <tr>
+                                <th>Użytkownik</th>
+                                <th>Ostatnia strona</th>
+                                <th>Ostatnia aktywność</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activeUsersDetailsBody">
+                            <tr><td colspan="3" class="loading-cell"><i class="fas fa-spinner fa-spin"></i></td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 

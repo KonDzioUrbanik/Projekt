@@ -12,10 +12,12 @@ import com.pansgroup.projectbackend.module.user.passwordReset.PasswordResetToken
 import com.pansgroup.projectbackend.module.system.SystemService;
 import com.pansgroup.projectbackend.module.forum.ForumService;
 import com.pansgroup.projectbackend.module.note.NoteService;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -155,6 +157,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto findById(Long id) {
+        if (id == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID użytkownika nie może być puste.");
+        }
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
         return mapToResponseDto(user);
@@ -162,6 +167,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto findByEmail(String email) {
+        if (email == null || email.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email nie może być pusty.");
+        }
         String e = email.trim().toLowerCase(Locale.ROOT);
 
         User user = userRepository.findByEmail(e)
@@ -226,6 +234,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponseDto updateUser(Long userId, UserUpdateDto dto) {
+        if (userId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID użytkownika jest wymagane.");
+        }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
@@ -237,7 +248,15 @@ public class UserServiceImpl implements UserService {
         user.setNickName(dto.getNickName());
         user.setPhoneNumber(dto.getPhoneNumber());
         user.setFieldOfStudy(dto.getFieldOfStudy());
-        user.setYearOfStudy(Integer.valueOf(dto.getYearOfStudy()));
+        if (dto.getYearOfStudy() != null && !dto.getYearOfStudy().isBlank()) {
+            try {
+                user.setYearOfStudy(Integer.valueOf(dto.getYearOfStudy()));
+            } catch (NumberFormatException e) {
+                // Skocz jeśli błąd formatu
+            }
+        } else {
+            user.setYearOfStudy(null);
+        }
         user.setStudyMode(dto.getStudyMode());
         user.setBio(dto.getBio());
 

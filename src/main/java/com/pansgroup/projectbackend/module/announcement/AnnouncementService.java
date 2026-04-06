@@ -20,6 +20,8 @@ public interface AnnouncementService {
     List<ReadConfirmationDetailDto> getReadDetails(Long id);
 
     AnnouncementResponseDto togglePin(Long id);
+    
+    AnnouncementAttachment getAttachmentWithAccessCheck(Long attachmentId);
 
     void checkAttachmentAccess(AnnouncementAttachment attachment);
 

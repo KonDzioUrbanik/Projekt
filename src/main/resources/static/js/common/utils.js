@@ -457,6 +457,28 @@ const Utils = {
             });
             observer.observe(container, { childList: true, subtree: true });
         }
+    },
+
+    /* Raportuje błąd techniczny do analityki */
+    async reportError(error, context = 'Global') {
+        try {
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            await fetch('/api/analytics/event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    eventName: 'TECHNICAL_ERROR',
+                    eventData: JSON.stringify({
+                        message: errorMsg,
+                        context: context,
+                        url: window.location.pathname,
+                        userAgent: navigator.userAgent
+                    })
+                })
+            });
+        } catch (e) {
+            console.error('Błąd podczas raportowania do analityki:', e);
+        }
     }
 };
 

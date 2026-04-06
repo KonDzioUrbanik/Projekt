@@ -35,15 +35,14 @@ public interface AnalyticsEventRepository extends JpaRepository<AnalyticsEvent, 
                      "FROM AnalyticsEvent e WHERE e.eventType = 'ERROR' " +
                      "GROUP BY e.eventName ORDER BY COUNT(e) DESC")
        List<Object[]> findRecentErrors(Pageable pageable);
- 
+
        // --- Statystyki przewijania ---
        @Query("SELECT e.eventName, COUNT(e) " +
-                      "FROM AnalyticsEvent e WHERE e.eventType = 'SCROLL_DEPTH' " +
-                      "GROUP BY e.eventName")
+                     "FROM AnalyticsEvent e WHERE e.eventType = 'SCROLL_DEPTH' " +
+                     "GROUP BY e.eventName")
        List<Object[]> findScrollDepthStats();
 
        // --- Zdarzenia z ostatnich N dni (do agregacji dziennej po stronie serwisu)
-       // ---
        @Query("SELECT e FROM AnalyticsEvent e WHERE e.createdAt >= :since ORDER BY e.createdAt")
        List<AnalyticsEvent> findSince(@Param("since") LocalDateTime since);
 
@@ -64,8 +63,32 @@ public interface AnalyticsEventRepository extends JpaRepository<AnalyticsEvent, 
        @Query("SELECT COUNT(e) FROM AnalyticsEvent e WHERE e.eventType = 'CLICK' AND e.createdAt >= :since")
        long countClicksSince(@Param("since") LocalDateTime since);
 
-        // --- Usuwanie błędów o konkretnej nazwie ---
-        void deleteByEventTypeAndEventName(AnalyticsEvent.EventType eventType, String eventName);
+       // --- Usuwanie błędów o konkretnej nazwie ---
+       void deleteByEventTypeAndEventName(AnalyticsEvent.EventType eventType, String eventName);
+
+       // --- Statystyki sesji (do średniego czasu) ---
+       @Query("SELECT e.sessionId, MIN(e.createdAt), MAX(e.createdAt) " +
+                     "FROM AnalyticsEvent e WHERE e.createdAt >= :since GROUP BY e.sessionId")
+       List<Object[]> findSessionDurations(@Param("since") LocalDateTime since);
+
+       // --- Dane aktywnych użytkowników (ostatnie 5 min) ---
+       @Query("SELECT e.userId, e.createdAt, e.page " +
+                     "FROM AnalyticsEvent e " +
+                     "WHERE e.id IN (" +
+                     "  SELECT MAX(e2.id) FROM AnalyticsEvent e2 " +
+                     "  WHERE e2.createdAt >= :since AND e2.userId IS NOT NULL " +
+                     "  GROUP BY e2.userId" +
+                     ") ORDER BY e.createdAt DESC")
+       List<Object[]> findActiveUsersDetails(@Param("since") LocalDateTime since);
+
+       @Query("SELECT e.userId, MAX(e.createdAt) " +
+                     "FROM AnalyticsEvent e WHERE e.createdAt >= :since GROUP BY e.userId ORDER BY MAX(e.createdAt) DESC")
+       List<Object[]> findActiveUsersLastActivity(@Param("since") LocalDateTime since);
+
+       // --- Pobieranie ostatniej strony dla konkretnego użytkownika we wskazanym
+       // czasie ---
+       @Query("SELECT e.page FROM AnalyticsEvent e WHERE e.userId = :userId AND e.createdAt = :lastActivity")
+       List<String> findPageAtTime(@Param("userId") Long userId, @Param("lastActivity") LocalDateTime lastActivity);
 
        // --- Zdarzenia konkretnego użytkownika ---
        List<AnalyticsEvent> findByUserIdOrderByCreatedAtDesc(Long userId);

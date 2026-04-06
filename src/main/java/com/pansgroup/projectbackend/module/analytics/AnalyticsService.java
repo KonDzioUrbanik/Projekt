@@ -7,6 +7,7 @@ import com.pansgroup.projectbackend.module.analytics.dto.ClickStatDto;
 import com.pansgroup.projectbackend.module.analytics.dto.DailyStatDto;
 import com.pansgroup.projectbackend.module.analytics.dto.UserActivityDto;
 import com.pansgroup.projectbackend.module.analytics.dto.DeviceStatDto;
+import com.pansgroup.projectbackend.module.analytics.dto.ActiveUserDto;
 import com.pansgroup.projectbackend.module.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -162,9 +163,80 @@ public class AnalyticsService {
                                 })
                                 .collect(Collectors.toList());
 
+                // Nowe statystyki: Średni czas sesji i aktywni online
+                String avgDuration = calculateAvgSessionDuration(thirtyDaysAgo);
+                List<ActiveUserDto> activeUsers = buildActiveUsers();
+
                 return new AnalyticsSummaryDto(
-                                totalPageViews, totalSessions, totalClicksCount, topPages, topClicks, daily, users,
+                                totalPageViews, totalSessions, totalClicksCount,
+                                avgDuration, (long) activeUsers.size(), activeUsers,
+                                topPages, topClicks, daily, users,
                                 deviceStats, recentErrors, scrollStats);
+        }
+
+        private String calculateAvgSessionDuration(LocalDateTime since) {
+                List<Object[]> durations = repository.findSessionDurations(since);
+                if (durations.isEmpty())
+                        return "0s";
+
+                long totalSeconds = 0;
+                int count = 0;
+
+                for (Object[] row : durations) {
+                        LocalDateTime start = (LocalDateTime) row[1];
+                        LocalDateTime end = (LocalDateTime) row[2];
+                        if (start != null && end != null) {
+                                long diff = java.time.Duration.between(start, end).toSeconds();
+                                // Sesje trwające 0s (tylko 1 zdarzenie) pomijamy w średniej,
+                                // lub liczymy jako minimalny czas (np. 10s) - tutaj liczymy realnie.
+                                totalSeconds += diff;
+                                count++;
+                        }
+                }
+
+                if (count == 0)
+                        return "0s";
+                long avgSeconds = totalSeconds / count;
+
+                long minutes = avgSeconds / 60;
+                long seconds = avgSeconds % 60;
+
+                return minutes > 0 ? minutes + "m " + seconds + "s" : seconds + "s";
+        }
+
+        private List<ActiveUserDto> buildActiveUsers() {
+                LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
+                List<Object[]> activeRows = repository.findActiveUsersDetails(fiveMinutesAgo);
+
+                if (activeRows.isEmpty())
+                        return List.of();
+
+                // Optymalizacja N+1: Pobieramy dane użytkowników jednym zapytaniem
+                List<Long> userIds = activeRows.stream()
+                                .map(row -> ((Number) row[0]).longValue())
+                                .distinct()
+                                .collect(Collectors.toList());
+
+                Map<Long, com.pansgroup.projectbackend.module.user.User> userMap = userRepository.findAllById(userIds)
+                                .stream()
+                                .collect(Collectors.toMap(com.pansgroup.projectbackend.module.user.User::getId,
+                                                u -> u));
+
+                return activeRows.stream()
+                                .map(row -> {
+                                        Long uid = ((Number) row[0]).longValue();
+                                        LocalDateTime lastAct = (LocalDateTime) row[1];
+                                        String lastPage = (String) row[2];
+
+                                        com.pansgroup.projectbackend.module.user.User u = userMap.get(uid);
+                                        String name = (u != null)
+                                                        ? u.getFirstName() + " " + u.getLastName() + " ("
+                                                                        + u.getRole().replace("ROLE_", "") + ")"
+                                                        : "Anonim #" + uid;
+
+                                        return new ActiveUserDto(uid, name, lastPage, lastAct);
+                                })
+                                .collect(Collectors.toList());
         }
 
         private List<UserActivityDto> buildUserActivity() {

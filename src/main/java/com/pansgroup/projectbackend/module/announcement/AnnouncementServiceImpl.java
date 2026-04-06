@@ -194,6 +194,16 @@ public class AnnouncementServiceImpl implements AnnouncementService {
      * Student/Starosta ma dostęp tylko do ogłoszeń swojej grupy.
      * Admin ma dostęp do wszystkiego.
      */
+    @Override
+    @Transactional(readOnly = true)
+    public AnnouncementAttachment getAttachmentWithAccessCheck(Long attachmentId) {
+        AnnouncementAttachment attachment = attachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Załącznik nie znaleziony."));
+
+        checkAttachmentAccess(attachment);
+        return attachment;
+    }
+
     public void checkAttachmentAccess(AnnouncementAttachment attachment) {
         User currentUser = getCurrentUser();
         String role = normalizeRole(currentUser);
