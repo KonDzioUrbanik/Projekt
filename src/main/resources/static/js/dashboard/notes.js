@@ -545,7 +545,6 @@ async function sendActualDelete(noteId) {
     try {
         const response = await fetch(CONFIG.API.NOTE_BY_ID(noteId), { method: 'DELETE' });
         if (!response.ok) throw new Error(`Błąd HTTP: ${response.status}`);
-        console.log('Notatka', noteId, 'trwale usunięta z serwera.');
     } catch (error) {
         console.error('Błąd usuwania API:', error);
         Utils.showToast('Błąd podczas usuwania notatki na serwerze', 'error');

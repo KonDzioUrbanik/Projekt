@@ -728,6 +728,9 @@ document.addEventListener('DOMContentLoaded', function(){
                              if(textError) errorMessage = textError;
                         }
                         
+                        // Raportuj błąd do analityki
+                        Utils.reportError(errorMessage, 'Settings: Save Profile');
+                        
                         // Jeśli error validation backendu
                         Utils.showToast(errorMessage, 'error');
                     }

@@ -10,6 +10,8 @@
         totalSessions: 'totalSessions',
         totalClicks: 'totalClicks',
         activeUsers: 'activeUsers',
+        activeUsersDetailsBody: 'activeUsersDetailsBody',
+        avgSessionDuration: 'avgSessionDuration',
         dailyChart: 'dailyChart',
         dailyEmpty: 'dailyEmpty',
         pagesBody: 'pagesBody',
@@ -110,13 +112,21 @@
                     <td class="num-cell">${(row.count || 0).toLocaleString('pl-PL')}</td>
                 </tr>`;
             });
+            renderTable(SELECTORS.activeUsersDetailsBody, data.activeUsersDetails, row => `
+                <tr>
+                    <td><i class="fas fa-user-circle"></i> ${esc(row.name)}</td>
+                    <td class="page-cell">${esc(row.lastPage)}</td>
+                    <td class="num-cell">${Utils.formatDate(row.lastActivity)}</td>
+                </tr>
+            `);
         };
 
         const renderKpi = (data) => {
             setVal(SELECTORS.totalPageViews, data.totalPageViews);
             setVal(SELECTORS.totalSessions, data.totalSessions);
             setVal(SELECTORS.totalClicks, data.totalClicks);
-            setVal(SELECTORS.activeUsers, data.totalActiveUsers || (data.userActivity ? data.userActivity.length : 0));
+            setText(SELECTORS.avgSessionDuration, data.avgSessionDuration || '—');
+            setVal(SELECTORS.activeUsers, data.activeUsersCount);
         };
 
         const renderDailyChart = (stats, isDarkTheme) => {
@@ -211,6 +221,18 @@
                 }
             });
         }
+
+        // 5. Automatyczne odświeżanie (co 60s) — tylko gdy karta jest aktywna
+        const refreshInterval = setInterval(async () => {
+             if (document.visibilityState === 'visible') {
+                 // data refresh logic...
+                 lastData = await loadData();
+                 render(lastData);
+             }
+        }, 60000);
+
+        // Zapobiegamy wyciekom przy demontażu (jeśli strona byłaby częścią SPA)
+        window.addEventListener('beforeunload', () => clearInterval(refreshInterval));
     }
 
     // --- Helpery ---
@@ -227,6 +249,11 @@
     function setVal(id, val) {
         const el = document.getElementById(id);
         if (el) el.textContent = (val || 0).toLocaleString('pl-PL');
+    }
+
+    function setText(id, val) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
     }
 
     function formatDuration(ms) {
