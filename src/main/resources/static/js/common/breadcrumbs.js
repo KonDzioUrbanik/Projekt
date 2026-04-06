@@ -73,6 +73,11 @@
             href: '/student/university-calendar',
             parent: 'student-panel'
         },
+        chat: {
+            label: 'Chat',
+            href: '/student/chat',
+            parent: 'student-panel'
+        },
         profile: {
             label: 'Mój profil',
             href: '/profile',
@@ -163,14 +168,19 @@
             PAGE_MAP[current].parent = getDynamicPanelParent();
         }
 
-        // Jeśli podano dynamiczny tytuł, to aktualna strona (pageKey) staje się rodzicem dla tego tytułu
-        if (dynamicTitle && PAGE_MAP[current]) {
-            crumbs.unshift({
-                label: dynamicTitle,
-                href: '#', // Ostani element i tak nie jest linkiem
-                parent: current
-            });
-            // Ostatni element (dynamiczny) ma rodzica równego obecnej widokowi
+        // Jeśli podano dynamiczny tytuł, to modyfikujemy ostatni element zamiast dodawać nowy
+        if (dynamicTitle && current && PAGE_MAP[current]) {
+            // Najpierw budujemy standardowe crumbs
+            while (current && PAGE_MAP[current]) {
+                crumbs.unshift(Object.assign({}, PAGE_MAP[current]));
+                current = PAGE_MAP[current].parent;
+            }
+            // Modyfikujemy ostatni element (ten, który właśnie był dodany na koniec tablicy)
+            if (crumbs.length > 0) {
+                const last = crumbs[crumbs.length - 1];
+                last.label = `${last.label}: ${dynamicTitle}`;
+            }
+            return crumbs;
         }
 
         while (current && PAGE_MAP[current]) {

@@ -49,6 +49,11 @@ class UserProfileModule {
             if (!response.ok) throw new Error('Failed to fetch user data');
 
             const user = await response.json();
+            
+            // Aktualizacja breadcrumbs o nazwę użytkownika
+            if (window.Breadcrumbs) {
+                window.Breadcrumbs.updateTitle(`${user.firstName} ${user.lastName}`);
+            }
             this.renderUser(user);
             this.updateBreadcrumbs(user);
         } catch (error) {
@@ -111,40 +116,55 @@ class UserProfileModule {
 
     async loadUserActivity() {
         try {
-            // Stats (Announcements count)
-            const announcementsResponse = await fetch(`/api/announcements/count/author/${this.userId}`);
-            if (announcementsResponse.ok) {
-                const count = await announcementsResponse.json();
-                this.DOM.statPosts.textContent = count;
+            // Forum stats (threads and comments)
+            const forumStatsResponse = await fetch(`/api/forum/users/${this.userId}/stats`);
+            if (forumStatsResponse.ok) {
+                const stats = await forumStatsResponse.json();
+                if (this.DOM.statPosts) this.DOM.statPosts.textContent = stats.threadsCount;
+                if (this.DOM.statComments) this.DOM.statComments.textContent = stats.commentsCount;
             }
 
-            // Load shared/accessible notes from this user
+            // Notes count
             const notesResponse = await fetch(`/api/notes/by-user/${this.userId}`);
             if (notesResponse.ok) {
                 const notes = await notesResponse.json();
-                this.DOM.statNotes.textContent = notes.length;
-                this.renderActivity(notes);
+                if (this.DOM.statNotes) this.DOM.statNotes.textContent = notes.length;
+            }
+
+            // Unified Activity
+            const activityResponse = await fetch(`/api/users/${this.userId}/activity`);
+            if (activityResponse.ok) {
+                const activities = await activityResponse.json();
+                this.renderActivity(activities);
             }
         } catch (error) {
             console.error('Error loading activity:', error);
         }
     }
 
-    renderActivity(notes) {
-        if (!notes || notes.length === 0) return;
+    renderActivity(activities) {
+        if (!activities || activities.length === 0) {
+            this.DOM.activityList.innerHTML = '<p class="up-empty-text">Brak aktywności w ostatnim czasie.</p>';
+            return;
+        }
 
         this.DOM.activityList.innerHTML = '';
-        notes.slice(0, 5).forEach(note => {
-            const date = Utils.formatDate(new Date(note.updatedAt || note.createdAt));
+        activities.forEach(activity => {
+            const date = Utils.formatDate(activity.createdAt);
             const activityItem = document.createElement('div');
             activityItem.className = 'up-activity-item';
+            
+            const icon = activity.type === 'FORUM_THREAD' ? 'fa-comments' : 'fa-sticky-note';
+            const actionText = activity.type === 'FORUM_THREAD' ? 'Dodano wątek:' : 'Udostępniono notatkę:';
+            const link = activity.type === 'FORUM_THREAD' ? `/student/forum?threadId=${activity.id}` : `/student/notes?id=${activity.id}`;
+
             activityItem.innerHTML = `
                 <div style="display: flex; gap: 1rem; align-items: flex-start; padding: 1.25rem; border-bottom: 1px solid var(--border); transition: all 0.2s ease; cursor: pointer; border-radius: 12px; margin-bottom: 0.5rem; background: var(--bg-card);">
                     <div style="background: var(--primary-light); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary); flex-shrink: 0;">
-                        <i class="fas fa-sticky-note"></i>
+                        <i class="fas ${icon}"></i>
                     </div>
                     <div style="flex: 1;">
-                        <p style="margin: 0 0 0.25rem; color: var(--text-main); font-weight: 700; font-size: 0.95rem;">Udostępniono notatkę: ${Utils.escapeHtml(note.title)}</p>
+                        <p style="margin: 0 0 0.25rem; color: var(--text-main); font-weight: 700; font-size: 0.95rem;">${actionText} ${Utils.escapeHtml(activity.title)}</p>
                         <div style="display: flex; align-items: center; gap: 0.75rem;">
                             <span style="font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.35rem;">
                                 <i class="far fa-clock"></i> ${date}
@@ -159,7 +179,7 @@ class UserProfileModule {
             `;
 
             activityItem.querySelector('div').onclick = () => {
-                window.location.href = `/student/notes?id=${note.id}`;
+                window.location.href = link;
             };
             this.DOM.activityList.appendChild(activityItem);
         });

@@ -64,6 +64,9 @@ public interface AnalyticsEventRepository extends JpaRepository<AnalyticsEvent, 
        @Query("SELECT COUNT(e) FROM AnalyticsEvent e WHERE e.eventType = 'CLICK' AND e.createdAt >= :since")
        long countClicksSince(@Param("since") LocalDateTime since);
 
+        // --- Usuwanie błędów o konkretnej nazwie ---
+        void deleteByEventTypeAndEventName(AnalyticsEvent.EventType eventType, String eventName);
+
        // --- Zdarzenia konkretnego użytkownika ---
        List<AnalyticsEvent> findByUserIdOrderByCreatedAtDesc(Long userId);
 }

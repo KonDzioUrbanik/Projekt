@@ -53,4 +53,6 @@ public interface UserService {
     List<UserResponseDto> searchUsers(String query);
 
     UserResponseDto toggleBlock(Long userId);
+
+    List<UserActivityResponseDto> getUserActivity(Long userId);
 }

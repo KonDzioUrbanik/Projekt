@@ -189,6 +189,14 @@ public class AnalyticsService {
         }
 
         /**
+         * Usuwa wszystkie wystąpienia konkretnego błędu.
+         */
+        @Transactional
+        public void deleteError(String eventName) {
+                repository.deleteByEventTypeAndEventName(AnalyticsEvent.EventType.ERROR, eventName);
+        }
+
+        /**
          * Usuwa zbędne parametry query i fragmenty z URLa dla bezpieczeństwa i
          * spójności.
          */
