@@ -255,6 +255,38 @@ public class ForumServiceImpl implements ForumService {
         return mapThread(saved, currentUser);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<ForumThreadResponseDto> getUserThreads(Long userId) {
+        User currentUser = getCurrentUser();
+        return forumThreadRepository.findByAuthor_IdOrderByCreatedAtDesc(userId)
+                .stream()
+                .map(t -> mapThread(t, currentUser))
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ForumCommentResponseDto> getUserComments(Long userId) {
+        User currentUser = getCurrentUser();
+        return forumCommentRepository.findByAuthor_IdOrderByCreatedAtDesc(userId)
+                .stream()
+                .map(c -> {
+                    ForumThread thread = c.getThread();
+                    return mapComment(c, thread, currentUser);
+                })
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.Map<String, Long> getUserForumStats(Long userId) {
+        return java.util.Map.of(
+                "threadsCount", forumThreadRepository.countByAuthor_Id(userId),
+                "commentsCount", forumCommentRepository.countByAuthor_Id(userId)
+        );
+    }
+
     private ForumThread findThread(Long id) {
         return forumThreadRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie znaleziono watku."));
@@ -334,6 +366,7 @@ public class ForumServiceImpl implements ForumService {
 
         return new ForumCommentResponseDto(
                 comment.getId(),
+                thread.getId(),
                 comment.getContent(),
                 comment.getCreatedAt(),
                 comment.getUpdatedAt(),

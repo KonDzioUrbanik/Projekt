@@ -156,4 +156,10 @@ public class UserController {
     public UserResponseDto toggleBlock(@PathVariable Long userId) {
         return userService.toggleBlock(userId);
     }
+
+    @Operation(summary = "Pobierz aktywność użytkownika (Forum + Notatki)")
+    @GetMapping("/{userId}/activity")
+    public List<UserActivityResponseDto> getUserActivity(@PathVariable Long userId) {
+        return userService.getUserActivity(userId);
+    }
 }

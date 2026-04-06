@@ -10,6 +10,8 @@ import com.pansgroup.projectbackend.module.user.dto.*;
 import com.pansgroup.projectbackend.module.user.passwordReset.PasswordResetToken;
 import com.pansgroup.projectbackend.module.user.passwordReset.PasswordResetTokenRepository;
 import com.pansgroup.projectbackend.module.system.SystemService;
+import com.pansgroup.projectbackend.module.forum.ForumService;
+import com.pansgroup.projectbackend.module.note.NoteService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -43,6 +45,8 @@ public class UserServiceImpl implements UserService {
     private static final long CONFIRMATION_COOLDOWN_SECONDS = 5;
 
     private final SystemService systemService;
+    private final ForumService forumService;
+    private final NoteService noteService;
 
     public UserServiceImpl(UserRepository userRepository,
             PasswordEncoder passwordEncoder,
@@ -50,7 +54,9 @@ public class UserServiceImpl implements UserService {
             EmailService emailService,
             ConfirmationTokenRepository confirmationTokenRepository,
             PasswordResetTokenRepository passwordResetTokenRepository,
-            SystemService systemService) {
+            SystemService systemService,
+            ForumService forumService,
+            NoteService noteService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.studentGroupRepository = studentGroupRepository;
@@ -58,6 +64,8 @@ public class UserServiceImpl implements UserService {
         this.confirmationTokenRepository = confirmationTokenRepository;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.systemService = systemService;
+        this.forumService = forumService;
+        this.noteService = noteService;
     }
 
     @Override
@@ -559,5 +567,14 @@ public class UserServiceImpl implements UserService {
 
         user.setBlocked(!user.isBlocked());
         return mapToResponseDto(userRepository.save(user));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserActivityResponseDto> getUserActivity(Long userId) {
+        List<UserActivityResponseDto> activities = new java.util.ArrayList<>();
+        forumService.getUserThreads(userId).stream().limit(5).forEach(t -> activities.add(new UserActivityResponseDto(t.id(), "FORUM_THREAD", t.title(), t.content(), t.createdAt(), "Wątek na forum")));
+        noteService.findByUser(userId).stream().limit(5).forEach(n -> activities.add(new UserActivityResponseDto(n.id(), "NOTE", n.title(), n.content(), n.createdAt(), "Notatka")));
+        return activities.stream().sorted((a1, a2) -> a2.createdAt().compareTo(a1.createdAt())).limit(5).toList();
     }
 }

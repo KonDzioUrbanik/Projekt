@@ -52,4 +52,19 @@ public class AnalyticsController {
     public ResponseEntity<AnalyticsSummaryDto> getSummary() {
         return ResponseEntity.ok(service.getSummary());
     }
+
+    /**
+     * Usuwa konkretny błąd z bazy danych.
+     */
+    @DeleteMapping("/errors")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteError(@RequestParam String eventName) {
+        try {
+            service.deleteError(eventName);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("Błąd podczas usuwania błędu: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
 }

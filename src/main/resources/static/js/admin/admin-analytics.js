@@ -92,7 +92,14 @@
                     <td class="error-cell text-danger" title="${esc(row.eventName)}">
                         <i class="fas fa-bug"></i> ${esc(row.eventName)}
                     </td>
-                    <td class="num-cell">${(row.count || 0).toLocaleString('pl-PL')}</td>
+                    <td class="num-cell">
+                        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem;">
+                            <span>${(row.count || 0).toLocaleString('pl-PL')}</span>
+                            <button class="delete-err-btn" title="Usuń ten błąd" data-event-name="${esc(row.eventName)}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </td>
                 </tr>
             `);
             renderTable(SELECTORS.scrollBody, data.scrollDepthStats, row => {
@@ -165,6 +172,45 @@
             if (lastData) renderDailyChart(lastData.dailyStats || [], isDark);
         });
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+        // 4. Obsługa usuwania błędów (delegacja)
+        const errorsBody = document.getElementById(SELECTORS.errorsBody);
+        if (errorsBody) {
+            errorsBody.addEventListener('click', async (e) => {
+                const btn = e.target.closest('.delete-err-btn');
+                if (!btn) return;
+                
+                const eventName = btn.dataset.eventName;
+                if (!eventName) return;
+
+                if (!confirm(`Czy na pewno chcesz usunąć wszystkie wystąpienia błędu: "${eventName}"?`)) {
+                    return;
+                }
+
+                try {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    
+                    const res = await fetch(`/api/preferences/errors?eventName=${encodeURIComponent(eventName)}`, {
+                        method: 'DELETE',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+
+                    if (res.ok) {
+                        Utils.showToast('Błąd został usunięty z bazy.', 'success');
+                        lastData = await loadData(); // Odśwież dane
+                        render(lastData);
+                    } else {
+                        throw new Error('Błąd serwera');
+                    }
+                } catch (err) {
+                    console.error('[Analytics] Delete failed:', err);
+                    Utils.showToast('Nie udało się usunąć błędu.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-times"></i>';
+                }
+            });
+        }
     }
 
     // --- Helpery ---

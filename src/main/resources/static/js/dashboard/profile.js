@@ -17,9 +17,18 @@ class ProfileModule {
         this.commentsContainer = document.getElementById('comments-container');
         
         // Statystyki wspólne
-        this.statsNotes = document.getElementById('stats-notes');
-        this.statsPosts = document.getElementById('stats-posts');
-        this.statsComments = document.getElementById('stats-comments');
+        this.statsNotes = document.getElementById('statNotes');
+        this.statsPosts = document.getElementById('statPosts');
+        // Statystyki wspólne (próba wielu formatów ID dla bezpieczeństwa)
+        this.statsNotes = document.getElementById('stats-notes') || document.getElementById('statNotes');
+        this.statsPosts = document.getElementById('stats-posts') || document.getElementById('statPosts');
+        this.statsComments = document.getElementById('stats-comments') || document.getElementById('statComments');
+        
+        console.log('ProfileModule initialized. Stat elements:', {
+            notes: !!this.statsNotes,
+            posts: !!this.statsPosts,
+            comments: !!this.statsComments
+        });
         
         // Nowe statystyki (Staż, Logowanie)
         this.statsSeniority = document.getElementById('stats-seniority') || document.getElementById('stats-seniority-admin');
@@ -32,13 +41,24 @@ class ProfileModule {
     }
 
     async load() {
-        const promises = [
-            this.loadUserStats(),
-            this.loadNotes(),
-            this.loadPosts(),
-            this.loadComments()
-        ];
-        await Promise.all(promises);
+        try {
+            await this.loadUserStats(); 
+            
+            if (!this.userId) {
+                console.warn('User ID still undefined after loadUserStats, retrying in 500ms...');
+                await new Promise(r => setTimeout(r, 500));
+                await this.loadUserStats();
+            }
+
+            const promises = [
+                this.loadNotes(),
+                this.loadPosts(),
+                this.loadComments()
+            ];
+            await Promise.all(promises);
+        } catch (err) {
+            console.error('Błąd inicjalizacji profilu:', err);
+        }
     }
 
     // Pobieranie danych użytkownika dla stażu i ostatniego logowania
@@ -53,8 +73,21 @@ class ProfileModule {
             if (!response.ok) throw new Error('Nie udało się pobrać danych użytkownika');
             
             const user = await response.json();
+            this.userId = user.id; // Przechowaj ID dla innych metod
             this.renderUserPersonalStats(user);
             
+            // Pobierz statystyki forum (licznik wątków i komentarzy)
+            try {
+                const forumStatsResponse = await fetch(`/api/forum/users/${user.id}/stats`);
+                if (forumStatsResponse.ok) {
+                    const stats = await forumStatsResponse.json();
+                    if (this.statsPosts) this.statsPosts.textContent = stats.threadsCount;
+                    if (this.statsComments) this.statsComments.textContent = stats.commentsCount;
+                }
+            } catch (err) {
+                console.warn('Nie udało się pobrać statystyk forum:', err);
+            }
+
             // Jeśli przeglądamy profil kogoś innego (mamy userId w URL), możemy ukryć elementy edycji
             if (userId) {
                 document.querySelectorAll('.only-me').forEach(el => el.style.display = 'none');
@@ -218,12 +251,19 @@ class ProfileModule {
 
     // Sekcja: Posty
     async loadPosts() {
-        const posts = []; 
-        if (this.statsPosts) {
-            this.statsPosts.textContent = posts ? posts.length : 0;
-        }
-        if (this.postsContainer) {
-            this.renderPosts(posts); 
+        try {
+            const response = await fetch(`/api/forum/users/${this.userId}/threads`);
+            if (!response.ok || response.redirected || response.url.includes('/login')) return;
+            const posts = await response.json();
+            
+            if (this.statsPosts) {
+                this.statsPosts.textContent = posts ? posts.length : 0;
+            }
+            if (this.postsContainer) {
+                this.renderPosts(posts); 
+            }
+        } catch (error) {
+            console.error('Błąd ładowania postów:', error);
         }
     }
 
@@ -232,30 +272,62 @@ class ProfileModule {
             this.showEmptyState(this.postsContainer, 'fa-comments', 'Nie dodałeś jeszcze żadnych postów.', '/student/forum', 'Przejdź do forum');
             return;
         }
+
+        let html = '';
+        posts.slice(0, 5).forEach(post => {
+            const date = Utils.formatDate(post.createdAt);
+            const contentPreview = post.content.substring(0, 100) + (post.content.length > 100 ? '...' : '');
+            
+            html += `
+                <a href="/student/forum?threadId=${post.id}" class="post-mini-card">
+                    <h4 class="post-mini-title">${Utils.escapeHtml(post.title)}</h4>
+                    <p class="post-mini-content">${Utils.escapeHtml(contentPreview)}</p>
+                    <span class="post-mini-date">${date}</span>
+                </a>
+            `;
+        });
+        this.postsContainer.innerHTML = html;
     }
 
     // Sekcja: Komentarze
     async loadComments() {
-        const comments = []; 
-        if (this.statsComments) {
-            this.statsComments.textContent = comments ? comments.length : 0;
-        }
-        if (this.commentsContainer) {
-            this.renderComments(comments);
+        try {
+            const response = await fetch(`/api/forum/users/${this.userId}/comments`);
+            if (!response.ok || response.redirected || response.url.includes('/login')) return;
+            const comments = await response.json();
+            
+            if (this.statsComments) {
+                this.statsComments.textContent = comments ? comments.length : 0;
+            }
+            if (this.commentsContainer) {
+                this.renderComments(comments);
+            }
+        } catch (error) {
+            console.error('Błąd ładowania komentarzy:', error);
         }
     }
 
     renderComments(comments) {
         if (!this.commentsContainer) return;
         if (!comments || comments.length === 0) {
-            this.commentsContainer.innerHTML = `
-                <div class="empty-state-small">
-                    <i class="fas fa-comment-slash" aria-hidden="true"></i>
-                    <p>Brak komentarzy</p>
-                </div>
-            `;
+            this.showEmptyState(this.commentsContainer, 'fa-reply', 'Nie napisałeś jeszcze żadnego komentarza.', '/student/forum', 'Przejdź do forum');
             return;
         }
+
+        let html = '';
+        comments.slice(0, 5).forEach(comment => {
+            const date = Utils.formatDate(comment.createdAt);
+            const preview = comment.content.substring(0, 80) + (comment.content.length > 80 ? '...' : '');
+            const threadId = comment.threadId;
+
+            html += `
+                <a href="/student/forum?threadId=${threadId}" class="comment-mini-card">
+                    <p class="comment-mini-content">"${Utils.escapeHtml(preview)}"</p>
+                    <span class="comment-mini-date">${date}</span>
+                </a>
+            `;
+        });
+        this.commentsContainer.innerHTML = html;
     }
 
     // Sekcja: Narzędzia pomocnicze

@@ -98,28 +98,30 @@
         
         sendEvent('PAGE_VIEW', (isSPA ? 'spa_navigation' : navType), null);
 
-        // Baseline 0% Scroll Depth - opóźnienie 100ms, aby URL w SPA zdążył się zaktualizować (Safe Entry)
+        // Baseline 0% Scroll Depth - opóźnienie 250ms (Safe Entry vs Rate Limit)
         setTimeout(function() {
             var p = getPagePath();
             if (!sentMarkers[p + ':0']) {
                 sentMarkers[p + ':0'] = true;
                 sendEvent('SCROLL_DEPTH', 'reached_0_percent', null, p);
             }
-        }, 100);
+        }, 250);
 
-        // Informacje o urządzeniu (raz na sesję)
+        // Informacje o urządzeniu (raz na sesję) - opóźnienie 500ms, aby nie kolidować z PAGE_VIEW (limit 100ms)
         if (!isSPA && localStorage.getItem('pans_device_tracked') !== sessionId) {
-            var browser = (function() {
-                var ua = navigator.userAgent;
-                if (ua.indexOf('Firefox') > -1) return 'Firefox';
-                if (ua.indexOf('Edg') > -1) return 'Edge';
-                if (ua.indexOf('Chrome') > -1) return 'Chrome';
-                if (ua.indexOf('Safari') > -1) return 'Safari';
-                return 'Inna';
-            })();
-            var info = 'Browser:' + browser + ', Res:' + screen.width + 'x' + screen.height + ', Platform:' + navigator.platform;
-            sendEvent('DEVICE_INFO', info, null);
-            localStorage.setItem('pans_device_tracked', sessionId);
+            setTimeout(function() {
+                var browser = (function() {
+                    var ua = navigator.userAgent;
+                    if (ua.indexOf('Firefox') > -1) return 'Firefox';
+                    if (ua.indexOf('Edg') > -1) return 'Edge';
+                    if (ua.indexOf('Chrome') > -1) return 'Chrome';
+                    if (ua.indexOf('Safari') > -1) return 'Safari';
+                    return 'Inna';
+                })();
+                var info = 'Browser:' + browser + ', Res:' + screen.width + 'x' + screen.height + ', Platform:' + navigator.platform;
+                sendEvent('DEVICE_INFO', info, null);
+                localStorage.setItem('pans_device_tracked', sessionId);
+            }, 500);
         }
     }
 

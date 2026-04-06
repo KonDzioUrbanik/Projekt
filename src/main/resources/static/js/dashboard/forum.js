@@ -43,6 +43,14 @@
         init() {
             if (!this.els.form || !this.els.list || !this.els.detail) return;
             this.state.mode = this.els.form.dataset.mode || 'student';
+            
+            // Odczyt wybranego wątku z URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const threadId = urlParams.get('threadId');
+            if (threadId) {
+                this.state.selectedThreadId = Number(threadId);
+            }
+
             this.attachListeners();
             this.setView('browse');
             this.bootstrap();

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 public record ForumCommentResponseDto(
         Long id,
+        Long threadId,
         String content,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,

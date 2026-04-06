@@ -22,6 +22,10 @@ public interface ForumThreadRepository extends JpaRepository<ForumThread, Long> 
 
     @EntityGraph(attributePaths = {"author", "studentGroup", "comments", "comments.author"})
     List<ForumThread> findAllByOrderByArchivedAscPinnedDescCreatedAtDesc();
+
+    List<ForumThread> findByAuthor_IdOrderByCreatedAtDesc(Long authorId);
+
+    long countByAuthor_Id(Long authorId);
 }
 
 

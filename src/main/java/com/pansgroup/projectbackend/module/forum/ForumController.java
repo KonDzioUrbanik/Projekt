@@ -6,11 +6,13 @@ import com.pansgroup.projectbackend.module.forum.dto.ForumThreadCreateDto;
 import com.pansgroup.projectbackend.module.forum.dto.ForumThreadModerationDto;
 import com.pansgroup.projectbackend.module.forum.dto.ForumThreadResponseDto;
 import com.pansgroup.projectbackend.module.forum.dto.ForumThreadUpdateDto;
+import com.pansgroup.projectbackend.module.forum.dto.ForumCommentResponseDto;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/forum")
@@ -76,6 +78,21 @@ public class ForumController {
     @PatchMapping("/threads/{id}/moderation")
     public ForumThreadResponseDto moderateThread(@PathVariable Long id, @RequestBody ForumThreadModerationDto dto) {
         return forumService.moderateThread(id, dto);
+    }
+
+    @GetMapping("/users/{userId}/threads")
+    public List<ForumThreadResponseDto> getUserThreads(@PathVariable Long userId) {
+        return forumService.getUserThreads(userId);
+    }
+
+    @GetMapping("/users/{userId}/comments")
+    public List<ForumCommentResponseDto> getUserComments(@PathVariable Long userId) {
+        return forumService.getUserComments(userId);
+    }
+
+    @GetMapping("/users/{userId}/stats")
+    public Map<String, Long> getUserForumStats(@PathVariable Long userId) {
+        return forumService.getUserForumStats(userId);
     }
 }
 
