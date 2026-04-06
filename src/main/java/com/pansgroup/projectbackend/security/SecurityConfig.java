@@ -216,6 +216,26 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.GET, "/api/announcements/attachments/**", "/api/announcements/count/author/**")
                                 .authenticated()
 
+                                // API forum
+                                .requestMatchers(HttpMethod.GET, "/api/forum/**")
+                                .hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/api/forum/threads")
+                                .hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/api/forum/threads/*/comments")
+                                .hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/api/forum/threads/*/like")
+                                .hasAnyRole("STUDENT", "STAROSTA")
+                                .requestMatchers(HttpMethod.PUT, "/api/forum/threads/*")
+                                .hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
+                                .requestMatchers(HttpMethod.PUT, "/api/forum/threads/*/comments/*")
+                                .hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/forum/threads/*/comments/*")
+                                .hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/forum/threads/*")
+                                .hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
+                                .requestMatchers(HttpMethod.PATCH, "/api/forum/threads/*/moderation")
+                                .hasRole("ADMIN")
+
                                 // Widoki admin tylko dla ADMIN
                                 .requestMatchers("/admin/**").hasRole("ADMIN")
 
