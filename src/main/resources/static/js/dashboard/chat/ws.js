@@ -13,6 +13,8 @@ export function connectWs() {
         stompClient.subscribe('/user/queue/messages', onWsMessage);
         stompClient.subscribe('/user/queue/typing', onWsTyping);
         stompClient.subscribe('/user/queue/read-receipt', onWsReadReceipt);
+        stompClient.subscribe('/user/queue/edit', onWsEdit);
+        stompClient.subscribe('/user/queue/delete', onWsDelete);
         stompClient.subscribe('/user/queue/errors', onWsError);
     }, () => {
         setTimeout(connectWs, 3000);
@@ -43,7 +45,12 @@ function onWsMessage(frame) {
             appendMessage(msg, true);
         }
         
-        if (msg.mine === false) markRead(state.currentConvId);
+        if (msg.mine === false) {
+            markRead(state.currentConvId);
+            if (stompClient && stompClient.connected) {
+                stompClient.send('/app/chat.read', {}, JSON.stringify({ conversationId: state.currentConvId }));
+            }
+        }
     }
     updateSidebarPreviewLocal(msg.conversationId, msg.content, msg.sentAt, msg.senderName, msg.mine);
 }
@@ -63,6 +70,39 @@ function onWsReadReceipt(frame) {
             el.classList.add('chat-msg-status--read');
         });
     }
+}
+
+function onWsEdit(frame) {
+    const msg = JSON.parse(frame.body);
+    import('./ui.js').then(m => {
+        const wrap = document.querySelector(`[data-msg-id="${msg.id}"]`);
+        if (wrap) {
+            const newWrap = m.buildMessageEl(msg);
+            wrap.replaceWith(newWrap);
+        }
+    });
+}
+
+function onWsDelete(frame) {
+    const data = JSON.parse(frame.body);
+    import('./ui.js').then(m => {
+        const wrap = document.querySelector(`[data-msg-id="${data.msgId}"]`);
+        if (wrap) {
+            const msgEl = wrap.querySelector('.chat-msg');
+            if (msgEl) msgEl.classList.add('chat-msg--deleted');
+            const bubble = wrap.querySelector('.chat-msg-bubble');
+            if (bubble) {
+                bubble.innerHTML = '';
+                const icon = document.createElement('i');
+                icon.className = 'fas fa-ban';
+                icon.style.marginRight = '0.35rem';
+                bubble.appendChild(icon);
+                bubble.appendChild(document.createTextNode('Wiadomość usunięta'));
+            }
+            const opts = wrap.querySelector('.chat-msg-options');
+            if (opts) opts.remove();
+        }
+    });
 }
 
 function onWsError(frame) {

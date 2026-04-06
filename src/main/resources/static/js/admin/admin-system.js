@@ -7,21 +7,21 @@ class AdminSystem {
 
         // Mapa przyjaznych nazw dla kluczy ustawień — używana w komunikatach toast
         this.FRIENDLY_NAMES = {
-            global_maintenance:           'Tryb konserwacji (globalny)',
-            registration_enabled:         'Rejestracja kont',
-            login_enabled:                'Logowanie do platformy',
-            module_notes:                 'Moduł Notatek',
-            module_schedule:              'Moduł Harmonogramu zajęć',
-            module_announcements:         'Moduł Ogłoszeń grupy',
-            module_calendar:              'Moduł Kalendarza',
-            module_attendance:            'Moduł Obecności',
-            module_forum:                 'Moduł Forum',
-            module_university_calendar:   'Moduł Kalendarza akademickiego',
-            module_semester_progress:     'Moduł Postępu semestru',
-            module_starosta_announcements:'Moduł Ogłoszeń starosty',
-            module_chat:                  'Moduł Chat',
-            module_analytics:             'Analityka użytkowników',
-            global_banner_text:           'Komunikat globalny',
+            global_maintenance: 'Tryb konserwacji (globalny)',
+            registration_enabled: 'Rejestracja kont',
+            login_enabled: 'Logowanie do platformy',
+            module_notes: 'Moduł Notatek',
+            module_schedule: 'Moduł Harmonogramu zajęć',
+            module_announcements: 'Moduł Ogłoszeń grupy',
+            module_calendar: 'Moduł Kalendarza',
+            module_attendance: 'Moduł Obecności',
+            module_forum: 'Moduł Forum',
+            module_university_calendar: 'Moduł Kalendarza akademickiego',
+            module_semester_progress: 'Moduł Postępu semestru',
+            module_starosta_announcements: 'Moduł Ogłoszeń starosty',
+            module_chat: 'Moduł Chat',
+            module_analytics: 'Moduł Analityki',
+            global_banner_text: 'Komunikat globalny',
         };
 
         // Dozwolone wartości Logback leveli — chroni przed CSS injection
@@ -175,8 +175,8 @@ class AdminSystem {
                 throw new Error(errMsg);
             }
 
-            const name = this.FRIENDLY_NAMES[key] || `Ustawienie "${key}"`;
-            Utils.showToast(`${name} zostało zaktualizowane.`, 'success');
+            const name = this.FRIENDLY_NAMES[key] || `ustawienie "${key}"`;
+            Utils.showToast(`Pomyślnie zaktualizowano: ${name}`, 'success');
             this.updateLastSyncTime();
         } catch (error) {
             console.error('Update setting failed:', error);
