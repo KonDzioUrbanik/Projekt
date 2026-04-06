@@ -1,17 +1,137 @@
 <!DOCTYPE html>
-<html layout:decorate="~{layout/main-layout}">
-    <head>
-        <title>Kontrola postów</title>
-        <th:block layout:fragment="page-styles">
-            <link rel="stylesheet" th:href="@{/css/admin/admin-users.css(v=${#dates.createNow().getTime()})}" href="../../static/css/admin/admin-users.css">
-        </th:block>
-    </head>
-    <body>
-        <div layout:fragment="content">
-            <div class="feature-under-development">
-                <h2>Kontrola Postów</h2>
-                <p>Funkcja w przygotowaniu.<br>Moduł kontroli postów jest obecnie w fazie rozwoju technicznego.<br>Przepraszamy za czasowe niedogodności.</p>
+<html lang="pl"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <title>Kontrola postów</title>
+    <th:block layout:fragment="page-styles">
+        <link rel="stylesheet" th:href="@{/css/dashboard/forum.css}">
+    </th:block>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="admin-header">
+        <div>
+            <h1>Kontrola postów</h1>
+            <p>Moderacja forum i zarządzanie wątkami.</p>
+        </div>
+    </div>
+
+
+    <div class="forum-view-switcher">
+        <button id="forumBrowseViewBtn" class="forum-view-btn active" type="button">
+            <i class="fas fa-stream"></i> Przeglądaj wątki
+        </button>
+        <button id="forumCreateViewBtn" class="forum-view-btn" type="button">
+            <i class="fas fa-plus-circle"></i> Dodaj nowy wątek
+        </button>
+    </div>
+
+    <section id="forumBrowseSection" class="forum-view-section">
+        <div class="forum-shell">
+            <aside class="forum-left">
+                <section class="forum-card">
+                    <header class="forum-card-head forum-card-head-inline">
+                        <h3><i class="fas fa-stream"></i> Wątki</h3>
+                        <label class="forum-checkbox-label">
+                            <input type="checkbox" id="forumIncludeArchived" checked>
+                            Archiwum
+                        </label>
+                    </header>
+                    <div class="forum-list-tools">
+                        <div class="forum-search-wrapper">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="forumSearchInput" placeholder="Szukaj po tytule lub autorze..." autocomplete="off">
+                        </div>
+                        <div class="forum-list-tools-row">
+                            <select id="forumSearchScope" class="forum-search-scope" aria-label="Zakres wyszukiwania">
+                                <option value="all">Tytuł i autor</option>
+                                <option value="title">Tylko tytuł</option>
+                                <option value="author">Tylko autor</option>
+                            </select>
+                            <span class="forum-results-count" id="forumResultsCount">0 wyników</span>
+                        </div>
+                    </div>
+                    <div id="forumThreadList" class="forum-thread-list"></div>
+                </section>
+            </aside>
+
+            <section class="forum-right">
+                <article id="forumThreadDetail" class="forum-card forum-detail-empty">
+                    <div class="forum-empty">Wybierz wątek z listy, aby zobaczyć szczegóły i komentarze.</div>
+                </article>
+            </section>
+        </div>
+    </section>
+
+    <section id="forumCreateSection" class="forum-view-section forum-hidden">
+        <section class="forum-card forum-create-card">
+            <header class="forum-card-head">
+                <h3><i class="fas fa-plus"></i> Dodaj wątek</h3>
+            </header>
+            <div class="forum-card-body">
+                <form id="forumThreadForm" data-mode="admin">
+                    <div class="forum-form-group">
+                        <label for="forumThreadTitle">Tytuł</label>
+                        <input id="forumThreadTitle" class="forum-input" maxlength="180" required>
+                    </div>
+
+                    <div class="forum-form-group">
+                        <label for="forumThreadContent">Treść</label>
+                        <div class="forum-md-toolbar" data-target="forumThreadContent">
+                            <button type="button" class="forum-md-btn" data-md="bold" title="Pogrubienie"><i class="fas fa-bold"></i></button>
+                            <button type="button" class="forum-md-btn" data-md="italic" title="Kursywa"><i class="fas fa-italic"></i></button>
+                            <button type="button" class="forum-md-btn" data-md="h2" title="Nagłówek H2">H2</button>
+                            <button type="button" class="forum-md-btn" data-md="h3" title="Nagłówek H3">H3</button>
+                            <button type="button" class="forum-md-btn" data-md="list" title="Lista"><i class="fas fa-list-ul"></i></button>
+                            <button type="button" class="forum-md-btn" data-md="quote" title="Cytat"><i class="fas fa-quote-right"></i></button>
+                            <button type="button" class="forum-md-btn" data-md="code" title="Kod"><i class="fas fa-code"></i></button>
+                            <button type="button" class="forum-md-btn" data-md="link" title="Link"><i class="fas fa-link"></i></button>
+                        </div>
+                        <textarea id="forumThreadContent" class="forum-textarea" maxlength="4000" required></textarea>
+                    </div>
+
+                    <div class="forum-form-group">
+                        <label for="forumTargetGroup">Grupa docelowa</label>
+                        <select id="forumTargetGroup" class="forum-input">
+                            <option value="">Moja grupa</option>
+                        </select>
+                    </div>
+
+                    <div class="forum-form-group">
+                        <label>Podgląd</label>
+                        <div id="forumCreatePreview" class="forum-markdown-preview"></div>
+                    </div>
+
+                    <div class="forum-actions">
+                        <button class="forum-btn ghost" id="forumCreateCancelBtn" type="button">Anuluj</button>
+                        <button class="forum-btn primary" type="submit">Dodaj</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </section>
+
+    <div class="forum-modal-overlay" id="forumDeleteModal" aria-hidden="true">
+        <div class="forum-modal-card" role="dialog" aria-modal="true" aria-labelledby="forumDeleteModalTitle">
+            <div class="forum-modal-icon">
+                <i class="fas fa-trash-alt"></i>
+            </div>
+            <h3 id="forumDeleteModalTitle">Usuń element</h3>
+            <p id="forumDeleteModalText">Czy na pewno chcesz usunąć ten element?</p>
+            <div class="forum-modal-actions">
+                <button class="forum-btn ghost" id="forumDeleteCancelBtn" type="button">Anuluj</button>
+                <button class="forum-btn danger" id="forumDeleteConfirmBtn" type="button">
+                    <i class="fas fa-trash-alt"></i> Usuń
+                </button>
             </div>
         </div>
-    </body>
+    </div>
+</div>
+
+<th:block layout:fragment="page-scripts">
+    <script th:src="@{/js/dashboard/forum.js}" defer></script>
+</th:block>
+</body>
 </html>
