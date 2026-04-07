@@ -1,0 +1,69 @@
+/* Standardized Admin Resources Styles */
+.system-management-wrapper {
+    padding: 1.5rem;
+}
+.storage-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.storage-item-standard {
+    padding: 0.5rem 0;
+}
+
+.storage-label-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.progress-bar-wrap {
+    height: 8px;
+    background: var(--bg-body, #f1f5f9);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: var(--primary, #005efa);
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.progress-bar-fill.warning {
+    background: var(--warning, #f59e0b);
+}
+
+.progress-bar-fill.danger {
+    background: var(--danger, #ef4444);
+}
+
+.stats-row-technical {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 1rem;
+}
+
+.admin-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 1rem 0;
+}
+
+/* Prediction refinements */
+#predictionDays {
+    color: var(--primary);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+[data-theme="dark"] .progress-bar-wrap {
+    background: #0f172a;
+}

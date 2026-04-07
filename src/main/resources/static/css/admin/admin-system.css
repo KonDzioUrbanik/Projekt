@@ -4,6 +4,18 @@
     animation: fadeIn 0.4s ease-out;
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-actions .last-sync {
+    font-size: 0.85rem;
+    color: var(--text-muted, #6c757d);
+    white-space: nowrap;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -42,6 +54,80 @@
 .last-sync {
     font-size: 0.85rem;
     color: var(--text-muted, #6c757d);
+}
+
+/* HEALTH SUMMARY ROW */
+.health-summary-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.summary-item {
+    background: var(--bg-card, #ffffff);
+    padding: 1.25rem;
+    border-radius: 12px;
+    border: 1px solid var(--border, #f1f5f9);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.2s;
+}
+
+.summary-item:hover {
+    transform: translateY(-2px);
+}
+
+.summary-item i {
+    font-size: 1.5rem;
+    color: var(--primary);
+    width: 40px;
+    height: 40px;
+    background: rgba(var(--primary-rgb, 0, 94, 250), 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+}
+
+.summary-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.summary-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.summary-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.summary-item.status-ok i {
+    color: var(--success, #10b981);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.summary-item.status-error i {
+    color: var(--danger, #ef4444);
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.summary-item.status-warning i {
+    color: var(--warning, #f59e0b);
+    background: rgba(245, 158, 11, 0.1);
 }
 
 /* GRID LAYOUT */
@@ -340,17 +426,41 @@ input:checked+.slider:before {
 
 /* UTILS */
 .btn-refresh {
-    background: none;
-    border: none;
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border, #e2e8f0);
     color: var(--text-muted);
     cursor: pointer;
     padding: 0.5rem;
-    transition: transform 0.3s;
+    border-radius: 8px;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .btn-refresh:hover {
-    color: var(--primary);
+    background: var(--bg-body, #f8fafc);
+    color: var(--primary, #005efa);
+    border-color: var(--primary-light, #bfdbfe);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.btn-refresh i {
+    transition: transform 0.3s;
+}
+
+.btn-refresh:hover i.fa-sync-alt {
     transform: rotate(180deg);
+}
+
+.btn-refresh.danger-action:hover {
+    background: #fff1f2;
+    color: #e11d48;
+    border-color: #fecdd3;
 }
 
 .badge {

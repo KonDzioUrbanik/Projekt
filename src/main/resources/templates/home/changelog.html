@@ -29,22 +29,31 @@
                         </summary>
                         <div class="version-content">
                             <div class="version-desc">
-                                Aktualizacja wprowadzająca moduł komunikacji, system analityki oraz odświeżone profile użytkowników z osią aktywności.
+                                Aktualizacja wprowadzająca moduł komunikacji, forum, system analityki oraz odświeżone profile użytkowników z osią aktywności.
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
                                 <ul class="change-list added">
+                                    <li><strong>Forum dyskusyjne:</strong> Rozbudowany system wymiany wiedzy z obsługą wątków, systemem komentarzy oraz polubieniami.</li>
+                                    <li><strong>System moderacji forum:</strong> Narzędzia dla uprawnionych użytkowników do zarządzania treścią i statusami wątków.</li>
+                                    <li><strong>Analityka zaangażowania:</strong> Precyzyjne zliczanie czasu na stronie z filtrowaniem "odbić" (poniżej 10s) oraz rzetelne statystyki najpopularniejszych stron z ostatnich 30 dni.</li>
                                     <li><strong>Komunikacja w czasie rzeczywistym:</strong> Nowy moduł czatu z obsługą edycji treści, usuwania wiadomości oraz statusami odczytu.</li>
                                     <li><strong>Bezpieczeństwo wiadomości:</strong> Stałe szyfrowanie wszystkich rozmów na poziomie bazy danych.</li>
                                     <li><strong>Liczniki nieprzeczytanych treści:</strong> System powiadomień o nowych wiadomościach w liście rozmów.</li>
                                     <li><strong>Panel informacyjny:</strong> Boczna sekcja w oknie czatu z dostępem do profilu rozmówcy i multimediów.</li>
                                     <li><strong>Nowoczesne profile publiczne:</strong> Odświeżony widok prezentujący statystyki aktywności i staż konta.</li>
-                                    <li><strong>Oś aktywności:</strong> Zestawienie ogłoszeń, udostępnionych notatek oraz postów z forum bezpośrednio na profilu studenta (z limitem do 5 najnowszych zdarzeń).</li>
-                                    <li><strong>Zarządzanie Błędami:</strong> System trwałego usuwania błędów technicznych z poziomu panelu analitycznego administratora.</li>
-                                    <li><strong>Statystyki ruchu:</strong> System zbierania anonimowych danych z ulepszoną detekcją urządzeń i sesji (fix rate-limiting).</li>
-                                    <li><strong>Breadcrumbs:</strong> Wprowadzono ścieżkę nawigacji w module Chatu dla lepszej orientacji w systemie.</li>
-                                    <li><strong>Integracja profilu z Forum:</strong> Dodano widżety "Twoje posty" i "Twoje komentarze" z bezpośrednimi linkami do wątków oraz synchronizację liczników aktywności.</li>
+                                    <li><strong>Oś aktywności:</strong> Zestawienie ogłoszeń, udostępnionych notatek oraz postów z forum bezpośrednio na profilu studenta.</li>
+                                    <li><strong>Zarządzanie błędami:</strong> System trwałego usuwania błędów technicznych z poziomu panelu analitycznego administratora.</li>
+                                    <li><strong>Statystyki ruchu:</strong> System zbierania anonimowych danych z ulepszoną detekcją urządzeń i oszczędnym raportowaniem sesji.</li>
+                                    <li><strong>Breadcrumbs:</strong> Wprowadzono ścieżkę nawigacji w module czatu dla lepszej orientacji w systemie.</li>
+                                    <li><strong>Integracja profilu z forum:</strong> Dodano widżety "Twoje posty" i "Twoje komentarze" z bezpośrednimi linkami do wątków oraz synchronizację liczników aktywności.</li>
+                                    <li><strong>Monitoring Zasobów:</strong> Nowa zakładka "Zasoby" umożliwiająca kontrolę zajętości bazy danych, awatarów i załączników.</li>
+                                    <li><strong>Centrum Bezpieczeństwa:</strong> Szczegółowy audyt logowań, śledzenie podejrzanych adresów IP oraz rejestr zdarzeń krytycznych.</li>
+                                    <li><strong>Live System Health:</strong> Realny podgląd stanu zdrowia backendu (uptime, zapytania, błędy) zintegrowany z panelem Systemu.</li>
+                                    <li><strong>Audyt cyklu życia użytkownika:</strong> Rejestracja zdarzeń dla procesów rejestracji, aktywacji kont oraz resetowania haseł.</li>
+                                    <li><strong>Śledzenie błędów 4xx/5xx:</strong> Zaawansowana diagnostyka ścieżek powodujących błędy serwera i klienta z dynamicznymi podpowiedziami.</li>
+                                    <li><strong>Modułowy Panel Admina:</strong> Reorganizacja narzędzi zarządczych na dedykowane sekcje: Bezpieczeństwo, System oraz Infrastruktura.</li>
                                 </ul>
                             </div>
 
@@ -52,6 +61,8 @@
                                 <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
                                 <ul class="change-list changed">
                                     <li><strong>Responsywność czatu:</strong> Pełne wsparcie dla szerokich monitorów oraz poprawienie stabilności układu wiadomości.</li>
+                                    <li><strong>Niezawodność analityki:</strong> Rozwiązano problem tracenia czasu sesji przy nawigacji SPA oraz wylogowaniu (wprowadzono mechanizm opóźnionego wyjścia).</li>
+                                    <li><strong>Wydajność panelu:</strong> Optymalizacja zapytań do bazy danych (Batch Loading) znacznie przyspieszająca ładowanie statystyk aktywności.</li>
                                     <li><strong>Linkowanie notatek:</strong> Szybsze i stabilniejsze otwieranie konkretnych materiałów z linków zewnętrznych.</li>
                                     <li><strong>Ochrona prywatności:</strong> Blokada dostępu do kont administracyjnych oraz lepsza izolacja treści prywatnych.</li>
                                     <li><strong>Wydajność aplikacji:</strong> Optymalizacja kodu frontendowego dla płynniejszego działania stron.</li>
@@ -61,6 +72,7 @@
                             <div class="change-category">
                                 <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
                                 <ul class="change-list fixed">
+                                    <li><strong>Interfejs mobilny czatu:</strong> Naprawiono nakładanie się przycisków "Feedback" i "Wróć na górę" na pole wpisywania wiadomości na telefonach.</li>
                                     <li><strong>Błędy nawigacji:</strong> Usunięto błędy 404 przy przechodzeniu między profilem a modułem notatek.</li>
                                     <li><strong>Stabilność interfejsu:</strong> Rozwiązano błędy skryptów występujące przy ładowaniu elementów profilu (naprawa "0 stats" i retry logic).</li>
                                     <li><strong>Wygląd profilu:</strong> Poprawiono kontrast i kolory kart aktywności w trybie ciemnym (koniec z fioletowymi linkami).</li>
@@ -85,34 +97,34 @@
                             <div class="change-category">
                                 <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
                                 <ul class="change-list added">
-                                    <li><strong>Tryb Konserwacji (Maintenance Mode):</strong> Możliwość całkowitego wyłączenia dostępu do platformy z poziomu panelu administratora.</li>
-                                    <li><strong>Admin Bypass:</strong> Bezpieczny mechanizm dostępu do systemu dla administratorów podczas trwania przerwy technicznej.</li>
-                                    <li><strong>Zarządzanie Modułami:</strong> Feature Toggles pozwalające na niezależne włączanie/wyłączanie poszczególnych sekcji (Rejestracja, Logowanie, moduły - Ogłoszenia, Harmonogram, Notatki itd.).</li>
+                                    <li><strong>Tryb konserwacji (Maintenance Mode):</strong> Możliwość całkowitego wyłączenia dostępu do platformy z poziomu panelu administratora.</li>
+                                    <li><strong>Admin bypass:</strong> Bezpieczny mechanizm dostępu do systemu dla administratorów podczas trwania przerwy technicznej.</li>
+                                    <li><strong>Zarządzanie modułami:</strong> Feature Toggles pozwalające na niezależne włączanie/wyłączanie poszczególnych sekcji (Rejestracja, Logowanie, moduły - Ogłoszenia, Harmonogram, Notatki itd.).</li>
                                 </ul>
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
                                 <ul class="change-list changed">
-                                    <li><strong>Panel Administracyjny "System":</strong> Przebudowany interfejs zarządzania stanem platformy z ulepszonym układem i ergonomią pracy.</li>
+                                    <li><strong>Panel administracyjny "System":</strong> Przebudowany interfejs zarządzania stanem platformy z ulepszonym układem i ergonomią pracy.</li>
                                     <li><strong>Usprawnienia UX:</strong> Wprowadzenie liczników znaków dla bannerów oraz dynamicznych widżetów na dashboardzie odpornych na wyłączenie modułów.</li>
-                                    <li><strong>Obsługa Komunikatów:</strong> Ujednolicona sygnalizacja stanów powodzenia i błędów (Toast) przy operacjach systemowych.</li>
+                                    <li><strong>Obsługa komunikatów:</strong> Ujednolicona sygnalizacja stanów powodzenia i błędów (Toast) przy operacjach systemowych.</li>
                                 </ul>
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title added" style="background: rgba(var(--primary-rgb), 0.1); color: var(--primary);"><i class="fas fa-shield-alt"></i> Bezpieczeństwo</div>
                                 <ul class="change-list added" style="border-left-color: var(--primary);">
-                                    <li><strong>Ochrona Logów:</strong> Wzmocnienie mechanizmów ochrony i integralności logów systemowych.</li>
-                                    <li><strong>Parametry Systemowe:</strong> Wprowadzenie mechanizmów ograniczających edycję kluczowych parametrów systemowych do bezpiecznej, predefiniowanej listy.</li>
-                                    <li><strong>Weryfikacja Danych:</strong> Implementacja wzmocnionych mechanizmów walidacji danych wejściowych w celu zwiększenia odporności systemu.</li>
+                                    <li><strong>Ochrona logów:</strong> Wzmocnienie mechanizmów ochrony i integralności logów systemowych.</li>
+                                    <li><strong>Parametry systemowe:</strong> Wprowadzenie mechanizmów ograniczających edycję kluczowych parametrów systemowych do bezpiecznej, predefiniowanej listy.</li>
+                                    <li><strong>Weryfikacja danych:</strong> Implementacja wzmocnionych mechanizmów walidacji danych wejściowych w celu zwiększenia odporności systemu.</li>
                                 </ul>
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
                                 <ul class="change-list fixed">
-                                    <li><strong>Logika Redirectów:</strong> Rozwiązano błąd pętli przekierowań przy omijaniu konserwacji poprzez czyszczenie sesji i ciasteczek remember-me dla nieuprzywilejowanych kont.</li>
+                                    <li><strong>Logika redirectów:</strong> Rozwiązano błąd pętli przekierowań przy omijaniu konserwacji poprzez czyszczenie sesji i ciasteczek remember-me dla nieuprzywilejowanych kont.</li>
                                 </ul>
                             </div>
                         </div>
@@ -139,7 +151,7 @@
                                     <li><strong>Tablica ogłoszeń:</strong> Kategoryzacja wpisów na globalne i grupowe z wyraźnymi oznaczeniami na pulpicie.</li>
                                     <li><strong>Potwierdzenia odczytu:</strong> System weryfikacji zapoznania się z treścią ogłoszeń przez studentów.</li>
                                     <li><strong>Przypięte ogłoszenia:</strong> Skuteczniejsza prezentacja priorytetowych informacji.</li>
-                                    <li><strong>Asystent Starosty:</strong> Nowy widok tabelaryczny ułatwiający zarządzanie komunikatami.</li>
+                                    <li><strong>Asystent starosty:</strong> Nowy widok tabelaryczny ułatwiający zarządzanie komunikatami.</li>
                                     <li><strong>Weryfikacja terminów:</strong> Automatyczne sprawdzanie dostępności sal i prowadzących w czasie rzeczywistym.</li>
                                     <li><strong>Rejestracja roku akademickiego:</strong> Narzędzia do definiowania ram semestru i sprawne zarządzanie numeracją tygodni zajęć.</li>
                                     <li><strong>Statystyki profilu:</strong> Dynamiczne liczniki aktywności oraz precyzyjny wskaźnik stażu konta użytkownika.</li>
