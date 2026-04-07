@@ -26,4 +26,18 @@ public class SystemViewController {
         model.addAttribute("activePage", "system");
         return "admin/system";
     }
+
+    @GetMapping("/admin/resources")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String systemResources(Model model) {
+        model.addAttribute("activePage", "admin-resources");
+        return "admin/resources";
+    }
+
+    @GetMapping("/admin/security")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String systemSecurity(Model model) {
+        model.addAttribute("activePage", "admin-security");
+        return "admin/security";
+    }
 }

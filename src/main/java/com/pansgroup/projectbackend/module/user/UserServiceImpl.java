@@ -7,6 +7,7 @@ import com.pansgroup.projectbackend.module.student.StudentGroupRepository;
 import com.pansgroup.projectbackend.module.user.confirmation.ConfirmationToken;
 import com.pansgroup.projectbackend.module.user.confirmation.ConfirmationTokenRepository;
 import com.pansgroup.projectbackend.module.user.dto.*;
+import com.pansgroup.projectbackend.module.system.AdminSecurityAuditService;
 import com.pansgroup.projectbackend.module.user.passwordReset.PasswordResetToken;
 import com.pansgroup.projectbackend.module.user.passwordReset.PasswordResetTokenRepository;
 import com.pansgroup.projectbackend.module.system.SystemService;
@@ -49,6 +50,7 @@ public class UserServiceImpl implements UserService {
     private final SystemService systemService;
     private final ForumService forumService;
     private final NoteService noteService;
+    private final AdminSecurityAuditService securityAuditService;
 
     public UserServiceImpl(UserRepository userRepository,
             PasswordEncoder passwordEncoder,
@@ -58,7 +60,8 @@ public class UserServiceImpl implements UserService {
             PasswordResetTokenRepository passwordResetTokenRepository,
             SystemService systemService,
             ForumService forumService,
-            NoteService noteService) {
+            NoteService noteService,
+            AdminSecurityAuditService securityAuditService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.studentGroupRepository = studentGroupRepository;
@@ -68,6 +71,7 @@ public class UserServiceImpl implements UserService {
         this.systemService = systemService;
         this.forumService = forumService;
         this.noteService = noteService;
+        this.securityAuditService = securityAuditService;
     }
 
     @Override
@@ -81,17 +85,20 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseDto create(UserCreateDto dto) {
         if (!systemService.isModuleEnabled("registration_enabled")) {
+            securityAuditService.recordEvent("REGISTRATION_FAILED", getClientIp(), "Rejestracja zablokowana systemowo", null, "Guest");
             throw new RegistrationDisabledException();
         }
         String normalizedEmail = dto.email().trim().toLowerCase(Locale.ROOT);
         Integer indexNumber = extractIndexNumberFromEmail(normalizedEmail);
         if (indexNumber != null) {
             if (userRepository.existsByNrAlbumu(indexNumber)) {
+                securityAuditService.recordEvent("REGISTRATION_FAILED", getClientIp(), "Nr albumu już istnieje: " + indexNumber, null, normalizedEmail);
                 throw new AlbumNumberAlreadyExistsException(indexNumber);
             }
         }
 
         if (userRepository.existsByEmail(normalizedEmail)) {
+            securityAuditService.recordEvent("REGISTRATION_FAILED", getClientIp(), "Email już zajęty: " + normalizedEmail, null, normalizedEmail);
             throw new EmailAlreadyExistsException(normalizedEmail);
         }
 
@@ -105,6 +112,8 @@ public class UserServiceImpl implements UserService {
         u.setActivated(false); // Poprawnie ustawione
 
         User saved = userRepository.save(u);
+        securityAuditService.recordEvent("REGISTRATION_SUCCESS", getClientIp(), "Pomyślna rejestracja użytkownika: " + saved.getEmail(), saved.getId(), saved.getEmail());
+        
         String tokenValue = UUID.randomUUID().toString();
         ConfirmationToken confirmationToken = new ConfirmationToken();
         confirmationToken.setToken(tokenValue);
@@ -267,6 +276,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void changePassword(Long userId, PasswordChangeDto dto) {
+        if (userId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID użytkownika jest wymagane.");
+        }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
@@ -283,6 +295,7 @@ public class UserServiceImpl implements UserService {
         // Zmiana hasła
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
         userRepository.save(user);
+        securityAuditService.recordEvent("PASSWORD_CHANGE", null, "Użytkownik zmienił hasło: " + user.getEmail(), user.getId(), user.getEmail());
     }
 
     @Override
@@ -305,11 +318,16 @@ public class UserServiceImpl implements UserService {
         }
 
         userToUpdate.setRole(newRole);
-        return mapToResponseDto(userRepository.save(userToUpdate));
+        User saved = userRepository.save(userToUpdate);
+        securityAuditService.recordEvent("ROLE_CHANGE", null, "Zmiana roli na " + newRole + " dla: " + email, null, email);
+        return mapToResponseDto(saved);
     }
 
     @Override
     public UserResponseDto updateActivationStatus(Long userId, UserActivationUpdateDto dto) {
+        if (userId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID użytkownika jest wymagane.");
+        }
         User userToUpdate = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
@@ -370,11 +388,13 @@ public class UserServiceImpl implements UserService {
         // Wszystko tutaj jest poprawne
         Optional<ConfirmationToken> tokenOptional = confirmationTokenRepository.findByToken(token);
         if (!tokenOptional.isPresent()) {
+            securityAuditService.recordEvent("ACTIVATION_FAILED", getClientIp(), "Nieprawidłowy token aktywacji: " + token, null, "Guest");
             throw new UsernameNotFoundException(
                     "Link aktywacyjny jest nieprawidłowy lub wygasł. Zarejestruj się ponownie lub skontaktuj się z administratorem.");
         } else {
             ConfirmationToken confirmationToken = tokenOptional.get();
             if (confirmationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+                securityAuditService.recordEvent("ACTIVATION_FAILED", getClientIp(), "Token wygasł dla: " + (confirmationToken.getUser() != null ? confirmationToken.getUser().getEmail() : "unknown"), null, "Guest");
                 throw new UsernameNotFoundException(
                         "Link aktywacyjny wygasł. Zarejestruj się ponownie lub skontaktuj się z administratorem.");
             }
@@ -382,6 +402,8 @@ public class UserServiceImpl implements UserService {
             user.setActivated(true);
             userRepository.save(user);
             confirmationTokenRepository.delete(confirmationToken);
+            
+            securityAuditService.recordEvent("ACCOUNT_ACTIVATED", getClientIp(), "Konto aktywowane pomyślnie: " + user.getEmail(), user.getId(), user.getEmail());
 
             // Usuń z cooldown po udanej aktywacji
             confirmationAttemptsCooldown.remove(token);
@@ -415,6 +437,7 @@ public class UserServiceImpl implements UserService {
             passwordResetToken.setExpiryDate(LocalDateTime.now().plusMinutes(10));
             passwordResetTokenRepository.save(passwordResetToken);
             emailService.sendPasswordResetEmail(u.getEmail(), passwordResetToken.getToken());
+            securityAuditService.recordEvent("PASSWORD_RESET_REQUESTED", getClientIp(), "Wysłano link do resetowania hasła: " + u.getEmail(), u.getId(), u.getEmail());
 
             // Zapisz timestamp ostatniego wysłania dla tego emaila
             passwordResetCooldown.put(email, LocalDateTime.now());
@@ -424,6 +447,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteUser(Long userId) {
+        if (userId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID użytkownika jest wymagane.");
+        }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
@@ -462,8 +488,10 @@ public class UserServiceImpl implements UserService {
                 user.setPassword(passwordEncoder.encode(newPassword));
                 userRepository.save(user);
                 passwordResetTokenRepository.delete(passwordResetToken);
+                securityAuditService.recordEvent("PASSWORD_RESET_SUCCESS", getClientIp(), "Hasło zresetowane pomyślnie: " + user.getEmail(), user.getId(), user.getEmail());
             }
         } else {
+            securityAuditService.recordEvent("PASSWORD_RESET_FAILED", getClientIp(), "Nieprawidłowy lub wygasły token resetu", null, "Guest");
             throw new UsernameNotFoundException(
                     "Link do resetowania hasła jest nieprawidłowy lub wygasł. Wystąp o nowy link resetujący.");
         }
@@ -477,7 +505,12 @@ public class UserServiceImpl implements UserService {
                     org.springframework.http.HttpStatus.BAD_REQUEST, "Plik nie może być pusty");
         }
 
-        String filename = org.springframework.util.StringUtils.cleanPath(file.getOriginalFilename());
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null) {
+             throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "Nazwa pliku nie może być pusta.");
+        }
+        String filename = org.springframework.util.StringUtils.cleanPath(originalFilename);
         String extension = org.springframework.util.StringUtils.getFilenameExtension(filename);
         List<String> allowedExtensions = java.util.Arrays.asList("jpg", "jpeg", "png", "gif");
 
@@ -498,6 +531,10 @@ public class UserServiceImpl implements UserService {
                     org.springframework.http.HttpStatus.BAD_REQUEST, "Plik jest zbyt duży (max 5MB).");
         }
 
+        if (userId == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "ID użytkownika jest wymagane.");
+        }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
@@ -505,6 +542,7 @@ public class UserServiceImpl implements UserService {
             user.setAvatarData(file.getBytes());
             user.setAvatarContentType(mimeType);
             userRepository.save(user);
+            securityAuditService.recordEvent("AVATAR_UPLOAD", null, "Wgrano nowy awatar dla: " + user.getEmail(), user.getId(), user.getEmail());
         } catch (java.io.IOException e) {
             throw new RuntimeException("Błąd podczas przetwarzania awatara", e);
         }
@@ -513,6 +551,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User getAvatar(Long userId) {
+        if (userId == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "ID użytkownika jest wymagane.");
+        }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
@@ -526,6 +568,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void removeAvatar(Long userId) {
+        if (userId == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "ID użytkownika jest wymagane.");
+        }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
         user.setAvatarData(null);
@@ -576,6 +622,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponseDto toggleBlock(Long userId) {
+        if (userId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID użytkownika jest wymagane.");
+        }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("Nie znaleziono użytkownika o ID: " + userId));
 
@@ -585,15 +634,31 @@ public class UserServiceImpl implements UserService {
         }
 
         user.setBlocked(!user.isBlocked());
-        return mapToResponseDto(userRepository.save(user));
+        User saved = userRepository.save(user);
+        String action = saved.isBlocked() ? "BLOCKED" : "UNBLOCKED";
+        securityAuditService.recordEvent("USER_STATUS_CHANGE", null, "Użytkownik " + action + ": " + saved.getEmail(), null, saved.getEmail());
+        return mapToResponseDto(saved);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<UserActivityResponseDto> getUserActivity(Long userId) {
+        if (userId == null) {
+            return java.util.Collections.emptyList();
+        }
         List<UserActivityResponseDto> activities = new java.util.ArrayList<>();
         forumService.getUserThreads(userId).stream().limit(5).forEach(t -> activities.add(new UserActivityResponseDto(t.id(), "FORUM_THREAD", t.title(), t.content(), t.createdAt(), "Wątek na forum")));
         noteService.findByUser(userId).stream().limit(5).forEach(n -> activities.add(new UserActivityResponseDto(n.id(), "NOTE", n.title(), n.content(), n.createdAt(), "Notatka")));
         return activities.stream().sorted((a1, a2) -> a2.createdAt().compareTo(a1.createdAt())).limit(5).toList();
+    }
+
+    private String getClientIp() {
+        try {
+            org.springframework.web.context.request.ServletRequestAttributes attr = 
+                (org.springframework.web.context.request.ServletRequestAttributes) org.springframework.web.context.request.RequestContextHolder.currentRequestAttributes();
+            return securityAuditService.extractClientIp(attr.getRequest());
+        } catch (Exception e) {
+            return "0:0:0:0:0:0:0:1";
+        }
     }
 }

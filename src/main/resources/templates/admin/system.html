@@ -12,7 +12,39 @@
             <div class="header-section">
                 <h2><i class="fas fa-cogs"></i> Centrum Zarządzania Systemem</h2>
                 <div class="header-actions">
-                    <span class="last-sync">Ostatnia aktualizacja: <span id="lastSyncTime">-</span></span>
+                    <span class="last-sync">Ostatnia aktualizacja (od startu systemu): <span id="lastSyncTime">-</span></span>
+                </div>
+            </div>
+
+            <!-- Global Health Row (Unified) -->
+            <div class="health-summary-row">
+                <div class="summary-item">
+                    <i class="fas fa-clock"></i>
+                    <div class="summary-info">
+                        <span class="summary-label">Uptime systemu</span>
+                        <span class="summary-value" id="uptimeValue">0d 0h 3m</span>
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <i class="fas fa-exchange-alt"></i>
+                    <div class="summary-info">
+                        <span class="summary-label">Zapytania (od startu)</span>
+                        <span class="summary-value" id="totalRequestsValue">155</span>
+                    </div>
+                </div>
+                <div class="summary-item" id="errorsSummaryItem" title="5xx: Błędy serwera (krytyczne), 4xx: Błędy klienta (np. 404, 403 - próby botów/skanowania)">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <div class="summary-info">
+                        <span class="summary-label">Błędy (5xx/4xx) <i class="fas fa-question-circle" style="font-size: 0.7rem; opacity: 0.5;"></i></span>
+                        <span class="summary-value" id="errorRateValue">0 / 3</span>
+                    </div>
+                </div>
+                <div class="summary-item" id="backendStatusItem">
+                    <i class="fas fa-check-circle"></i>
+                    <div class="summary-info">
+                        <span class="summary-label">Backend</span>
+                        <span class="summary-value" id="backendStatusValue">Ładowanie...</span>
+                    </div>
                 </div>
             </div>
 
@@ -253,6 +285,7 @@
     </div>
 
     <th:block layout:fragment="page-scripts">
+        <script th:src="@{/js/admin/admin-utils.js(v=${#dates.createNow().getTime()})}"></script>
         <script th:src="@{/js/admin/admin-system.js(v=${#dates.createNow().getTime()})}"></script>
     </th:block>
 </body>

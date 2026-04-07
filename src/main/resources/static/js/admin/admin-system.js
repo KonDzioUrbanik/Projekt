@@ -33,16 +33,23 @@ class AdminSystem {
     async init() {
         this.initializeEventListeners();
         await this.loadSettings();
-        await this.refreshHealth();
-        await this.loadLogs();
+        await Promise.all([
+            this.refreshHealth(),
+            adminUtils.refreshGlobalMetrics(),
+            this.loadLogs()
+        ]);
 
-        // Auto-refresh zdrowia co 30 sekund i logów co 30 sekund
+        // Intervals for background updates
         setInterval(() => this.refreshHealth(), 30000);
-        setInterval(() => this.loadLogs(), 30000);
+        setInterval(() => adminUtils.refreshGlobalMetrics(), 10000); // 10s polling across all tabs
+        setInterval(() => this.loadLogs(), 15000);
     }
 
     initializeEventListeners() {
-        document.getElementById('refreshHealth').addEventListener('click', () => this.refreshHealth());
+        document.getElementById('refreshHealth').addEventListener('click', () => {
+            this.refreshHealth();
+            adminUtils.refreshGlobalMetrics();
+        });
 
         // Banner actions
         document.getElementById('saveBanner').addEventListener('click', () => this.saveBanner());

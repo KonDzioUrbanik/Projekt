@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/main-layout}">
+<head>
+    <title>Centrum Bezpieczeństwa - PANSportal</title>
+    <th:block layout:fragment="page-styles">
+        <link rel="stylesheet" th:href="@{/css/admin/admin-system.css(v=${#dates.createNow().getTime()})}">
+        <link rel="stylesheet" th:href="@{/css/admin/admin-security.css(v=${#dates.createNow().getTime()})}">
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="system-management-wrapper">
+            <div class="header-section">
+                <h2><i class="fas fa-shield-alt"></i> Centrum Bezpieczeństwa</h2>
+                <div class="header-actions">
+                    <span class="last-sync">Ostatnia aktualizacja (od startu systemu): <span id="lastSyncTime">-</span></span>
+                </div>
+            </div>
+
+            <!-- Global Health Row (Unified) -->
+            <div class="health-summary-row">
+                <div class="summary-item">
+                    <i class="fas fa-clock"></i>
+                    <div class="summary-info">
+                        <span class="summary-label">Uptime systemu</span>
+                        <span class="summary-value" id="uptimeValue">0d 0h 0m</span>
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <i class="fas fa-exchange-alt"></i>
+                    <div class="summary-info">
+                        <span class="summary-label">Zapytania (od startu)</span>
+                        <span class="summary-value" id="totalRequestsValue">0</span>
+                    </div>
+                </div>
+                <div class="summary-item" id="errorsSummaryItem" title="5xx: Błędy serwera (krytyczne), 4xx: Błędy klienta (np. 404, 403 - próby botów/skanowania)">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <div class="summary-info">
+                        <span class="summary-label">Błędy (5xx/4xx) <i class="fas fa-question-circle" style="font-size: 0.7rem; opacity: 0.5;"></i></span>
+                        <span class="summary-value" id="errorRateValue">0 / 0</span>
+                    </div>
+                </div>
+                <div class="summary-item" id="backendStatusItem">
+                    <i class="fas fa-check-circle"></i>
+                    <div class="summary-info">
+                        <span class="summary-label">Backend</span>
+                        <span class="summary-value" id="backendStatusValue">Ładowanie...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Specific Metrics -->
+            <div class="health-summary-row" style="margin-top: 1.5rem;">
+                <div class="summary-item status-ok" id="systemSafetyItem">
+                    <i class="fas fa-user-shield"></i>
+                    <div class="summary-info">
+                        <span class="summary-label">Status Bezpieczeństwa</span>
+                        <span class="summary-value" id="systemSafetyValue">BEZPIECZNY</span>
+                    </div>
+                </div>
+                <div class="summary-item status-ok">
+                    <i class="fas fa-user-lock"></i>
+                    <div class="summary-info">
+                        <span class="summary-label">Nieudane logowania (24h)</span>
+                        <span class="summary-value" id="failedLoginsCount">0</span>
+                    </div>
+                </div>
+                <div class="summary-item status-ok">
+                    <i class="fas fa-mask"></i>
+                    <div class="summary-info">
+                        <span class="summary-label">Podejrzane adresy IP</span>
+                        <span class="summary-value" id="suspiciousIpsCount">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="system-grid">
+                <div class="system-card" style="grid-column: span 3;">
+                    <div class="card-header">
+                        <h3><i class="fas fa-list-ul"></i> Rejestr zdarzeń bezpieczeństwa</h3>
+                        <div class="header-actions">
+                            <button class="btn-refresh danger-action" id="clearSecurityLogs" title="Wyczyść wszystkie logi">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                            <button class="btn-refresh" id="refreshSecurity" title="Odśwież">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="audit-table-wrap">
+                        <table class="audit-table">
+                            <thead>
+                                <tr>
+                                    <th>Czas</th>
+                                    <th>Zdarzenie</th>
+                                    <th>IP</th>
+                                    <th>Szczegóły</th>
+                                </tr>
+                            </thead>
+                            <tbody id="securityAuditBody">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="page-scripts">
+        <script th:src="@{/js/admin/admin-utils.js(v=${#dates.createNow().getTime()})}"></script>
+        <script th:src="@{/js/admin/admin-security.js(v=${#dates.createNow().getTime()})}"></script>
+    </th:block>
+</body>
+</html>

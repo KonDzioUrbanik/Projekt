@@ -137,6 +137,14 @@
                     <i class="fas fa-chart-bar"></i>
                     <span class="link-text">Analityka</span>
                 </a>
+                <a th:href="@{/admin/resources}" class="btn-navbar-left" th:classappend="${activePage == 'admin-resources'} ? 'active'">
+                    <i class="fas fa-server"></i>
+                    <span class="link-text">Zasoby</span>
+                </a>
+                <a th:href="@{/admin/security}" class="btn-navbar-left" th:classappend="${activePage == 'admin-security'} ? 'active'">
+                    <i class="fas fa-shield-alt"></i>
+                    <span class="link-text">Bezpieczeństwo</span>
+                </a>
                 <a th:href="@{/admin/system}" class="btn-navbar-left" th:classappend="${activePage == 'system'} ? 'active'">
                     <i class="fas fa-cogs"></i>
                     <span class="link-text">System</span>
