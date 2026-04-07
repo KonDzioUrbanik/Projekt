@@ -86,6 +86,7 @@
 
     // 5. Śledzenie odsłon (SPA i Standard)
     function trackPageView(isSPA) {
+        if (isSPA) reportTimeOnPage(); // Raportuj czas poprzedniej strony przy nawigacji SPA
         var path = getPagePath();
         if (path.indexOf('/api') !== -1 || path.indexOf('/ws') !== -1) return;
 
@@ -210,7 +211,17 @@
             if (el.tagName === 'A') {
                 var href = el.getAttribute('href') || '';
                 name = 'link:' + (label || sanitize(href, 50));
-                if (href.indexOf('logout') !== -1) localStorage.removeItem(SESSION_KEY);
+                if (href.indexOf('logout') !== -1) {
+                    reportTimeOnPage(); // Raportuj czas PRZED wylogowaniem
+                    localStorage.removeItem(SESSION_KEY);
+                    
+                    // Zapobiegamy natychmiastowej nawigacji, aby dać czas na wysłanie fetch (nawet z keepalive)
+                    e.preventDefault();
+                    var targetUrl = el.href;
+                    setTimeout(function() {
+                        window.location.href = targetUrl;
+                    }, 150);
+                }
             } else {
                 name = el.tagName.toLowerCase() + ':' + (label || 'unnamed');
             }
@@ -222,7 +233,7 @@
         setTimeout(function() { delete recentClicks[clickId]; }, 500);
 
         sendEvent('CLICK', name, null);
-    }, { passive: true });
+    });
 
     // Inicjalizacja
     trackPageView(false);

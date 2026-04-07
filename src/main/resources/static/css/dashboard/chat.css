@@ -1131,6 +1131,10 @@
         display: block;
     }
 
+    #feedbackBtn, #goToTopBtn {
+        bottom: 90px !important;
+    }
+
     body .chat-layout {
         position: relative;
         overflow: hidden;

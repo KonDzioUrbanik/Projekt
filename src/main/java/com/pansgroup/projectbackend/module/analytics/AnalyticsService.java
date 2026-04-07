@@ -54,11 +54,14 @@ public class AnalyticsService {
                         return;
                 }
 
+                // Backend Anti-Spam: Omijamy limit dla ważnych raportów czasu, dla reszty 50ms
                 if (rateLimiter.size() > 10000)
                         rateLimiter.clear(); // safe clear
                 long now = System.currentTimeMillis();
                 Long lastEventTime = rateLimiter.get(dto.sessionId());
-                if (lastEventTime != null && (now - lastEventTime) < 100) {
+                
+                boolean isHighPriority = "time_on_page".equals(dto.eventName());
+                if (!isHighPriority && lastEventTime != null && (now - lastEventTime) < 50) {
                         log.warn("Zdarzenie odrzucone (Spam z tej samej sesji): {}", dto.sessionId());
                         return;
                 }
@@ -107,7 +110,7 @@ public class AnalyticsService {
         public AnalyticsSummaryDto getSummary() {
                 LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
 
-                List<PageStatDto> topPages = repository.findTopPages(TOP_20).stream()
+                List<PageStatDto> topPages = repository.findTopPages(thirtyDaysAgo, TOP_20).stream()
                                 .map(row -> new PageStatDto(
                                                 (String) row[0],
                                                 ((Number) row[1]).longValue(),
@@ -181,14 +184,25 @@ public class AnalyticsService {
 
                 long totalSeconds = 0;
                 int count = 0;
+                long maxSessionDuration = 2 * 60 * 60; // 2 godziny limitu
+                long minSessionDuration = 10; // Ignorujemy sesje krótsze niż 10s (błędy/odbicia)
 
                 for (Object[] row : durations) {
                         LocalDateTime start = (LocalDateTime) row[1];
                         LocalDateTime end = (LocalDateTime) row[2];
                         if (start != null && end != null) {
                                 long diff = java.time.Duration.between(start, end).toSeconds();
-                                // Sesje trwające 0s (tylko 1 zdarzenie) pomijamy w średniej,
-                                // lub liczymy jako minimalny czas (np. 10s) - tutaj liczymy realnie.
+                                
+                                // Ignorujemy zbyt krótkie sesje (noise)
+                                if (diff < minSessionDuration) {
+                                        continue;
+                                }
+
+                                // Cap session at max duration
+                                if (diff > maxSessionDuration) {
+                                        diff = maxSessionDuration;
+                                }
+                                
                                 totalSeconds += diff;
                                 count++;
                         }
@@ -240,21 +254,34 @@ public class AnalyticsService {
         }
 
         private List<UserActivityDto> buildUserActivity() {
-                return repository.findUserActivitySummary(TOP_50).stream()
+                List<Object[]> summary = repository.findUserActivitySummary(TOP_50);
+                if (summary.isEmpty())
+                        return List.of();
+
+                // Optymalizacja N+1: Pobieramy dane użytkowników jednym zapytaniem
+                List<Long> userIds = summary.stream()
+                                .map(row -> ((Number) row[0]).longValue())
+                                .distinct()
+                                .collect(Collectors.toList());
+
+                Map<Long, com.pansgroup.projectbackend.module.user.User> userMap = userRepository.findAllById(userIds)
+                                .stream()
+                                .collect(Collectors.toMap(com.pansgroup.projectbackend.module.user.User::getId, u -> u));
+
+                return summary.stream()
                                 .map(row -> {
                                         Long uid = ((Number) row[0]).longValue();
                                         long sessions = ((Number) row[1]).longValue();
                                         long events = ((Number) row[2]).longValue();
+
+                                        com.pansgroup.projectbackend.module.user.User u = userMap.get(uid);
                                         // Zabezpieczenie RODO/GDPR - pseudonimizacja w widoku panelu.
-                                        String name = userRepository.findById(uid)
-                                                        .map(u -> {
-                                                                String rola = u.getRole() != null
-                                                                                ? u.getRole().replace("ROLE_", "")
-                                                                                : "UŻYTKOWNIK";
-                                                                return rola + " #" + u.getId() + " ("
-                                                                                + u.getFirstName().charAt(0) + "***)";
-                                                        })
-                                                        .orElse("Konto usunięte");
+                                        String name = (u != null)
+                                                        ? (u.getRole() != null ? u.getRole().replace("ROLE_", "")
+                                                                        : "UŻYTKOWNIK") + " #" + u.getId() + " ("
+                                                                        + u.getFirstName().charAt(0) + "***)"
+                                                        : "Konto usunięte";
+
                                         return new UserActivityDto(uid, name, sessions, events);
                                 })
                                 .collect(Collectors.toList());

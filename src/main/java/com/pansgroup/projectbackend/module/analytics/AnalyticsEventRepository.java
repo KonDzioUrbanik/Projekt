@@ -13,10 +13,12 @@ import java.util.List;
 public interface AnalyticsEventRepository extends JpaRepository<AnalyticsEvent, Long> {
 
        // --- Top strony wg liczby odwiedzin ---
-       @Query("SELECT e.page, COUNT(e), AVG(e.durationMs) " +
-                     "FROM AnalyticsEvent e WHERE e.eventType = 'PAGE_VIEW' " +
+       @Query("SELECT e.page, COUNT(e), " +
+                     "AVG(CASE WHEN e.eventName = 'time_on_page' THEN e.durationMs ELSE NULL END) " +
+                     "FROM AnalyticsEvent e " +
+                     "WHERE e.eventType = 'PAGE_VIEW' AND e.createdAt >= :since " +
                      "GROUP BY e.page ORDER BY COUNT(e) DESC")
-       List<Object[]> findTopPages(Pageable pageable);
+       List<Object[]> findTopPages(@Param("since") LocalDateTime since, Pageable pageable);
 
        // --- Top klikane elementy (wykluczając błędy) ---
        @Query("SELECT e.eventName, COUNT(e) " +
@@ -66,10 +68,11 @@ public interface AnalyticsEventRepository extends JpaRepository<AnalyticsEvent, 
        // --- Usuwanie błędów o konkretnej nazwie ---
        void deleteByEventTypeAndEventName(AnalyticsEvent.EventType eventType, String eventName);
 
-       // --- Statystyki sesji (do średniego czasu) ---
-       @Query("SELECT e.sessionId, MIN(e.createdAt), MAX(e.createdAt) " +
-                     "FROM AnalyticsEvent e WHERE e.createdAt >= :since GROUP BY e.sessionId")
-       List<Object[]> findSessionDurations(@Param("since") LocalDateTime since);
+	// --- Statystyki sesji (do średniego czasu) ---
+	@Query("SELECT e.sessionId, MIN(e.createdAt), MAX(e.createdAt) " +
+			"FROM AnalyticsEvent e WHERE e.createdAt >= :since " +
+			"GROUP BY e.sessionId, CAST(e.createdAt AS date)")
+	List<Object[]> findSessionDurations(@Param("since") LocalDateTime since);
 
        // --- Dane aktywnych użytkowników (ostatnie 5 min) ---
        @Query("SELECT e.userId, e.createdAt, e.page " +
