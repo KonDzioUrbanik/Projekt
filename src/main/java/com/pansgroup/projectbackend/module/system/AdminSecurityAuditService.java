@@ -62,6 +62,10 @@ public class AdminSecurityAuditService {
         ).getContent();
     }
 
+    public org.springframework.data.domain.Page<SecurityEvent> getEvents(org.springframework.data.domain.Pageable pageable) {
+        return securityEventRepository.findAll(pageable);
+    }
+
     public Map<String, Long> getSuspiciousIPs() {
         // Poprawka wydajnościowa: Agregacja SQL zamiast pobierania całej tabeli
         LocalDateTime window = LocalDateTime.now().minusHours(24);

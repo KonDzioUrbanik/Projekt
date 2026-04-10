@@ -48,10 +48,27 @@ public class AdminExtensionController {
         return ResponseEntity.ok(resourcesService.getTopUsersByStorage());
     }
 
+    @GetMapping("/resources/refresh")
+    @Operation(summary = "Manually refresh the storage stats cache")
+    public ResponseEntity<Void> refreshResources() {
+        resourcesService.refreshStats();
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/resources/debug")
+    @Operation(summary = "Get debug info for storage columns (bytea sizes)")
+    public ResponseEntity<List<Map<String, Object>>> getDebugInfo() {
+        return ResponseEntity.ok(resourcesService.getStorageDebugInfo());
+    }
+
     @GetMapping("/security/events")
-    @Operation(summary = "Get recent security audit logs")
-    public ResponseEntity<List<SecurityEvent>> getRecentEvents() {
-        return ResponseEntity.ok(securityAuditService.getRecentEvents(50));
+    @Operation(summary = "Get paginated security audit logs")
+    public ResponseEntity<org.springframework.data.domain.Page<SecurityEvent>> getRecentEvents(
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "0") int page,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "15") int size) {
+        return ResponseEntity.ok(securityAuditService.getEvents(
+            org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "timestamp"))
+        ));
     }
 
     @GetMapping("/security/suspicious")

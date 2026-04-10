@@ -13,7 +13,10 @@
             <div class="header-section">
                 <h2><i class="fas fa-server"></i> Monitoring Zasobów i Infrastruktury</h2>
                 <div class="header-actions">
-                    <span class="last-sync">Ostatnia aktualizacja (od startu systemu): <span id="lastSyncTime">-</span></span>
+                    <button id="refreshStatsBtn" class="btn-refresh" title="Odśwież dane">
+                        <i class="fas fa-sync-alt"></i> Odśwież dane
+                    </button>
+                    <span class="last-sync">Ostatnia aktualizacja: <span id="lastSyncTime">-</span></span>
                 </div>
             </div>
 
@@ -54,21 +57,21 @@
                 <div class="summary-item status-ok">
                     <i class="fas fa-database"></i>
                     <div class="summary-info">
-                        <span class="summary-label">Baza Danych (Total)</span>
+                        <span class="summary-label" title="Realne zajęte miejsce na dysku (PostgreSQL)">Baza Danych (Fizyczny) <i class="fas fa-info-circle" style="font-size:0.7rem; opacity:0.5;"></i></span>
                         <span class="summary-value" id="totalSizeValue">0 B</span>
                     </div>
                 </div>
                 <div class="summary-item status-ok">
                     <i class="fas fa-user-circle"></i>
                     <div class="summary-info">
-                        <span class="summary-label">Awatary</span>
+                        <span class="summary-label" title="Rozmiar przesłanych awatarów przed kompresją">Awatary (Logiczny)</span>
                         <span class="summary-value" id="avatarSizeValue">0 B</span>
                     </div>
                 </div>
                 <div class="summary-item status-ok">
                     <i class="fas fa-paperclip"></i>
                     <div class="summary-info">
-                        <span class="summary-label">Załączniki</span>
+                        <span class="summary-label" title="Rozmiar przesłanych załączników">Załączniki (Logiczny)</span>
                         <span class="summary-value" id="attachmentSizeValue">0 B</span>
                     </div>
                 </div>
@@ -90,7 +93,7 @@
                     <div class="storage-list" style="padding: 1rem 0;">
                         <div class="storage-item-standard">
                             <div class="storage-label-row">
-                                <span>Baza Danych & Pliki</span>
+                                <span>Wykorzystanie Limitu (Fizyczne)</span>
                                 <span id="totalPercent">0%</span>
                             </div>
                             <div class="progress-bar-wrap">
@@ -119,24 +122,28 @@
                     <div class="card-header">
                         <h3><i class="fas fa-users-cog"></i> TOP 10 Użytkowników wg zajętego miejsca</h3>
                     </div>
-                    <div class="table-responsive">
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Użytkownik</th>
-                                    <th>Email</th>
-                                    <th>Awatary</th>
-                                    <th>Załączniki</th>
-                                    <th>SUMA</th>
-                                </tr>
-                            </thead>
-                            <tbody id="topUsersBody">
-                                <tr>
-                                    <td colspan="4" class="text-center">Ładowanie danych...</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="table-premium-container">
+                        <div class="table-responsive">
+                            <table class="admin-table-premium">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 60px;">Poz.</th>
+                                        <th style="width: 70px;">ID</th>
+                                        <th>Użytkownik / Email</th>
+                                        <th style="text-align: right;">Awatary</th>
+                                        <th style="text-align: right;">Załączniki</th>
+                                        <th style="text-align: right;">SUMA</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="topUsersBody">
+                                    <tr>
+                                        <td colspan="6" class="text-center" style="padding: 2rem; opacity: 0.5;">
+                                            <i class="fas fa-circle-notch fa-spin"></i> Pobieranie rankingu...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

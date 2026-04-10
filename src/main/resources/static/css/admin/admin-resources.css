@@ -67,3 +67,196 @@
 [data-theme="dark"] .progress-bar-wrap {
     background: #0f172a;
 }
+
+/* Minimalist Refresh Button - Standardized */
+.btn-refresh, #refreshStatsBtn {
+    background: #ffffff;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    height: 38px;
+    min-width: 38px;
+}
+
+[data-theme="dark"] .btn-refresh, [data-theme="dark"] #refreshStatsBtn {
+    background: #1e293b;
+    color: #94a3b8;
+    border-color: #334155;
+}
+
+.btn-refresh:hover, #refreshStatsBtn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: var(--primary, #005efa);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .btn-refresh:hover, [data-theme="dark"] #refreshStatsBtn:hover {
+    background: #2d3748;
+    border-color: #4a5568;
+    color: #f1f5f9;
+}
+
+.btn-refresh:active, #refreshStatsBtn:active {
+    transform: scale(0.96);
+}
+
+.btn-refresh i, #refreshStatsBtn i {
+    font-size: 0.85rem;
+}
+
+/* Premium Storage Ranking Table - Minimalist Refinement */
+.table-premium-container {
+    background: var(--bg-card, #ffffff);
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid var(--border, #e2e8f0);
+    margin-top: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .table-premium-container {
+    background: #020617; /* Even darker blue-black */
+    border-color: #1e293b;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.admin-table-premium {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+}
+
+.admin-table-premium thead th {
+    background: #f8fafc;
+    color: #475569;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+[data-theme="dark"] .admin-table-premium thead th {
+    background: #000000; /* Pitch black for header contrast */
+    color: #475569;
+    border-bottom-color: #1e293b;
+}
+
+.admin-table-premium thead th:first-child { border-radius: 8px 0 0 0; }
+.admin-table-premium thead th:last-child { border-radius: 0 8px 0 0; }
+
+.admin-table-premium tbody td {
+    padding: 1rem;
+    border-bottom: 1px solid #eef2f6;
+    border-right: 1px solid #f1f5f9;
+    transition: background 0.1s ease;
+}
+
+.admin-table-premium tbody td:last-child {
+    border-right: none;
+}
+
+[data-theme="dark"] .admin-table-premium tbody td {
+    border-bottom-color: #16213e;
+    border-right-color: #16213e;
+}
+
+.admin-table-premium tbody tr:hover td {
+    background: #fbfcfe;
+}
+
+[data-theme="dark"] .admin-table-premium tbody tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Rank Badges - Minimalist Solid */
+.rank-badge {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: white;
+    margin: 0 auto;
+}
+
+.rank-1 { background: #fbbf24; box-shadow: 0 2px 4px rgba(251, 191, 36, 0.2); }
+.rank-2 { background: #94a3b8; box-shadow: 0 2px 4px rgba(148, 163, 184, 0.2); }
+.rank-3 { background: #b45309; box-shadow: 0 2px 4px rgba(180, 83, 9, 0.2); }
+.rank-other { 
+    background: #f1f5f9; 
+    color: #64748b; 
+}
+
+[data-theme="dark"] .rank-other {
+    background: #334155;
+    color: #94a3b8;
+}
+
+.rank-badge i {
+    display: none; /* User wants numbers only */
+}
+
+/* Rank Medals */
+.rank-badge {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 800;
+    font-size: 0.75rem;
+}
+
+.rank-1 { background: linear-gradient(135deg, #fbbf24, #d97706); color: white; box-shadow: 0 0 10px rgba(251, 191, 36, 0.4); }
+.rank-2 { background: linear-gradient(135deg, #94a3b8, #475569); color: white; box-shadow: 0 0 10px rgba(148, 163, 184, 0.4); }
+.rank-3 { background: linear-gradient(135deg, #b45309, #78350f); color: white; box-shadow: 0 0 10px rgba(180, 83, 9, 0.4); }
+.rank-other { background: #f1f5f9; color: #64748b; }
+
+[data-theme="dark"] .rank-other { background: #1e293b; color: #94a3b8; }
+
+/* Data Cell Polish */
+.storage-cell {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+}
+
+.storage-cell.total {
+    font-weight: 700;
+    color: #4f46e5;
+}
+
+[data-theme="dark"] .storage-cell.total {
+    color: #6366f1;
+}
+
+.user-info-brief {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.user-name-cell {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.user-email-cell {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}

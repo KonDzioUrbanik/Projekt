@@ -1,6 +1,5 @@
 package com.pansgroup.projectbackend.module.announcement;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -41,8 +40,6 @@ public class AnnouncementAttachment {
     private Long fileSize;
 
     /** Dane pliku przechowywane w bazie (wzorzec jak avatar/feedback) */
-    @Lob
-    @JsonIgnore
-    @Column(nullable = false)
+    @Column(name = "file_data", nullable = false)
     private byte[] fileData;
 }

@@ -18,11 +18,30 @@ import java.util.List;
 public class FeedbackService {
 
     private final FeedbackRepository feedbackRepository;
+    private final com.pansgroup.projectbackend.module.user.UserRepository userRepository;
 
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png", "pdf");
 
     @Transactional
     public Feedback createFeedback(FeedbackDto dto, MultipartFile file) {
+        Long authenticatedUserId = null;
+        String email = dto.getEmail();
+
+        // Capture authenticated user if present
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+            String username = auth.getName();
+            var userOpt = userRepository.findByEmail(username.toLowerCase());
+            if (userOpt.isPresent()) {
+                var user = userOpt.get();
+                authenticatedUserId = user.getId();
+                // If user is logged in, ensure we use their account email if none provided
+                if (email == null || email.trim().isEmpty()) {
+                    email = user.getEmail();
+                }
+            }
+        }
+
         byte[] attachmentData = null;
         String contentType = null;
         String originalFileName = null;
@@ -60,7 +79,8 @@ public class FeedbackService {
                 .type(dto.getType())
                 .title(dto.getTitle())
                 .description(dto.getDescription())
-                .email(dto.getEmail())
+                .email(email)
+                .userId(authenticatedUserId)
                 .url(dto.getUrl())
                 .userAgent(dto.getUserAgent())
                 .status(FeedbackStatus.OPEN)

@@ -87,3 +87,29 @@
 [data-theme="dark"] .audit-table tr:hover {
     background: rgba(255, 255, 255, 0.03);
 }
+
+/* Suspicious IP Highlighting */
+.suspicious-row {
+    background: rgba(239, 68, 68, 0.04) !important;
+}
+
+[data-theme="dark"] .suspicious-row {
+    background: rgba(239, 68, 68, 0.1) !important;
+}
+
+.suspicious-row:hover {
+    background: rgba(239, 68, 68, 0.08) !important;
+}
+
+.suspicious-ip-warning {
+    color: #ef4444;
+    margin-right: 0.4rem;
+    font-size: 0.8rem;
+    animation: pulse-danger 2s infinite;
+}
+
+@keyframes pulse-danger {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}

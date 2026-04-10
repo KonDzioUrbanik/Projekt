@@ -34,7 +34,7 @@ public class AdminSystemResourcesService {
     }
 
     @Scheduled(fixedRate = 600000) // 10 minutes
-    public void refreshCachedStats() {
+    public synchronized void refreshCachedStats() {
         this.cachedStats = calculateStats();
     }
 
@@ -48,82 +48,42 @@ public class AdminSystemResourcesService {
     private SystemResourceStats calculateStats() {
         SystemResourceStats stats = new SystemResourceStats();
         try {
-            // 1. Database Size
+            // 1. PHYSICAL: Database Size (infrastructure)
             Long dbRes = jdbcTemplate.queryForObject("SELECT pg_database_size(current_database())", Long.class);
-            long dbSize = dbRes != null ? dbRes : 0L;
-            stats.setTotalDbSize(dbSize);
+            stats.setTotalDbSize(dbRes != null ? dbRes : 0L);
 
-            // 2. Avatars Count & Size
+            // 2. LOGICAL: Avatars (now pure bytea)
             long avatarCount = userRepository.count();
+            Long avatarSizeRes = jdbcTemplate.queryForObject(
+                "SELECT COALESCE(SUM(OCTET_LENGTH(avatar_data)), 0) FROM users", Long.class);
+            stats.setAvatarLogicalSize(avatarSizeRes != null ? avatarSizeRes : 0L);
             stats.setAvatarCount(avatarCount);
-            
-            long avatarSize = 0L;
-            try {
-                // Method 1: OCTET_LENGTH (bytea)
-                Long res = jdbcTemplate.queryForObject("SELECT COALESCE(SUM(OCTET_LENGTH(avatar_data)), 0) FROM users WHERE avatar_data IS NOT NULL", Long.class);
-                avatarSize = res != null ? res : 0L;
-                
-                // Method 2: OID Fallback
-                if (avatarSize == 0 && avatarCount > 0) {
-                    try {
-                        Long oidRes = jdbcTemplate.queryForObject("SELECT COALESCE(SUM(lo_size(avatar_data::oid)), 0) FROM users WHERE avatar_data IS NOT NULL", Long.class);
-                        avatarSize = oidRes != null ? oidRes : 0L;
-                    } catch (Exception e_oid) {
-                        // Method 3: pg_column_size Fallback
-                        Long colRes = jdbcTemplate.queryForObject("SELECT COALESCE(SUM(pg_column_size(avatar_data)), 0) FROM users WHERE avatar_data IS NOT NULL", Long.class);
-                        avatarSize = colRes != null ? colRes : 0L;
-                    }
-                }
-            } catch (Exception e_av) {
-                // Method 4: CamelCase Fallback
-                try {
-                    Long camelRes = jdbcTemplate.queryForObject("SELECT COALESCE(SUM(pg_column_size(\"avatarData\")), 0) FROM users WHERE \"avatarData\" IS NOT NULL", Long.class);
-                    avatarSize = camelRes != null ? camelRes : 0L;
-                } catch (Exception e_av2) { avatarSize = 0L; }
-            }
-            stats.setTotalAvatarSize(avatarSize);
 
-            // 3. Attachments Count & Size (Announcements + Feedback)
-            long annAttachCount = attachmentRepository.count();
-            long feedbackAttachCount = 0L;
-            try {
-                Long fCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM feedback WHERE attachment_data IS NOT NULL", Long.class);
-                feedbackAttachCount = fCount != null ? fCount : 0L;
-            } catch (Exception e) { feedbackAttachCount = 0L; }
-            
-            stats.setAttachmentCount(annAttachCount + feedbackAttachCount);
-            stats.setTotalFileCount(avatarCount + annAttachCount + feedbackAttachCount);
+            // 3. LOGICAL: Attachments (Announcements - meta + filesystem)
+            long annCount = attachmentRepository.count();
+            Long annSizeRes = jdbcTemplate.queryForObject(
+                "SELECT COALESCE(SUM(file_size), 0) FROM announcement_attachments", Long.class);
+            long annSize = annSizeRes != null ? annSizeRes : 0L;
 
-            long annSize = 0L;
-            try {
-                Long annRes = jdbcTemplate.queryForObject("SELECT COALESCE(SUM(file_size), 0) FROM announcement_attachments", Long.class);
-                annSize = annRes != null ? annRes : 0L;
-                if (annSize == 0 && annAttachCount > 0) {
-                    Long physRes = jdbcTemplate.queryForObject("SELECT COALESCE(SUM(OCTET_LENGTH(file_data)), 0) FROM announcement_attachments", Long.class);
-                    annSize = physRes != null ? physRes : 0L;
-                }
-            } catch (Exception e) { 
-                try {
-                    Long camelAnn = jdbcTemplate.queryForObject("SELECT COALESCE(SUM(\"fileSize\"), 0) FROM announcement_attachments", Long.class);
-                    annSize = camelAnn != null ? camelAnn : 0L;
-                } catch (Exception e2) { annSize = 0L; }
-            }
+            // 4. LOGICAL: Feedback (now pure bytea)
+            Long fbCountRes = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM feedback WHERE attachment_data IS NOT NULL", Long.class);
+            long fbCount = fbCountRes != null ? fbCountRes : 0L;
+            Long fbSizeRes = jdbcTemplate.queryForObject(
+                "SELECT COALESCE(SUM(OCTET_LENGTH(attachment_data)), 0) FROM feedback", Long.class);
+            long fbSize = fbSizeRes != null ? fbSizeRes : 0L;
 
-            long feedbackSize = 0L;
-            try {
-                Long fbRes = jdbcTemplate.queryForObject("SELECT COALESCE(SUM(OCTET_LENGTH(attachment_data)), 0) FROM feedback", Long.class);
-                feedbackSize = fbRes != null ? fbRes : 0L;
-            } catch (Exception e) { feedbackSize = 0L; }
+            stats.setAttachmentLogicalSize(annSize + fbSize);
+            stats.setAttachmentCount(annCount + fbCount);
 
-            stats.setTotalAttachmentSize(annSize + feedbackSize);
+            // 5. Totals
+            stats.setTotalLogicalSize(stats.getAvatarLogicalSize() + stats.getAttachmentLogicalSize());
+            stats.setTotalFileCount(avatarCount + annCount + fbCount);
             stats.setTotalLogSize(0L);
-            
-            log.info("Zasoby końcowe: DB={} MB, Awatary={}, Załączniki={}, Pliki={}", 
-                dbSize/1024/1024, avatarSize, stats.getTotalAttachmentSize(), stats.getTotalFileCount());
-                
+
             return stats;
         } catch (Exception e) {
-            log.error("Błąd przeliczania zasobów: {}", e.getMessage());
+            log.error("Failed to calculate storage stats (bytea mode): {}", e.getMessage());
             return cachedStats != null ? cachedStats : new SystemResourceStats();
         }
     }
@@ -143,54 +103,86 @@ public class AdminSystemResourcesService {
         return statsRepository.findTop14ByOrderByTimestampDesc();
     }
 
+    /**
+     * Debugging method to validate correctness of storage reporting
+     */
+
     public Map<String, Object> getStorageBreakdown() {
         SystemResourceStats s = getCurrentStats();
         Map<String, Object> breakdown = new HashMap<>();
         if (s == null) return breakdown;
         
-        breakdown.put("total", s.getTotalDbSize());
-        breakdown.put("avatars", s.getTotalAvatarSize());
-        breakdown.put("attachments", s.getTotalAttachmentSize());
+        breakdown.put("totalPhysical", s.getTotalDbSize());
+        breakdown.put("totalLogical", s.getTotalLogicalSize());
+        breakdown.put("avatars", s.getAvatarLogicalSize());
+        breakdown.put("attachments", s.getAttachmentLogicalSize());
         breakdown.put("avatarCount", s.getAvatarCount());
         breakdown.put("attachmentCount", s.getAttachmentCount());
-        breakdown.put("logs", s.getTotalLogSize());
         
-        long total = s.getTotalDbSize() != null ? s.getTotalDbSize() : 0L;
-        long avatars = s.getTotalAvatarSize() != null ? s.getTotalAvatarSize() : 0L;
-        long items = s.getTotalAttachmentSize() != null ? s.getTotalAttachmentSize() : 0L;
-        
-        breakdown.put("other", total - avatars - items);
+        long totalPhys = s.getTotalDbSize() != null ? s.getTotalDbSize() : 0L;
+        long totalLogi = s.getTotalLogicalSize() != null ? s.getTotalLogicalSize() : 0L;
+        breakdown.put("overhead", totalPhys - totalLogi);
         return breakdown;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getStorageDebugInfo() {
+        String sql = 
+            "SELECT 'User Avatar' as source, id::text as ref_id, email as owner, " +
+            "OCTET_LENGTH(avatar_data) as size_bytes, 'bytea' as type " +
+            "FROM users WHERE avatar_data IS NOT NULL " +
+            "UNION ALL " +
+            "SELECT 'Feedback' as source, id::text, email, " +
+            "OCTET_LENGTH(attachment_data), 'bytea' " +
+            "FROM feedback WHERE attachment_data IS NOT NULL " +
+            "UNION ALL " +
+            "SELECT 'Announcement' as source, announcement_id::text, 'FILE: ' || file_path, " +
+            "file_size, 'filesystem' " +
+            "FROM announcement_attachments";
+        
+        try {
+            return jdbcTemplate.queryForList(sql);
+        } catch (Exception e) {
+            log.error("Storage debug info failed: {}", e.getMessage());
+            return List.of();
+        }
     }
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getTopUsersByStorage() {
         String sql = 
-            "SELECT u.id, u.email, " +
-            " COALESCE(u.first_name, '') as firstName, " +
-            " COALESCE(u.last_name, '') as lastName, " +
-            " COALESCE(OCTET_LENGTH(u.avatar_data), 0) as avatarSize, " +
-            " (COALESCE((SELECT SUM(OCTET_LENGTH(f.attachment_data)) FROM feedback f WHERE f.email = u.email), 0) + " +
-            "  COALESCE((SELECT SUM(COALESCE(a.file_size, OCTET_LENGTH(a.file_data))) FROM announcement_attachments a " +
-            "            JOIN group_announcements an ON a.announcement_id = an.id " +
-            "            WHERE an.author_id = u.id), 0) " +
-            " ) as attachmentSize, " +
-            " (COALESCE(OCTET_LENGTH(u.avatar_data), 0) + " +
-            "  COALESCE((SELECT SUM(OCTET_LENGTH(f.attachment_data)) FROM feedback f WHERE f.email = u.email), 0) + " +
-            "  COALESCE((SELECT SUM(COALESCE(a.file_size, OCTET_LENGTH(a.file_data))) FROM announcement_attachments a " +
-            "            JOIN group_announcements an ON a.announcement_id = an.id " +
-            "            WHERE an.author_id = u.id), 0) " +
-            " ) as totalSize " +
-            "FROM users u " +
-            "WHERE u.id IN (SELECT DISTINCT id FROM users WHERE avatar_data IS NOT NULL) OR " +
-            "      u.email IN (SELECT DISTINCT email FROM feedback WHERE attachment_data IS NOT NULL) OR " +
-            "      u.id IN (SELECT DISTINCT author_id FROM group_announcements an JOIN announcement_attachments a ON a.announcement_id = an.id) " +
-            "ORDER BY totalSize DESC LIMIT 10";
+            "WITH user_storage AS (" +
+            "    -- Avatars\n" +
+            "    SELECT id as user_id, OCTET_LENGTH(avatar_data) as size, 'AVATAR' as type FROM users WHERE avatar_data IS NOT NULL\n" +
+            "    UNION ALL\n" +
+            "    -- Feedback (directly linked by userId)\n" +
+            "    SELECT user_id, OCTET_LENGTH(attachment_data), 'ATTACHMENT' FROM feedback WHERE attachment_data IS NOT NULL AND user_id IS NOT NULL\n" +
+            "    UNION ALL\n" +
+            "    -- Feedback (fallback by email linkage for guests)\n" +
+            "    SELECT u_fb.id, OCTET_LENGTH(f_fb.attachment_data), 'ATTACHMENT' \n" +
+            "    FROM feedback f_fb \n" +
+            "    JOIN users u_fb ON LOWER(f_fb.email) = LOWER(u_fb.email) \n" +
+            "    WHERE f_fb.attachment_data IS NOT NULL AND f_fb.user_id IS NULL\n" +
+            "    UNION ALL\n" +
+            "    -- Announcements\n" +
+            "    SELECT ga.author_id, aa.file_size, 'ATTACHMENT' \n" +
+            "    FROM announcement_attachments aa \n" +
+            "    JOIN group_announcements ga ON aa.announcement_id = ga.id\n" +
+            ")\n" +
+            "SELECT \n" +
+            "    u.id, u.email, u.first_name as \"firstName\", u.last_name as \"lastName\",\n" +
+            "    COALESCE((SELECT SUM(us1.size) FROM user_storage us1 WHERE us1.user_id = u.id AND us1.type = 'AVATAR'), 0) as \"avatarSize\",\n" +
+            "    COALESCE((SELECT SUM(us2.size) FROM user_storage us2 WHERE us2.user_id = u.id AND us2.type = 'ATTACHMENT'), 0) as \"attachmentSize\",\n" +
+            "    COALESCE((SELECT SUM(us3.size) FROM user_storage us3 WHERE us3.user_id = u.id), 0) as \"totalSize\"\n" +
+            "FROM users u\n" +
+            "WHERE EXISTS (SELECT 1 FROM user_storage us_check WHERE us_check.user_id = u.id)\n" +
+            "ORDER BY \"totalSize\" DESC LIMIT 10";
+
         try {
             return jdbcTemplate.queryForList(sql);
         } catch (Exception e) {
-            log.error("Błąd zapytania TOP użytkowników: {}", e.getMessage());
-            return jdbcTemplate.queryForList("SELECT id, email, 0 as avatarSize, 0 as attachmentSize, 0 as totalSize FROM users ORDER BY id LIMIT 10");
+            log.error("Top users ranking failed (detailed): ", e);
+            return List.of();
         }
     }
 }

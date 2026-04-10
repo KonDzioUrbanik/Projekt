@@ -47,7 +47,7 @@ class AdminSystem {
 
     initializeEventListeners() {
         document.getElementById('refreshHealth').addEventListener('click', () => {
-            this.refreshHealth();
+            this.refreshHealth(true);
             adminUtils.refreshGlobalMetrics();
         });
 
@@ -206,12 +206,14 @@ class AdminSystem {
         await this.updateSetting('global_banner_text', text);
     }
 
-    async refreshHealth() {
+    async refreshHealth(isManual = false) {
         if (this.isRefreshing) return;
         this.isRefreshing = true;
 
         const btn = document.getElementById('refreshHealth');
-        btn.classList.add('fa-spin');
+        const icon = btn ? btn.querySelector('i') : null;
+        if (icon) icon.classList.add('fa-spin');
+        if (btn) btn.disabled = true;
 
         try {
             const response = await fetch('/api/system/health');
@@ -220,15 +222,22 @@ class AdminSystem {
             const health = await response.json();
             this.updateHealthIndicator('dbStatus', health.database);
             this.updateHealthIndicator('smtpStatus', health.smtp);
-
             this.updateLastSyncTime();
+
+            if (isManual) {
+                Utils.showToast('Stan usług został odświeżony.', 'success');
+            }
         } catch (error) {
             console.error('Health check failed:', error);
             this.updateHealthIndicator('dbStatus', false);
             this.updateHealthIndicator('smtpStatus', false);
+            if (isManual) {
+                Utils.showToast('Błąd podczas odświeżania stanu usług.', 'error');
+            }
         } finally {
             this.isRefreshing = false;
-            btn.classList.remove('fa-spin');
+            if (icon) icon.classList.remove('fa-spin');
+            if (btn) btn.disabled = false;
         }
     }
 
