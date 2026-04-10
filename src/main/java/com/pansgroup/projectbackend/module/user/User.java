@@ -53,7 +53,7 @@ public class User {
     @Column(length = 500)
     private String bio;
 
-    @Lob
+    @Column(name = "avatar_data")
     @com.fasterxml.jackson.annotation.JsonIgnore
     private byte[] avatarData;
 

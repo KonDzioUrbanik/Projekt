@@ -18,9 +18,10 @@ public class SystemResourceStats {
     @Column(nullable = false)
     private LocalDateTime timestamp;
 
-    private Long totalDbSize;
-    private Long totalAvatarSize;
-    private Long totalAttachmentSize;
+    private Long totalDbSize;          // Physical (Infrastructure)
+    private Long totalLogicalSize;     // sum of user uploads
+    private Long avatarLogicalSize;    // Logical size for avatars
+    private Long attachmentLogicalSize; // Logical size for attachments
     private Long totalLogSize;
     
     private Long totalFileCount;

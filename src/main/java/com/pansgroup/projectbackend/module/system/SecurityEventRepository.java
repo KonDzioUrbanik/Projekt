@@ -15,6 +15,7 @@ public interface SecurityEventRepository extends JpaRepository<SecurityEvent, Lo
     @Query("SELECT e.ipAddress FROM SecurityEvent e " +
            "WHERE e.eventType = 'FAILED_LOGIN' " +
            "AND e.timestamp > :after " +
+           "AND e.ipAddress NOT IN ('127.0.0.1', '0:0:0:0:0:0:0:1', 'localhost') " +
            "GROUP BY e.ipAddress " +
            "HAVING COUNT(e) > :threshold")
     List<String> findSuspiciousIPs(@Param("after") LocalDateTime after, @Param("threshold") Long threshold);

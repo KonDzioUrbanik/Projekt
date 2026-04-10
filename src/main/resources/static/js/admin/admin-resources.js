@@ -19,6 +19,30 @@ async function initResourcesDashboard() {
     
     // Fetch Top Users now
     await fetchTopUsers();
+
+    // Event listeners
+    const refreshBtn = document.getElementById('refreshStatsBtn');
+    if (refreshBtn) {
+        refreshBtn.onclick = async () => {
+            const icon = refreshBtn.querySelector('i');
+            icon.classList.add('fa-spin');
+            refreshBtn.disabled = true;
+            try {
+                await fetch('/api/admin/resources/refresh');
+                await Promise.all([
+                    fetchResourceStats(),
+                    fetchTopUsers()
+                ]);
+                Utils.showToast('Statystyki zostały przeliczone pomyślnie.', 'success');
+            } catch (e) {
+                console.error('Refresh failed:', e);
+                Utils.showToast('Błąd podczas odświeżania statystyk.', 'error');
+            } finally {
+                icon.classList.remove('fa-spin');
+                refreshBtn.disabled = false;
+            }
+        };
+    }
 }
 
 async function fetchResourceStats() {
@@ -44,8 +68,8 @@ function updateStorageUI(stats) {
     
     // Summary row
     document.getElementById('totalSizeValue').textContent = formatSize(stats.totalDbSize);
-    document.getElementById('avatarSizeValue').textContent = formatSize(stats.totalAvatarSize);
-    document.getElementById('attachmentSizeValue').textContent = formatSize(stats.totalAttachmentSize);
+    document.getElementById('avatarSizeValue').textContent = formatSize(stats.avatarLogicalSize);
+    document.getElementById('attachmentSizeValue').textContent = formatSize(stats.attachmentLogicalSize);
 
     // Progress
     const totalPercent = Math.min(100, Math.round((stats.totalDbSize / totalLimit) * 100));
@@ -58,7 +82,13 @@ function updateStorageUI(stats) {
 
     // Details logic
     document.getElementById('avatarCount').textContent = stats.totalFileCount + ' plików (ogółem)';
-    document.getElementById('attachmentCount').textContent = 'Relatywne wykorzystanie limitu';
+    document.getElementById('attachmentCount').textContent = 'Dane użytkowników: ' + formatSize(stats.totalLogicalSize);
+    
+    // Last Sync
+    const syncTimeEl = document.getElementById('lastSyncTime');
+    if (syncTimeEl) {
+        syncTimeEl.textContent = new Date().toLocaleTimeString();
+    }
 }
 
 async function fetchResourceHistory() {
@@ -179,7 +209,7 @@ async function fetchTopUsers() {
         if (!tbody) return;
 
         if (!users || users.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center">Brak danych o zużyciu zasobów.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">Brak danych o zużyciu zasobów.</td></tr>';
             return;
         }
 
@@ -191,19 +221,41 @@ async function fetchTopUsers() {
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         };
 
-        tbody.innerHTML = users.map(user => `
-            <tr>
-                <td style="font-weight:600; opacity:0.7;">#${user.id}</td>
-                <td>${adminUtils.escapeHtml(user.first_name || user.firstName)} ${adminUtils.escapeHtml(user.last_name || user.lastName)}</td>
-                <td style="opacity:0.8;">${adminUtils.escapeHtml(user.email)}</td>
-                <td style="font-family:monospace;">${formatSize(user.avatarSize || user.avatar_size)}</td>
-                <td style="font-family:monospace;">${formatSize(user.attachmentSize || user.attachment_size)}</td>
-                <td style="font-family:monospace; font-weight:700;">${formatSize(user.totalSize || user.total_size)}</td>
-            </tr>
-        `).join('');
+        tbody.innerHTML = users.map((user, index) => {
+            const rank = index + 1;
+            let rankHtml = '';
+            if (rank === 1) rankHtml = '<div class="rank-badge rank-1">1</div>';
+            else if (rank === 2) rankHtml = '<div class="rank-badge rank-2">2</div>';
+            else if (rank === 3) rankHtml = '<div class="rank-badge rank-3">3</div>';
+            else rankHtml = `<div class="rank-badge rank-other">${rank}</div>`;
+
+            return `
+                <tr>
+                    <td style="text-align: center;">${rankHtml}</td>
+                    <td style="font-weight:600; opacity:0.6; font-size: 0.8rem;">#${user.id}</td>
+                    <td>
+                        <div class="user-info-brief">
+                            <span class="user-name-cell">${adminUtils.escapeHtml(user.firstName || user.first_name || 'Użytkownik')} ${adminUtils.escapeHtml(user.lastName || user.last_name || '')}</span>
+                            <span class="user-email-cell">${adminUtils.escapeHtml(user.email)}</span>
+                        </div>
+                    </td>
+                    <td style="text-align: right;" class="storage-cell">
+                        <i class="fas fa-portrait" style="font-size: 0.7rem; opacity: 0.4; margin-right: 4px;" title="Awatary"></i>
+                        ${formatSize(user.avatarSize)}
+                    </td>
+                    <td style="text-align: right;" class="storage-cell">
+                        <i class="fas fa-paperclip" style="font-size: 0.7rem; opacity: 0.4; margin-right: 4px;" title="Załączniki"></i>
+                        ${formatSize(user.attachmentSize)}
+                    </td>
+                    <td style="text-align: right;" class="storage-cell total">
+                        ${formatSize(user.totalSize)}
+                    </td>
+                </tr>
+            `;
+        }).join('');
     } catch (error) {
         console.error('Error fetching top users:', error);
         const tbody = document.getElementById('topUsersBody');
-        if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="text-center text-error">Błąd ładowania danych.</td></tr>';
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-error" style="padding: 2rem;">Błąd ładowania rankingu.</td></tr>';
     }
 }

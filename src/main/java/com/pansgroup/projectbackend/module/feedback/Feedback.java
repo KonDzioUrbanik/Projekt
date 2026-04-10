@@ -29,6 +29,9 @@ public class Feedback {
     private String description;
 
     private String email;
+    
+    @Column(name = "user_id")
+    private Long userId;
 
     @Column(length = 500)
     private String url;
@@ -43,7 +46,7 @@ public class Feedback {
     @Column(length = 2000)
     private String adminComment;
 
-    @Lob
+    @Column(name = "attachment_data")
     @com.fasterxml.jackson.annotation.JsonIgnore
     private byte[] attachmentData;
 
