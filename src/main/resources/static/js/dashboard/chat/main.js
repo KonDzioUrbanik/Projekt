@@ -218,10 +218,13 @@ function sendTextMessage() {
     DOM.btnSend.style.opacity = '0.5';
 
     if (stompClient && stompClient.connected) {
-        stompClient.send('/app/chat.send', {}, JSON.stringify({
-            conversationId: state.currentConvId,
-            content: text
-        }));
+        stompClient.publish({
+            destination: '/app/chat.send',
+            body: JSON.stringify({
+                conversationId: state.currentConvId,
+                content: text
+            })
+        });
     } else {
         alert('Brak połączenia z czatem na żywo!');
     }

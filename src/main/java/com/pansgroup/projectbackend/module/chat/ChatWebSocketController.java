@@ -34,16 +34,16 @@ public class ChatWebSocketController {
         try {
             MessageDto msg = chatService.sendMessage(auth, payload.conversationId(), payload.content());
 
-            // Determine both participants' principals (their email == Spring Security principal name)
-            // We route by userId stored in the DTO for precise delivery
-            String recipientPrincipal = getRecipientEmail(auth, msg.conversationId());
+            String recipientPrincipal = chatService.getRecipientEmail(auth, msg.conversationId());
 
-            // Deliver to sender (for multi-device support)
             messagingTemplate.convertAndSendToUser(auth.getName(), "/queue/messages", msg);
 
-            // Deliver to recipient
-            if (recipientPrincipal != null) {
-                messagingTemplate.convertAndSendToUser(recipientPrincipal, "/queue/messages", msg);
+            if (recipientPrincipal != null && !recipientPrincipal.equals(auth.getName())) {
+                MessageDto recipientMsg = new MessageDto(
+                        msg.id(), msg.conversationId(), msg.senderId(), msg.senderName(),
+                        msg.content(), msg.sentAt(), msg.editedAt(), msg.deletedAt(),
+                        msg.status(), false);
+                messagingTemplate.convertAndSendToUser(recipientPrincipal, "/queue/messages", recipientMsg);
             }
         } catch (Exception e) {
             log.warn("WS send failed for user {}: {}", auth.getName(), e.getMessage());
@@ -71,9 +71,9 @@ public class ChatWebSocketController {
         try {
             Long convId = Long.valueOf(payload.get("conversationId").toString());
             boolean isTyping = Boolean.parseBoolean(payload.getOrDefault("typing", false).toString());
-            String recipientPrincipal = getRecipientEmail(auth, convId);
+            String recipientPrincipal = chatService.getRecipientEmail(auth, convId);
 
-            if (recipientPrincipal != null) {
+            if (recipientPrincipal != null && !recipientPrincipal.equals(auth.getName())) {
                 messagingTemplate.convertAndSendToUser(recipientPrincipal, "/queue/typing",
                         Map.of("conversationId", convId, "senderEmail", senderName, "typing", isTyping));
             }
@@ -92,31 +92,14 @@ public class ChatWebSocketController {
         try {
             Long convId = Long.valueOf(payload.get("conversationId").toString());
             chatService.markAllRead(auth, convId);
-            String recipientPrincipal = getRecipientEmail(auth, convId);
+            String recipientPrincipal = chatService.getRecipientEmail(auth, convId);
 
-            if (recipientPrincipal != null) {
+            if (recipientPrincipal != null && !recipientPrincipal.equals(auth.getName())) {
                 messagingTemplate.convertAndSendToUser(recipientPrincipal, "/queue/read-receipt",
                         Map.of("conversationId", convId, "readByEmail", auth.getName()));
             }
         } catch (Exception e) {
             log.debug("Read receipt error: {}", e.getMessage());
-        }
-    }
-
-    /**
-     * Resolves the other participant's email (Spring principal name) by looking up the conversation.
-     * We pass through the service to ensure the caller is actually a participant.
-     */
-    private String getRecipientEmail(Authentication auth, Long convId) {
-        try {
-            // Load the other user from this conversation
-            var me = chatService.resolveUser(auth);
-            var conv = chatService.getConversationForWs(convId, me);
-            var other = conv.getUserA().getId().equals(me.getId()) ? conv.getUserB() : conv.getUserA();
-            return other.getEmail();
-        } catch (Exception e) {
-            log.debug("Could not resolve recipient: {}", e.getMessage());
-            return null;
         }
     }
 }

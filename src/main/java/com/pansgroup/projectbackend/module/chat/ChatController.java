@@ -86,8 +86,12 @@ public class ChatController {
 
         // Notify other participant via WebSocket
         String otherEmail = chatService.getRecipientEmail(auth, msg.conversationId());
-        if (otherEmail != null) {
-            messagingTemplate.convertAndSendToUser(otherEmail, "/queue/edit", msg);
+        if (otherEmail != null && !otherEmail.equals(auth.getName())) {
+            MessageDto recipientMsg = new MessageDto(
+                    msg.id(), msg.conversationId(), msg.senderId(), msg.senderName(),
+                    msg.content(), msg.sentAt(), msg.editedAt(), msg.deletedAt(),
+                    msg.status(), false);
+            messagingTemplate.convertAndSendToUser(otherEmail, "/queue/edit", recipientMsg);
         }
 
         return ResponseEntity.ok(msg);
@@ -101,7 +105,8 @@ public class ChatController {
         // Notify other participant via WebSocket
         String otherEmail = chatService.getRecipientEmail(auth, msg.conversationId());
         if (otherEmail != null) {
-            messagingTemplate.convertAndSendToUser(otherEmail, "/queue/delete", Map.of("msgId", msg.id()));
+            messagingTemplate.convertAndSendToUser(otherEmail, "/queue/delete", 
+                Map.of("msgId", msg.id(), "deletedAt", msg.deletedAt()));
         }
 
         return ResponseEntity.ok(msg);

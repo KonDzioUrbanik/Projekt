@@ -128,6 +128,9 @@ export function buildMessageEl(msg) {
         icon.style.marginRight = '.35rem';
         bubble.appendChild(icon);
         bubble.appendChild(document.createTextNode('Wiadomość usunięta'));
+        if (msg.deletedAt) {
+            bubble.title = 'Usunięto ' + formatTime(msg.deletedAt) + ', ' + formatDate(msg.deletedAt);
+        }
     } else {
         const textContent = msg.content || '';
         const blocks = textContent.split('\n');

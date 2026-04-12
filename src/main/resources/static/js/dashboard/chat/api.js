@@ -130,7 +130,10 @@ export function openConversation(conv) {
     // Dynamic STOMP notify
     import('./ws.js').then(m => {
         if (m.stompClient && m.stompClient.connected) {
-            m.stompClient.send('/app/chat.read', {}, JSON.stringify({ conversationId: conv.id }));
+            m.stompClient.publish({
+                destination: '/app/chat.read',
+                body: JSON.stringify({ conversationId: conv.id })
+            });
         }
     });
 }
@@ -204,10 +207,16 @@ export function deleteMsg(msgId) {
                     icon.style.marginRight = '0.35rem';
                     bubble.appendChild(icon);
                     bubble.appendChild(document.createTextNode('Wiadomość usunięta'));
+                    import('./ui.js').then(m => {
+                        if (msg.deletedAt) {
+                            bubble.title = 'Usunięto ' + m.formatTime(msg.deletedAt) + ', ' + m.formatDate(msg.deletedAt);
+                        }
+                    });
                 }
                 const opts = wrap.querySelector('.chat-msg-options');
                 if (opts) opts.remove();
             }
+            refreshConversationList();
         });
 }
 
@@ -221,6 +230,7 @@ export function editMsg(msgId, newContent) {
             const newWrap = buildMessageEl(msg);
             const wrap = document.querySelector(`[data-msg-id="${msg.id}"]`);
             if (wrap) wrap.replaceWith(newWrap);
+            refreshConversationList();
       });
 }
 
