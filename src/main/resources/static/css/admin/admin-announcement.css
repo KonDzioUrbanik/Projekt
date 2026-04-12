@@ -88,6 +88,17 @@
     font-weight: 600;
 }
 
+.announcement-author-line a.ann-author-link {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.announcement-author-line a.ann-author-link:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
 .announcement-card-actions {
     display: flex;
     gap: 0.5rem;

@@ -29,5 +29,7 @@ public interface AnnouncementReadConfirmationRepository extends JpaRepository<An
 
     List<AnnouncementReadConfirmation> findByAnnouncement_IdOrderByConfirmedAtDesc(Long announcementId);
 
+    List<AnnouncementReadConfirmation> findByAnnouncement_IdInOrderByConfirmedAtDesc(Collection<Long> announcementIds);
+
     List<AnnouncementReadConfirmation> findByReader(com.pansgroup.projectbackend.module.user.User reader);
 }

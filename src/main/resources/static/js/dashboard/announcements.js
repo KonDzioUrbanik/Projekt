@@ -531,7 +531,7 @@
                                 ${Utils.escapeHtml(item.title || '')}
                             </h4>
                             <div class="announcement-author-line">
-                                <strong>${Utils.escapeHtml(author)}</strong>
+                                <strong>${item.authorId ? `<a href="/profile/user?userId=${item.authorId}" class="ann-author-link">${Utils.escapeHtml(author)}</a>` : Utils.escapeHtml(author)}</strong>
                                 ${pinnedBadge}
                                 ${priorityBadge(item.priority)}
                             </div>

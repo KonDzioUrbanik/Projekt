@@ -132,6 +132,10 @@ class DashboardHome {
             item.authorLastName
         ].filter(Boolean).join(' ') || 'Nieznany autor');
 
+        const authorLink = item.authorId 
+            ? `<a href="/profile/user?userId=${item.authorId}" class="ann-author-link" style="color: inherit; text-decoration: none;">${author}</a>`
+            : author;
+
         return `
             <article class="dashboard-ann-card">
                 <div class="dashboard-ann-card-header">
@@ -150,7 +154,7 @@ class DashboardHome {
                 <div class="dashboard-ann-footer">
                     <div class="dashboard-ann-author">
                         <i class="fas fa-user"></i>
-                        <span>${author}</span>
+                        <span>${authorLink}</span>
                     </div>
                 </div>
             </article>
