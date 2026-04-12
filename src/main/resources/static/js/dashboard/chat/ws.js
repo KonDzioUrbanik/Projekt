@@ -4,12 +4,30 @@ import { markRead, refreshConversationList } from './api.js';
 
 export let stompClient = null;
 
+function showWsBanner(visible) {
+    let banner = document.getElementById('ws-offline-banner');
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'ws-offline-banner';
+        Object.assign(banner.style, {
+            display: 'none', position: 'fixed', top: '0', left: '0', right: '0',
+            zIndex: '9999', textAlign: 'center', padding: '0.5rem 1rem',
+            background: '#f59e0b', color: '#1a1a1a', fontSize: '0.85rem',
+            fontWeight: '600', letterSpacing: '0.02em'
+        });
+        banner.innerHTML = '<i class="fas fa-wifi" style="margin-right:0.4rem;"></i>Brak połączenia na żywo – trwa ponowne łączenie...';
+        document.body.appendChild(banner);
+    }
+    banner.style.display = visible ? 'block' : 'none';
+}
+
 export function connectWs() {
     const socket = new SockJS('/ws/chat');
     stompClient = Stomp.over(socket);
     stompClient.debug = null; // Disable debug logging
 
     stompClient.connect({}, () => {
+        showWsBanner(false); // Connected – hide warning
         stompClient.subscribe('/user/queue/messages', onWsMessage);
         stompClient.subscribe('/user/queue/typing', onWsTyping);
         stompClient.subscribe('/user/queue/read-receipt', onWsReadReceipt);
@@ -17,6 +35,7 @@ export function connectWs() {
         stompClient.subscribe('/user/queue/delete', onWsDelete);
         stompClient.subscribe('/user/queue/errors', onWsError);
     }, () => {
+        showWsBanner(true); // Disconnected – show warning
         setTimeout(connectWs, 3000);
     });
 }

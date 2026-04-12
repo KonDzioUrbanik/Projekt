@@ -293,7 +293,7 @@ public class SecurityConfig {
                                                                 "https://fonts.gstatic.com " +
                                                                 "https://cdnjs.cloudflare.com; " +
                                                                 "img-src 'self' data: blob:; " +
-                                                                "connect-src 'self' ws://localhost:8090 wss://localhost:8090 https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+                                                                "connect-src 'self' ws: wss: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
                                                                 +
                                                                 "frame-ancestors 'none'; " +
                                                                 "base-uri 'self'; " +
