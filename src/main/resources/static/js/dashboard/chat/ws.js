@@ -1,7 +1,8 @@
 import { state } from './state.js';
 import { appendMessage, updateSidebarPreviewLocal, handleTypingIndicator } from './ui.js';
-import { markRead, refreshConversationList } from './api.js';
+import { markRead } from './api.js';
 
+// StompJs.Client instance (from @stomp/stompjs v7 UMD bundle loaded globally)
 export let stompClient = null;
 
 function showWsBanner(visible) {
@@ -22,37 +23,49 @@ function showWsBanner(visible) {
 }
 
 export function connectWs() {
-    const socket = new SockJS('/ws/chat');
-    stompClient = Stomp.over(socket);
-    stompClient.debug = null; // Disable debug logging
+    const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const brokerURL = `${proto}//${window.location.host}/ws/stomp`;
 
-    stompClient.connect({}, () => {
-        showWsBanner(false); // Connected – hide warning
-        stompClient.subscribe('/user/queue/messages', onWsMessage);
-        stompClient.subscribe('/user/queue/typing', onWsTyping);
-        stompClient.subscribe('/user/queue/read-receipt', onWsReadReceipt);
-        stompClient.subscribe('/user/queue/edit', onWsEdit);
-        stompClient.subscribe('/user/queue/delete', onWsDelete);
-        stompClient.subscribe('/user/queue/errors', onWsError);
-    }, () => {
-        showWsBanner(true); // Disconnected – show warning
-        setTimeout(connectWs, 3000);
+    stompClient = new StompJs.Client({
+        brokerURL,
+        reconnectDelay: 3000,
+        debug: () => {}, // suppress debug logs
+
+        onConnect: () => {
+            showWsBanner(false);
+            stompClient.subscribe('/user/queue/messages', onWsMessage);
+            stompClient.subscribe('/user/queue/typing', onWsTyping);
+            stompClient.subscribe('/user/queue/read-receipt', onWsReadReceipt);
+            stompClient.subscribe('/user/queue/edit', onWsEdit);
+            stompClient.subscribe('/user/queue/delete', onWsDelete);
+            stompClient.subscribe('/user/queue/errors', onWsError);
+        },
+
+        onDisconnect: () => {
+            showWsBanner(true);
+        },
+
+        onStompError: (frame) => {
+            console.error('STOMP error', frame);
+            showWsBanner(true);
+        }
     });
+
+    stompClient.activate();
 }
 
 function onWsMessage(frame) {
     const msg = JSON.parse(frame.body);
 
     if (msg.conversationId == state.currentConvId) {
-        // Optimistic UI replace check: find most recent "SENDING" message from Me
+        // Optimistic UI replace: find most recent "SENDING" message from Me
         const allMyMessages = document.querySelectorAll('.chat-msg-wrap--mine');
         let tempMatch = null;
-        
+
         for (let i = allMyMessages.length - 1; i >= 0; i--) {
             const el = allMyMessages[i];
             const isSending = el.querySelector('.chat-msg-footer span')?.textContent === 'Wysyłanie...';
             if (isSending) {
-                // If content matches or it's the very last one, replace it
                 tempMatch = el;
                 break;
             }
@@ -63,11 +76,14 @@ function onWsMessage(frame) {
         } else {
             appendMessage(msg, true);
         }
-        
+
         if (msg.mine === false) {
             markRead(state.currentConvId);
             if (stompClient && stompClient.connected) {
-                stompClient.send('/app/chat.read', {}, JSON.stringify({ conversationId: state.currentConvId }));
+                stompClient.publish({
+                    destination: '/app/chat.read',
+                    body: JSON.stringify({ conversationId: state.currentConvId })
+                });
             }
         }
     }
@@ -87,6 +103,7 @@ function onWsReadReceipt(frame) {
         document.querySelectorAll('.chat-msg--mine .chat-msg-status').forEach(el => {
             el.textContent = '✓✓';
             el.classList.add('chat-msg-status--read');
+            el.setAttribute('data-tooltip', 'Odczytano');
         });
     }
 }
@@ -100,6 +117,7 @@ function onWsEdit(frame) {
             wrap.replaceWith(newWrap);
         }
     });
+    import('./api.js').then(m => m.refreshConversationList());
 }
 
 function onWsDelete(frame) {
@@ -117,19 +135,22 @@ function onWsDelete(frame) {
                 icon.style.marginRight = '0.35rem';
                 bubble.appendChild(icon);
                 bubble.appendChild(document.createTextNode('Wiadomość usunięta'));
+                if (data.deletedAt) {
+                    bubble.title = 'Usunięto ' + new Date(data.deletedAt).toLocaleString('pl-PL');
+                }
             }
             const opts = wrap.querySelector('.chat-msg-options');
             if (opts) opts.remove();
         }
     });
+    import('./api.js').then(m => m.refreshConversationList());
 }
 
 function onWsError(frame) {
-    
     // Find most recent "Sending..." message and mark it as failed
     const allMyMessages = document.querySelectorAll('.chat-msg-wrap--mine');
     let tempMatchId = null;
-    
+
     for (let i = allMyMessages.length - 1; i >= 0; i--) {
         const el = allMyMessages[i];
         const footerSpan = el.querySelector('.chat-msg-footer span');
@@ -146,9 +167,12 @@ function onWsError(frame) {
 
 export function sendWsTyping(isTyping) {
     if (stompClient && stompClient.connected && state.currentConvId) {
-        stompClient.send('/app/chat.typing', {}, JSON.stringify({
-            conversationId: state.currentConvId,
-            typing: isTyping
-        }));
+        stompClient.publish({
+            destination: '/app/chat.typing',
+            body: JSON.stringify({
+                conversationId: state.currentConvId,
+                typing: isTyping
+            })
+        });
     }
 }
