@@ -166,6 +166,17 @@ const Utils = {
         return `${hour}:${minute}`;
     },
 
+    /* Wyciąga czas z ISO DateTime string */
+    extractTimeFromDateTime(dateTimeStr) {
+        if (!dateTimeStr || !dateTimeStr.includes('T')) return { hour: 0, minute: 0 };
+        const timePart = dateTimeStr.split('T')[1];
+        const parts = timePart.split(':');
+        return {
+            hour: parseInt(parts[0], 10),
+            minute: parseInt(parts[1], 10)
+        };
+    },
+
     /* Obliczanie numeru tygodnia (ISO 8601) */
     getWeekNumber(d) {
         const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -247,6 +258,19 @@ const Utils = {
 
     matchesScheduleRecurrence(item, date) {
         if (!item || item.archived) return false;
+
+        // Jeśli są zdefiniowane konkretne wystąpienia (occurrences), sprawdzamy czy któreś pasuje do daty
+        if (item.occurrences && item.occurrences.length > 0) {
+            const dateStr = date.getFullYear() + '-' + 
+                           String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+                           String(date.getDate()).padStart(2, '0');
+            
+            return item.occurrences.some(occ => {
+                if (!occ.startDateTime) return false;
+                const occDateStr = occ.startDateTime.split('T')[0];
+                return occDateStr === dateStr;
+            });
+        }
 
         const weekType = this.getWeekType(date);
         if (!item.weekType || item.weekType === 'ALL') return true;

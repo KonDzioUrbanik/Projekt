@@ -115,6 +115,11 @@
             href: '/admin/schedule-management',
             parent: 'admin-panel'
         },
+        'starosta-schedule-management': {
+            label: 'Zarządzanie planem',
+            href: '/starosta/schedule-management',
+            parent: 'starosta-panel'
+        },
         'groups-management': {
             label: 'Kierunki',
             href: '/admin/groups-management',

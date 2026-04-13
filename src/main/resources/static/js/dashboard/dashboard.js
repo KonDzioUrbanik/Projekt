@@ -410,17 +410,40 @@ class DashboardHome {
     
     // Filtrowanie zajęć dla danego dnia
     getClassesForDay(dayName, date) {
-        // Filtruj według dnia i typu tygodnia
-        const dayClasses = this.scheduleData.filter(c => {
-            const matchesDay = c.dayOfWeek === dayName;
-            const matchesWeek = Utils.matchesScheduleRecurrence(c, date);
-            return matchesDay && matchesWeek;
-        });
-        
-        // Sortowanie po czasie rozpoczęcia
-        return dayClasses.sort((a, b) => {
-            return this.timeToMinutes(a.startTime) - this.timeToMinutes(b.startTime);
-        });
+        const dateStr = date.getFullYear() + '-' + 
+                       String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+                       String(date.getDate()).padStart(2, '0');
+
+        return this.scheduleData
+            .map(item => {
+                // Sprawdź czy jest specyficzne wystąpienie dla tej daty
+                if (item.occurrences && item.occurrences.length > 0) {
+                    const occ = item.occurrences.find(o => o.startDateTime && o.startDateTime.startsWith(dateStr));
+                    if (occ) {
+                        return {
+                            ...item,
+                            startTime: Utils.extractTimeFromDateTime(occ.startDateTime),
+                            endTime: Utils.extractTimeFromDateTime(occ.endDateTime),
+                            room: occ.room || item.room,
+                            buildingCode: occ.buildingCode || item.buildingCode,
+                            _matchedByOcc: true
+                        };
+                    }
+                }
+                return item;
+            })
+            .filter(c => {
+                // Jeśli dopasowano przez wystąpienie, to akceptujemy bez dalszych sprawdzeń
+                if (c._matchedByOcc) return true;
+                
+                // W przeciwnym razie sprawdzamy standardowe reguły (dzień + tydzień A/B/Custom)
+                const matchesDay = c.dayOfWeek === dayName;
+                const matchesWeek = Utils.matchesScheduleRecurrence(c, date);
+                return matchesDay && matchesWeek;
+            })
+            .sort((a, b) => {
+                return this.timeToMinutes(a.startTime) - this.timeToMinutes(b.startTime);
+            });
     }
     
     // Konwersja czasu do minut dla sortowania - używa Utils
@@ -668,9 +691,9 @@ class DashboardHome {
             // Liczba zajęć dzisiaj
             if (scheduleResponse && scheduleResponse.ok) {
                 const allSchedule = await scheduleResponse.json();
-                const weekFilteredSchedule = allSchedule.filter(item => !item.archived && Utils.matchesScheduleRecurrence(item, new Date()));
-                const today = this.getDayOfWeek(new Date());
-                const todayClasses = weekFilteredSchedule.filter(c => c.dayOfWeek === today);
+                const now = new Date();
+                // Utils.matchesScheduleRecurrence teraz poprawnie obsługuje occurrences
+                const todayClasses = allSchedule.filter(item => Utils.matchesScheduleRecurrence(item, now));
                 totalClassesToday = todayClasses.length;
             }
             

@@ -42,7 +42,8 @@
     let state = {
         all: [],
         filtered: [],
-        filters: { search: '' }
+        filters: { search: '' },
+        selectedFiles: []
     };
 
     // ── Init ────────────────────────────────────────────────────────────────
@@ -79,22 +80,54 @@
     }
 
     function initFileInput() {
-        if (!fileInput || !fileList) return;
+        if (!fileInput) return;
         fileInput.addEventListener('change', () => {
-            const files = Array.from(fileInput.files || []);
-            if (files.length > 5) {
-                Utils.showToast('Możesz dodać maksymalnie 5 załączników.', 'error');
-                fileInput.value = '';
-                fileList.innerHTML = '';
-                return;
+            const newFiles = Array.from(fileInput.files || []);
+
+            for (const file of newFiles) {
+                if (state.selectedFiles.length >= 5) {
+                    Utils.showToast('Możesz dodać maksymalnie 5 załączników.', 'error');
+                    break;
+                }
+                
+                if (file.size > 5 * 1024 * 1024) {
+                    Utils.showToast(`Plik ${file.name} przekracza limit 5 MB.`, 'error');
+                    continue;
+                }
+
+                const isDuplicate = state.selectedFiles.some(f => f.name === file.name && f.size === file.size);
+                if (isDuplicate) continue;
+
+                state.selectedFiles.push(file);
             }
-            fileList.innerHTML = '';
-            files.forEach(f => {
-                const chip = document.createElement('span');
-                chip.className = 'ann-file-chip';
-                chip.innerHTML = `<i class="fas fa-paperclip"></i> ${Utils.escapeHtml(f.name)} <span class="ann-file-size">(${formatSize(f.size)})</span>`;
-                fileList.appendChild(chip);
+
+            fileInput.value = '';
+            renderFileListManaged();
+        });
+    }
+
+    function renderFileListManaged() {
+        if (!fileList) return;
+        fileList.innerHTML = '';
+        state.selectedFiles.forEach((f, index) => {
+            const chip = document.createElement('span');
+            chip.className = 'ann-file-chip';
+            chip.innerHTML = `
+                <i class="fas fa-paperclip"></i> 
+                ${Utils.escapeHtml(f.name)} 
+                <span class="ann-file-size">(${formatSize(f.size)})</span>
+                <span class="ann-file-remove" data-index="${index}" title="Usuń">
+                    <i class="fas fa-times"></i>
+                </span>
+            `;
+
+            chip.querySelector('.ann-file-remove').addEventListener('click', (e) => {
+                const idx = parseInt(e.currentTarget.dataset.index);
+                state.selectedFiles.splice(idx, 1);
+                renderFileListManaged();
             });
+
+            fileList.appendChild(chip);
         });
     }
 
@@ -188,8 +221,8 @@
             const formData = new FormData();
             formData.append('data', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
 
-            if (fileInput?.files) {
-                Array.from(fileInput.files).forEach(f => formData.append('files', f));
+            if (state.selectedFiles && state.selectedFiles.length > 0) {
+                state.selectedFiles.forEach(f => formData.append('files', f));
             }
 
             const response = await fetch('/api/announcements', {
@@ -205,7 +238,8 @@
             formEl.reset();
             if (titleCounter)   titleCounter.textContent   = '0 / 150';
             if (contentCounter) contentCounter.textContent = '0 / 2000';
-            if (fileList)       fileList.innerHTML         = '';
+            state.selectedFiles = [];
+            renderFileListManaged();
 
             showMessage('Ogłoszenie zostało opublikowane!', 'success');
             await loadAnnouncements();

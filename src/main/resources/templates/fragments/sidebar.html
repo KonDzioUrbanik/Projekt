@@ -88,7 +88,10 @@
                     <i class="fas fa-bullhorn"></i>
                     <span class="link-text">Wyślij ogłoszenie</span>
                 </a>
-                <!-- Na razie jedno, reszta w przyszłości -->
+                <a th:href="@{/starosta/schedule-management}" class="btn-navbar-left" th:classappend="${activePage == 'schedule-management'} ? 'active'">
+                    <i class="fas fa-calendar-plus"></i>
+                    <span class="link-text">Zarządzanie planem</span>
+                </a>
             </div>
 
             <!-- PANEL ADMINISTRACYJNY -->

@@ -34,5 +34,7 @@ public interface ScheduleService {
 
     List<ScheduleEntryResponseDto> findAll();
 
+    List<ScheduleEntryResponseDto> findAllForStarosta(String starostaEmail);
+
     List<ScheduleEntryResponseDto> getMySchedule(String userEmail);
 }

@@ -1,37 +1,43 @@
 package com.pansgroup.projectbackend.module.schedule.dto;
 
 import com.pansgroup.projectbackend.module.schedule.ClassType;
-import com.pansgroup.projectbackend.module.schedule.DayOfWeek;
-import com.pansgroup.projectbackend.module.schedule.WeekType;
+import com.pansgroup.projectbackend.module.schedule.CreditType;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import java.time.LocalTime;
 import java.util.List;
 
 public record ScheduleEntryCreateDto(
-                @NotBlank(message = "Tytuł jest wymagany.") @Size(min = 3, max = 255, message = "Tytuł musi mieć od {min} do {max} znaków.") String title,
+        @NotBlank(message = "Tytuł jest wymagany.")
+        @Size(min = 3, max = 255, message = "Tytuł musi mieć od {min} do {max} znaków.")
+        String title,
 
-                @NotBlank(message = "Sala jest wymagana.") @Size(min = 1, max = 50, message = "Sala musi mieć od {min} do {max} znaków.") String room,
+        /** Lista prowadzących (min. 1) */
+        @NotEmpty(message = "Co najmniej jeden prowadzący jest wymagany.")
+        List<@NotBlank String> teachers,
 
-                @NotBlank(message = "Nauczyciel jest wymagany.") @Size(min = 3, max = 255, message = "Nauczyciel musi mieć od {min} do {max} znaków.") String teacher,
+        @NotNull(message = "Typ zajęć jest wymagany.")
+        ClassType classType,
 
-                @NotNull(message = "Dzień tygodnia jest wymagany.") DayOfWeek dayOfWeek,
+        CreditType creditType,
 
-                @NotNull(message = "Godzina rozpoczęcia jest wymagana.") LocalTime startTime,
+        List<Long> studentGroupIds,
 
-                @NotNull(message = "Godzina zakończenia jest wymagana.") LocalTime endTime,
+        @Size(max = 20)
+        String groupNumber,
 
-                @NotNull(message = "Typ zajęć jest wymagany.") ClassType classType,
+        @Size(max = 100)
+        String specialization,
 
-                List<Long> studentGroupIds,
+        @Size(max = 2000)
+        String yearPlan,
 
-                @NotNull(message = "Typ tygodnia jest wymagany.") WeekType weekType,
-
-                @Size(max = 512, message = "Niestandardowe tygodnie mogą mieć maksymalnie {max} znaków.") String customWeeks,
-
-                @Size(max = 20) String groupNumber,
-
-                @Size(max = 100) String specialization) {
+        /** Lista konkretnych terminów zajęć */
+        @NotEmpty(message = "Co najmniej jeden termin zajęć jest wymagany.")
+        @Valid
+        List<ScheduleOccurrenceDto> occurrences
+) {
 }

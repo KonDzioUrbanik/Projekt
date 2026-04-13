@@ -62,14 +62,35 @@
                                 </div>
                                 <div class="header-text">
                                     <h2>Wyślij ogłoszenie</h2>
-                                    <p>Powiadomienia dla grupy</p>
+                                    <p>Powiadomienia dla kierunku studiów</p>
                                 </div>
                             </div>
                         </div>
                         <div class="card-body starosta-announcement-body">
-                            <p>Możesz publikować ogłoszenia dla swojej grupy oraz śledzić potwierdzenia odczytu.</p>
+                            <p>Możesz publikować ogłoszenia dla swojego kierunku studiów i śledzić potwierdzenia odczytu.</p>
                             <a th:href="@{/starosta/announcements}" class="view-link starosta-announcement-cta">
                                 <span>Przejdź do ogłoszeń</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card primary-card starosta-schedule-card">
+                        <div class="card-header">
+                            <div class="header-left">
+                                <div class="icon-badge secondary">
+                                    <i class="fas fa-calendar-week"></i>
+                                </div>
+                                <div class="header-text">
+                                    <h2>Zarządzaj planem</h2>
+                                    <p>Harmonogram zajęć kierunku studiów</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body starosta-schedule-body">
+                            <p>Dostosuj i aktualizuj plan zajęć dla swojego kierunku studiów. Dodawaj lub edytuj terminy zajęć.</p>
+                            <a th:href="@{/starosta/schedule-management}" class="view-link starosta-schedule-cta">
+                                <span>Zarządzaj planem</span>
                                 <i class="fas fa-arrow-right"></i>
                             </a>
                         </div>

@@ -9,13 +9,12 @@
     <body>
 
         <div layout:fragment="content">
-            <div class="schedule-management-wrapper">
+            <div class="schedule-management-wrapper" id="scheduleApp"
+                 th:data-is-starosta="${#authorization.expression('hasRole(''STAROSTA'')')}"
+                 th:data-starosta-group-id="${currentUser.studentGroup?.id}">
                 <div class="header-section">
                     <h2>Zarządzanie harmonogramem zajęć</h2>
                     <div style="display: flex; gap: 10px;">
-                        <button class="btn-export" id="archiveActiveBtn" title="Archiwizuj aktywne zajęcia (np. po zakończeniu semestru)">
-                            <i class="fas fa-archive"></i> Archiwizuj aktywne
-                        </button>
                         <button class="btn-export" id="openExportModalBtn">
                             <i class="fas fa-file-csv"></i> Eksportuj CSV
                         </button>
@@ -25,7 +24,6 @@
                     </div>
                 </div>
 
-                <!-- filtry -->
                 <div class="filters-section">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
@@ -44,8 +42,8 @@
                             <option value="KONSULTACJE">Konsultacje</option>
                         </select>
                     </div>
-
-                    <div class="filter-group">
+                    
+                    <div class="filter-group" style="display: none;">
                         <label for="groupFilter"><i class="fas fa-users"></i> Kierunek:</label>
                         <select id="groupFilter">
                             <option value="">Wszystkie kierunki</option>
@@ -69,10 +67,6 @@
                             Pokaż archiwalne
                         </label>
                     </div>
-
-                    <button class="btn-bulk-delete" id="clearGroupScheduleBtn" style="display: none;">
-                        <i class="fas fa-trash-alt"></i> Wyczyść plan dla kierunku
-                    </button>
                 </div>
                 
                 <div class="results-info">
@@ -80,9 +74,6 @@
                     <span id="resultsCount">0</span>
                 </div>
 
-                <!-- tabela zajec -->
-                
-                <!-- Kontrolki paginacji -->
                 <div class="pagination-controls" id="paginationTop">
                     <div class="pagination-info">
                         Strona <span id="currentPageTop">1</span> z <span id="totalPagesTop">1</span>
@@ -114,19 +105,16 @@
                                 <th>Typ</th>
                                 <th>Zaliczenie</th>
                                 <th>Terminy</th>
-                                <th>Kierunki</th>
                                 <th>Akcje</th>
                             </tr>
                         </thead>
                         <tbody id="scheduleTableBody">
-                            <!-- wypełniane dynamicznie przez javascript -->
                         </tbody>
                     </table>
                 </div>
 
             </div>
 
-            <!-- modal dodawania/edycji -->
             <div class="modal" id="scheduleModal">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -189,12 +177,10 @@
                                 </div>
                             </div>
 
-                            <!-- Terminy zajęć (dynamic occurrences) -->
                             <div class="form-row">
                                 <div class="form-group full-width">
                                     <label>Terminy zajęć</label>
                                     <div id="occurrencesList">
-                                        <!-- wypełniane dynamicznie -->
                                     </div>
                                     <button type="button" class="btn-add-occurrence" id="addOccurrenceBtn">
                                         <i class="fas fa-plus"></i> Dodaj termin
@@ -204,11 +190,10 @@
                             </div>
 
                             <div class="form-group full-width">
-                                <label for="studentGroups"> Kierunki studiów</label>
-                                <select id="studentGroups" multiple size="5">
-                                    <!-- wypełniane dynamicznie z API -->
+                                <label for="studentGroups"> Kierunek studiów</label>
+                                <select id="studentGroups" multiple size="1" disabled>
                                 </select>
-                                <small class="form-hint">Przytrzymaj 'Ctrl' aby wybrać wiele kierunków</small>
+                                <small class="form-hint">Twój przypisany kierunek został wybrany automatycznie.</small>
                             </div>
                         </div>
 
@@ -223,6 +208,56 @@
                 </div>
             </div>
 
+            <!-- Delete Confirmation Modal -->
+            <div class="modal-overlay" id="deleteConfirmOverlay">
+                <div class="modal-card modal-sm modal-center-content">
+                    <div class="modal-body-centered">
+                        <div class="modal-icon-wrapper danger">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                        <h3>Uwaga</h3>
+                        <p class="text-muted" id="deleteModalText">
+                            Czy na pewno chcesz usunąć te zajęcia?
+                        </p>
+                    </div>
+                    <div class="modal-footer-centered">
+                        <button class="btn-text-gray" id="btnCancelDelete">Anuluj</button>
+                        <button class="btn-danger-block" id="btnConfirmDelete">Usuń zajęcia</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-overlay" id="collisionModal">
+                <div class="modal-card modal-center-content">
+                    <div class="modal-body-centered">
+                        <div class="modal-icon-wrapper warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h3>Wykryto kolizję!</h3>
+                        <div id="collisionDetails" class="collision-details"></div>
+                        <p class="text-muted">Czy mimo to chcesz zapisać te zajęcia?</p>
+                        <small style="color: #666; margin-top: 5px;">(Pamiętaj: Jako Starosta nie możesz wymusić zapisu przy kolizjach sal/prowadzących innych kierunków)</small>
+                    </div>
+                    <div class="modal-footer-centered">
+                        <button class="btn-text-gray" id="btnCancelCollision">Anuluj</button>
+                        <button class="btn-warning-block" id="btnConfirmCollision">Zapisz mimo to (wymuś)</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="previewModal" class="modal">
+                <div class="modal-content preview-modal-content">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-eye"></i> Podgląd zajęć</h3>
+                        <button class="close-btn" id="closePreviewBtn">&times;</button>
+                    </div>
+                    <div class="modal-body" id="previewBody">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-tertiary" id="closePreviewFooterBtn">Powrót do edycji</button>
+                    </div>
+                </div>
+            </div>
             <!-- Modal eksportu CSV -->
             <div id="exportModal" class="modal">
                 <div class="modal-content export-modal">
@@ -263,59 +298,6 @@
                         <button type="button" class="btn-export-modal" id="performExportBtn">
                             <i class="fas fa-download"></i> Pobierz CSV
                         </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Delete Confirmation Modal -->
-            <div class="modal-overlay" id="deleteConfirmOverlay">
-                <div class="modal-card modal-sm modal-center-content">
-                    <div class="modal-body-centered">
-                        <div class="modal-icon-wrapper danger">
-                            <i class="fas fa-trash-alt"></i>
-                        </div>
-                        <h3>Uwaga</h3>
-                        <p class="text-muted" id="deleteModalText">
-                            Czy na pewno chcesz usunąć te zajęcia?
-                        </p>
-                    </div>
-                    <div class="modal-footer-centered">
-                        <button class="btn-text-gray" id="btnCancelDelete">Anuluj</button>
-                        <button class="btn-danger-block" id="btnConfirmDelete">Usuń zajęcia</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Collision Warning Modal -->
-            <div class="modal-overlay" id="collisionModal">
-                <div class="modal-card modal-center-content">
-                    <div class="modal-body-centered">
-                        <div class="modal-icon-wrapper warning">
-                            <i class="fas fa-exclamation-triangle"></i>
-                        </div>
-                        <h3>Wykryto kolizję!</h3>
-                        <div id="collisionDetails" class="collision-details"></div>
-                        <p class="text-muted">Czy mimo to chcesz zapisać te zajęcia?</p>
-                    </div>
-                    <div class="modal-footer-centered">
-                        <button class="btn-text-gray" id="btnCancelCollision">Anuluj</button>
-                        <button class="btn-warning-block" id="btnConfirmCollision">Zapisz mimo to (wymuś)</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Preview Modal -->
-            <div id="previewModal" class="modal">
-                <div class="modal-content preview-modal-content">
-                    <div class="modal-header">
-                        <h3><i class="fas fa-eye"></i> Podgląd zajęć</h3>
-                        <button class="close-btn" id="closePreviewBtn">&times;</button>
-                    </div>
-                    <div class="modal-body" id="previewBody">
-                        <!-- wypełniane dynamicznie w JS -->
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn-tertiary" id="closePreviewFooterBtn">Powrót do edycji</button>
                     </div>
                 </div>
             </div>

@@ -1,11 +1,15 @@
 package com.pansgroup.projectbackend.module.schedule;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pansgroup.projectbackend.exception.ScheduleEntryNotFoundException;
 import com.pansgroup.projectbackend.exception.StudentGroupNotFoundException;
 import com.pansgroup.projectbackend.exception.UsernameNotFoundException;
 import com.pansgroup.projectbackend.module.schedule.dto.ScheduleEntryCreateDto;
 import com.pansgroup.projectbackend.module.schedule.dto.ScheduleEntryResponseDto;
 import com.pansgroup.projectbackend.module.schedule.dto.ScheduleEntryUpdateDto;
+import com.pansgroup.projectbackend.module.schedule.dto.ScheduleOccurrenceDto;
 import com.pansgroup.projectbackend.module.student.StudentGroup;
 import com.pansgroup.projectbackend.module.student.StudentGroupRepository;
 import com.pansgroup.projectbackend.module.student.dto.StudentGroupResponseDto;
@@ -20,11 +24,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,16 +38,19 @@ public class ScheduleServiceImpl implements ScheduleService {
     private final ScheduleRepository scheduleRepository;
     private final UserRepository userRepository;
     private final StudentGroupRepository studentGroupRepository;
+    private final ObjectMapper objectMapper;
 
     public ScheduleServiceImpl(ScheduleRepository scheduleRepository,
             UserRepository userRepository,
-            StudentGroupRepository studentGroupRepository) {
+            StudentGroupRepository studentGroupRepository,
+            ObjectMapper objectMapper) {
         this.scheduleRepository = scheduleRepository;
         this.userRepository = userRepository;
         this.studentGroupRepository = studentGroupRepository;
+        this.objectMapper = objectMapper;
     }
 
-    // ── Create ──────────────────────────────────────────────────────────────────
+    // Create
 
     @Override
     public ScheduleEntryResponseDto create(ScheduleEntryCreateDto dto) {
@@ -54,22 +59,37 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public ScheduleEntryResponseDto create(ScheduleEntryCreateDto dto, boolean force) {
+        // Starosta permission check for create
+        checkStarostaCreatePermission(dto);
+
         ScheduleEntry entry = toEntity(dto);
 
         if (dto.studentGroupIds() != null && !dto.studentGroupIds().isEmpty()) {
-            List<StudentGroup> groups = resolveGroups(dto.studentGroupIds());
-            entry.setStudentGroups(groups);
+            entry.setStudentGroups(resolveGroups(dto.studentGroupIds()));
         }
 
-        if (entry.getStartTime() != null && entry.getEndTime() != null && !entry.getEndTime().isAfter(entry.getStartTime())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Godzina zakończenia musi być późniejsza niż godzina rozpoczęcia.");
-        }
+        validateOccurrenceTimes(dto.occurrences());
 
-        if (!force) {
-            List<String> collisionWarnings = detectCollisions(entry, null);
+        if (force) {
+            checkStarostaForceCollisionPermission(entry, dto.occurrences(), null);
+        } else {
+            List<String> collisionWarnings = detectCollisions(entry, dto.occurrences(), null);
             if (!collisionWarnings.isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT,
                         "Wykryto kolizję: " + String.join("; ", collisionWarnings));
+            }
+        }
+
+        if (dto.occurrences() != null) {
+            for (ScheduleOccurrenceDto occDto : dto.occurrences()) {
+                ScheduleOccurrence occ = new ScheduleOccurrence();
+                occ.setEntry(entry);
+                occ.setStartDateTime(occDto.startDateTime());
+                occ.setEndDateTime(occDto.endDateTime());
+                occ.setRoom(occDto.room());
+                occ.setBuildingCode(occDto.buildingCode());
+                occ.setLocation(occDto.location());
+                entry.getOccurrences().add(occ);
             }
         }
 
@@ -89,37 +109,46 @@ public class ScheduleServiceImpl implements ScheduleService {
         ScheduleEntry entry = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleEntryNotFoundException(id));
 
-        // Weryfikacja uprawnień Starosty – może edytować tylko zajęcia swojej grupy
         checkStarostaPermission(entry);
 
         entry.setTitle(dto.title().trim());
-        entry.setRoom(dto.room().trim());
-        entry.setTeacher(dto.teacher().trim());
-        entry.setDayOfWeek(dto.dayOfWeek());
-        entry.setStartTime(dto.startTime());
-        entry.setEndTime(dto.endTime());
+        entry.setTeachers(serializeTeachers(dto.teachers()));
         entry.setClassType(dto.classType());
+        entry.setCreditType(dto.creditType());
         entry.setGroupNumber(dto.groupNumber());
         entry.setSpecialization(dto.specialization());
+        entry.setYearPlan(dto.yearPlan());
 
         if (dto.studentGroupIds() != null) {
             entry.setStudentGroups(resolveGroups(dto.studentGroupIds()));
         } else {
-            entry.setStudentGroups(new ArrayList<>());
+            entry.setStudentGroups(new HashSet<>());
         }
 
-        entry.setWeekType(resolvePersistedWeekType(dto.weekType(), dto.customWeeks()));
-        entry.setCustomWeeks(normalizeCustomWeeks(dto.customWeeks(), dto.weekType()));
+        validateOccurrenceTimes(dto.occurrences());
 
-        if (entry.getStartTime() != null && entry.getEndTime() != null && !entry.getEndTime().isAfter(entry.getStartTime())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Godzina zakończenia musi być późniejsza niż godzina rozpoczęcia.");
-        }
-
-        if (!force) {
-            List<String> collisionWarnings = detectCollisions(entry, id);
+        if (force) {
+            checkStarostaForceCollisionPermission(entry, dto.occurrences(), id);
+        } else {
+            List<String> collisionWarnings = detectCollisions(entry, dto.occurrences(), id);
             if (!collisionWarnings.isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT,
                         "Wykryto kolizję: " + String.join("; ", collisionWarnings));
+            }
+        }
+
+        // Properly sync occurrences using child collection management
+        entry.getOccurrences().clear();
+        if (dto.occurrences() != null) {
+            for (ScheduleOccurrenceDto occDto : dto.occurrences()) {
+                ScheduleOccurrence occ = new ScheduleOccurrence();
+                occ.setEntry(entry);
+                occ.setStartDateTime(occDto.startDateTime());
+                occ.setEndDateTime(occDto.endDateTime());
+                occ.setRoom(occDto.room());
+                occ.setBuildingCode(occDto.buildingCode());
+                occ.setLocation(occDto.location());
+                entry.getOccurrences().add(occ);
             }
         }
 
@@ -127,7 +156,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         return toResponse(updated);
     }
 
-    // ── Delete ─────────────────────────────────────────────────────────────────
+    // Delete
 
     @Override
     public void delete(Long id) {
@@ -136,6 +165,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         ScheduleEntry entry = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleEntryNotFoundException(id));
         checkStarostaPermission(entry);
+        // Occurrences deleted by cascade
         scheduleRepository.delete(entry);
     }
 
@@ -150,7 +180,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         List<ScheduleEntry> entries = scheduleRepository.findByStudentGroups(group);
 
         for (ScheduleEntry entry : entries) {
-            List<StudentGroup> groups = entry.getStudentGroups();
+            Set<StudentGroup> groups = entry.getStudentGroups();
             if (groups != null) {
                 if (groups.size() <= 1) {
                     scheduleRepository.delete(entry);
@@ -162,7 +192,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
     }
 
-    // ── Find ───────────────────────────────────────────────────────────────────
+    // Find
 
     @Override
     public ScheduleEntryResponseDto findById(Long id) {
@@ -174,6 +204,22 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     public List<ScheduleEntryResponseDto> findAll() {
         return scheduleRepository.findAll().stream()
+                .sorted((s1, s2) -> Long.compare(s1.getId(), s2.getId()))
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
+    public List<ScheduleEntryResponseDto> findAllForStarosta(String starostaEmail) {
+        User starosta = userRepository.findByEmail(starostaEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("Nie ma takiego Użytkownika: " + starostaEmail));
+
+        StudentGroup group = starosta.getStudentGroup();
+        if (group == null) {
+            return Collections.emptyList();
+        }
+
+        return scheduleRepository.findByStudentGroups(group).stream()
                 .sorted((s1, s2) -> Long.compare(s1.getId(), s2.getId()))
                 .map(this::toResponse)
                 .toList();
@@ -194,7 +240,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 .toList();
     }
 
-    // ── Archive ────────────────────────────────────────────────────────────────
+    // Archive
 
     @Override
     public ScheduleEntryResponseDto archive(Long id) {
@@ -236,55 +282,118 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     // Collision Detection
 
-    /* Wykrywa kolizje sali, prowadzącego i grupy dla danego entry */
-    private List<String> detectCollisions(ScheduleEntry entry, Long excludeId) {
-        if (entry.getDayOfWeek() == null || entry.getStartTime() == null || entry.getEndTime() == null) {
+    /**
+     * Wykrywa kolizje sal i prowadzących na podstawie konkretnych terminów.
+     * Dla kolidujących terminów sprawdza nachodzenie przedziałów czasowych.
+     */
+    private List<String> detectCollisions(ScheduleEntry entry,
+            List<ScheduleOccurrenceDto> newOccurrences,
+            Long excludeId) {
+        if (newOccurrences == null || newOccurrences.isEmpty())
             return List.of();
-        }
 
         List<String> warnings = new ArrayList<>();
+        List<ScheduleEntry> collidingEntries = findCollidingEntries(entry, newOccurrences, excludeId);
 
-        // Pobierz wszystkie niearchiwalne zajęcia do porównania
-        List<ScheduleEntry> candidates = scheduleRepository.findAll().stream()
-                .filter(e -> !Boolean.TRUE.equals(e.getArchived()))
-                .filter(e -> excludeId == null || !e.getId().equals(excludeId))
-                .filter(e -> entry.getDayOfWeek() == e.getDayOfWeek())
-                .filter(e -> timesOverlap(entry, e))
-                .toList();
+        for (ScheduleEntry candidate : collidingEntries) {
+            // Find which specific occurrences collide to provide better warning
+            for (ScheduleOccurrenceDto newOcc : newOccurrences) {
+                for (ScheduleOccurrence existingOcc : candidate.getOccurrences()) {
+                    if (dateTimeRangesOverlap(newOcc.startDateTime(), newOcc.endDateTime(),
+                            existingOcc.getStartDateTime(), existingOcc.getEndDateTime())) {
 
-        for (ScheduleEntry c : candidates) {
-            if (weekTypesConflict(entry, c)) {
-                boolean roomConflict = entry.getRoom() != null && !entry.getRoom().isBlank()
-                        && !entry.getRoom().equalsIgnoreCase("zdalnie")
-                        && !entry.getRoom().equalsIgnoreCase("online")
-                        && entry.getRoom().equalsIgnoreCase(c.getRoom());
+                        // Room collision
+                        if (newOcc.room() != null && !newOcc.room().isBlank()
+                                && existingOcc.getRoom() != null
+                                && newOcc.room().equalsIgnoreCase(existingOcc.getRoom())
+                                && nullableEqual(newOcc.buildingCode(), existingOcc.getBuildingCode())) {
+                            warnings.add("Kolizja sali " + newOcc.room()
+                                    + " z '" + candidate.getTitle() + "' ("
+                                    + formatDt(existingOcc.getStartDateTime()) + ")");
+                        }
 
-                boolean teacherConflict = entry.getTeacher() != null && !entry.getTeacher().isBlank()
-                        && entry.getTeacher().equalsIgnoreCase(c.getTeacher());
-
-                boolean groupConflict = false;
-                if (haveCommonGroups(entry, c)) {
-                    // Konflikt grupy występuje tylko jeśli są te same podgrupy (numer grupy i
-                    // specjalizacja)
-                    boolean sameGroupNum = Objects.equals(entry.getGroupNumber(), c.getGroupNumber());
-                    boolean sameSpec = Objects.equals(entry.getSpecialization(), c.getSpecialization());
-                    if (sameGroupNum && sameSpec) {
-                        groupConflict = true;
+                        // Teacher collision
+                        List<String> newTeachers = deserializeTeachers(entry.getTeachers());
+                        List<String> existingTeachers = deserializeTeachers(candidate.getTeachers());
+                        List<String> overlappingTeachers = newTeachers.stream()
+                                .filter(t -> existingTeachers.stream().anyMatch(t::equalsIgnoreCase))
+                                .toList();
+                        if (!overlappingTeachers.isEmpty() && haveCommonGroups(entry, candidate)) {
+                            warnings.add("Kolizja prowadzącego " + overlappingTeachers.get(0)
+                                    + " z '" + candidate.getTitle() + "' ("
+                                    + formatDt(existingOcc.getStartDateTime()) + ")");
+                        }
                     }
-                }
-
-                if (roomConflict || teacherConflict || groupConflict) {
-                    String reason = roomConflict ? "sala " + c.getRoom()
-                            : (teacherConflict ? "wykładowca " + c.getTeacher() : "grupa studencka");
-
-                    warnings.add("Kolizja (" + reason + ") z '" + c.getTitle() + "' ("
-                            + c.getStartTime().toString().substring(0, 5) + "-"
-                            + c.getEndTime().toString().substring(0, 5) + ")");
                 }
             }
         }
+        return warnings.stream().distinct().toList();
+    }
 
-        return warnings;
+    private List<ScheduleEntry> findCollidingEntries(ScheduleEntry entry,
+            List<ScheduleOccurrenceDto> newOccurrences,
+            Long excludeId) {
+        if (newOccurrences == null || newOccurrences.isEmpty())
+            return List.of();
+
+        List<ScheduleEntry> colliding = new ArrayList<>();
+        List<ScheduleEntry> candidates = scheduleRepository.findAll().stream()
+                .filter(e -> !Boolean.TRUE.equals(e.getArchived()))
+                .filter(e -> excludeId == null || !e.getId().equals(excludeId))
+                .toList();
+
+        for (ScheduleOccurrenceDto newOcc : newOccurrences) {
+            for (ScheduleEntry candidate : candidates) {
+                if (candidate.getOccurrences() == null)
+                    continue;
+
+                for (ScheduleOccurrence existingOcc : candidate.getOccurrences()) {
+                    if (!dateTimeRangesOverlap(
+                            newOcc.startDateTime(), newOcc.endDateTime(),
+                            existingOcc.getStartDateTime(), existingOcc.getEndDateTime())) {
+                        continue;
+                    }
+
+                    boolean isRoomCollision = newOcc.room() != null && !newOcc.room().isBlank()
+                            && existingOcc.getRoom() != null
+                            && newOcc.room().equalsIgnoreCase(existingOcc.getRoom())
+                            && nullableEqual(newOcc.buildingCode(), existingOcc.getBuildingCode());
+
+                    List<String> newTeachers = deserializeTeachers(entry.getTeachers());
+                    List<String> existingTeachers = deserializeTeachers(candidate.getTeachers());
+                    boolean isTeacherCollision = newTeachers.stream()
+                            .anyMatch(nt -> existingTeachers.stream().anyMatch(nt::equalsIgnoreCase))
+                            && haveCommonGroups(entry, candidate);
+
+                    if (isRoomCollision || isTeacherCollision) {
+                        if (!colliding.contains(candidate)) {
+                            colliding.add(candidate);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        return colliding;
+    }
+
+    private boolean dateTimeRangesOverlap(LocalDateTime aStart, LocalDateTime aEnd,
+            LocalDateTime bStart, LocalDateTime bEnd) {
+        return aStart.isBefore(bEnd) && bStart.isBefore(aEnd);
+    }
+
+    private boolean nullableEqual(String a, String b) {
+        if (a == null && b == null)
+            return true;
+        if (a == null || b == null)
+            return false;
+        return a.equalsIgnoreCase(b);
+    }
+
+    private String formatDt(LocalDateTime dt) {
+        if (dt == null)
+            return "";
+        return dt.toLocalDate().toString() + " " + dt.toLocalTime().toString().substring(0, 5);
     }
 
     private boolean haveCommonGroups(ScheduleEntry a, ScheduleEntry b) {
@@ -294,43 +403,8 @@ public class ScheduleServiceImpl implements ScheduleService {
         return b.getStudentGroups().stream().anyMatch(g -> aIds.contains(g.getId()));
     }
 
-    private boolean timesOverlap(ScheduleEntry a, ScheduleEntry b) {
-        return a.getStartTime().isBefore(b.getEndTime())
-                && b.getStartTime().isBefore(a.getEndTime());
-    }
+    // Starosta Permission Check
 
-    private boolean weekTypesConflict(ScheduleEntry a, ScheduleEntry b) {
-        // A i B nie kolidują
-        if (a.getWeekType() == WeekType.WEEK_A && b.getWeekType() == WeekType.WEEK_B)
-            return false;
-        if (a.getWeekType() == WeekType.WEEK_B && b.getWeekType() == WeekType.WEEK_A)
-            return false;
-
-        // CUSTOM vs CUSTOM – sprawdź wspólne tygodnie
-        if (a.getWeekType() == WeekType.ALL && b.getWeekType() == WeekType.ALL) {
-            String aCustom = a.getCustomWeeks();
-            String bCustom = b.getCustomWeeks();
-            if (aCustom != null && !aCustom.isBlank() && bCustom != null && !bCustom.isBlank()) {
-                return haveCommonWeeks(aCustom, bCustom);
-            }
-        }
-
-        // Wszystkie pozostałe kombinacje (ALL+ALL, ALL+A, ALL+B, etc.) kolidują
-        return true;
-    }
-
-    private boolean haveCommonWeeks(String a, String b) {
-        Set<String> aWeeks = new HashSet<>(Arrays.asList(a.split(",")));
-        return Arrays.stream(b.split(",")).anyMatch(aWeeks::contains);
-    }
-
-    // ── Starosta Permission Check ──────────────────────────────────────────────
-
-    /**
-     * Weryfikuje uprawnienia Starosty: może modyfikować tylko zajęcia przypisane do
-     * jego grupy.
-     * Administratorzy i pozostałe role nie podlegają tej weryfikacji.
-     */
     private void checkStarostaPermission(ScheduleEntry entry) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated())
@@ -347,8 +421,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         StudentGroup starostaGroup = user.getStudentGroup();
         if (starostaGroup == null) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Starosta nie ma przypisanej grupy.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Starosta nie ma przypisanej grupy.");
         }
 
         boolean hasAccess = entry.getStudentGroups() != null
@@ -361,7 +434,86 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
     }
 
-    // ── Helpers ────────────────────────────────────────────────────────────────
+    private void checkStarostaCreatePermission(ScheduleEntryCreateDto dto) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated())
+            return;
+
+        boolean isStarosta = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_STAROSTA"));
+        if (!isStarosta)
+            return;
+
+        String email = auth.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Użytkownik nie znaleziony: " + email));
+
+        StudentGroup starostaGroup = user.getStudentGroup();
+        if (starostaGroup == null) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Starosta nie ma przypisanej grupy.");
+        }
+
+        if (dto.studentGroupIds() == null || dto.studentGroupIds().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Musisz przypisać zajęcia do swojego kierunku.");
+        }
+
+        boolean targetsOtherGroup = dto.studentGroupIds().stream()
+                .anyMatch(id -> !id.equals(starostaGroup.getId()));
+
+        if (targetsOtherGroup) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Starosta może tworzyć zajęcia tylko dla swojego kierunku.");
+        }
+    }
+
+    private void checkStarostaForceCollisionPermission(ScheduleEntry entry, List<ScheduleOccurrenceDto> occurrences,
+            Long excludeId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated())
+            return;
+
+        boolean isStarosta = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_STAROSTA"));
+        if (!isStarosta)
+            return;
+
+        String email = auth.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Użytkownik nie znaleziony: " + email));
+
+        StudentGroup starostaGroup = user.getStudentGroup();
+        if (starostaGroup == null)
+            return; // Should already be checked by earlier permission checks
+
+        List<ScheduleEntry> collidingEntries = findCollidingEntries(entry, occurrences, excludeId);
+        if (collidingEntries.isEmpty())
+            return;
+
+        // Starosta can only force if ALL colliding entries belong to their group
+        boolean hasExternalCollision = collidingEntries.stream()
+                .anyMatch(ce -> ce.getStudentGroups() == null || ce.getStudentGroups().stream()
+                        .noneMatch(g -> g.getId().equals(starostaGroup.getId())));
+
+        if (hasExternalCollision) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Jako Starosta nie możesz wymusić zapisu przy kolizji z zajęciami innych grup lub salami ogólnouczelnianymi.");
+        }
+    }
+
+    // Helpers
+
+    private void validateOccurrenceTimes(List<ScheduleOccurrenceDto> occurrences) {
+        if (occurrences == null)
+            return;
+        for (ScheduleOccurrenceDto occ : occurrences) {
+            if (occ.startDateTime() != null && occ.endDateTime() != null
+                    && !occ.endDateTime().isAfter(occ.startDateTime())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Godzina zakończenia musi być późniejsza niż godzina rozpoczęcia (termin: "
+                                + occ.startDateTime() + ").");
+            }
+        }
+    }
 
     private ScheduleEntryResponseDto toResponse(ScheduleEntry entry) {
         List<StudentGroupResponseDto> groupDtos = entry.getStudentGroups() != null
@@ -370,44 +522,47 @@ public class ScheduleServiceImpl implements ScheduleService {
                         .toList()
                 : Collections.emptyList();
 
+        List<ScheduleOccurrenceDto> occurrenceDtos = entry.getOccurrences() != null
+                ? entry.getOccurrences().stream()
+                        .sorted((a, b) -> a.getStartDateTime().compareTo(b.getStartDateTime()))
+                        .map(o -> new ScheduleOccurrenceDto(
+                                o.getId(),
+                                o.getStartDateTime(), o.getEndDateTime(),
+                                o.getRoom(), o.getBuildingCode(), o.getLocation()))
+                        .toList()
+                : Collections.emptyList();
+
         return new ScheduleEntryResponseDto(
                 entry.getId(),
                 entry.getTitle(),
-                entry.getRoom(),
-                entry.getTeacher(),
-                entry.getDayOfWeek(),
-                entry.getStartTime(),
-                entry.getEndTime(),
+                deserializeTeachers(entry.getTeachers()),
                 entry.getClassType(),
+                entry.getCreditType(),
                 groupDtos,
-                resolveResponseWeekType(entry),
-                entry.getCustomWeeks(),
+                occurrenceDtos,
                 entry.getArchived(),
                 entry.getArchivedAt(),
                 entry.getGroupNumber(),
-                entry.getSpecialization());
+                entry.getSpecialization(),
+                entry.getYearPlan());
     }
 
     private ScheduleEntry toEntity(ScheduleEntryCreateDto dto) {
         ScheduleEntry entry = new ScheduleEntry();
         entry.setTitle(dto.title().trim());
-        entry.setRoom(dto.room().trim());
-        entry.setTeacher(dto.teacher().trim());
-        entry.setDayOfWeek(dto.dayOfWeek());
-        entry.setStartTime(dto.startTime());
-        entry.setEndTime(dto.endTime());
+        entry.setTeachers(serializeTeachers(dto.teachers()));
         entry.setClassType(dto.classType());
-        entry.setWeekType(resolvePersistedWeekType(dto.weekType(), dto.customWeeks()));
-        entry.setCustomWeeks(normalizeCustomWeeks(dto.customWeeks(), dto.weekType()));
+        entry.setCreditType(dto.creditType());
         entry.setGroupNumber(dto.groupNumber());
         entry.setSpecialization(dto.specialization());
+        entry.setYearPlan(dto.yearPlan());
         entry.setArchived(false);
         entry.setArchivedAt(null);
         return entry;
     }
 
-    private List<StudentGroup> resolveGroups(List<Long> groupIds) {
-        List<StudentGroup> groups = new ArrayList<>();
+    private Set<StudentGroup> resolveGroups(List<Long> groupIds) {
+        Set<StudentGroup> groups = new HashSet<>();
         for (Long groupId : groupIds) {
             StudentGroup group = studentGroupRepository.findById(groupId)
                     .orElseThrow(() -> new StudentGroupNotFoundException(groupId));
@@ -416,48 +571,24 @@ public class ScheduleServiceImpl implements ScheduleService {
         return groups;
     }
 
-    private String normalizeCustomWeeks(String customWeeks, WeekType weekType) {
-        if (weekType != WeekType.CUSTOM)
-            return null;
-        if (customWeeks == null || customWeeks.isBlank()) {
-            throw new IllegalArgumentException("Dla trybu niestandardowego podaj numery tygodni (np. 1,3,5).");
+    private String serializeTeachers(List<String> teachers) {
+        if (teachers == null || teachers.isEmpty())
+            return "[]";
+        try {
+            return objectMapper.writeValueAsString(teachers);
+        } catch (JsonProcessingException e) {
+            return "[]";
         }
-
-        List<Integer> weeks = Arrays.stream(customWeeks.split(","))
-                .map(String::trim)
-                .filter(token -> !token.isEmpty())
-                .map(token -> {
-                    if (!token.matches("\\d{1,2}")) {
-                        throw new IllegalArgumentException(
-                                "Niepoprawny format numeru tygodnia: '" + token + "'. Użyj liczb 1-53.");
-                    }
-                    int weekNumber = Integer.parseInt(token);
-                    if (weekNumber < 1 || weekNumber > 53) {
-                        throw new IllegalArgumentException("Numer tygodnia poza zakresem 1-53: " + weekNumber);
-                    }
-                    return weekNumber;
-                })
-                .distinct()
-                .toList();
-
-        if (weeks.isEmpty()) {
-            throw new IllegalArgumentException("Nie podano żadnego poprawnego numeru tygodnia.");
-        }
-
-        return weeks.stream().map(String::valueOf).collect(Collectors.joining(","));
     }
 
-    private WeekType resolvePersistedWeekType(WeekType requestWeekType, String customWeeks) {
-        if (requestWeekType == WeekType.CUSTOM && customWeeks != null) {
-            return WeekType.ALL;
+    private List<String> deserializeTeachers(String json) {
+        if (json == null || json.isBlank())
+            return Collections.emptyList();
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<String>>() {
+            });
+        } catch (JsonProcessingException e) {
+            return Collections.emptyList();
         }
-        return requestWeekType;
-    }
-
-    private WeekType resolveResponseWeekType(ScheduleEntry entry) {
-        if (entry.getCustomWeeks() != null && !entry.getCustomWeeks().isBlank()) {
-            return WeekType.CUSTOM;
-        }
-        return entry.getWeekType();
     }
 }

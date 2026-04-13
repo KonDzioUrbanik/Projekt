@@ -884,13 +884,15 @@ body {
     margin: 0;
 }
 
-.starosta-announcement-cta {
+.starosta-announcement-cta,
+.starosta-schedule-cta {
     width: fit-content;
     background: linear-gradient(135deg, #047857 0%, #065f46 100%);
     box-shadow: 0 6px 14px rgba(5, 150, 105, 0.28);
 }
 
-.starosta-announcement-cta:hover {
+.starosta-announcement-cta:hover,
+.starosta-schedule-cta:hover {
     background: linear-gradient(135deg, #059669 0%, #047857 100%);
     box-shadow: 0 8px 18px rgba(5, 150, 105, 0.35);
 }

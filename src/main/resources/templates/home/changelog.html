@@ -19,11 +19,53 @@
 
                 <div class="timeline">
                     <!-- Kwiecień 2026 - User Profiles, Chat & Analytics -->
-                    <details id="v1-4-1" class="version-block latest" open>
+                    <details id="v1-4-2" class="version-block latest" open>
+                        <summary class="version-summary-header">
+                            <div class="version-title">
+                                <span class="version-number">Kwiecień 2026 - v1.4.2</span>
+                                <span class="latest-badge" style="margin-left: 0.5rem;">Aktualna wersja</span>
+                            </div>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </summary>
+                        <div class="version-content">
+                            <div class="version-desc">
+                                Modernizacja modułu harmonogramu zajęć i wdrożenie poprawek dla ogłoszeń. Wprowadzenie architektury opartej na wystąpieniach zajęć, ulepszenie systemu załączników oraz standaryzacja interfejsu panelu starosty.
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
+                                <ul class="change-list added">
+                                    <li><strong>Zarządzaj planem (Starosta):</strong> Dedykowany skrót na dashboardzie starosty umożliwiający szybkie przejście do edycji harmonogramu dla swojego kierunku.</li>
+                                    <li><strong>Wsparcie dla WebP:</strong> Dodano obsługę nowoczesnego formatu obrazów w module ogłoszeń i profilu użytkownika.</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
+                                <ul class="change-list changed">
+                                    <li><strong>Silnik Harmonogramu (Occurrence-based):</strong> Całkowita przebudowa logiki planu zajęć. Każde spotkanie jest teraz niezależnym wystąpieniem, co pozwala na rzetelne śledzenie zajęć "na dziś" i łatwiejsze zarządzanie zmianami w grafiku.</li>
+                                    <li><strong>Obsługa załączników ogłoszeń:</strong> Wprowadzono system kumulatywnego dodawania plików. Wybór nowych dokumentów nie nadpisuje już poprzednio wybranych elementów.</li>
+                                    <li><strong>Standaryzacja UI:</strong> Ujednolicono wygląd przycisków akcji i kart na dashboardzie starosty oraz administratora dla lepszej spójności wizualnej systemu.</li>
+                                    <li><strong>Eksport do Excela:</strong> Refaktoryzacja eksportu CSV – dodano wymagane kolumny (ID, Przedmiot, Prowadzący, itp.) oraz zapewniono pełną kompatybilność z programem Microsoft Excel (UTF-8 z BOM).</li>
+                                    <li><strong>Nazewnictwo systemowe:</strong> Zaktualizowano etykiety z "zarządzania grupą" na "zarządzanie kierunkiem studiów" dla lepszego odzwierciedlenia skali uprawnień i zasięgu działania.</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
+                                <ul class="change-list fixed">
+                                    <li><strong>Zarządzanie plikami:</strong> Dodano funkcję usuwania konkretnych załączników (przycisk X) przed wysłaniem ogłoszenia, bez konieczności resetowania całego formularza.</li>
+                                    <li><strong>Walidacja i formularze:</strong> Ulepszono podpowiedzi dla pól tekstowych (np. wpisywanie prowadzących) oraz zoptymalizowano listę form zaliczeń i typów zajęć w kreatorze harmonogramu.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- Kwiecień 2026 - User Profiles, Chat & Analytics -->
+                    <details id="v1-4-1" class="version-block">
                         <summary class="version-summary-header">
                             <div class="version-title">
                                 <span class="version-number">Kwiecień 2026 - v1.4.1</span>
-                                <span class="latest-badge" style="margin-left: 0.5rem;">Aktualna wersja</span>
                             </div>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </summary>
@@ -75,6 +117,7 @@
                                 <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
                                 <ul class="change-list fixed">
                                     <li><strong>Interfejs mobilny czatu:</strong> Naprawiono nakładanie się przycisków "Feedback" i "Wróć na górę" na pole wpisywania wiadomości na telefonach.</li>
+                                    <li><strong>Komunikacja WebSocket:</strong> Naprawiono błędy w obsłudze protokołu STOMP, poprawiając stabilność połączenia i niezawodność dostarczania wiadomości w module czatu.</li>
                                     <li><strong>Błędy nawigacji:</strong> Usunięto błędy 404 przy przechodzeniu między profilem a modułem notatek.</li>
                                     <li><strong>Stabilność interfejsu:</strong> Rozwiązano błędy skryptów występujące przy ładowaniu elementów profilu (naprawa "0 stats" i retry logic).</li>
                                     <li><strong>Wygląd profilu:</strong> Poprawiono kontrast i kolory kart aktywności w trybie ciemnym (koniec z fioletowymi linkami).</li>

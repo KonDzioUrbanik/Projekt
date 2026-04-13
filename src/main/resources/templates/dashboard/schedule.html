@@ -64,7 +64,10 @@
                         <h2 id="modalClassTitle"></h2>
                         <div class="modal-meta-row">
                             <span class="modal-badge" id="modalClassType"></span>
-                            <span class="modal-time" id="modalClassTime"></span>
+                            <div class="modal-time-container">
+                                <span class="modal-time-date" id="modalClassDate"></span>
+                                <span class="modal-time-hours" id="modalClassTime"></span>
+                            </div>
                         </div>
                         
                         <div class="modal-info-grid">
@@ -79,7 +82,10 @@
                                 <i class="fas fa-map-marker-alt"></i>
                                 <div>
                                     <label>Sala</label>
-                                    <p id="modalClassRoom"></p>
+                                    <div class="modal-room-container">
+                                        <p id="modalClassRoomMain"></p>
+                                        <p id="modalClassRoomSub" class="modal-room-sub"></p>
+                                    </div>
                                 </div>
                             </div>
                             <div class="info-item" id="modalGroupRow">
@@ -102,6 +108,25 @@
                                     <label>Specjalność</label>
                                     <p id="modalClassSpecialization"></p>
                                 </div>
+                            </div>
+                            <div class="info-item" id="modalCreditTypeRow">
+                                <i class="fas fa-graduation-cap"></i>
+                                <div>
+                                    <label>Forma zaliczenia</label>
+                                    <p id="modalClassCreditType"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="occurrences-accordion">
+                            <div class="accordion-header" id="modalOccurrencesToggle">
+                                <div class="accordion-title-wrapper">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>Terminy wszystkich spotkań</span>
+                                </div>
+                                <i class="fas fa-chevron-down toggle-icon"></i>
+                            </div>
+                            <div class="accordion-content" id="modalOccurrencesList">
                             </div>
                         </div>
                     </div>

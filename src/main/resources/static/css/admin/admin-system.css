@@ -226,6 +226,16 @@
 }
 
 /* MODULE ITEMS */
+.system-group-divider {
+    display: block !important;
+    height: 1px !important;
+    background-color: var(--border, #cbd5e1) !important;
+    margin: 1.5rem 0 !important;
+    width: 100% !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
 .modules-list {
     display: flex;
     flex-direction: column;

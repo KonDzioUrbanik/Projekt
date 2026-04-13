@@ -33,6 +33,11 @@ public class ScheduleController {
         return scheduleService.findAll();
     }
 
+    @GetMapping("/starosta")
+    public List<ScheduleEntryResponseDto> getStarostaSchedules(Principal principal) {
+        return scheduleService.findAllForStarosta(principal.getName());
+    }
+
     @GetMapping("/{id}")
     public ScheduleEntryResponseDto getById(@PathVariable Long id) {
         return scheduleService.findById(id);

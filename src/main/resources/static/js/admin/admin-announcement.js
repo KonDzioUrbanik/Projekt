@@ -7,7 +7,8 @@ const AdminAnnouncement = {
         groups: [],
         filtered: [],
         pendingDeleteId: null,
-        filters: { search: '', group: '', author: '' }
+        filters: { search: '', group: '', author: '' },
+        selectedFiles: []
     },
 
     elements: {
@@ -120,25 +121,59 @@ const AdminAnnouncement = {
     },
 
     initFileInput() {
-        const { fileInput, fileList } = this.elements;
-        if (!fileInput || !fileList) return;
+        const { fileInput } = this.elements;
+        if (!fileInput) return;
 
         fileInput.addEventListener('change', () => {
-            const files = Array.from(fileInput.files || []);
-            if (files.length > 5) {
-                this.showError('Możesz dodać maksymalnie 5 załączników.');
-                fileInput.value = '';
-                fileList.innerHTML = '';
-                return;
+            const newFiles = Array.from(fileInput.files || []);
+            
+            for (const file of newFiles) {
+                if (this.state.selectedFiles.length >= 5) {
+                    this.showError('Możesz dodać maksymalnie 5 załączników.');
+                    break;
+                }
+                
+                if (file.size > 5 * 1024 * 1024) {
+                    this.showError(`Plik ${file.name} przekracza limit 5 MB.`);
+                    continue;
+                }
+
+                const isDuplicate = this.state.selectedFiles.some(f => f.name === file.name && f.size === file.size);
+                if (isDuplicate) continue;
+
+                this.state.selectedFiles.push(file);
             }
 
-            fileList.innerHTML = '';
-            files.forEach(f => {
-                const chip = document.createElement('span');
-                chip.className = 'ann-file-chip';
-                chip.innerHTML = `<i class="fas fa-paperclip"></i> ${Utils.escapeHtml(f.name)} <span class="ann-file-size">(${this.formatSize(f.size)})</span>`;
-                fileList.appendChild(chip);
+            // Reset input so the same file can be selected again if removed
+            fileInput.value = '';
+            this.renderFileList();
+        });
+    },
+
+    renderFileList() {
+        const { fileList } = this.elements;
+        if (!fileList) return;
+
+        fileList.innerHTML = '';
+        this.state.selectedFiles.forEach((f, index) => {
+            const chip = document.createElement('span');
+            chip.className = 'ann-file-chip';
+            chip.innerHTML = `
+                <i class="fas fa-paperclip"></i> 
+                ${Utils.escapeHtml(f.name)} 
+                <span class="ann-file-size">(${this.formatSize(f.size)})</span>
+                <span class="ann-file-remove" data-index="${index}" title="Usuń">
+                    <i class="fas fa-times"></i>
+                </span>
+            `;
+            
+            chip.querySelector('.ann-file-remove').addEventListener('click', (e) => {
+                const idx = parseInt(e.currentTarget.dataset.index);
+                this.state.selectedFiles.splice(idx, 1);
+                this.renderFileList();
             });
+
+            fileList.appendChild(chip);
         });
     },
 
@@ -183,9 +218,9 @@ const AdminAnnouncement = {
             const formData = new FormData();
             formData.append('data', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
 
-            const files = this.elements.fileInput?.files;
-            if (files) {
-                Array.from(files).forEach(f => formData.append('files', f));
+            const files = this.state.selectedFiles;
+            if (files && files.length > 0) {
+                files.forEach(f => formData.append('files', f));
             }
 
             const response = await fetch('/api/announcements', {
@@ -222,7 +257,8 @@ const AdminAnnouncement = {
         if (this.elements.targetAudienceSelect) this.elements.targetAudienceSelect.value = 'global';
         if (this.elements.prioritySelect) this.elements.prioritySelect.value = 'INFO';
         if (this.elements.isPinnedCheckbox) this.elements.isPinnedCheckbox.checked = false;
-        if (this.elements.fileList) this.elements.fileList.innerHTML = '';
+        this.state.selectedFiles = [];
+        this.renderFileList();
     },
 
     async fetchGroups() {
