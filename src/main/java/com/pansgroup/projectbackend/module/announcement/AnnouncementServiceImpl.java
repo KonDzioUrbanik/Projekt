@@ -332,9 +332,16 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                     "Szczegóły odczytu są dostępne tylko dla autora lub administratora.");
         }
 
-        return readConfirmationRepository
-                .findByAnnouncement_IdOrderByConfirmedAtDesc(id)
-                .stream()
+        List<AnnouncementReadConfirmation> confirmations;
+        if (hasBroadcastKey(announcement)) {
+            List<Long> broadcastIds = announcementRepository.findByBroadcastKeyOrderByCreatedAtDesc(announcement.getBroadcastKey())
+                    .stream().map(Announcement::getId).toList();
+            confirmations = readConfirmationRepository.findByAnnouncement_IdInOrderByConfirmedAtDesc(broadcastIds);
+        } else {
+            confirmations = readConfirmationRepository.findByAnnouncement_IdOrderByConfirmedAtDesc(id);
+        }
+
+        return confirmations.stream()
                 .map(c -> new ReadConfirmationDetailDto(
                         c.getReader().getId(),
                         c.getReader().getFirstName(),

@@ -80,5 +80,11 @@ public class StarostaController {
         model.addAttribute("activePage", "announcements");
         return "starosta/announcements";
     }
+
+    @GetMapping("/schedule-management")
+    public String scheduleManagement(Model model) {
+        model.addAttribute("activePage", "starosta-schedule-management");
+        return "starosta/schedule-management";
+    }
 }
 

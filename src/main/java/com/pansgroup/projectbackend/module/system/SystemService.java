@@ -38,7 +38,8 @@ public class SystemService {
         createSettingIfAbsent("module_forum", "true", "Status modułu Forum");
         createSettingIfAbsent("module_university_calendar", "true", "Status modułu Kalendarz akademicki");
         createSettingIfAbsent("module_semester_progress", "true", "Status modułu Postęp semestru");
-        createSettingIfAbsent("module_starosta_announcements", "true", "Status modułu Wyślij ogłoszenie (Starosta)");
+        createSettingIfAbsent("module_starosta_announcements", "true", "Status modułu Ogłoszeń Starosty");
+        createSettingIfAbsent("module_starosta_schedule", "true", "Status modułu Harmonogramu zajęć Starosty");
         createSettingIfAbsent("module_analytics", "true", "Status modułu Telemetrii analitycznej");
         createSettingIfAbsent("module_chat", "true", "Status modułu Chat");
         createSettingIfAbsent("global_banner_text", "", "Treść komunikatu wyświetlanego wszystkim użytkownikom");
@@ -56,7 +57,7 @@ public class SystemService {
                     .build());
         }
     }
-    
+
     @Transactional(readOnly = true)
     public String getSetting(String key, String defaultValue) {
         return settingsCache.getOrDefault(key,

@@ -197,7 +197,7 @@ public class SecurityConfig {
                                                 "/api/schedule/all",
                                                 "/api/users",
                                                 "/api/users/search")
-                                .hasRole("ADMIN")
+                                .hasAnyRole("ADMIN", "STAROSTA")
 
                                 // API ogłoszeń
                                 .requestMatchers(HttpMethod.POST, "/api/announcements").hasAnyRole("STAROSTA", "ADMIN")

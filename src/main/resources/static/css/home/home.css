@@ -292,6 +292,17 @@
     padding: 0.15rem 0.55rem;
 }
 
+.home-ann-author a.ann-author-link {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.home-ann-author a.ann-author-link:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
 .home-ann-actions {
     margin-top: 1rem;
     padding-top: 0.9rem;

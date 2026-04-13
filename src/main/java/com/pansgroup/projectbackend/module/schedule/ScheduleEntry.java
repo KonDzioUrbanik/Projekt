@@ -6,8 +6,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -20,22 +22,18 @@ public class ScheduleEntry {
 
     private String title;
 
-    private String room;
-
-    private String teacher;
-
-    @Enumerated(EnumType.STRING)
-    private DayOfWeek dayOfWeek;
-
-    private LocalTime startTime;
-
-    private LocalTime endTime;
+    /** Prowadzący – serializowani jako JSON array, np. ["Jan Kowalski","Anna Nowak"] */
+    @Column(columnDefinition = "text")
+    private String teachers;
 
     @Enumerated(EnumType.STRING)
     private ClassType classType;
 
+    @Enumerated(EnumType.STRING)
+    private CreditType creditType;
+
     @Column(length = 2000)
-    private String yearPlan; // np. INFORMATYKA ROK III itp.
+    private String yearPlan;
 
     /** Numer podgrupy laboratoryjnej/ćwiczeniowej (np. "L1", "C2") */
     @Column(length = 20)
@@ -46,13 +44,10 @@ public class ScheduleEntry {
     private String specialization;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    private List<StudentGroup> studentGroups;
+    private Set<StudentGroup> studentGroups = new HashSet<>();
 
-    @Enumerated(EnumType.STRING)
-    private WeekType weekType;
-
-    @Column(length = 512)
-    private String customWeeks; // np. "1,3,7,11" (numery tygodni ISO)
+    @OneToMany(mappedBy = "entry", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ScheduleOccurrence> occurrences = new ArrayList<>();
 
     private Boolean archived = false;
 

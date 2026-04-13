@@ -76,7 +76,7 @@
                     </div>
                     <div class="home-ann-author">
                         <i class="fas fa-user"></i>
-                        <span>${authorName}</span>
+                        <span>${item.authorId ? `<a href="/profile/user?userId=${item.authorId}" class="ann-author-link">${authorName}</a>` : authorName}</span>
                     </div>
                 </div>
             </article>

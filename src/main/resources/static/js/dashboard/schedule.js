@@ -12,6 +12,12 @@ class ScheduleCalendar{
             'WYKLAD': 'Wykład', 'CWICZENIA': 'Ćwiczenia laboratoryjne', 'LABORATORIUM': 'Laboratorium',
             'PROJEKT': 'Projekt zespołowy', 'SEMINARIUM': 'Seminarium', 'KONSULTACJE': 'Konsultacje'
         },
+        CREDIT_TYPES: {
+            'ZALICZENIE': 'Zaliczenie',
+            'ZALICZENIE_NA_OCENE': 'Zaliczenie na ocenę',
+            'EGZAMIN': 'Egzamin',
+            'INNE': 'Inna forma'
+        },
         WORK_DAYS: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     };
     
@@ -325,8 +331,10 @@ class ScheduleCalendar{
             return;
         }
 
-        // Filtrujemy zajęcia dla aktualnego tygodnia (ALL lub pasujący typ)
-        const weekFilteredData = this.scheduleData.filter(item => Utils.matchesScheduleRecurrence(item, this.currentWeekStart));
+        // Filtrujemy zajęcia mające przynajmniej jedno wystąpienie w bieżącym tygodniu
+        const weekStart = this.currentWeekStart;
+        const weekEnd   = new Date(weekStart); weekEnd.setDate(weekEnd.getDate() + 7);
+        const weekFilteredData = this.flattenOccurrencesForWeek(this.scheduleData, weekStart, weekEnd);
 
         // naglowek godzin
         grid.innerHTML += '<div class="time-header">Godziny</div>';
@@ -355,10 +363,10 @@ class ScheduleCalendar{
             </div>`;
         });
         
-        // grupowanie zajec wedlug dni (używamy przefiltrowanych danych)
+        // grupowanie zajęć według dni (używamy sploszczonych danych)
         const grouped = this.groupByDay(weekFilteredData);
 
-        // Obliczanie kolizji (nachodzących na siebie zajęć) dla każdego dnia
+        // Obliczanie kolizji (nachodzacych na siebie zajec) dla każdego dnia
         const dayOverlaps = {};
         const dayMaxCols = {};
         
@@ -368,27 +376,31 @@ class ScheduleCalendar{
             dayMaxCols[dayKey] = overlapResult.maxCols || 1;
         });
         
-        let gridTemplateCols = '120px '; // Pierwsza kolumna na godziny
+        const isMobile = window.innerWidth < 768;
+        const timeColSize = isMobile ? '70px' : '120px';
+        const minDayWidth = isMobile ? 160 : 140;
+
+        let gridTemplateCols = `${timeColSize} `; // Pierwsza kolumna na godziny
         workDays.forEach(dayKey => {
             const cols = dayMaxCols[dayKey];
-            gridTemplateCols += `minmax(${140 * cols}px, ${cols}fr) `;
+            gridTemplateCols += `minmax(${minDayWidth * cols}px, ${cols}fr) `;
         });
         grid.style.gridTemplateColumns = gridTemplateCols.trim();
 
         // pobranie posortowanych przedzialow czasowych
         const timeSlots = this.getTimeSlotsObjects();
         
-        // ustaw liczbę wierszy w gridzie (nagłówek + wszystkie sloty)
+        // ustaw liczbe wierszy w gridzie (naglowek + wszystkie sloty)
         grid.style.gridTemplateRows = `auto repeat(${timeSlots.length}, auto)`;
         
-        // mapa zajęć które już zostały wyrenderowane (aby uniknąć duplikatów)
+        // mapa zajec ktore juz zostaly wyrenderowan (aby uniknac duplikatow)
         const renderedClasses = new Set();
         
         // dla kazdego przedzialu czasowego
         timeSlots.forEach((slotObj, slotIndex) => {
-            const rowIndex = slotIndex + 2; // +2 bo pierwszy wiersz to nagłówki
+            const rowIndex = slotIndex + 2; // +2 bo pierwszy wiersz to naglowki
             
-            // kolumna z godzina (wyświetlana tylko dla pełnych godzin)
+            // kolumna z godzina (wyswietlana tylko dla pelnych godzin)
             const timeSlotDiv = document.createElement('div');
             timeSlotDiv.className = 'time-slot';
             timeSlotDiv.textContent = slotObj.label;
@@ -400,7 +412,7 @@ class ScheduleCalendar{
             workDays.forEach((dayKey, dayIndex) => {
                 const columnIndex = dayIndex + 2; // +2 bo pierwsza kolumna to godziny
                 
-                // JEŚLI DZIEŃ JEST WOLNY -> Nie renderuj zajęć, ewentualnie wyszarz komórki
+                // JESLI DZIEN JEST WOLNY -> Nie renderuj zajec
                 if (specialDaysMap[dayKey]) {
                      const cell = document.createElement('div');
                      cell.className = 'class-cell special-day-cell';
@@ -409,10 +421,10 @@ class ScheduleCalendar{
                      cell.style.gridColumn = columnIndex;
                      cell.setAttribute('data-col', columnIndex);
                      grid.appendChild(cell);
-                     return; // SKIP rendering classes
+                     return;
                 }
 
-                // Zawsze renderujemy pustą komórkę tła, by zachować ułożenie kratek siatki i uniknąć szarego tła pod zajęciami
+                // Zawsze renderujemy pusta komorke tla
                 const bgCell = document.createElement('div');
                 bgCell.className = 'class-cell empty';
                 bgCell.style.gridRow = rowIndex;
@@ -422,25 +434,21 @@ class ScheduleCalendar{
 
                 const classes = this.getClassesForTimeSlot(dayKey, slotObj, grouped);
                 
-                // sprawdź czy w tym slotcie rozpoczynają się jakieś zajęcia
                 const startingClasses = classes.filter(c => {
-                    const classId = `${dayKey}-${c.id || c.title}-${this.formatTime(c.startTime)}`;
+                    const classId = `${dayKey}-${c.id || c.title}-${this.formatTimeFromDt(c._occStart)}`;
                     if(renderedClasses.has(classId)) return false;
-                    
-                    const itemStartNum = this.timeToNumber(c.startTime);
+                    const itemStartNum = this.timeToNumber(c._startTime);
                     const slotStartNum = slotObj.startTime;
-                    // zajęcia rozpoczynają się w tym przedziale
                     return Math.abs(itemStartNum - slotStartNum) < 0.01;
                 });
                 
                 if(startingClasses.length > 0){
                     startingClasses.forEach(c => {
-                        const classId = `${dayKey}-${c.id || c.title}-${this.formatTime(c.startTime)}`;
+                        const classId = `${dayKey}-${c.id || c.title}-${this.formatTimeFromDt(c._occStart)}`;
                         renderedClasses.add(classId);
                         
-                        // oblicz ile przedziałów 15-minutowych zajmują zajęcia
-                        const duration = this.timeToNumber(c.endTime) - this.timeToNumber(c.startTime);
-                        const rowSpan = Math.max(1, Math.round(duration / 0.25)); // 0.25 = 15 minut
+                        const duration = this.timeToNumber(c._endTime) - this.timeToNumber(c._startTime);
+                        const rowSpan = Math.max(1, Math.round(duration / 0.25));
                         
                         const classTypeName = c.classType ? this.classTypeNames[c.classType] || c.classType : '';
                         const classItem = document.createElement('div');
@@ -450,35 +458,38 @@ class ScheduleCalendar{
                         classItem.style.gridColumn = columnIndex;
                         classItem.setAttribute('data-col', columnIndex);
 
-                        // Aplikowanie logiki kolizji zajęć
                         const overlapInfo = dayOverlaps[dayKey][classId];
                         if (overlapInfo) {
                             classItem.style.width = `calc(${overlapInfo.width}% - 4px)`;
-                            classItem.style.marginLeft = `calc(${overlapInfo.left}% + 2px)`; // +2px overrides default margin
+                            classItem.style.marginLeft = `calc(${overlapInfo.left}% + 2px)`;
                         }
                         
-                        // Store data for modal
                         classItem.setAttribute('data-class-json', JSON.stringify(c));
                         classItem.onclick = () => this.openClassDetails(c);
                         
-                        // Escapowanie danych (XSS prevention)
-                        const safeTitle = Utils.escapeHtml(c.title);
-                        const safeTeacher = Utils.escapeHtml(c.teacher);
-                        const safeRoom = Utils.escapeHtml(c.room);
+                        const safeTitle    = Utils.escapeHtml(c.title);
+                        const teachersHtml = (c.teachers || []).map(t => `<span class="teacher-tag-mini">${Utils.escapeHtml(t)}</span>`).join('');
+                        const safeRoom     = Utils.escapeHtml(c._room || '');
+                        const safeLoc      = Utils.escapeHtml(c._location || '');
+                        const safeBuilding = Utils.escapeHtml(c._buildingCode || '');
                         const safeClassType = Utils.escapeHtml(classTypeName);
-                        const safeYearPlan = Utils.escapeHtml(c.yearPlan);
                         const safeGroupNum = c.groupNumber ? `<div class="class-group-num-mini">Gr: ${Utils.escapeHtml(c.groupNumber)}</div>` : '';
                         const safeSpec = c.specialization ? `<div class="class-spec-mini" title="${Utils.escapeHtml(c.specialization)}">${Utils.escapeHtml(c.specialization)}</div>` : '';
+                        const locationHtml = (safeBuilding || safeLoc)
+                            ? `<div class="class-room" title="${safeLoc}">${safeBuilding || safeLoc}</div>` : '';
                         
                         classItem.innerHTML = `
                             <div class="class-title">${safeTitle}</div>
-                            <div class="class-time">${Utils.formatTime(c.startTime)} - ${Utils.formatTime(c.endTime)}</div>
-                            ${c.teacher ? `<div class="class-teacher">${safeTeacher}</div>` : ''}
-                            ${c.room ? `<div class="class-room">${safeRoom}</div>` : ''}
-                            ${classTypeName ? `<div class="class-type">${safeClassType}</div>` : ''}
-                            ${safeGroupNum}
-                            ${safeSpec}
-                            ${c.yearPlan ? `<div class="class-year-plan">${safeYearPlan}</div>` : ''}
+                            <div class="class-time">${this.formatTimeFromDt(c._occStart)} - ${this.formatTimeFromDt(c._occEnd)}</div>
+                            ${teachersHtml ? `<div class="class-teachers-list">${teachersHtml}</div>` : ''}
+                            <div class="class-room">
+                                ${[safeRoom ? `${safeRoom}` : '', safeBuilding].filter(Boolean).join(', ')}
+                            </div>
+                            <div class="class-type-tag">${safeClassType}</div>
+                            <div class="class-group-spec">
+                                ${safeGroupNum}
+                                ${safeSpec}
+                            </div>
                         `;
                         grid.appendChild(classItem);
                     });
@@ -486,10 +497,47 @@ class ScheduleCalendar{
             });
         });
 
-        // Po wyrenderowaniu wszystkich zajęć, upewniamy się, że zastosowane są aktywne filtry
         this.applyFilters();
     }
     
+    /**
+     * Dla każdego ScheduleEntry pobiera wystąpienia (occurrences) w danym tygodniu
+     * i zwraca "spłaszczoną" listę obiektów w stylu oryginalnych itemów,
+     * wzbogaconych o _startTime, _endTime, _occStart, _occEnd, _room, _buildingCode, _location.
+     */
+    flattenOccurrencesForWeek(entries, weekStart, weekEnd) {
+        const result = [];
+        const DAY_MAP = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        for (const entry of entries) {
+            const occurrences = entry.occurrences || [];
+            for (const occ of occurrences) {
+                if (!occ.startDateTime) continue;
+                const dt = new Date(occ.startDateTime);
+                if (dt >= weekStart && dt < weekEnd) {
+                    result.push({
+                        ...entry,
+                        dayOfWeek:     DAY_MAP[dt.getDay()],
+                        _startTime:    `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`,
+                        _endTime:      occ.endDateTime ? (() => { const d = new Date(occ.endDateTime); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; })() : '',
+                        _occStart:     occ.startDateTime,
+                        _occEnd:       occ.endDateTime,
+                        _room:         occ.room,
+                        _buildingCode: occ.buildingCode,
+                        _location:     occ.location
+                    });
+                }
+            }
+        }
+        return result;
+    }
+
+    /** Formats an ISO datetime string to HH:MM */
+    formatTimeFromDt(isoStr) {
+        if (!isoStr) return '';
+        const t = isoStr.includes('T') ? isoStr.split('T')[1] : isoStr;
+        return t.substring(0, 5);
+    }
+
     // grupowanie zajec wedlug dni
     groupByDay(data = this.scheduleData){
         const grouped = {};
@@ -497,7 +545,6 @@ class ScheduleCalendar{
             if (!grouped[item.dayOfWeek]) grouped[item.dayOfWeek] = [];
             grouped[item.dayOfWeek].push(item);
         });
-
         return grouped;
     }
     
@@ -549,8 +596,8 @@ class ScheduleCalendar{
         if(!grouped[day]) return [];
         
         return grouped[day].filter(item => {
-            const itemStartNum = this.timeToNumber(item.startTime);
-            const itemEndNum = this.timeToNumber(item.endTime);
+            const itemStartNum = this.timeToNumber(item._startTime || item.startTime);
+            const itemEndNum = this.timeToNumber(item._endTime || item.endTime);
             const slotStartNum = slotObj.startTime;
             const slotEndNum = slotStartNum + 0.25; // 15 minut = 0.25 godziny
             
@@ -566,10 +613,10 @@ class ScheduleCalendar{
 
         // Sortujemy po czasie rozpoczęcia, potem po czasie zakończenia
         const sorted = [...classesForDay].sort((a,b) => {
-            const startA = this.timeToNumber(a.startTime);
-            const startB = this.timeToNumber(b.startTime);
+            const startA = this.timeToNumber(a._startTime || a.startTime);
+            const startB = this.timeToNumber(b._startTime || b.startTime);
             if (startA !== startB) return startA - startB;
-            return this.timeToNumber(b.endTime) - this.timeToNumber(a.endTime);
+            return this.timeToNumber(b._endTime || b.endTime) - this.timeToNumber(a._endTime || a.endTime);
         });
 
         const positions = {}; // Map: classId -> { width, left }
@@ -581,8 +628,8 @@ class ScheduleCalendar{
             const columns = []; // przechowuje czas zakończenia ostatniego zajęcia w danej podkolumnie
             
             cluster.forEach(cls => {
-                const start = this.timeToNumber(cls.startTime);
-                const end = this.timeToNumber(cls.endTime);
+                const start = this.timeToNumber(cls._startTime || cls.startTime);
+                const end = this.timeToNumber(cls._endTime || cls.endTime);
                 
                 let placed = false;
                 for (let i = 0; i < columns.length; i++) {
@@ -604,7 +651,7 @@ class ScheduleCalendar{
             if (numCols > absoluteMaxCols) absoluteMaxCols = numCols; // Aktualizuj max kolumn dla całego dnia
             
             cluster.forEach(cls => {
-                const classId = `${dayKey}-${cls.id || cls.title}-${this.formatTime(cls.startTime)}`;
+                const classId = `${dayKey}-${cls.id || cls.title}-${this.formatTimeFromDt(cls._occStart) || this.formatTime(cls.startTime)}`;
                 positions[classId] = {
                     width: 100 / numCols,
                     left: (100 / numCols) * cls._colIdx
@@ -613,8 +660,8 @@ class ScheduleCalendar{
         };
 
         sorted.forEach(cls => {
-            const start = this.timeToNumber(cls.startTime);
-            const end = this.timeToNumber(cls.endTime);
+            const start = this.timeToNumber(cls._startTime || cls.startTime);
+            const end = this.timeToNumber(cls._endTime || cls.endTime);
 
             if (currentCluster.length > 0 && start >= clusterEnd) {
                 // Koniec klastra, przetwarzamy
@@ -660,6 +707,16 @@ class ScheduleCalendar{
         document.getElementById('prevWeekBtn')?.addEventListener('click', () => this.changeWeek(-1));
         document.getElementById('nextWeekBtn')?.addEventListener('click', () => this.changeWeek(1));
         document.getElementById('todayBtn')?.addEventListener('click', () => this.resetToToday());
+
+        // Obsługa akordeonu wystąpień
+        const occToggle = document.getElementById('modalOccurrencesToggle');
+        const occContent = document.getElementById('modalOccurrencesList');
+        if (occToggle && occContent) {
+            occToggle.addEventListener('click', () => {
+                const isActive = occToggle.classList.toggle('active');
+                occContent.classList.toggle('active');
+            });
+        }
 
         // Uruchomienie timera do aktualizacji "Next Class" i linii czasu
         this.updateRealTimeFeatures();
@@ -779,58 +836,50 @@ class ScheduleCalendar{
             return;
         }
 
-        const currentDayIndex = now.getDay();
-        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        const currentDayName = days[currentDayIndex];
         const currentTimeNum = now.getHours() + now.getMinutes() / 60;
-        
-        let nextClass = null;
-        let minDiff = Infinity;
-        let isToday = false;
 
-        // Sprawdź dzisiejsze zajęcia - filtruj też według typu tygodnia
-        const todaysClasses = this.scheduleData.filter(c => {
-            const matchesDay = c.dayOfWeek === currentDayName;
-            const matchesWeek = Utils.matchesScheduleRecurrence(c, now);
-            return matchesDay && matchesWeek;
-        });
-        todaysClasses.forEach(c => {
-            const startNum = this.timeToNumber(c.startTime);
-            if (startNum > currentTimeNum) {
-                const diff = startNum - currentTimeNum;
-                if (diff < minDiff) {
-                    minDiff = diff;
-                    nextClass = c;
-                    isToday = true;
+        let nextClass = null;
+        let nextOcc = null;
+        let minDiff = Infinity;
+
+        // Iterate all occurrences for today
+        for (const entry of this.scheduleData) {
+            for (const occ of (entry.occurrences || [])) {
+                if (!occ.startDateTime) continue;
+                const dt = new Date(occ.startDateTime);
+                const today = new Date();
+                // Same date?
+                if (dt.getFullYear() !== today.getFullYear() ||
+                    dt.getMonth()    !== today.getMonth()    ||
+                    dt.getDate()     !== today.getDate()) continue;
+
+                const startNum = dt.getHours() + dt.getMinutes() / 60;
+                if (startNum > currentTimeNum) {
+                    const diff = startNum - currentTimeNum;
+                    if (diff < minDiff) {
+                        minDiff = diff; nextClass = entry; nextOcc = occ;
+                    }
                 }
             }
-        });
-
-        if (nextClass && isToday) {
-            const timeToStart = Math.round((this.timeToNumber(nextClass.startTime) - currentTimeNum) * 60);
+        }
+          if (nextClass && nextOcc) {
+            const occDt = new Date(nextOcc.startDateTime);
+            const startNum = occDt.getHours() + occDt.getMinutes() / 60;
+            const timeToStart = Math.round((startNum - currentTimeNum) * 60);
             
-            if (timeToStart <= 120) { // Pokazuj tylko jeśli mniej niż 2h
+            if (timeToStart <= 120) {
                 widget.style.display = 'flex';
-                
-                // Przywróć widoczność elementów
                 const timeToNextEl = document.getElementById('timeToNext');
                 const nextLabelEl = document.querySelector('.next-label');
-                
-                if (timeToNextEl) {
-                    timeToNextEl.style.display = '';
-                    timeToNextEl.textContent = timeToStart;
-                }
-                // Przywróć oryginalny format napisu
+                if (timeToNextEl) { timeToNextEl.style.display = ''; timeToNextEl.textContent = timeToStart; }
                 if (nextLabelEl) nextLabelEl.innerHTML = `Następne zajęcia (za <span id="timeToNext">${timeToStart}</span> min):`;
-                
-                // Escapowanie dla bezpieczeństwa
                 document.getElementById('nextClassTitle').textContent = nextClass.title || '';
-                
-                const room = nextClass.room ? `Sala ${nextClass.room}` : '';
+                const teachers = (nextClass.teachers || []).join(', ');
+                const room = nextOcc.room ? `Sala ${nextOcc.room}` : '';
                 const type = nextClass.classType ? (ScheduleCalendar.CONFIG.CLASS_TYPES[nextClass.classType] || nextClass.classType) : '';
-                document.getElementById('nextClassDetails').textContent = `${type} • ${room}`;
+                document.getElementById('nextClassDetails').textContent = [type, room, teachers].filter(Boolean).join(' • ');
             } else {
-                 widget.style.display = 'none';
+                widget.style.display = 'none';
             }
         } else {
             widget.style.display = 'none';
@@ -854,46 +903,113 @@ class ScheduleCalendar{
     openClassDetails(classData) {
         const modal = document.getElementById('classDetailsModal');
         
-        // Używamy textContent zamiast innerHTML - automatycznie escapuje HTML
         document.getElementById('modalClassTitle').textContent = classData.title || '';
-        document.getElementById('modalClassTime').textContent = `${Utils.formatTime(classData.startTime)} - ${Utils.formatTime(classData.endTime)}`;
-        document.getElementById('modalClassTeacher').textContent = classData.teacher || 'Brak danych';
-        document.getElementById('modalClassRoom').textContent = classData.room || 'Brak danych';
         
-        // Wyświetlanie grup zamiast rocznika
-        let groupText = '-';
-        if (classData.studentGroups && classData.studentGroups.length > 0) {
-            groupText = classData.studentGroups.map(g => g.name).join(', ');
-        } else if (classData.yearPlan) {
-            groupText = classData.yearPlan;
+        // Time from _occStart/_occEnd (flattened occurrence) or fallback
+        const startStr = classData._occStart ? this.formatTimeFromDt(classData._occStart) : Utils.formatTime(classData.startTime);
+        const endStr   = classData._occEnd    ? this.formatTimeFromDt(classData._occEnd)   : Utils.formatTime(classData.endTime);
+        const dateStr  = classData._occStart ? (() => { 
+            const d = new Date(classData._occStart); 
+            const dayName = ScheduleCalendar.CONFIG.DAY_NAMES[classData.dayOfWeek] || '';
+            const date = d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' });
+            return `${dayName}, ${date}`;
+        })() : '';
+        
+        document.getElementById('modalClassDate').textContent = dateStr;
+        document.getElementById('modalClassTime').textContent = `${startStr} – ${endStr}`;
+        
+        const teachersContainer = document.getElementById('modalClassTeacher');
+        if (teachersContainer) {
+            teachersContainer.innerHTML = (classData.teachers || []).map(t => `<span class="teacher-detail-tag">${Utils.escapeHtml(t)}</span>`).join('') || 'Brak danych';
         }
-        document.getElementById('modalClassGroup').textContent = groupText;
+
+        const roomStr = classData._room || '';
+        const shortCode = classData._buildingCode || '';
+        const fullLocation = classData._location || '';
+        
+        document.getElementById('modalClassRoomMain').textContent = [roomStr ? `${roomStr}` : '', shortCode].filter(Boolean).join(', ') || 'Brak danych';
+        document.getElementById('modalClassRoomSub').textContent = fullLocation || '';
+        
+        const groupContainer = document.getElementById('modalClassGroup');
+        if (groupContainer) {
+            if (classData.studentGroups && classData.studentGroups.length > 0) {
+                groupContainer.innerHTML = classData.studentGroups.map(g => `<span class="group-detail-tag">${Utils.escapeHtml(g.name)}</span>`).join('');
+            } else if (classData.yearPlan) {
+                groupContainer.textContent = classData.yearPlan;
+            } else {
+                groupContainer.textContent = '-';
+            }
+        }
 
         const typeName = ScheduleCalendar.CONFIG.CLASS_TYPES[classData.classType] || classData.classType || 'Zajęcia';
         document.getElementById('modalClassType').textContent = typeName;
 
-        // Numer grupy i specjalność
         const gnEl = document.getElementById('modalClassGroupNumber');
         const gnRow = document.getElementById('modalGroupNumberRow');
         if (gnEl && gnRow) {
-            if (classData.groupNumber) {
-                gnEl.textContent = classData.groupNumber;
-                gnRow.style.display = '';
-            } else { gnRow.style.display = 'none'; }
+            if (classData.groupNumber) { gnEl.textContent = classData.groupNumber; gnRow.style.display = ''; }
+            else { gnRow.style.display = 'none'; }
         }
 
         const spEl = document.getElementById('modalClassSpecialization');
         const spRow = document.getElementById('modalSpecializationRow');
         if (spEl && spRow) {
-            if (classData.specialization) {
-                spEl.textContent = classData.specialization;
-                spRow.style.display = '';
-            } else { spRow.style.display = 'none'; }
+            if (classData.specialization) { spEl.textContent = classData.specialization; spRow.style.display = ''; }
+            else { spRow.style.display = 'none'; }
+        }
+
+        const ctEl = document.getElementById('modalClassCreditType');
+        const ctRow = document.getElementById('modalCreditTypeRow');
+        if (ctEl && ctRow) {
+            const ctValue = classData.creditType;
+            if (ctValue) {
+                ctEl.textContent = ScheduleCalendar.CONFIG.CREDIT_TYPES[ctValue] || ctValue;
+                ctRow.style.display = '';
+            } else {
+                ctRow.style.display = 'none';
+            }
+        }
+
+        // Populate occurrences list
+        const occList = document.getElementById('modalOccurrencesList');
+        const occToggle = document.getElementById('modalOccurrencesToggle');
+        if (occList && occToggle) {
+            // Reset state
+            occList.innerHTML = '';
+            occList.classList.remove('active');
+            occToggle.classList.remove('active');
+
+            const occurrences = classData.occurrences || [];
+            if (occurrences.length > 0) {
+                // Sort by date
+                const sortedOccs = [...occurrences].sort((a,b) => new Date(a.startDateTime) - new Date(b.startDateTime));
+                
+                sortedOccs.forEach(occ => {
+                    const startDt = new Date(occ.startDateTime);
+                    const endDt = occ.endDateTime ? new Date(occ.endDateTime) : null;
+                    
+                    const dateStr = startDt.toLocaleDateString('pl-PL', { 
+                        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
+                    });
+                    const dayName = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+                    const timeStr = `${Utils.formatTime({hour: startDt.getHours(), minute: startDt.getMinutes()})} – ${endDt ? Utils.formatTime({hour: endDt.getHours(), minute: endDt.getMinutes()}) : ''}`;
+                    
+                    const occItem = document.createElement('div');
+                    occItem.className = 'occurrence-item';
+                    occItem.innerHTML = `
+                        <div class="occ-date">${dayName}</div>
+                        <div class="occ-time">${timeStr}</div>
+                        ${occ.room || occ.buildingCode ? `<div class="occ-location">${[occ.room ? `Sala ${occ.room}` : '', occ.buildingCode].filter(Boolean).join(', ')}</div>` : ''}
+                    `;
+                    occList.appendChild(occItem);
+                });
+                document.querySelector('.occurrences-accordion').style.display = '';
+            } else {
+                document.querySelector('.occurrences-accordion').style.display = 'none';
+            }
         }
         
-        // Kolory
         const colorClass = `class-type-${(classData.classType || '').toLowerCase()}`;
-        // Reset old classes
         const strip = document.getElementById('modalColorStrip');
         strip.className = 'modal-header-strip ' + colorClass;
 

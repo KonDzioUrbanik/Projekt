@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Locale;
 
 @Service
+@SuppressWarnings("null")
 public class StudentGroupServiceImpl implements StudentGroupService {
     private final StudentGroupRepository studentGroupRepository;
     private final UserService userService;
@@ -27,11 +28,11 @@ public class StudentGroupServiceImpl implements StudentGroupService {
     private final AnnouncementRepository announcementRepository;
     private final ScheduleRepository scheduleRepository;
 
-    public StudentGroupServiceImpl(StudentGroupRepository studentGroupRepository, 
-                                 UserService userService,
-                                 UserRepository userRepository,
-                                 AnnouncementRepository announcementRepository,
-                                 ScheduleRepository scheduleRepository) {
+    public StudentGroupServiceImpl(StudentGroupRepository studentGroupRepository,
+            UserService userService,
+            UserRepository userRepository,
+            AnnouncementRepository announcementRepository,
+            ScheduleRepository scheduleRepository) {
         this.studentGroupRepository = studentGroupRepository;
         this.userService = userService;
         this.userRepository = userRepository;
@@ -39,12 +40,11 @@ public class StudentGroupServiceImpl implements StudentGroupService {
         this.scheduleRepository = scheduleRepository;
     }
 
-    //Metody pomocnicza
+    // Metody pomocnicza
     private StudentGroupResponseDto toResponse(StudentGroup entity) {
         return new StudentGroupResponseDto(
                 entity.getId(),
-                entity.getName()
-        );
+                entity.getName());
     }
 
     private StudentGroup toEntity(StudentGroupCreateDto dto) {
@@ -70,7 +70,6 @@ public class StudentGroupServiceImpl implements StudentGroupService {
         }
     }
 
-
     @Override
     public StudentGroupResponseDto create(StudentGroupCreateDto dto) {
         ensureUniqueName(dto.name(), null);
@@ -84,6 +83,9 @@ public class StudentGroupServiceImpl implements StudentGroupService {
         boolean isAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         if (isAdmin) {
+            if (id == null) {
+                throw new StudentGroupNotFoundException(">null<");
+            }
             StudentGroup entity = studentGroupRepository.findById(id)
                     .orElseThrow(() -> new StudentGroupNotFoundException(">" + id + "<"));
             return toResponse(entity);
@@ -95,10 +97,8 @@ public class StudentGroupServiceImpl implements StudentGroupService {
             throw new StudentGroupNotFoundException("Nie masz uprawnień do modyfikacji tego kierunku.");
         }
 
-
         StudentGroup entity = studentGroupRepository.findById(id)
-                .orElseThrow(() ->
-                    new StudentGroupNotFoundException(">" + id + "<"));
+                .orElseThrow(() -> new StudentGroupNotFoundException(">" + id + "<"));
         return toResponse(entity);
     }
 
@@ -125,25 +125,25 @@ public class StudentGroupServiceImpl implements StudentGroupService {
         StudentGroup entity = studentGroupRepository.findById(id)
                 .orElseThrow(() -> new StudentGroupNotFoundException(">" + id + "<"));
 
-        // 1. Pre-check for users: We DO NOT delete users automatically
         long userCount = userRepository.countByStudentGroup(entity);
         if (userCount > 0) {
             throw new StudentGroupInUseException(
-                "Nie można usunąć kierunku '" + entity.getName() + "', ponieważ jest do niego przypisanych " + userCount + " użytkowników. Przenieś ich najpierw do innej grupy.");
+                    "Nie można usunąć kierunku '" + entity.getName() + "', ponieważ jest do niego przypisanych "
+                            + userCount + " użytkowników. Przenieś ich najpierw do innej grupy.");
         }
 
-        // 2. Cascade delete announcements: These are safe to delete
         List<Announcement> announcements = announcementRepository.findByTargetGroup(entity);
-        announcementRepository.deleteAll(announcements);
+        if (announcements != null) {
+            announcementRepository.deleteAll(announcements);
+        }
 
-        // 3. Remove associations from schedule (ManyToMany)
         List<ScheduleEntry> entries = scheduleRepository.findByStudentGroups(entity);
         for (ScheduleEntry entry : entries) {
             entry.getStudentGroups().remove(entity);
             scheduleRepository.save(entry);
         }
 
-        // 4. Finally delete the group
+        java.util.Objects.requireNonNull(entity);
         studentGroupRepository.delete(entity);
     }
 }
