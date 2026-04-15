@@ -1,5 +1,7 @@
 let currentSecurityPage = 0;
 let currentSecurityPageSize = 15;
+let currentSecuritySort = 'timestamp,desc';
+let pendingDeleteAction = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     initSecurityDashboard();
@@ -12,6 +14,65 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearBtn = document.getElementById('clearSecurityLogs');
     if (clearBtn) {
         clearBtn.addEventListener('click', confirmClearLogs);
+    }
+
+    // Filtry
+    const filterType = document.getElementById('filterEventType');
+    if (filterType) {
+        filterType.addEventListener('change', () => fetchSecurityData(false, 0));
+    }
+
+    const filterIp = document.getElementById('filterIpAddress');
+    if (filterIp) {
+        const debouncedIpFilter = Utils.debounce(() => fetchSecurityData(false, 0), 400);
+        filterIp.addEventListener('input', debouncedIpFilter);
+    }
+
+    const filterQuery = document.getElementById('filterQuery');
+    if (filterQuery) {
+        const debouncedQueryFilter = Utils.debounce(() => fetchSecurityData(false, 0), 400);
+        filterQuery.addEventListener('input', debouncedQueryFilter);
+    }
+
+    const resetBtn = document.getElementById('resetSecurityFilters');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            if (filterType) filterType.value = '';
+            if (filterIp) filterIp.value = '';
+            if (filterQuery) filterQuery.value = '';
+            fetchSecurityData(false, 0);
+        });
+    }
+
+    // Modal listeners
+    const modal = document.getElementById('securityConfirmModal');
+    const cancelBtn = document.getElementById('cancelSecurityBtn');
+    const confirmBtn = document.getElementById('confirmSecurityBtn');
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            modal?.classList.remove('active');
+            pendingDeleteAction = null;
+        });
+    }
+
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', () => {
+            if (pendingDeleteAction) {
+                pendingDeleteAction();
+                pendingDeleteAction = null;
+            }
+            modal?.classList.remove('active');
+        });
+    }
+
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+                pendingDeleteAction = null;
+            }
+        });
     }
 });
 
@@ -33,8 +94,17 @@ async function fetchSecurityData(isManual = false, page = 0) {
     if (btn) btn.disabled = true;
 
     try {
+        const eventType = document.getElementById('filterEventType')?.value || '';
+        const ipAddress = document.getElementById('filterIpAddress')?.value || '';
+        const query = document.getElementById('filterQuery')?.value || '';
+        
+        let url = `/api/admin/security/events?page=${page}&size=${currentSecurityPageSize}&sort=${currentSecuritySort}`;
+        if (eventType) url += `&eventType=${encodeURIComponent(eventType)}`;
+        if (ipAddress) url += `&ipAddress=${encodeURIComponent(ipAddress)}`;
+        if (query) url += `&query=${encodeURIComponent(query)}`;
+
         const [eventsRes, suspiciousRes] = await Promise.all([
-            fetch(`/api/admin/security/events?page=${page}&size=${currentSecurityPageSize}`),
+            fetch(url),
             fetch('/api/admin/security/suspicious')
         ]);
         
@@ -65,7 +135,7 @@ function renderEventsTable(events, suspicious = {}) {
     if (!tbody) return;
 
     if (!events || events.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:2rem; opacity:0.6;">Brak zarejestrowanych zdarzeń.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem; opacity:0.6;">Brak zarejestrowanych zdarzeń.</td></tr>';
         return;
     }
 
@@ -84,9 +154,65 @@ function renderEventsTable(events, suspicious = {}) {
                     ${adminUtils.escapeHtml(e.ipAddress || '—')}
                 </td>
                 <td class="audit-details" title="${adminUtils.escapeHtml(e.details)}">${adminUtils.escapeHtml(e.details)}</td>
+                <td style="text-align: center;">
+                    <button class="action-btn btn-delete-single" title="Usuń ten wpis" onclick="deleteSecurityEvent(${e.id})">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
             </tr>
         `;
     }).join('');
+}
+
+window.deleteSecurityEvent = async (id) => {
+    showConfirmModal(
+        'Usunąć ten wpis?',
+        'Wybrany rekord zostanie trwale usunięty z bazy danych.',
+        async () => {
+            try {
+                const res = await fetch(`/api/admin/security/events/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    Utils.showToast('Wpis został usunięty.', 'success');
+                    fetchSecurityData(false, currentSecurityPage);
+                } else {
+                    throw new Error('Failed to delete event');
+                }
+            } catch (error) {
+                Utils.showToast('Błąd podczas usuwania wpisu.', 'error');
+            }
+        }
+    );
+};
+
+window.toggleSort = (field) => {
+    const [currentField, currentDir] = currentSecuritySort.split(',');
+    let newDir = 'asc';
+    
+    if (currentField === field) {
+        newDir = currentDir === 'asc' ? 'desc' : 'asc';
+    }
+    
+    currentSecuritySort = `${field},${newDir}`;
+    updateSortIcons(field, newDir);
+    fetchSecurityData(false, 0);
+};
+
+function updateSortIcons(activeField, direction) {
+    const headers = document.querySelectorAll('.audit-table th[onclick]');
+    headers.forEach(th => {
+        const icon = th.querySelector('i');
+        if (!icon) return;
+        
+        // Reset all icons
+        icon.className = 'fas fa-sort';
+        icon.style.opacity = '0.3';
+        
+        const fieldMatch = th.getAttribute('onclick').includes(`'${activeField}'`);
+        if (fieldMatch) {
+            icon.className = direction === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
+            icon.style.opacity = '1';
+        }
+    });
 }
 
 function renderPagination(pageData) {
@@ -197,16 +323,34 @@ function analyzeSecurityStatus(failed, suspicious) {
 }
 
 async function confirmClearLogs() {
-    if (confirm('Czy na pewno chcesz WYCZYŚCIĆ WSZYSTKIE logi bezpieczeństwa? Tej operacji nie można cofnąć.')) {
-        try {
-            const res = await fetch('/api/admin/security/events', { method: 'DELETE' });
-            if (res.ok) {
-                fetchSecurityData(true, 0);
-            } else {
-                throw new Error('Failed to clear logs');
+    showConfirmModal(
+        'Czy na pewno chcesz WYCZYŚCIĆ WSZYSTKIE logi?',
+        'Tej operacji nie można cofnąć. Wszystkie dotychczasowe zdarzenia zostaną usunięte.',
+        async () => {
+            try {
+                const res = await fetch('/api/admin/security/events', { method: 'DELETE' });
+                if (res.ok) {
+                    fetchSecurityData(true, 0);
+                    Utils.showToast('Wszystkie logi zostały usunięte.', 'success');
+                } else {
+                    throw new Error('Failed to clear logs');
+                }
+            } catch (error) {
+                Utils.showToast('Błąd podczas czyszczenia logów.', 'error');
             }
-        } catch (error) {
-            alert('Błąd podczas czyszczenia logów.');
         }
+    );
+}
+
+function showConfirmModal(title, message, onConfirm) {
+    const modal = document.getElementById('securityConfirmModal');
+    const titleEl = document.getElementById('securityModalTitle');
+    const messageEl = document.getElementById('securityModalMessage');
+
+    if (modal && titleEl && messageEl) {
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+        pendingDeleteAction = onConfirm;
+        modal.classList.add('active');
     }
 }

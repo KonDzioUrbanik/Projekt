@@ -39,6 +39,7 @@ class DashboardHome {
         CLASS_TYPES: {
             'WYKLAD': 'Wykład',
             'CWICZENIA': 'Ćwiczenia laborytoryjne',
+            'CWICZENIA_PROJEKTOWE': 'Ćwiczenia projektowe',
             'LABORATORIUM': 'Laboratorium',
             'PROJEKT': 'Projekt zespołowy',
             'SEMINARIUM': 'Seminarium',
@@ -587,6 +588,7 @@ class DashboardHome {
         const icons = {
             'WYKLAD': 'fa-chalkboard',
             'CWICZENIA': 'fa-pencil-alt',
+            'CWICZENIA_PROJEKTOWE': 'fa-pen-ruler',
             'LABORATORIUM': 'fa-flask',
             'PROJEKT': 'fa-project-diagram',
             'SEMINARIUM': 'fa-users',

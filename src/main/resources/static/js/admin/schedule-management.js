@@ -9,7 +9,8 @@ class ScheduleManagement {
         },
         CLASS_TYPES: {
             'WYKLAD': 'Wykład', 'CWICZENIA': 'Ćwiczenia laboratoryjne', 'LABORATORIUM': 'Laboratorium',
-            'PROJEKT': 'Projekt', 'SEMINARIUM': 'Seminarium', 'KONSULTACJE': 'Konsultacje'
+            'PROJEKT': 'Projekt zespołowy', 'SEMINARIUM': 'Seminarium', 'KONSULTACJE': 'Konsultacje',
+            'CWICZENIA_PROJEKTOWE': 'Ćwiczenia projektowe'
         },
         CREDIT_TYPES: {
             'ZALICZENIE': 'Zaliczenie', 'ZALICZENIE_NA_OCENE': 'Zaliczenie na ocenę',

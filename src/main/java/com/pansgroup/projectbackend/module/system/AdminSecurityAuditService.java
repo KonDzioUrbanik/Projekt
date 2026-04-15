@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -62,8 +63,21 @@ public class AdminSecurityAuditService {
         ).getContent();
     }
 
-    public org.springframework.data.domain.Page<SecurityEvent> getEvents(org.springframework.data.domain.Pageable pageable) {
-        return securityEventRepository.findAll(pageable);
+    public org.springframework.data.domain.Page<SecurityEvent> getEvents(org.springframework.data.domain.Pageable pageable, String eventType, String ipAddress, String query) {
+        Specification<SecurityEvent> spec = (root, queryObj, cb) -> cb.conjunction();
+        if (eventType != null && !eventType.isEmpty()) {
+            spec = spec.and((root, queryObj, cb) -> cb.equal(root.get("eventType"), eventType));
+        }
+        if (ipAddress != null && !ipAddress.isEmpty()) {
+            spec = spec.and((root, queryObj, cb) -> cb.like(root.get("ipAddress"), "%" + ipAddress + "%"));
+        }
+        if (query != null && !query.isEmpty()) {
+            spec = spec.and((root, queryObj, cb) -> cb.or(
+                cb.like(root.get("details"), "%" + query + "%"),
+                cb.like(root.get("email"), "%" + query + "%")
+            ));
+        }
+        return securityEventRepository.findAll(spec, pageable);
     }
 
     public Map<String, Long> getSuspiciousIPs() {
@@ -80,6 +94,14 @@ public class AdminSecurityAuditService {
     public void cleanupOldLogs() {
         log.info("Rozpoczęto czyszczenie starych logów bezpieczeństwa (starsze niż 30 dni)...");
         securityEventRepository.deleteOlderThan(LocalDateTime.now().minusDays(30));
+    }
+
+    @Transactional
+    public void deleteEvent(Long id) {
+        if (id != null) {
+            log.warn("Administrator usuwa pojedynczy wpis bezpieczeństwa ID: {}", id);
+            securityEventRepository.deleteById(id);
+        }
     }
 
     @Transactional
