@@ -386,6 +386,11 @@
     color: white;
 }
 
+.class-type-badge.CWICZENIA_PROJEKTOWE {
+    background: #0d9488;
+    color: white;
+}
+
 .class-type-badge.SEMINARIUM {
     background: #ec4899;
     color: white;

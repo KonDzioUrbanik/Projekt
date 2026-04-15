@@ -9,7 +9,7 @@ class ScheduleCalendar{
             'Thursday': 'Czwartek', 'Friday': 'Piątek', 'Saturday': 'Sobota', 'Sunday': 'Niedziela'
         },
         CLASS_TYPES: {
-            'WYKLAD': 'Wykład', 'CWICZENIA': 'Ćwiczenia laboratoryjne', 'LABORATORIUM': 'Laboratorium',
+            'WYKLAD': 'Wykład', 'CWICZENIA': 'Ćwiczenia laboratoryjne', 'CWICZENIA_PROJEKTOWE': 'Ćwiczenia projektowe', 'LABORATORIUM': 'Laboratorium',
             'PROJEKT': 'Projekt zespołowy', 'SEMINARIUM': 'Seminarium', 'KONSULTACJE': 'Konsultacje'
         },
         CREDIT_TYPES: {

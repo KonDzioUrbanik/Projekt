@@ -79,6 +79,22 @@
                     <div class="card-header">
                         <h3><i class="fas fa-list-ul"></i> Rejestr zdarzeń bezpieczeństwa</h3>
                         <div class="header-actions">
+                            <div class="filter-group">
+                                <select id="filterEventType" class="admin-select">
+                                    <option value="">Wszystkie zdarzenia</option>
+                                    <option value="USER_ACCESS">USER_ACCESS</option>
+                                    <option value="SUCCESSFUL_LOGIN">SUCCESSFUL_LOGIN</option>
+                                    <option value="FAILED_LOGIN">FAILED_LOGIN</option>
+                                    <option value="LOGOUT">LOGOUT</option>
+                                    <option value="PASSWORD_CHANGE">PASSWORD_CHANGE</option>
+                                    <option value="SECURITY_ALERT">SECURITY_ALERT</option>
+                                </select>
+                                <input type="text" id="filterIpAddress" class="admin-input" placeholder="Filtruj IP...">
+                                <input type="text" id="filterQuery" class="admin-input" placeholder="Search details..." title="Szukaj w szczegółach">
+                                <button type="button" class="btn-reset-filters" id="resetSecurityFilters" title="Resetuj filtry">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                            </div>
                             <button class="btn-refresh danger-action" id="clearSecurityLogs" title="Wyczyść wszystkie logi">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
@@ -92,10 +108,11 @@
                         <table class="audit-table">
                             <thead>
                                 <tr>
-                                    <th>Czas</th>
-                                    <th>Zdarzenie</th>
-                                    <th>IP</th>
+                                    <th onclick="toggleSort('timestamp')" style="cursor:pointer;">Czas <i class="fas fa-sort-down"></i></th>
+                                    <th onclick="toggleSort('eventType')" style="cursor:pointer;">Zdarzenie <i class="fas fa-sort" style="opacity:0.3;"></i></th>
+                                    <th onclick="toggleSort('ipAddress')" style="cursor:pointer;">IP <i class="fas fa-sort" style="opacity:0.3;"></i></th>
                                     <th>Szczegóły</th>
+                                    <th style="width: 80px; text-align: center;">Akcje</th>
                                 </tr>
                             </thead>
                             <tbody id="securityAuditBody">
@@ -107,6 +124,23 @@
                     <div id="securityPagination" class="pagination-container">
                         <!-- Pagination buttons injected by JS -->
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmation Modal -->
+        <div id="securityConfirmModal" class="modal-overlay">
+            <div class="modal-card modal-sm">
+                <div class="modal-body-centered">
+                    <div class="modal-icon-wrapper danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3 id="securityModalTitle">Potwierdź operację</h3>
+                    <p id="securityModalMessage">Czy na pewno chcesz to zrobić? Tej operacji nie da się cofnąć.</p>
+                </div>
+                <div class="modal-footer-centered">
+                    <button type="button" class="btn-text-gray" id="cancelSecurityBtn">Anuluj</button>
+                    <button type="button" class="btn-danger-block" id="confirmSecurityBtn">Potwierdź i usuń</button>
                 </div>
             </div>
         </div>

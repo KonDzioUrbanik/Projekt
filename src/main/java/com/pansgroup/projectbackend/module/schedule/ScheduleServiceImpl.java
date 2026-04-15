@@ -71,9 +71,11 @@ public class ScheduleServiceImpl implements ScheduleService {
         validateOccurrenceTimes(dto.occurrences());
 
         if (force) {
-            checkStarostaForceCollisionPermission(entry, dto.occurrences(), null);
+            checkStarostaForceCollisionPermission(entry, dto.occurrences(), null, 
+                    serializeTeachers(dto.teachers()), resolveGroups(dto.studentGroupIds()));
         } else {
-            List<String> collisionWarnings = detectCollisions(entry, dto.occurrences(), null);
+            List<String> collisionWarnings = detectCollisions(entry, dto.occurrences(), null, 
+                    serializeTeachers(dto.teachers()), resolveGroups(dto.studentGroupIds()));
             if (!collisionWarnings.isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT,
                         "Wykryto kolizję: " + String.join("; ", collisionWarnings));
@@ -111,6 +113,23 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         checkStarostaPermission(entry);
 
+        validateOccurrenceTimes(dto.occurrences());
+
+        // Perform collision detection BEFORE modifying the persistent entity 
+        // to avoid premature flushes of dirty state (which can cause DataIntegrityViolationException)
+        if (force) {
+            checkStarostaForceCollisionPermission(entry, dto.occurrences(), id, 
+                    serializeTeachers(dto.teachers()), resolveGroups(dto.studentGroupIds()));
+        } else {
+            List<String> collisionWarnings = detectCollisions(entry, dto.occurrences(), id, 
+                    serializeTeachers(dto.teachers()), resolveGroups(dto.studentGroupIds()));
+            if (!collisionWarnings.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Wykryto kolizję: " + String.join("; ", collisionWarnings));
+            }
+        }
+
+        // Now safe to modify the entity
         entry.setTitle(dto.title().trim());
         entry.setTeachers(serializeTeachers(dto.teachers()));
         entry.setClassType(dto.classType());
@@ -123,18 +142,6 @@ public class ScheduleServiceImpl implements ScheduleService {
             entry.setStudentGroups(resolveGroups(dto.studentGroupIds()));
         } else {
             entry.setStudentGroups(new HashSet<>());
-        }
-
-        validateOccurrenceTimes(dto.occurrences());
-
-        if (force) {
-            checkStarostaForceCollisionPermission(entry, dto.occurrences(), id);
-        } else {
-            List<String> collisionWarnings = detectCollisions(entry, dto.occurrences(), id);
-            if (!collisionWarnings.isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT,
-                        "Wykryto kolizję: " + String.join("; ", collisionWarnings));
-            }
         }
 
         // Properly sync occurrences using child collection management
@@ -288,12 +295,14 @@ public class ScheduleServiceImpl implements ScheduleService {
      */
     private List<String> detectCollisions(ScheduleEntry entry,
             List<ScheduleOccurrenceDto> newOccurrences,
-            Long excludeId) {
+            Long excludeId,
+            String newTeachersJson,
+            Set<StudentGroup> newGroups) {
         if (newOccurrences == null || newOccurrences.isEmpty())
             return List.of();
 
         List<String> warnings = new ArrayList<>();
-        List<ScheduleEntry> collidingEntries = findCollidingEntries(entry, newOccurrences, excludeId);
+        List<ScheduleEntry> collidingEntries = findCollidingEntries(entry, newOccurrences, excludeId, newTeachersJson, newGroups);
 
         for (ScheduleEntry candidate : collidingEntries) {
             // Find which specific occurrences collide to provide better warning
@@ -313,12 +322,12 @@ public class ScheduleServiceImpl implements ScheduleService {
                         }
 
                         // Teacher collision
-                        List<String> newTeachers = deserializeTeachers(entry.getTeachers());
+                        List<String> newTeachersArr = deserializeTeachers(newTeachersJson != null ? newTeachersJson : entry.getTeachers());
                         List<String> existingTeachers = deserializeTeachers(candidate.getTeachers());
-                        List<String> overlappingTeachers = newTeachers.stream()
+                        List<String> overlappingTeachers = newTeachersArr.stream()
                                 .filter(t -> existingTeachers.stream().anyMatch(t::equalsIgnoreCase))
                                 .toList();
-                        if (!overlappingTeachers.isEmpty() && haveCommonGroups(entry, candidate)) {
+                        if (!overlappingTeachers.isEmpty() && haveCommonGroups(newGroups != null ? newGroups : entry.getStudentGroups(), candidate.getStudentGroups())) {
                             warnings.add("Kolizja prowadzącego " + overlappingTeachers.get(0)
                                     + " z '" + candidate.getTitle() + "' ("
                                     + formatDt(existingOcc.getStartDateTime()) + ")");
@@ -332,7 +341,9 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     private List<ScheduleEntry> findCollidingEntries(ScheduleEntry entry,
             List<ScheduleOccurrenceDto> newOccurrences,
-            Long excludeId) {
+            Long excludeId,
+            String newTeachersJson,
+            Set<StudentGroup> newGroups) {
         if (newOccurrences == null || newOccurrences.isEmpty())
             return List.of();
 
@@ -359,11 +370,11 @@ public class ScheduleServiceImpl implements ScheduleService {
                             && newOcc.room().equalsIgnoreCase(existingOcc.getRoom())
                             && nullableEqual(newOcc.buildingCode(), existingOcc.getBuildingCode());
 
-                    List<String> newTeachers = deserializeTeachers(entry.getTeachers());
+                    List<String> newTeachersArr2 = deserializeTeachers(newTeachersJson != null ? newTeachersJson : entry.getTeachers());
                     List<String> existingTeachers = deserializeTeachers(candidate.getTeachers());
-                    boolean isTeacherCollision = newTeachers.stream()
+                    boolean isTeacherCollision = newTeachersArr2.stream()
                             .anyMatch(nt -> existingTeachers.stream().anyMatch(nt::equalsIgnoreCase))
-                            && haveCommonGroups(entry, candidate);
+                            && haveCommonGroups(newGroups != null ? newGroups : entry.getStudentGroups(), candidate.getStudentGroups());
 
                     if (isRoomCollision || isTeacherCollision) {
                         if (!colliding.contains(candidate)) {
@@ -396,11 +407,11 @@ public class ScheduleServiceImpl implements ScheduleService {
         return dt.toLocalDate().toString() + " " + dt.toLocalTime().toString().substring(0, 5);
     }
 
-    private boolean haveCommonGroups(ScheduleEntry a, ScheduleEntry b) {
-        if (a.getStudentGroups() == null || b.getStudentGroups() == null)
+    private boolean haveCommonGroups(Set<StudentGroup> a, Set<StudentGroup> b) {
+        if (a == null || b == null)
             return false;
-        Set<Long> aIds = a.getStudentGroups().stream().map(StudentGroup::getId).collect(Collectors.toSet());
-        return b.getStudentGroups().stream().anyMatch(g -> aIds.contains(g.getId()));
+        Set<Long> aIds = a.stream().map(StudentGroup::getId).collect(Collectors.toSet());
+        return b.stream().anyMatch(g -> aIds.contains(g.getId()));
     }
 
     // Starosta Permission Check
@@ -467,7 +478,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     private void checkStarostaForceCollisionPermission(ScheduleEntry entry, List<ScheduleOccurrenceDto> occurrences,
-            Long excludeId) {
+            Long excludeId, String newTeachersJson, Set<StudentGroup> newGroups) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated())
             return;
@@ -485,7 +496,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         if (starostaGroup == null)
             return; // Should already be checked by earlier permission checks
 
-        List<ScheduleEntry> collidingEntries = findCollidingEntries(entry, occurrences, excludeId);
+        List<ScheduleEntry> collidingEntries = findCollidingEntries(entry, occurrences, excludeId, newTeachersJson, newGroups);
         if (collidingEntries.isEmpty())
             return;
 

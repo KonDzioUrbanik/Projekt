@@ -297,6 +297,10 @@
     background: #035038;
 }
 
+.class-type-cwiczenia_projektowe {
+    background: #0d9488;
+}
+
 .class-type-laboratorium {
     background: #f59e0b;
 }
@@ -731,6 +735,10 @@
 
 .modal-header-strip.class-type-cwiczenia {
     background: #035038;
+}
+
+.modal-header-strip.class-type-cwiczenia_projektowe {
+    background: #0d9488;
 }
 
 .modal-header-strip.class-type-laboratorium {
