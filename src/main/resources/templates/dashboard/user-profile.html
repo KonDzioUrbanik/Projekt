@@ -24,6 +24,8 @@
                         <div class="up-name-row">
                             <h1 id="userName"></h1>
                             <span id="userRole" class="up-role-badge"></span>
+                            <div id="profileActions" class="up-actions">
+                            </div>
                         </div>
                         <p id="userEmail" class="up-email"></p>
                         <div class="up-meta-pills">
@@ -82,8 +84,7 @@
                         <h2 class="up-section-title"><i class="fas fa-history"></i> Ostatnia aktywność</h2>
                         <div id="activityList" class="up-activity-list">
                             <div class="up-empty-activity">
-                                <i class="fas fa-ghost"></i>
-                                <p>Brak publicznej aktywności do wyświetlenia.</p>
+                                <p>Brak aktywności w ostatnim czasie.</p>
                             </div>
                         </div>
                     </div>
@@ -93,7 +94,7 @@
     </div>
 
     <th:block layout:fragment="page-scripts">
-        <script th:src="@{/js/dashboard/user-profile.js(v=${#dates.createNow().getTime()})}"></script>
+        <script type="module" th:src="@{/js/dashboard/user-profile.js(v=${#dates.createNow().getTime()})}"></script>
     </th:block>
 </body>
 </html>

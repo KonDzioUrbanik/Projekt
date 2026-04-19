@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/main-layout}"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Twoi Znajomi - PANSportal</title>
+    <th:block layout:fragment="page-styles">
+        <link rel="stylesheet" th:href="@{/css/dashboard/friends.css(v=${#dates.createNow().getTime()})}">
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="friends-wrapper">
+            <div class="friends-header card">
+                <div class="header-inner">
+                    <div class="title-group">
+                        <h1><i class="fas fa-user-friends"></i> Społeczność</h1>
+                        <p>Zarządzaj swoimi znajomościami i zaproszeniami</p>
+                    </div>
+                </div>
+                <div class="friends-tabs">
+                    <button class="tab-btn active" data-tab="friends">Moi znajomi <span id="friendsCount" class="count-badge">0</span></button>
+                    <button class="tab-btn" data-tab="pending">Zaproszenia <span id="pendingCount" class="count-badge">0</span></button>
+                    <button class="tab-btn" data-tab="sent">Wysłane <span id="sentCount" class="count-badge">0</span></button>
+                </div>
+            </div>
+
+            <div class="friends-content">
+                <div id="friendsTab" class="tab-content active">
+                    <div class="friends-grid" id="friendsGrid">
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                    </div>
+                </div>
+
+                <div id="pendingTab" class="tab-content">
+                    <div class="requests-list" id="requestsList">
+                    </div>
+                </div>
+
+                <div id="sentTab" class="tab-content">
+                    <div class="requests-list" id="sentList">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="page-scripts">
+        <script type="module" th:src="@{/js/dashboard/friends.js(v=${#dates.createNow().getTime()})}"></script>
+    </th:block>
+</body>
+</html>

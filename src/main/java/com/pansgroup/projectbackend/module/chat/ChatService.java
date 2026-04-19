@@ -118,7 +118,8 @@ public class ChatService {
                         } else {
                             try {
                                 String plain = crypto.decrypt(lm.getContent());
-                                preview = plain.length() > 60 ? plain.substring(0, 60) + "…" : plain;
+                                String prefix = lm.getSender().getId().equals(me.getId()) ? "Ty: " : "";
+                                preview = prefix + (plain.length() > 60 ? plain.substring(0, 60) + "…" : plain);
                             } catch (Exception e) {
                                 preview = "…";
                             }

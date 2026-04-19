@@ -301,3 +301,30 @@ export function updateSidebarPreviewLocal(convId, content, sentAt, senderName, i
         import('./api.js').then(m => m.refreshConversationList());
     }
 }
+
+export function updateFriendButton(status) {
+    const btn = document.getElementById('btnAddFriend');
+    if (!btn) return;
+
+    btn.disabled = false;
+    btn.style.display = 'flex';
+
+    switch (status) {
+        case 'FRIENDS':
+            btn.innerHTML = '<i class="fas fa-check"></i> Znajomy';
+            btn.disabled = true;
+            break;
+        case 'SENT':
+            btn.innerHTML = '<i class="fas fa-clock"></i> Zaproszenie wysłane';
+            btn.disabled = true;
+            break;
+        case 'RECEIVED':
+            btn.innerHTML = '<i class="fas fa-user-check"></i> Akceptuj zaproszenie';
+            break;
+        case 'LOCKED':
+            btn.style.display = 'none';
+            break;
+        default:
+            btn.innerHTML = '<i class="fas fa-user-plus"></i> Dodaj do znajomych';
+    }
+}

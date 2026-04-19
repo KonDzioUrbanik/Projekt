@@ -233,6 +233,12 @@ public class MainController {
         return "dashboard/notes";
     }
 
+    @GetMapping("/student/friends")
+    public String friendsView(Model model) {
+        model.addAttribute("activePage", "friends");
+        return "dashboard/friends";
+    }
+
     @GetMapping("/student/announcements")
     public String studentAnnouncementsView(Model model) {
         model.addAttribute("activePage", "student-announcements");

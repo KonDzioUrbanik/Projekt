@@ -760,22 +760,58 @@
 .chat-info-action-btn {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.6rem 0.85rem;
-    border-radius: 8px;
+    justify-content: center;
+    gap: 0.65rem;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
     border: 1px solid var(--border-color-local);
-    background: none;
+    background: var(--bg-card-local);
     color: var(--text-primary);
     font-size: 0.875rem;
+    font-weight: 700;
     text-decoration: none;
     cursor: pointer;
-    transition: background-color 0.15s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .chat-info-action-btn:hover {
     background: var(--bg-step-local);
-    color: var(--primary-color);
-    border-color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+#btnAddFriend:not(:disabled) {
+    background: #1e40af;
+    /* Technical Deep Blue */
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.15);
+}
+
+#btnAddFriend:not(:disabled):hover {
+    background: #1e3a8a;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(30, 64, 175, 0.25);
+}
+
+.chat-info-action-btn.danger-btn {
+    border-color: #fee2e2;
+    color: #ef4444;
+}
+
+.chat-info-action-btn.danger-btn:hover {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    color: #dc2626;
+}
+
+#btnAddFriend:disabled {
+    background: var(--bg-step-local);
+    color: var(--text-muted);
+    cursor: default;
+    border: 1px solid var(--border-color-local);
+    opacity: 0.7;
 }
 
 .chat-info-divider {
@@ -897,19 +933,6 @@
     border-radius: 12px;
     box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
     overflow: hidden;
-    animation: modal-pop 0.25s cubic-bezier(0.17, 0.89, 0.32, 1.28);
-}
-
-@keyframes modal-pop {
-    from {
-        transform: scale(0.9) translateY(10px);
-        opacity: 0;
-    }
-
-    to {
-        transform: scale(1) translateY(0);
-        opacity: 1;
-    }
 }
 
 .modal-header {
@@ -1131,7 +1154,8 @@
         display: block;
     }
 
-    #feedbackBtn, #goToTopBtn {
+    #feedbackBtn,
+    #goToTopBtn {
         bottom: 90px !important;
     }
 

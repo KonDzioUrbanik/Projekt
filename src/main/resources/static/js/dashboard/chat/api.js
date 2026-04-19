@@ -1,12 +1,14 @@
 import { state, DOM } from './state.js';
+import { notifications } from '../../common/notifications.js';
 import { 
     esc, initials, buildMessageEl, scrollToBottom, setAvatar, 
-    buildDateSeparator, replaceTempMessage, appendMessage, relativeTime 
+    buildDateSeparator, replaceTempMessage, appendMessage, relativeTime,
+    updateFriendButton
 } from './ui.js';
 import { sendWsTyping } from './ws.js';
 
 export function refreshConversationList() {
-    fetch('/api/chat/conversations')
+    return fetch('/api/chat/conversations')
         .then(r => r.json())
         .then(list => {
             if (DOM.convSkeleton) DOM.convSkeleton.style.display = 'none';
@@ -19,12 +21,15 @@ export function refreshConversationList() {
                 empty.style.color = 'var(--text-muted)';
                 empty.textContent = 'Brak rozmów. Zacznij nową!';
                 DOM.convList.appendChild(empty);
-                return;
+                return list;
             }
             list.forEach(conv => DOM.convList.appendChild(buildConvItem(conv)));
+            return list;
         })
-        .catch(() => {
+        .catch((err) => {
+            console.error('Refresh list error:', err);
             DOM.convList.innerHTML = '<div style="padding:1rem;color:var(--text-muted);font-size:.85rem;">Błąd ładowania rozmów.</div>';
+            return [];
         });
 }
 
@@ -113,6 +118,18 @@ export function openConversation(conv) {
     setAvatar(DOM.infoAvatarImg, DOM.infoInitials, conv.otherUserId, conv.otherUserName);
     DOM.btnInfoProfile.href = '/profile/user?userId=' + conv.otherUserId;
 
+    // Reset friendship button to avoid flicker
+    const btnAddFriend = document.getElementById('btnAddFriend');
+    if (btnAddFriend) btnAddFriend.style.display = 'none';
+
+    // Fetch and update friendship status
+    fetch(`/api/friends/status/${conv.otherUserId}`)
+        .then(r => r.text())
+        .then(status => {
+            state.currentFriendshipStatus = status;
+            updateFriendButton(status);
+        });
+
     DOM.chatEmpty.style.display = 'none';
     DOM.chatWindow.style.display = 'flex';
 
@@ -126,6 +143,13 @@ export function openConversation(conv) {
 
     loadMessages(conv.id, null, true);
     markRead(conv.id);
+
+    fetch('/api/friends/status/' + conv.otherUserId)
+        .then(r => r.text())
+        .then(status => {
+            state.currentFriendshipStatus = status;
+            updateFriendButton(status);
+        });
 
     // Dynamic STOMP notify
     import('./ws.js').then(m => {
@@ -234,14 +258,25 @@ export function editMsg(msgId, newContent) {
       });
 }
 
-export function startConversationWith(user) {
-    fetch('/api/chat/conversations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id })
-    }).then(r => r.json())
-      .then(conv => {
-          refreshConversationList();
-          openConversation(conv);
-      });
+export async function startConversationWith(user) {
+    try {
+        const response = await fetch('/api/chat/conversations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: parseInt(user.id, 10) })
+        });
+        
+        if (!response.ok) throw new Error('Failed to start conversation');
+        
+        const conv = await response.json();
+        
+        // Wait for list to refresh first
+        await refreshConversationList();
+        
+        // Then open
+        openConversation(conv);
+    } catch (error) {
+        console.error('Error starting conversation:', error);
+        notifications.error('Nie udało się rozpocząć rozmowy.');
+    }
 }

@@ -51,7 +51,7 @@ public class ChatController {
             if (userIdObj == null) {
                 return ResponseEntity.badRequest().build();
             }
-            Long otherId = ((Number) userIdObj).longValue();
+            Long otherId = Long.valueOf(userIdObj.toString());
             return ResponseEntity.ok(chatService.getOrCreateConversation(auth, otherId));
         } catch (Exception e) {
             log.error("Error creating conversation: ", e);
