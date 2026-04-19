@@ -236,25 +236,33 @@
         async createThread(event) {
             event.preventDefault();
 
-            const payload = {
-                title: (this.els.title.value || '').trim(),
-                content: (this.els.content.value || '').trim()
-            };
+            const title = (this.els.title.value || '').trim();
+            const content = (this.els.content.value || '').trim();
 
-            if (!payload.title || !payload.content) {
+            if (!title || !content) {
                 this.showError('Uzupelnij tytul i tresc watku.');
                 return;
             }
 
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('content', content);
+
             if (this.state.mode === 'admin' && this.els.targetGroup && this.els.targetGroup.value) {
-                payload.targetGroupId = Number(this.els.targetGroup.value);
+                formData.append('targetGroupId', this.els.targetGroup.value);
+            }
+
+            const filesInput = this.els.form.querySelector('input[type="file"]');
+            if (filesInput && filesInput.files.length > 0) {
+                Array.from(filesInput.files).forEach(file => {
+                    formData.append('files', file);
+                });
             }
 
             try {
                 const response = await fetch('/api/forum/threads', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: formData
                 });
                 if (!response.ok) throw new Error(await this.readError(response));
 
@@ -366,29 +374,56 @@
                 return;
             }
 
+            const formData = new FormData();
+            formData.append('content', content);
+
+            const filesInput = textarea.closest('form')?.querySelector('input[type="file"]');
+            if (filesInput && filesInput.files.length > 0) {
+                Array.from(filesInput.files).forEach(file => {
+                    formData.append('files', file);
+                });
+            }
+
             try {
                 const response = await fetch(`/api/forum/threads/${threadId}/comments`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content })
+                    body: formData
                 });
                 if (!response.ok) throw new Error(await this.readError(response));
 
                 this.showSuccess('Komentarz dodany.');
+                textarea.value = '';
+                const filesInput2 = textarea.closest('form')?.querySelector('input[type="file"]');
+                if (filesInput2) filesInput2.value = '';
                 await this.loadThreads();
             } catch (err) {
                 this.showError(err.message || 'Nie udalo sie dodac komentarza.');
             }
         },
 
-        async toggleLike(threadId) {
+        async voteThread(threadId, voteType) {
             try {
-                const response = await fetch(`/api/forum/threads/${threadId}/like`, { method: 'POST' });
+                const response = await fetch(`/api/forum/threads/${threadId}/vote?voteType=${voteType}`, {
+                    method: 'POST'
+                });
                 if (!response.ok) throw new Error(await this.readError(response));
 
                 await this.loadThreads();
             } catch (err) {
-                this.showError(err.message || 'Nie udalo sie zaktualizowac lajka.');
+                this.showError(err.message || 'Nie udalo sie zaktualizowac glosu.');
+            }
+        },
+
+        async voteComment(threadId, commentId, voteType) {
+            try {
+                const response = await fetch(`/api/forum/threads/${threadId}/comments/${commentId}/vote?voteType=${voteType}`, {
+                    method: 'POST'
+                });
+                if (!response.ok) throw new Error(await this.readError(response));
+
+                await this.loadThreads();
+            } catch (err) {
+                this.showError(err.message || 'Nie udalo sie zaktualizowac glosu.');
             }
         },
 
@@ -505,7 +540,12 @@
                         <p class="forum-thread-item-snippet">${Utils.escapeHtml(snippet)}${snippet.length >= 95 ? '...' : ''}</p>
                         <div class="forum-thread-item-meta">
                             <span class="forum-counter-line"><i class="far fa-comment"></i>${Number((thread.comments || []).length)}</span>
-                            <span class="forum-counter-line"><i class="far fa-heart"></i>${Number(thread.likeCount || 0)}</span>
+                            <span class="forum-counter-line">
+                                <i class="fas fa-arrow-up" style="color: ${thread.voteScore > 0 ? '#10b981' : 'var(--text-light)'}"></i>
+                                <span style="color: ${thread.voteScore > 0 ? '#10b981' : thread.voteScore < 0 ? '#ef4444' : 'var(--text-secondary)'}; font-weight: 600;">
+                                    ${thread.voteScore}
+                                </span>
+                            </span>
                         </div>
                     </article>
                 `;
@@ -588,6 +628,9 @@
                 ? `
                     <form class="forum-comment-form" id="forumCommentForm">
                         <textarea class="forum-textarea" id="forumCommentInput" maxlength="2000" placeholder="Napisz komentarz..."></textarea>
+                        <div class="forum-form-group" style="margin-top: 0.5rem;">
+                            <input type="file" id="forumCommentFiles" multiple accept=".jpg,.jpeg,.png,.webp,.pdf,.docx" style="font-size: 0.75rem;">
+                        </div>
                         <button class="forum-btn secondary" type="submit">Dodaj</button>
                     </form>
                 `
@@ -634,12 +677,36 @@
                         ${threadBody}
                     </div>
 
+                    ${thread.attachments && thread.attachments.length > 0 ? `
+                        <div class="forum-attachments">
+                            <h5 style="margin: 0 0 0.5rem 0; font-size: 0.85rem; color: var(--text-light); font-weight: 600;">
+                                <i class="fas fa-paperclip"></i> Załączniki (${thread.attachments.length})
+                            </h5>
+                            <div class="forum-attachments-list">
+                                ${thread.attachments.map(att => `
+                                    <a href="/api/forum/attachments/${att.id}" download="${att.originalFileName}" class="forum-attachment-item" title="${Utils.escapeHtml(att.originalFileName)}">
+                                        <i class="fas fa-file"></i>
+                                        <span class="forum-attachment-name">${Utils.escapeHtml(att.originalFileName)}</span>
+                                        <span class="forum-attachment-size">${this.formatFileSize(att.fileSize)}</span>
+                                    </a>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
                     <div class="forum-detail-toolbar">
                         ${showLikeButton
-                            ? `<button class="forum-like-btn ${thread.likedByCurrentUser ? 'liked' : ''}" id="forumLikeBtn">
-                                   <i class="${thread.likedByCurrentUser ? 'fas' : 'far'} fa-heart"></i>
-                                   ${thread.likedByCurrentUser ? 'Lubisz to' : 'Polub'} (${Number(thread.likeCount || 0)})
-                               </button>`
+                            ? `<div class="forum-vote-buttons">
+                                   <button class="forum-vote-btn ${thread.currentUserVote === 'UPVOTE' ? 'active upvote' : ''}" id="forumUpvoteBtn" data-vote-type="upvote" title="Plusuj">
+                                       <i class="fas fa-arrow-up"></i>
+                                   </button>
+                                   <span class="forum-vote-score ${thread.voteScore > 0 ? 'positive' : thread.voteScore < 0 ? 'negative' : ''}" id="forumVoteScore">
+                                       ${thread.voteScore}
+                                   </span>
+                                   <button class="forum-vote-btn ${thread.currentUserVote === 'DOWNVOTE' ? 'active downvote' : ''}" id="forumDownvoteBtn" data-vote-type="downvote" title="Minusuj">
+                                       <i class="fas fa-arrow-down"></i>
+                                   </button>
+                               </div>`
                             : '<span></span>'}
 
                         <div class="forum-mini-actions">
@@ -665,7 +732,8 @@
                 }
             });
 
-            document.getElementById('forumLikeBtn')?.addEventListener('click', () => this.toggleLike(thread.id));
+            document.getElementById('forumUpvoteBtn')?.addEventListener('click', () => this.voteThread(thread.id, 'UPVOTE'));
+            document.getElementById('forumDownvoteBtn')?.addEventListener('click', () => this.voteThread(thread.id, 'DOWNVOTE'));
             document.getElementById('forumCommentForm')?.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const input = document.getElementById('forumCommentInput');
@@ -717,6 +785,20 @@
                 btn.addEventListener('click', () => this.cancelCommentEdit());
             });
 
+            this.els.detail.querySelectorAll('[data-vote-comment-upvote]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const commentId = Number(btn.dataset.voteCommentUpvote);
+                    this.voteComment(thread.id, commentId, 'UPVOTE');
+                });
+            });
+
+            this.els.detail.querySelectorAll('[data-vote-comment-downvote]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const commentId = Number(btn.dataset.voteCommentDownvote);
+                    this.voteComment(thread.id, commentId, 'DOWNVOTE');
+                });
+            });
+
             this.els.detail.querySelectorAll('.forum-comment .forum-author-chip[data-author-id]').forEach((chip) => {
                 chip.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -751,24 +833,57 @@
                 `
                 : `<div class="forum-markdown">${this.renderMarkdown(comment.content || '')}</div>`;
 
-            return `
-                <article class="forum-comment" data-thread-id="${threadId}">
-                    <div class="forum-comment-meta">
-                        <span class="forum-comment-author-wrap">
-                            ${this.authorChipHtml({
-                                userId: comment.authorId,
-                                firstName: comment.authorFirstName,
-                                lastName: comment.authorLastName,
-                                role: comment.authorRole,
-                                compact: true
-                            })}
-                            <span>${Utils.escapeHtml(createdAt)}${editedAt ? ` <span class="forum-badge edited">Edytowano: ${Utils.escapeHtml(editedAt)}</span>` : ''}</span>
-                        </span>
-                        <span class="forum-mini-actions">${editBtn}${deleteBtn}</span>
-                    </div>
-                    ${contentBlock}
-                </article>
-            `;
+             const voteButtonsHtml = `
+                 <div class="forum-comment-votes">
+                     <button class="forum-vote-btn-small ${comment.currentUserVote === 'UPVOTE' ? 'active upvote' : ''}" data-vote-comment-upvote="${comment.id}" data-vote-type="upvote" title="Plusuj">
+                         <i class="fas fa-arrow-up"></i>
+                     </button>
+                     <span class="forum-vote-score-small ${comment.voteScore > 0 ? 'positive' : comment.voteScore < 0 ? 'negative' : ''}">
+                         ${comment.voteScore}
+                     </span>
+                     <button class="forum-vote-btn-small ${comment.currentUserVote === 'DOWNVOTE' ? 'active downvote' : ''}" data-vote-comment-downvote="${comment.id}" data-vote-type="downvote" title="Minusuj">
+                         <i class="fas fa-arrow-down"></i>
+                     </button>
+                 </div>
+             `;
+
+              return `
+                  <article class="forum-comment" data-thread-id="${threadId}" data-comment-id="${comment.id}">
+                      <div class="forum-comment-content-wrapper">
+                          <div class="forum-comment-meta">
+                              <span class="forum-comment-author-wrap">
+                                  ${this.authorChipHtml({
+                                      userId: comment.authorId,
+                                      firstName: comment.authorFirstName,
+                                      lastName: comment.authorLastName,
+                                      role: comment.authorRole,
+                                      compact: true
+                                  })}
+                                  <span>${Utils.escapeHtml(createdAt)}${editedAt ? ` <span class="forum-badge edited">Edytowano: ${Utils.escapeHtml(editedAt)}</span>` : ''}</span>
+                              </span>
+                              <span class="forum-mini-actions">${editBtn}${deleteBtn}</span>
+                          </div>
+                          ${contentBlock}
+                          ${comment.attachments && comment.attachments.length > 0 ? `
+                              <div class="forum-attachments" style="margin-top: 0.75rem; border-top: none; border-bottom: none; padding: 0;">
+                                  <div style="font-size: 0.75rem; color: var(--text-light); font-weight: 600; margin-bottom: 0.5rem;">
+                                      <i class="fas fa-paperclip"></i> Załączniki (${comment.attachments.length})
+                                  </div>
+                                  <div class="forum-attachments-list">
+                                      ${comment.attachments.map(att => `
+                                          <a href="/api/forum/comments/attachments/${att.id}" download="${att.originalFileName}" class="forum-attachment-item" title="${Utils.escapeHtml(att.originalFileName)}">
+                                              <i class="fas fa-file"></i>
+                                              <span class="forum-attachment-name">${Utils.escapeHtml(att.originalFileName)}</span>
+                                              <span class="forum-attachment-size">${this.formatFileSize(att.fileSize)}</span>
+                                          </a>
+                                      `).join('')}
+                                  </div>
+                              </div>
+                          ` : ''}
+                      </div>
+                      ${voteButtonsHtml}
+                  </article>
+              `;
         },
 
         authorChipHtml({ userId, firstName, lastName, role, compact }) {
@@ -901,6 +1016,14 @@
             return parsed.toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' });
         },
 
+        formatFileSize(bytes) {
+            if (!bytes) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        },
+
         async readError(response) {
             const text = (await response.text()).trim();
             if (!text) return 'Wystapil blad serwera.';
@@ -924,6 +1047,10 @@
 
     document.addEventListener('DOMContentLoaded', () => Forum.init());
 })();
+
+
+
+
 
 
 

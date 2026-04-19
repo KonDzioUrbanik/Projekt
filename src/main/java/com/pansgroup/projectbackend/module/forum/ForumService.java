@@ -7,8 +7,10 @@ import com.pansgroup.projectbackend.module.forum.dto.ForumThreadCreateDto;
 import com.pansgroup.projectbackend.module.forum.dto.ForumThreadModerationDto;
 import com.pansgroup.projectbackend.module.forum.dto.ForumThreadResponseDto;
 import com.pansgroup.projectbackend.module.forum.dto.ForumThreadUpdateDto;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ForumService {
 
@@ -16,9 +18,9 @@ public interface ForumService {
 
     ForumThreadResponseDto getThread(Long id);
 
-    ForumThreadResponseDto createThread(ForumThreadCreateDto dto);
+    ForumThreadResponseDto createThread(ForumThreadCreateDto dto, List<MultipartFile> files);
 
-    ForumThreadResponseDto addComment(Long threadId, ForumCommentCreateDto dto);
+    ForumThreadResponseDto addComment(Long threadId, ForumCommentCreateDto dto, List<MultipartFile> files);
 
     ForumThreadResponseDto updateThread(Long id, ForumThreadUpdateDto dto);
 
@@ -28,7 +30,9 @@ public interface ForumService {
 
     void deleteComment(Long threadId, Long commentId);
 
-    ForumThreadResponseDto toggleThreadLike(Long id);
+    ForumThreadResponseDto voteThread(Long id, String voteType); // "UPVOTE" or "DOWNVOTE"
+
+    ForumThreadResponseDto voteComment(Long threadId, Long commentId, String voteType); // "UPVOTE" or "DOWNVOTE"
 
     ForumThreadResponseDto moderateThread(Long id, ForumThreadModerationDto dto);
 
@@ -36,7 +40,11 @@ public interface ForumService {
 
     List<ForumCommentResponseDto> getUserComments(Long userId);
 
-    java.util.Map<String, Long> getUserForumStats(Long userId);
+    Map<String, Long> getUserForumStats(Long userId);
+
+    ForumThreadAttachment getAttachmentWithAccessCheck(Long attachmentId);
+
+    ForumCommentAttachment getCommentAttachmentWithAccessCheck(Long attachmentId);
 }
 
 

@@ -1,6 +1,7 @@
 package com.pansgroup.projectbackend.module.forum.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record ForumCommentResponseDto(
         Long id,
@@ -12,8 +13,11 @@ public record ForumCommentResponseDto(
         String authorFirstName,
         String authorLastName,
         String authorRole,
+        long voteScore,
+        String currentUserVote, // "UPVOTE", "DOWNVOTE", or null
         boolean canEdit,
-        boolean canDelete
+        boolean canDelete,
+        List<AttachmentResponseDto> attachments
 ) {
 }
 

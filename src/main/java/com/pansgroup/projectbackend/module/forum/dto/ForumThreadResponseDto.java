@@ -18,12 +18,13 @@ public record ForumThreadResponseDto(
         boolean locked,
         boolean archived,
         boolean pinned,
-        long likeCount,
-        boolean likedByCurrentUser,
+        long voteScore,
+        String currentUserVote, // "UPVOTE", "DOWNVOTE", or null
         boolean canEdit,
         boolean canDelete,
         boolean canModerate,
-        List<ForumCommentResponseDto> comments
+        List<ForumCommentResponseDto> comments,
+        List<AttachmentResponseDto> attachments
 ) {
 }
 

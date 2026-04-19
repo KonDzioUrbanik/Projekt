@@ -9,7 +9,9 @@ import com.pansgroup.projectbackend.module.forum.dto.ForumThreadUpdateDto;
 import com.pansgroup.projectbackend.module.forum.dto.ForumCommentResponseDto;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -36,14 +38,23 @@ public class ForumController {
 
     @PostMapping("/threads")
     @ResponseStatus(HttpStatus.CREATED)
-    public ForumThreadResponseDto createThread(@Valid @RequestBody ForumThreadCreateDto dto) {
-        return forumService.createThread(dto);
+    public ForumThreadResponseDto createThread(
+            @RequestParam String title,
+            @RequestParam String content,
+            @RequestParam(required = false) Long targetGroupId,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files) {
+        ForumThreadCreateDto dto = new ForumThreadCreateDto(title, content, targetGroupId);
+        return forumService.createThread(dto, files);
     }
 
     @PostMapping("/threads/{id}/comments")
     @ResponseStatus(HttpStatus.CREATED)
-    public ForumThreadResponseDto addComment(@PathVariable Long id, @Valid @RequestBody ForumCommentCreateDto dto) {
-        return forumService.addComment(id, dto);
+    public ForumThreadResponseDto addComment(
+            @PathVariable Long id,
+            @RequestParam String content,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files) {
+        ForumCommentCreateDto dto = new ForumCommentCreateDto(content);
+        return forumService.addComment(id, dto, files);
     }
 
     @PutMapping("/threads/{id}")
@@ -70,9 +81,17 @@ public class ForumController {
         forumService.deleteComment(threadId, commentId);
     }
 
-    @PostMapping("/threads/{id}/like")
-    public ForumThreadResponseDto toggleLike(@PathVariable Long id) {
-        return forumService.toggleThreadLike(id);
+    @PostMapping("/threads/{id}/vote")
+    public ForumThreadResponseDto voteThread(@PathVariable Long id, @RequestParam String voteType) {
+        return forumService.voteThread(id, voteType);
+    }
+
+    @PostMapping("/threads/{threadId}/comments/{commentId}/vote")
+    public ForumThreadResponseDto voteComment(
+            @PathVariable Long threadId,
+            @PathVariable Long commentId,
+            @RequestParam String voteType) {
+        return forumService.voteComment(threadId, commentId, voteType);
     }
 
     @PatchMapping("/threads/{id}/moderation")
@@ -93,6 +112,24 @@ public class ForumController {
     @GetMapping("/users/{userId}/stats")
     public Map<String, Long> getUserForumStats(@PathVariable Long userId) {
         return forumService.getUserForumStats(userId);
+    }
+
+    @GetMapping("/attachments/{attachmentId}")
+    public ResponseEntity<byte[]> getThreadAttachment(@PathVariable Long attachmentId) {
+        ForumThreadAttachment attachment = forumService.getAttachmentWithAccessCheck(attachmentId);
+        return ResponseEntity.ok()
+                .header("Content-Type", attachment.getContentType())
+                .header("Content-Disposition", "attachment; filename=\"" + attachment.getOriginalFileName() + "\"")
+                .body(attachment.getFileData());
+    }
+
+    @GetMapping("/comments/attachments/{attachmentId}")
+    public ResponseEntity<byte[]> getCommentAttachment(@PathVariable Long attachmentId) {
+        ForumCommentAttachment attachment = forumService.getCommentAttachmentWithAccessCheck(attachmentId);
+        return ResponseEntity.ok()
+                .header("Content-Type", attachment.getContentType())
+                .header("Content-Disposition", "attachment; filename=\"" + attachment.getOriginalFileName() + "\"")
+                .body(attachment.getFileData());
     }
 }
 

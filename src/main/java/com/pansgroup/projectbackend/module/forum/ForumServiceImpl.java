@@ -20,12 +20,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -34,21 +38,35 @@ public class ForumServiceImpl implements ForumService {
     private static final Logger log = LoggerFactory.getLogger(ForumServiceImpl.class);
 
     private static final Pattern TAG_PATTERN = Pattern.compile("<[^>]+>");
+    private static final int MAX_ATTACHMENTS = 5;
+    private static final long MAX_FILE_SIZE_BYTES = 5L * 1024 * 1024; // 5MB
+    private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
+            "image/jpeg", "image/png", "image/webp", "application/pdf",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
 
     private final ForumThreadRepository forumThreadRepository;
     private final ForumCommentRepository forumCommentRepository;
-    private final ForumThreadLikeRepository forumThreadLikeRepository;
+    private final ForumThreadVoteRepository forumThreadVoteRepository;
+    private final ForumCommentVoteRepository forumCommentVoteRepository;
+    private final ForumThreadAttachmentRepository forumThreadAttachmentRepository;
+    private final ForumCommentAttachmentRepository forumCommentAttachmentRepository;
     private final UserRepository userRepository;
     private final StudentGroupRepository studentGroupRepository;
 
     public ForumServiceImpl(ForumThreadRepository forumThreadRepository,
                             ForumCommentRepository forumCommentRepository,
-                            ForumThreadLikeRepository forumThreadLikeRepository,
+                            ForumThreadVoteRepository forumThreadVoteRepository,
+                            ForumCommentVoteRepository forumCommentVoteRepository,
+                            ForumThreadAttachmentRepository forumThreadAttachmentRepository,
+                            ForumCommentAttachmentRepository forumCommentAttachmentRepository,
                             UserRepository userRepository,
                             StudentGroupRepository studentGroupRepository) {
         this.forumThreadRepository = forumThreadRepository;
         this.forumCommentRepository = forumCommentRepository;
-        this.forumThreadLikeRepository = forumThreadLikeRepository;
+        this.forumThreadVoteRepository = forumThreadVoteRepository;
+        this.forumCommentVoteRepository = forumCommentVoteRepository;
+        this.forumThreadAttachmentRepository = forumThreadAttachmentRepository;
+        this.forumCommentAttachmentRepository = forumCommentAttachmentRepository;
         this.userRepository = userRepository;
         this.studentGroupRepository = studentGroupRepository;
     }
@@ -82,7 +100,7 @@ public class ForumServiceImpl implements ForumService {
     }
 
     @Override
-    public ForumThreadResponseDto createThread(ForumThreadCreateDto dto) {
+    public ForumThreadResponseDto createThread(ForumThreadCreateDto dto, List<MultipartFile> files) {
         User currentUser = getCurrentUser();
         StudentGroup targetGroup;
 
@@ -100,6 +118,7 @@ public class ForumServiceImpl implements ForumService {
         thread.setStudentGroup(targetGroup);
 
         ForumThread saved = forumThreadRepository.save(thread);
+        saveThreadAttachments(saved, files);
         return mapThread(saved, currentUser);
     }
 
@@ -113,7 +132,7 @@ public class ForumServiceImpl implements ForumService {
     }
 
     @Override
-    public ForumThreadResponseDto addComment(Long threadId, ForumCommentCreateDto dto) {
+    public ForumThreadResponseDto addComment(Long threadId, ForumCommentCreateDto dto, List<MultipartFile> files) {
         User currentUser = getCurrentUser();
         ForumThread thread = findThread(threadId);
         ensureAccess(thread, currentUser);
@@ -129,7 +148,8 @@ public class ForumServiceImpl implements ForumService {
         comment.setThread(thread);
         comment.setAuthor(currentUser);
         comment.setContent(cleanText(dto.content(), 2000, "Komentarz"));
-        forumCommentRepository.save(comment);
+        ForumComment saved = forumCommentRepository.save(comment);
+        saveCommentAttachments(saved, files);
 
         ForumThread refreshed = findThread(threadId);
         return mapThread(refreshed, currentUser);
@@ -210,26 +230,80 @@ public class ForumServiceImpl implements ForumService {
     }
 
     @Override
-    public ForumThreadResponseDto toggleThreadLike(Long id) {
+    public ForumThreadResponseDto voteThread(Long id, String voteType) {
         User currentUser = getCurrentUser();
         if (isAdmin(currentUser)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin nie moze lajkowac watkow.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin nie moze glosowac na watkach.");
         }
         ForumThread thread = findThread(id);
         ensureAccess(thread, currentUser);
 
-        forumThreadLikeRepository.findByThread_IdAndUser_Id(thread.getId(), currentUser.getId())
-                .ifPresentOrElse(
-                        forumThreadLikeRepository::delete,
-                        () -> {
-                            ForumThreadLike like = new ForumThreadLike();
-                            like.setThread(thread);
-                            like.setUser(currentUser);
-                            forumThreadLikeRepository.save(like);
-                        }
-                );
+        ForumThreadVote.VoteType type = ForumThreadVote.VoteType.valueOf(voteType.toUpperCase());
+
+        var existingVote = forumThreadVoteRepository.findByThread_IdAndUser_Id(thread.getId(), currentUser.getId());
+
+        if (existingVote.isPresent()) {
+            ForumThreadVote vote = existingVote.get();
+            if (vote.getVoteType() == type) {
+                // Remove vote if it's the same type
+                forumThreadVoteRepository.delete(vote);
+            } else {
+                // Change vote type
+                vote.setVoteType(type);
+                forumThreadVoteRepository.save(vote);
+            }
+        } else {
+            // Create new vote
+            ForumThreadVote vote = new ForumThreadVote();
+            vote.setThread(thread);
+            vote.setUser(currentUser);
+            vote.setVoteType(type);
+            forumThreadVoteRepository.save(vote);
+        }
 
         ForumThread refreshed = findThread(id);
+        return mapThread(refreshed, currentUser);
+    }
+
+    @Override
+    public ForumThreadResponseDto voteComment(Long threadId, Long commentId, String voteType) {
+        User currentUser = getCurrentUser();
+        if (isAdmin(currentUser)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin nie moze glosowac na komentarzach.");
+        }
+
+        ForumThread thread = findThread(threadId);
+        ensureAccess(thread, currentUser);
+
+        ForumComment comment = thread.getComments().stream()
+                .filter(c -> Objects.equals(c.getId(), commentId))
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie znaleziono komentarza."));
+
+        ForumCommentVote.VoteType type = ForumCommentVote.VoteType.valueOf(voteType.toUpperCase());
+
+        var existingVote = forumCommentVoteRepository.findByComment_IdAndUser_Id(comment.getId(), currentUser.getId());
+
+        if (existingVote.isPresent()) {
+            ForumCommentVote vote = existingVote.get();
+            if (vote.getVoteType() == type) {
+                // Remove vote if it's the same type
+                forumCommentVoteRepository.delete(vote);
+            } else {
+                // Change vote type
+                vote.setVoteType(type);
+                forumCommentVoteRepository.save(vote);
+            }
+        } else {
+            // Create new vote
+            ForumCommentVote vote = new ForumCommentVote();
+            vote.setComment(comment);
+            vote.setUser(currentUser);
+            vote.setVoteType(type);
+            forumCommentVoteRepository.save(vote);
+        }
+
+        ForumThread refreshed = findThread(threadId);
         return mapThread(refreshed, currentUser);
     }
 
@@ -287,6 +361,157 @@ public class ForumServiceImpl implements ForumService {
         );
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public ForumThreadAttachment getAttachmentWithAccessCheck(Long attachmentId) {
+        ForumThreadAttachment attachment = forumThreadAttachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie znaleziono załącznika."));
+
+        checkThreadAttachmentAccess(attachment);
+        return attachment;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ForumCommentAttachment getCommentAttachmentWithAccessCheck(Long attachmentId) {
+        ForumCommentAttachment attachment = forumCommentAttachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie znaleziono załącznika komentarza."));
+
+        checkCommentAttachmentAccess(attachment);
+        return attachment;
+    }
+
+    private void checkThreadAttachmentAccess(ForumThreadAttachment attachment) {
+        User currentUser = getCurrentUser();
+        ForumThread thread = attachment.getThread();
+
+        if (isAdmin(currentUser)) {
+            return;
+        }
+
+        StudentGroup group = currentUser.getStudentGroup();
+        if (group == null || !Objects.equals(group.getId(), thread.getStudentGroup().getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak dostępu do tego załącznika.");
+        }
+    }
+
+    private void checkCommentAttachmentAccess(ForumCommentAttachment attachment) {
+        User currentUser = getCurrentUser();
+        ForumThread thread = attachment.getComment().getThread();
+
+        if (isAdmin(currentUser)) {
+            return;
+        }
+
+        StudentGroup group = currentUser.getStudentGroup();
+        if (group == null || !Objects.equals(group.getId(), thread.getStudentGroup().getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak dostępu do tego załącznika.");
+        }
+    }
+
+    private void saveThreadAttachments(ForumThread thread, List<MultipartFile> files) {
+        if (files == null || files.isEmpty())
+            return;
+
+        List<MultipartFile> nonEmpty = files.stream()
+                .filter(f -> f != null && !f.isEmpty())
+                .collect(Collectors.toList());
+
+        if (nonEmpty.size() > MAX_ATTACHMENTS) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Można dodać maksymalnie " + MAX_ATTACHMENTS + " załączników.");
+        }
+
+        for (MultipartFile file : nonEmpty) {
+            validateFile(file);
+            try {
+                ForumThreadAttachment attachment = new ForumThreadAttachment();
+                attachment.setThread(thread);
+                String originalName = file.getOriginalFilename() != null ? file.getOriginalFilename() : "plik";
+
+                String sanitizedName = originalName.replaceAll("[\\n\\r]", "_").replace("\"", "'");
+                attachment.setFileName(sanitizedName);
+                attachment.setOriginalFileName(sanitizedName);
+                attachment.setFilePath(sanitizedName);
+
+                String extension = "";
+                int lastDot = sanitizedName.lastIndexOf('.');
+                if (lastDot > 0) {
+                    extension = sanitizedName.substring(lastDot + 1).toLowerCase();
+                }
+                attachment.setFileExtension(extension);
+
+                String contentType = file.getContentType() != null ? file.getContentType() : "application/octet-stream";
+                attachment.setContentType(contentType);
+                attachment.setFileType(extension.toUpperCase());
+                attachment.setFileSize(file.getSize());
+                attachment.setFileData(file.getBytes());
+                forumThreadAttachmentRepository.save(attachment);
+            } catch (IOException e) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Nie można odczytać pliku: " + file.getOriginalFilename());
+            }
+        }
+    }
+
+    private void saveCommentAttachments(ForumComment comment, List<MultipartFile> files) {
+        if (files == null || files.isEmpty())
+            return;
+
+        List<MultipartFile> nonEmpty = files.stream()
+                .filter(f -> f != null && !f.isEmpty())
+                .collect(Collectors.toList());
+
+        if (nonEmpty.size() > MAX_ATTACHMENTS) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Można dodać maksymalnie " + MAX_ATTACHMENTS + " załączników.");
+        }
+
+        for (MultipartFile file : nonEmpty) {
+            validateFile(file);
+            try {
+                ForumCommentAttachment attachment = new ForumCommentAttachment();
+                attachment.setComment(comment);
+                String originalName = file.getOriginalFilename() != null ? file.getOriginalFilename() : "plik";
+
+                String sanitizedName = originalName.replaceAll("[\\n\\r]", "_").replace("\"", "'");
+                attachment.setFileName(sanitizedName);
+                attachment.setOriginalFileName(sanitizedName);
+                attachment.setFilePath(sanitizedName);
+
+                String extension = "";
+                int lastDot = sanitizedName.lastIndexOf('.');
+                if (lastDot > 0) {
+                    extension = sanitizedName.substring(lastDot + 1).toLowerCase();
+                }
+                attachment.setFileExtension(extension);
+
+                String contentType = file.getContentType() != null ? file.getContentType() : "application/octet-stream";
+                attachment.setContentType(contentType);
+                attachment.setFileType(extension.toUpperCase());
+                attachment.setFileSize(file.getSize());
+                attachment.setFileData(file.getBytes());
+                forumCommentAttachmentRepository.save(attachment);
+            } catch (IOException e) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Nie można odczytać pliku: " + file.getOriginalFilename());
+            }
+        }
+    }
+
+    private void validateFile(MultipartFile file) {
+        if (file.getSize() > MAX_FILE_SIZE_BYTES) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Plik \"" + file.getOriginalFilename() + "\" przekracza maksymalny rozmiar 5 MB.");
+        }
+
+        String contentType = file.getContentType() != null ? file.getContentType() : "application/octet-stream";
+        if (!ALLOWED_CONTENT_TYPES.contains(contentType)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Typ pliku " + contentType + " nie jest dozwolony. Dozwolone: JPG, PNG, WEBP, PDF, DOCX");
+        }
+    }
+
     private ForumThread findThread(Long id) {
         return forumThreadRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie znaleziono watku."));
@@ -319,14 +544,30 @@ public class ForumServiceImpl implements ForumService {
         boolean canDelete = isAdmin(currentUser) || Objects.equals(authorId, currentUser.getId());
         boolean canEdit = canDelete;
         boolean canModerate = isAdmin(currentUser);
-        long likeCount = thread.getId() == null ? 0 : forumThreadLikeRepository.countByThread_Id(thread.getId());
-        boolean likedByCurrentUser = thread.getId() != null
-                && currentUser.getId() != null
-                && forumThreadLikeRepository.existsByThread_IdAndUser_Id(thread.getId(), currentUser.getId());
+
+        long voteScore = thread.getId() == null ? 0 : (forumThreadVoteRepository.getVoteScore(thread.getId()) != null ? forumThreadVoteRepository.getVoteScore(thread.getId()) : 0);
+
+        String currentUserVote = null;
+        if (thread.getId() != null && currentUser.getId() != null) {
+            var vote = forumThreadVoteRepository.findByThread_IdAndUser_Id(thread.getId(), currentUser.getId());
+            if (vote.isPresent()) {
+                currentUserVote = vote.get().getVoteType().toString();
+            }
+        }
+
         List<ForumCommentResponseDto> comments = (thread.getComments() == null ? List.<ForumComment>of() : thread.getComments())
                 .stream()
                 .sorted(Comparator.comparing(ForumComment::getCreatedAt))
                 .map(c -> mapComment(c, thread, currentUser))
+                .toList();
+
+        List<com.pansgroup.projectbackend.module.forum.dto.AttachmentResponseDto> attachments = (thread.getAttachments() == null ? List.<ForumThreadAttachment>of() : thread.getAttachments())
+                .stream()
+                .map(a -> new com.pansgroup.projectbackend.module.forum.dto.AttachmentResponseDto(
+                        a.getId(),
+                        a.getOriginalFileName(),
+                        a.getContentType(),
+                        a.getFileSize()))
                 .toList();
 
         return new ForumThreadResponseDto(
@@ -344,12 +585,13 @@ public class ForumServiceImpl implements ForumService {
                 thread.isLocked(),
                 thread.isArchived(),
                 thread.isPinned(),
-                likeCount,
-                likedByCurrentUser,
+                voteScore,
+                currentUserVote,
                 canEdit,
                 canDelete,
                 canModerate,
-                comments
+                comments,
+                attachments
         );
     }
 
@@ -364,6 +606,25 @@ public class ForumServiceImpl implements ForumService {
         boolean canEdit = isAdmin(currentUser)
                 || Objects.equals(commentAuthorId, currentUser.getId());
 
+        long voteScore = comment.getId() == null ? 0 : (forumCommentVoteRepository.getVoteScore(comment.getId()) != null ? forumCommentVoteRepository.getVoteScore(comment.getId()) : 0);
+
+        String currentUserVote = null;
+        if (comment.getId() != null && currentUser.getId() != null) {
+            var vote = forumCommentVoteRepository.findByComment_IdAndUser_Id(comment.getId(), currentUser.getId());
+            if (vote.isPresent()) {
+                currentUserVote = vote.get().getVoteType().toString();
+            }
+        }
+
+        List<com.pansgroup.projectbackend.module.forum.dto.AttachmentResponseDto> attachments = (comment.getAttachments() == null ? List.<ForumCommentAttachment>of() : comment.getAttachments())
+                .stream()
+                .map(a -> new com.pansgroup.projectbackend.module.forum.dto.AttachmentResponseDto(
+                        a.getId(),
+                        a.getOriginalFileName(),
+                        a.getContentType(),
+                        a.getFileSize()))
+                .toList();
+
         return new ForumCommentResponseDto(
                 comment.getId(),
                 thread.getId(),
@@ -374,8 +635,11 @@ public class ForumServiceImpl implements ForumService {
                 commentAuthor != null ? commentAuthor.getFirstName() : "Nieznany",
                 commentAuthor != null ? commentAuthor.getLastName() : "autor",
                 normalizeRole(commentAuthor),
+                voteScore,
+                currentUserVote,
                 canEdit,
-                canDelete
+                canDelete,
+                attachments
         );
     }
 
