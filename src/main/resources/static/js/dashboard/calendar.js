@@ -156,3 +156,48 @@ class FullCalendarInitializer {
 
 // Udostępnienie klasy globalnie, bez automatycznej inicjalizacji
 window.FullCalendarInitializer = FullCalendarInitializer;
+
+// Filtrowanie
+async function fetchAndRenderFilteredEvents() {
+    const filterSelect = document.getElementById('eventTypeFilter');
+    const selectedType = filterSelect.value;
+    
+    const initializer = window.calendarInitializerInstance || new FullCalendarInitializer();
+    // Żeby nie tworzyć w kółko nowych instancji
+    window.calendarInitializerInstance = initializer;
+
+    try {
+        let apiUrl = '/api/calendar';
+        if (selectedType !== 'ALL') {
+            apiUrl = `/api/calendar/filter?type=${selectedType}`;
+        }
+        
+        // Pokazujemy loader
+        if(initializer.loadingEl) initializer.loadingEl.classList.add('active');
+        if(initializer.calendarEl) initializer.calendarEl.style.display = 'none';
+
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+            throw new Error(`Błąd HTTP: ${response.status}`);
+        }
+        
+        const rawData = await response.json();
+        
+        // Mapowanie DTO ze Springa na format FullCalendar
+        const formattedEvents = rawData.map(event => ({
+            id: event.id,
+            title: event.title,
+            start: event.dateFrom,
+            end: event.dateTo,
+            backgroundColor: event.markerColor || '#3788d8', // Domyślny kolor jeśli brak
+            extendedProps: {
+                type: event.type
+            }
+        }));
+
+        await initializer.renderCalendar(formattedEvents);
+
+    } catch (error) {
+        console.error("Błąd podczas pobierania filtrowanych zdarzeń:", error);
+    }
+}

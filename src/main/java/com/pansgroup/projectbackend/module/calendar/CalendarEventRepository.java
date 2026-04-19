@@ -18,4 +18,7 @@ public interface CalendarEventRepository extends JpaRepository<CalendarEvent, Lo
     @Query("SELECT e FROM CalendarEvent e WHERE e.type IN :types AND :date BETWEEN e.dateFrom AND e.dateTo ORDER BY e.dateFrom ASC")
     List<CalendarEvent> findActiveEventsByTypesAndDate(@Param("types") List<CalendarEventType> types,
             @Param("date") LocalDate date);
+
+//filtrowanie
+     List<CalendarEvent> findAllByTypeOrderByDateFromAsc(CalendarEventType type);
 }

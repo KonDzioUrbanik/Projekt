@@ -19,8 +19,17 @@
                             <i class="fas fa-arrow-right"></i>
                         </button>
                     </div>
-                    <button id="todayBtn" class="today-btn">Dzisiaj</button>
-                </div>
+                    
+                    <div style="display: flex; align-items: center;">
+                        <select id="eventTypeFilter" onchange="fetchAndRenderFilteredEvents()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; margin-right: 15px; background-color: white; cursor: pointer;">
+                            <option value="ALL">Wszystkie wydarzenia</option>
+                            <option value="EXAM">Tylko Egzaminy</option>
+                            <option value="HOLIDAY">Tylko Święta</option>
+                            <option value="BREAK">Tylko Przerwy / Ferie</option>
+                        </select>
+                        <button id="todayBtn" class="today-btn">Dzisiaj</button>
+                    </div>
+                    </div>
                 
                 <div id="calendarGrid">
                     </div>
