@@ -93,6 +93,19 @@
                         <div id="forumCreatePreview" class="forum-markdown-preview"></div>
                     </div>
 
+                    <div class="forum-form-group">
+                        <label for="forumThreadFiles">
+                            <i class="fas fa-paperclip"></i> Załączniki (max 5, po 5 MB)
+                        </label>
+                        <input type="file"
+                               id="forumThreadFiles"
+                               class="forum-input"
+                               multiple
+                               accept=".jpg,.jpeg,.png,.webp,.pdf,.docx">
+                        <div id="forumFileList" class="forum-file-list"></div>
+                        <div class="forum-hint">Dozwolone: JPG, PNG, WEBP, PDF, DOCX</div>
+                    </div>
+
                     <div class="forum-actions">
                         <button class="forum-btn ghost" id="forumCreateCancelBtn" type="button">Anuluj</button>
                         <button class="forum-btn primary" type="submit">Opublikuj</button>
