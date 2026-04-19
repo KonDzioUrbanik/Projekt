@@ -1,10 +1,12 @@
 export const state = {
     currentConvId: null,
     currentOtherUser: null,
+    currentFriendshipStatus: null,
     oldestMsgId: null,
     hasMoreMessages: false,
     isNearBottom: true,
     editMsgId: null,
+    contextMsgId: null,
     contextMsgId: null,
     myEmail: document.getElementById('currentUserEmail')?.getAttribute('content') || ''
 };

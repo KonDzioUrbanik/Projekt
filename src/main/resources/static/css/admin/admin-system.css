@@ -13,7 +13,8 @@
 .header-actions .last-sync {
     font-size: 0.85rem;
     color: var(--text-muted, #6c757d);
-    white-space: nowrap;
+    white-space: normal;
+    text-align: right;
 }
 
 @keyframes fadeIn {
@@ -36,6 +37,8 @@
     margin-bottom: 2rem;
     padding-bottom: 1rem;
     border-bottom: 2px solid var(--border, #e0e0e0);
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 .header-section h2 {
@@ -59,7 +62,7 @@
 /* HEALTH SUMMARY ROW */
 .health-summary-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 1.25rem;
     margin-bottom: 2rem;
 }
@@ -106,7 +109,10 @@
     align-items: center;
     gap: 0.4rem;
     line-height: 1;
-    white-space: nowrap;
+    white-space: normal;
+    text-align: left;
+    height: auto;
+    min-height: 2.2rem;
 }
 
 .summary-value {
@@ -449,7 +455,7 @@ input:checked+.slider:before {
     justify-content: center;
     gap: 0.5rem;
     transition: all 0.2s ease;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     font-size: 0.85rem;
     font-weight: 500;
 }
@@ -704,7 +710,8 @@ input:checked+.slider:before {
     color: var(--text-muted, #64748b);
 }
 
-.pagination-select, .pagination-input {
+.pagination-select,
+.pagination-input {
     padding: 0.4rem 0.6rem;
     border-radius: 6px;
     border: 1px solid #e2e8f0;
@@ -715,13 +722,15 @@ input:checked+.slider:before {
     transition: border-color 0.2s;
 }
 
-[data-theme="dark"] .pagination-select, [data-theme="dark"] .pagination-input {
+[data-theme="dark"] .pagination-select,
+[data-theme="dark"] .pagination-input {
     background: #1e293b;
     border-color: #334155;
     color: #94a3b8;
 }
 
-.pagination-select:focus, .pagination-input:focus {
+.pagination-select:focus,
+.pagination-input:focus {
     border-color: var(--primary, #005efa);
 }
 
@@ -771,4 +780,4 @@ input:checked+.slider:before {
     font-size: 0.85rem;
     color: var(--text-muted, #64748b);
     font-weight: 500;
-}
+}

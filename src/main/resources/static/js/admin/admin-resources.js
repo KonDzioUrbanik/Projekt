@@ -235,7 +235,10 @@ async function fetchTopUsers() {
                     <td style="font-weight:600; opacity:0.6; font-size: 0.8rem;">#${user.id}</td>
                     <td>
                         <div class="user-info-brief">
-                            <span class="user-name-cell">${adminUtils.escapeHtml(user.firstName || user.first_name || 'Użytkownik')} ${adminUtils.escapeHtml(user.lastName || user.last_name || '')}</span>
+                            <a href="/profile/user?userId=${user.id}" class="user-profile-link" title="Przejdź do profilu użytkownika">
+                                <span class="user-name-cell">${adminUtils.escapeHtml(user.firstName || user.first_name || 'Użytkownik')} ${adminUtils.escapeHtml(user.lastName || user.last_name || '')}</span>
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
                             <span class="user-email-cell">${adminUtils.escapeHtml(user.email)}</span>
                         </div>
                     </td>

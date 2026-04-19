@@ -25,7 +25,6 @@
                     </div>
                 </div>
 
-                <!-- filtry -->
                 <div class="filters-section">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
@@ -38,6 +37,7 @@
                             <option value="">Wszystkie typy</option>
                             <option value="WYKLAD">Wykład</option>
                             <option value="CWICZENIA">Ćwiczenia laboratoryjne</option>
+                            <option value="CWICZENIA_PROJEKTOWE">Ćwiczenia projektowe</option>
                             <option value="LABORATORIUM">Laboratorium</option>
                             <option value="PROJEKT">Projekt zespołowy</option>
                             <option value="SEMINARIUM">Seminarium</option>
@@ -80,9 +80,6 @@
                     <span id="resultsCount">0</span>
                 </div>
 
-                <!-- tabela zajec -->
-                
-                <!-- Kontrolki paginacji -->
                 <div class="pagination-controls" id="paginationTop">
                     <div class="pagination-info">
                         Strona <span id="currentPageTop">1</span> z <span id="totalPagesTop">1</span>
@@ -119,14 +116,11 @@
                             </tr>
                         </thead>
                         <tbody id="scheduleTableBody">
-                            <!-- wypełniane dynamicznie przez javascript -->
                         </tbody>
                     </table>
                 </div>
-
             </div>
 
-            <!-- modal dodawania/edycji -->
             <div class="modal" id="scheduleModal">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -144,7 +138,6 @@
                                 </div>
                             </div>
 
-                            <!-- Prowadzący (multi-tag) -->
                             <div class="form-row">
                                 <div class="form-group full-width">
                                     <label>Prowadzący</label>
@@ -190,12 +183,10 @@
                                 </div>
                             </div>
 
-                            <!-- Terminy zajęć (dynamic occurrences) -->
                             <div class="form-row">
                                 <div class="form-group full-width">
                                     <label>Terminy zajęć</label>
                                     <div id="occurrencesList">
-                                        <!-- wypełniane dynamicznie -->
                                     </div>
                                     <button type="button" class="btn-add-occurrence" id="addOccurrenceBtn">
                                         <i class="fas fa-plus"></i> Dodaj termin
@@ -207,7 +198,6 @@
                             <div class="form-group full-width">
                                 <label for="studentGroups"> Kierunki studiów</label>
                                 <select id="studentGroups" multiple size="5">
-                                    <!-- wypełniane dynamicznie z API -->
                                 </select>
                                 <small class="form-hint">Przytrzymaj 'Ctrl' aby wybrać wiele kierunków</small>
                             </div>
@@ -224,7 +214,6 @@
                 </div>
             </div>
 
-            <!-- Modal eksportu CSV -->
             <div id="exportModal" class="modal">
                 <div class="modal-content export-modal">
                     <div class="modal-header">
@@ -268,26 +257,6 @@
                 </div>
             </div>
 
-            <!-- Delete Confirmation Modal -->
-            <div class="modal-overlay" id="deleteConfirmOverlay">
-                <div class="modal-card modal-sm modal-center-content">
-                    <div class="modal-body-centered">
-                        <div class="modal-icon-wrapper danger">
-                            <i class="fas fa-trash-alt"></i>
-                        </div>
-                        <h3>Uwaga</h3>
-                        <p class="text-muted" id="deleteModalText">
-                            Czy na pewno chcesz usunąć te zajęcia?
-                        </p>
-                    </div>
-                    <div class="modal-footer-centered">
-                        <button class="btn-text-gray" id="btnCancelDelete">Anuluj</button>
-                        <button class="btn-danger-block" id="btnConfirmDelete">Usuń zajęcia</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Collision Warning Modal -->
             <div class="modal-overlay" id="collisionModal">
                 <div class="modal-card modal-center-content">
                     <div class="modal-body-centered">
@@ -305,7 +274,6 @@
                 </div>
             </div>
 
-            <!-- Preview Modal -->
             <div id="previewModal" class="modal">
                 <div class="modal-content preview-modal-content">
                     <div class="modal-header">
@@ -313,7 +281,6 @@
                         <button class="close-btn" id="closePreviewBtn">&times;</button>
                     </div>
                     <div class="modal-body" id="previewBody">
-                        <!-- wypełniane dynamicznie w JS -->
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-tertiary" id="closePreviewFooterBtn">Powrót do edycji</button>

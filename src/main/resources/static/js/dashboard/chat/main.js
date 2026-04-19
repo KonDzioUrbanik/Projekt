@@ -1,37 +1,62 @@
+import { notifications } from '../../common/notifications.js';
+import { confirmModal } from '../../common/modals.js';
 import { state, DOM } from './state.js';
 import { connectWs, sendWsTyping, stompClient } from './ws.js';
 import { refreshConversationList, openConversation, loadMessages, editMsg, deleteMsg, startConversationWith } from './api.js';
-import { appendMessage, scrollToBottom, setAvatar, replaceTempMessage, initials, virtualScrollTrim } from './ui.js';
+import { appendMessage, scrollToBottom, setAvatar, replaceTempMessage, initials, virtualScrollTrim, updateFriendButton } from './ui.js';
 
 let typingTimeout = null;
 let lastTypingSent = 0;
 let isSending = false;
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Establish WebSocket connection
     connectWs();
-    refreshConversationList();
+
+    // Load initial conversation list
+    await refreshConversationList();
 
     // Context Menu logic
     document.addEventListener('click', () => {
         DOM.contextMenu.style.display = 'none';
     });
 
-    document.getElementById('ctxEdit').addEventListener('click', () => {
+    document.getElementById('ctxEdit').addEventListener('click', (e) => {
+        e.stopPropagation();
+        DOM.contextMenu.style.display = 'none';
+
         if (!state.contextMsgId) return;
         state.editMsgId = state.contextMsgId;
+        
         const msgWrap = document.querySelector(`[data-msg-id="${state.editMsgId}"]`);
         if (msgWrap) {
-            // Very strict extraction without innerHTML
             const bubble = msgWrap.querySelector('.chat-msg-bubble');
-            let content = Array.from(bubble.childNodes)
-                .map(n => n.nodeType === 3 ? n.textContent : (n.nodeName === 'BR' ? '\n' : ''))
-                .join('');
-            document.getElementById('editMsgInput').value = content;
-            document.getElementById('editMsgOverlay').style.display = 'flex';
+            if (bubble) {
+                // Determine content strictly from DOM for reliability
+                const content = Array.from(bubble.childNodes)
+                    .map(n => n.nodeType === 3 ? n.textContent : (n.nodeName === 'BR' ? '\n' : ''))
+                    .join('');
+
+                const overlay = document.getElementById('editMsgOverlay');
+                const input = document.getElementById('editMsgInput');
+                if (overlay && input) {
+                    input.value = content;
+                    overlay.style.display = 'flex';
+                    overlay.style.visibility = 'visible';
+                    overlay.style.opacity = '1';
+                    overlay.style.zIndex = '20000';
+                }
+            } else {
+                console.warn('Edit aborted: Bubble not found for msgId', state.editMsgId);
+            }
+        } else {
+            console.warn('Edit aborted: Message wrap not found for msgId', state.editMsgId);
         }
     });
 
-    document.getElementById('ctxDelete').addEventListener('click', () => {
+    document.getElementById('ctxDelete').addEventListener('click', (e) => {
+        e.stopPropagation();
+        DOM.contextMenu.style.display = 'none';
         if (!state.contextMsgId) return;
         if (confirm('Usunąć tę wiadomość?')) {
             deleteMsg(state.contextMsgId);
@@ -133,8 +158,39 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.chatLayout.classList.remove('has-info-panel');
     });
 
-    document.getElementById('btnAddFriend').addEventListener('click', () => {
-        alert('Funkcja dodawania do znajomych zostanie wkrótce udostępniona!');
+    // Info Panel actions delegation
+    document.getElementById('chatInfoPanel').addEventListener('click', async (e) => {
+        const btnAdd = e.target.closest('#btnAddFriend');
+
+        if (btnAdd) {
+            if (!state.currentOtherUser) return;
+            const otherId = state.currentOtherUser.otherUserId;
+            try {
+                const isAccepting = (state.currentFriendshipStatus === 'RECEIVED');
+                const endpoint = isAccepting 
+                    ? `/api/friends/accept-user/${otherId}` 
+                    : `/api/friends/request/${otherId}`;
+
+                const response = await fetch(endpoint, { method: 'POST' });
+                if (response.ok) {
+                    if (isAccepting) {
+                        notifications.success('Zaakceptowano zaproszenie!');
+                        updateFriendButton('FRIENDS');
+                        state.currentFriendshipStatus = 'FRIENDS';
+                    } else {
+                        notifications.success('Zaproszenie zostało wysłane pomyślnie!');
+                        updateFriendButton('SENT');
+                        state.currentFriendshipStatus = 'SENT';
+                    }
+                } else {
+                    const msg = await response.text();
+                    notifications.error(msg || 'Wystąpił błąd.');
+                }
+            } catch (err) {
+                console.error(err);
+                notifications.error('Błąd połączenia z serwerem.');
+            }
+        }
     });
 
     document.getElementById('btnBackToSidebar').addEventListener('click', () => {
@@ -157,15 +213,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Auto open from URL
+    // Auto open from URL (conversationId or userId)
+    const urlParams = new URLSearchParams(window.location.search);
+    const userIdParam = urlParams.get('userId');
     const openConvId = document.getElementById('openConversationId')?.getAttribute('content');
-    if (openConvId) {
-        fetch('/api/chat/conversations')
-            .then(r => r.json())
-            .then(list => {
-                const c = list.find(x => String(x.id) === openConvId);
-                if (c) openConversation(c);
-            });
+
+    if (openConvId && openConvId !== 'null' && openConvId !== '') {
+        // Find in already loaded list
+        const list = await refreshConversationList(); // Returns list from cache/fetch
+        const c = list.find(x => String(x.id) === openConvId);
+        if (c) openConversation(c);
+    } else if (userIdParam) {
+        startConversationWith({ id: userIdParam });
     }
 });
 
@@ -237,3 +296,5 @@ function sendTextMessage() {
 
     sendWsTyping(false);
 }
+
+

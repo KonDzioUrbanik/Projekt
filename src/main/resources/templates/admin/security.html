@@ -11,39 +11,38 @@
     <div layout:fragment="content">
         <div class="system-management-wrapper">
             <div class="header-section">
-                <h2><i class="fas fa-shield-alt"></i> Centrum Bezpieczeństwa</h2>
+                <h2>Panel audytu i bezpieczeństwa systemowego</h2>
                 <div class="header-actions">
-                    <span class="last-sync">Ostatnia aktualizacja (od startu systemu): <span id="lastSyncTime">-</span></span>
+                    <span class="last-sync">Ostatnia synchronizacja logów zdarzeń: <span id="lastSyncTime">-</span></span>
                 </div>
             </div>
 
-            <!-- Global Health Row (Unified) -->
             <div class="health-summary-row">
                 <div class="summary-item">
                     <i class="fas fa-clock"></i>
                     <div class="summary-info">
-                        <span class="summary-label">Uptime systemu</span>
+                        <span class="summary-label">Czas pracy instancji (Uptime)</span>
                         <span class="summary-value" id="uptimeValue">0d 0h 0m</span>
                     </div>
                 </div>
                 <div class="summary-item">
                     <i class="fas fa-exchange-alt"></i>
                     <div class="summary-info">
-                        <span class="summary-label">Zapytania (od startu)</span>
+                        <span class="summary-label">Przetworzone żądania (Total Requests)</span>
                         <span class="summary-value" id="totalRequestsValue">0</span>
                     </div>
                 </div>
                 <div class="summary-item" id="errorsSummaryItem" title="5xx: Błędy serwera (krytyczne), 4xx: Błędy klienta (np. 404, 403 - próby botów/skanowania)">
                     <i class="fas fa-exclamation-circle"></i>
                     <div class="summary-info">
-                        <span class="summary-label">Błędy (5xx/4xx) <i class="fas fa-question-circle" style="font-size: 0.7rem; opacity: 0.5;"></i></span>
+                        <span class="summary-label">Wskaźnik błędów odpowiedzi (Status 4xx/5xx) <i class="fas fa-question-circle" style="font-size: 0.7rem; opacity: 0.5;"></i></span>
                         <span class="summary-value" id="errorRateValue">0 / 0</span>
                     </div>
                 </div>
                 <div class="summary-item" id="backendStatusItem">
                     <i class="fas fa-check-circle"></i>
                     <div class="summary-info">
-                        <span class="summary-label">Backend</span>
+                        <span class="summary-label">Status operacyjny (Backend)</span>
                         <span class="summary-value" id="backendStatusValue">Ładowanie...</span>
                     </div>
                 </div>
@@ -54,21 +53,21 @@
                 <div class="summary-item status-ok" id="systemSafetyItem">
                     <i class="fas fa-user-shield"></i>
                     <div class="summary-info">
-                        <span class="summary-label">Status Bezpieczeństwa</span>
+                        <span class="summary-label">Weryfikacja integralności i zagrożeń</span>
                         <span class="summary-value" id="systemSafetyValue">BEZPIECZNY</span>
                     </div>
                 </div>
                 <div class="summary-item status-ok">
                     <i class="fas fa-user-lock"></i>
                     <div class="summary-info">
-                        <span class="summary-label">Nieudane logowania (24h)</span>
+                        <span class="summary-label">Próby uwierzytelnienia z błędnym hasłem (24h)</span>
                         <span class="summary-value" id="failedLoginsCount">0</span>
                     </div>
                 </div>
                 <div class="summary-item status-ok">
                     <i class="fas fa-mask"></i>
                     <div class="summary-info">
-                        <span class="summary-label">Podejrzane adresy IP</span>
+                        <span class="summary-label">Adresy IP o wysokim współczynniku ryzyka</span>
                         <span class="summary-value" id="suspiciousIpsCount">0</span>
                     </div>
                 </div>
@@ -77,7 +76,7 @@
             <div class="system-grid">
                 <div class="system-card" style="grid-column: span 3;">
                     <div class="card-header">
-                        <h3><i class="fas fa-list-ul"></i> Rejestr zdarzeń bezpieczeństwa</h3>
+                        <h3><i class="fas fa-list-ul"></i> Dziennik zdarzeń bezpieczeństwa (Audit Log)</h3>
                         <div class="header-actions">
                             <div class="filter-group">
                                 <select id="filterEventType" class="admin-select">
@@ -90,7 +89,7 @@
                                     <option value="SECURITY_ALERT">SECURITY_ALERT</option>
                                 </select>
                                 <input type="text" id="filterIpAddress" class="admin-input" placeholder="Filtruj IP...">
-                                <input type="text" id="filterQuery" class="admin-input" placeholder="Search details..." title="Szukaj w szczegółach">
+                                <input type="text" id="filterQuery" class="admin-input" placeholder="Wyszukaj..." title="Wyszukaj w szczegółach">
                                 <button type="button" class="btn-reset-filters" id="resetSecurityFilters" title="Resetuj filtry">
                                     <i class="fas fa-undo"></i>
                                 </button>

@@ -1,7 +1,6 @@
-/**
- * Dedicated User Profile Module
- * Logic for viewing other users' public data.
- */
+import { notifications } from '../common/notifications.js';
+import { confirmModal } from '../common/modals.js';
+
 class UserProfileModule {
     constructor() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -111,6 +110,125 @@ class UserProfileModule {
         const lastActive = user.lastLogin || user.createdAt;
         if (lastActive) {
             this.DOM.userLastSeen.textContent = Utils.formatDate(new Date(lastActive));
+        }
+
+        this.renderFriendActions(user.id);
+    }
+
+    async renderFriendActions(targetUserId) {
+        const actionsContainer = document.getElementById('profileActions');
+        if (!actionsContainer) return;
+
+        try {
+            const response = await fetch(`/api/friends/status/${targetUserId}`);
+            const status = await response.text();
+
+            actionsContainer.innerHTML = '';
+
+            if (status === 'LOCKED') {
+                actionsContainer.style.display = 'none';
+                return;
+            }
+            actionsContainer.style.display = 'flex';
+
+            switch (status) {
+                case 'NONE':
+                    const addBtn = document.createElement('button');
+                    addBtn.className = 'btn-primary up-action-btn';
+                    addBtn.innerHTML = '<i class="fas fa-user-plus"></i> Dodaj do znajomych';
+                    addBtn.onclick = () => this.handleFriendAction('request', targetUserId);
+                    actionsContainer.appendChild(addBtn);
+                    break;
+                case 'SENT':
+                    const sentBtn = document.createElement('button');
+                    sentBtn.className = 'btn-secondary up-action-btn';
+                    sentBtn.disabled = true;
+                    sentBtn.innerHTML = '<i class="fas fa-clock"></i> Zaproszenie wysłane';
+                    actionsContainer.appendChild(sentBtn);
+                    break;
+                case 'RECEIVED':
+                    const acceptBtn = document.createElement('button');
+                    acceptBtn.className = 'btn-primary up-action-btn';
+                    acceptBtn.innerHTML = '<i class="fas fa-check"></i> Akceptuj zaproszenie';
+                    acceptBtn.onclick = () => this.handleAcceptRequest(targetUserId);
+                    actionsContainer.appendChild(acceptBtn);
+                    break;
+                case 'FRIENDS':
+                    const chatBtn = document.createElement('button');
+                    chatBtn.className = 'btn-primary up-action-btn';
+                    chatBtn.innerHTML = '<i class="fas fa-comment"></i> Rozpocznij czat';
+                    chatBtn.onclick = () => window.location.href = `/student/chat?userId=${targetUserId}`;
+                    actionsContainer.appendChild(chatBtn);
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'btn-secondary up-action-btn danger-text';
+                    removeBtn.innerHTML = '<i class="fas fa-user-minus"></i> Usuń ze znajomych';
+                    removeBtn.onclick = () => this.handleRemoveFriend(targetUserId);
+                    actionsContainer.appendChild(removeBtn);
+                    break;
+            }
+        } catch (error) {
+            console.error('Error rendering friend actions:', error);
+        }
+    }
+
+    async handleFriendAction(action, targetUserId) {
+        try {
+            const response = await fetch(`/api/friends/${action}/${targetUserId}`, { method: 'POST' });
+            if (response.ok) {
+                notifications.success('Zaproszenie zostało wysłane pomyślnie!');
+                this.renderFriendActions(targetUserId);
+            } else {
+                const msg = await response.text();
+                notifications.error(msg || 'Nie udało się wysłać zaproszenia.');
+            }
+        } catch (error) {
+            console.error('Error handled friend action:', error);
+            notifications.error('Wystąpił błąd podczas komunikacji z serwerem.');
+        }
+    }
+
+    async handleAcceptRequest(targetUserId) {
+        try {
+            const pendingResp = await fetch('/api/friends/pending');
+            const pending = await pendingResp.json();
+            const request = pending.find(r => r.senderId == targetUserId);
+            if (request) {
+                const response = await fetch(`/api/friends/accept/${request.requestId}`, { method: 'POST' });
+                if (response.ok) {
+                    notifications.success('Zaproszenie zaakceptowane!');
+                    this.renderFriendActions(targetUserId);
+                } else {
+                    notifications.error('Błąd podczas akceptowania zaproszenia.');
+                }
+            }
+        } catch (error) {
+            console.error('Error accepting friend request:', error);
+            notifications.error('Wystąpił błąd techniczny.');
+        }
+    }
+
+    async handleRemoveFriend(targetUserId) {
+        const confirmed = await confirmModal({
+            title: 'Usuń ze znajomych',
+            message: `Czy na pewno chcesz usunąć tę osobę ze swoich znajomych?`,
+            confirmText: 'Usuń',
+            type: 'danger'
+        });
+
+        if (!confirmed) return;
+
+        try {
+            const response = await fetch(`/api/friends/remove/${targetUserId}`, { method: 'DELETE' });
+            if (response.ok) {
+                notifications.success('Użytkownik został usunięty ze znajomych.');
+                this.renderFriendActions(targetUserId);
+            } else {
+                notifications.error('Nie udało się usunąć znajomego.');
+            }
+        } catch (error) {
+            console.error('Error removing friend:', error);
+            notifications.error('Wystąpił błąd techniczny.');
         }
     }
 

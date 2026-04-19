@@ -53,6 +53,11 @@
                     <span class="link-text">Chat</span>
                 </a>
 
+                <a th:href="@{/student/friends}" class="btn-navbar-left" th:classappend="${activePage == 'friends'} ? 'active'">
+                    <i class="fas fa-user-friends"></i>
+                    <span class="link-text">Społeczność</span>
+                </a>
+
                 <a th:href="@{/student/notes}" class="btn-navbar-left" th:classappend="${activePage == 'notes'} ? 'active'">
                     <i class="fas fa-sticky-note"></i>
                     <span class="link-text">Notatki</span>

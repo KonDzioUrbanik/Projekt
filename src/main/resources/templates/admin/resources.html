@@ -11,42 +11,41 @@
     <div layout:fragment="content">
         <div class="system-management-wrapper">
             <div class="header-section">
-                <h2><i class="fas fa-server"></i> Monitoring Zasobów i Infrastruktury</h2>
+                <h2>Analiza i monitoring zasobów systemowych</h2>
                 <div class="header-actions">
-                    <button id="refreshStatsBtn" class="btn-refresh" title="Odśwież dane">
+                    <button id="refreshStatsBtn" class="btn-refresh" title="Wymuś synchronizację danych">
                         <i class="fas fa-sync-alt"></i> Odśwież dane
                     </button>
-                    <span class="last-sync">Ostatnia aktualizacja: <span id="lastSyncTime">-</span></span>
+                    <span class="last-sync">Status ostatniej synchronizacji: <span id="lastSyncTime">-</span></span>
                 </div>
             </div>
 
-            <!-- Global Health Row (Unified) -->
             <div class="health-summary-row">
                 <div class="summary-item">
                     <i class="fas fa-clock"></i>
                     <div class="summary-info">
-                        <span class="summary-label">Uptime systemu</span>
+                        <span class="summary-label">Czas pracy instancji (Uptime)</span>
                         <span class="summary-value" id="uptimeValue">0d 0h 0m</span>
                     </div>
                 </div>
                 <div class="summary-item">
                     <i class="fas fa-exchange-alt"></i>
                     <div class="summary-info">
-                        <span class="summary-label">Zapytania (od startu)</span>
+                        <span class="summary-label">Przetworzone żądania (Total Requests)</span>
                         <span class="summary-value" id="totalRequestsValue">0</span>
                     </div>
                 </div>
                 <div class="summary-item" id="errorsSummaryItem" title="5xx: Błędy serwera (krytyczne), 4xx: Błędy klienta (np. 404, 403 - próby botów/skanowania)">
                     <i class="fas fa-exclamation-circle"></i>
                     <div class="summary-info">
-                        <span class="summary-label">Błędy (5xx/4xx) <i class="fas fa-question-circle" style="font-size: 0.7rem; opacity: 0.5;"></i></span>
+                        <span class="summary-label">Wskaźnik błędów odpowiedzi (Status 4xx/5xx) <i class="fas fa-question-circle" style="font-size: 0.7rem; opacity: 0.5;"></i></span>
                         <span class="summary-value" id="errorRateValue">0 / 0</span>
                     </div>
                 </div>
                 <div class="summary-item" id="backendStatusItem">
                     <i class="fas fa-check-circle"></i>
                     <div class="summary-info">
-                        <span class="summary-label">Backend</span>
+                        <span class="summary-label">Status operacyjny (Backend)</span>
                         <span class="summary-value" id="backendStatusValue">Ładowanie...</span>
                     </div>
                 </div>
@@ -57,28 +56,28 @@
                 <div class="summary-item status-ok">
                     <i class="fas fa-database"></i>
                     <div class="summary-info">
-                        <span class="summary-label" title="Realne zajęte miejsce na dysku (PostgreSQL)">Baza Danych (Fizyczny) <i class="fas fa-info-circle" style="font-size:0.7rem; opacity:0.5;"></i></span>
+                        <span class="summary-label" title="Całkowita utylizacja przestrzeni dyskowej przez bazę danych (PostgreSQL)">Utylizacja bazy danych (Rozmiar fizyczny) <i class="fas fa-info-circle" style="font-size:0.7rem; opacity:0.5;"></i></span>
                         <span class="summary-value" id="totalSizeValue">0 B</span>
                     </div>
                 </div>
                 <div class="summary-item status-ok">
                     <i class="fas fa-user-circle"></i>
                     <div class="summary-info">
-                        <span class="summary-label" title="Rozmiar przesłanych awatarów przed kompresją">Awatary (Logiczny)</span>
+                        <span class="summary-label" title="Sumaryczny rozmiar danych binarnych profilu użytkownika">Zasoby graficzne: Awatary</span>
                         <span class="summary-value" id="avatarSizeValue">0 B</span>
                     </div>
                 </div>
                 <div class="summary-item status-ok">
                     <i class="fas fa-paperclip"></i>
                     <div class="summary-info">
-                        <span class="summary-label" title="Rozmiar przesłanych załączników">Załączniki (Logiczny)</span>
+                        <span class="summary-label" title="Sumaryczny rozmiar przesłanych załączników multimedialnych">Zasoby plikowe: Załączniki</span>
                         <span class="summary-value" id="attachmentSizeValue">0 B</span>
                     </div>
                 </div>
                 <div class="summary-item status-ok">
                     <i class="fas fa-brain"></i>
                     <div class="summary-info">
-                        <span class="summary-label" title="Wymagane min. 7 dni historii dla rzetelnej analizy trendu">Prognoza (90%) <i class="fas fa-info-circle"></i></span>
+                        <span class="summary-label" title="Szacowany czas do osiągnięcia limitu kwoty (90% pojemności)">Prognoza retencji (90%) <i class="fas fa-info-circle"></i></span>
                         <span class="summary-value" id="predictionDays">Brak danych*</span>
                     </div>
                 </div>
@@ -88,12 +87,12 @@
                 <!-- Statystyki szczegółowe -->
                 <div class="system-card">
                     <div class="card-header">
-                        <h3><i class="fas fa-chart-pie"></i> Wykorzystanie limitu</h3>
+                        <h3><i class="fas fa-chart-pie"></i> Monitorowanie limitów przestrzeni</h3>
                     </div>
                     <div class="storage-list" style="padding: 1rem 0;">
                         <div class="storage-item-standard">
                             <div class="storage-label-row">
-                                <span>Wykorzystanie Limitu (Fizyczne)</span>
+                                <span>Wykorzystanie limitu (fizyczne)</span>
                                 <span id="totalPercent">0%</span>
                             </div>
                             <div class="progress-bar-wrap">
@@ -110,7 +109,7 @@
 
                 <div class="system-card" style="grid-column: span 2;">
                     <div class="card-header">
-                        <h3><i class="fas fa-chart-line"></i> Przyrost danych (Ostatnie 14 snapów)</h3>
+                        <h3><i class="fas fa-chart-line"></i> Dynamika alokacji danych (Trend 14-dniowy)</h3>
                     </div>
                     <div style="height: 250px; width: 100%;">
                         <canvas id="storageTrendChart"></canvas>
@@ -120,7 +119,7 @@
                 <!-- TOP Users -->
                 <div class="system-card" style="grid-column: span 3;">
                     <div class="card-header">
-                        <h3><i class="fas fa-users-cog"></i> TOP 10 Użytkowników wg zajętego miejsca</h3>
+                        <h3><i class="fas fa-users-cog"></i> Analityka konsumpcji zasobów per użytkownik</h3>
                     </div>
                     <div class="table-premium-container">
                         <div class="table-responsive">
