@@ -142,6 +142,15 @@ public class SystemMaintenanceFilter extends OncePerRequestFilter {
             if (checkModuleBlock(request, response, path, "/student/academic-progress", "module_semester_progress",
                     "Postęp semestru"))
                 return;
+            if (checkModuleBlock(request, response, path, "/student/surveys", "module_surveys",
+                    "Ankiety i głosowania"))
+                return;
+            if (checkModuleBlock(request, response, path, "/student/group-drive", "module_group_drive",
+                    "Dysk grupowy"))
+                return;
+            if (checkModuleBlock(request, response, path, "/student/student-market", "module_student_market",
+                    "Giełda studencka"))
+                return;
             if (checkModuleBlock(request, response, path, "/starosta/announcements", "module_starosta_announcements",
                     "Ogłoszenia starosty"))
                 return;

@@ -21,6 +21,9 @@ class AdminSystem {
             module_starosta_announcements: 'Moduł Ogłoszeń Starosty',
             module_starosta_schedule: 'Moduł Harmonogramu Starosty',
             module_chat: 'Moduł Chat',
+            module_group_drive: 'Moduł Dysku grupowego',
+            module_student_market: 'Moduł Giełdy studenckiej',
+            module_surveys: 'Moduł Ankiet i Głosowań',
             module_analytics: 'Moduł Analityki',
             global_banner_text: 'Komunikat globalny',
         };

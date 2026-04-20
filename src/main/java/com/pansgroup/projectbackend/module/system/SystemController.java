@@ -39,6 +39,9 @@ public class SystemController {
             "module_starosta_announcements",
             "module_analytics",
             "module_chat",
+            "module_group_drive",
+            "module_student_market",
+            "module_surveys",
             "global_banner_text");
 
     /**
@@ -58,6 +61,9 @@ public class SystemController {
             "module_semester_progress",
             "module_analytics",
             "module_chat",
+            "module_group_drive",
+            "module_student_market",
+            "module_surveys",
             "module_starosta_announcements");
 
     private static final int BANNER_MAX_LENGTH = 500;

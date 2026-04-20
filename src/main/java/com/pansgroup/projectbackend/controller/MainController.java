@@ -245,6 +245,24 @@ public class MainController {
         return "dashboard/announcements";
     }
 
+    @GetMapping("/student/group-drive")
+    public String groupDriveView(Model model) {
+        model.addAttribute("activePage", "group-drive");
+        return "dashboard/group-drive";
+    }
+
+    @GetMapping("/student/student-market")
+    public String studentMarketView(Model model) {
+        model.addAttribute("activePage", "student-market");
+        return "dashboard/student-market";
+    }
+
+    @GetMapping("/student/surveys")
+    public String surveysView(Model model) {
+        model.addAttribute("activePage", "surveys");
+        return "dashboard/surveys";
+    }
+
     // zarządzanie harmonogramem zajęć
     @GetMapping("/admin/schedule-management")
     public String scheduleManagementView(Model model) {
