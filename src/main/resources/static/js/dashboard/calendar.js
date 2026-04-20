@@ -68,11 +68,26 @@ class FullCalendarInitializer {
                     right: 'today next'
                 },
 
+
                 // Tutaj można dodać events: this.fetchEventsFromApi(),
                 events: eventsData,
                 eventContent: this.customEventContent,
-                datesSet: this.updateMonthTitle.bind(this)
+                datesSet: this.updateMonthTitle.bind(this), 
+
+                //WYSKAKUJĄCE OKIENKO ===
+                eventClick: function(info) {
+                    info.jsEvent.preventDefault(); // Blokuje domyślne zachowanie przeglądarki
+                    
+                    // Wstrzykujemy dane do okienka
+                    document.getElementById('modalEventTitle').innerText = info.event.title;
+                    document.getElementById('modalEventType').innerText = info.event.extendedProps.type || 'Wydarzenie';
+                    document.getElementById('modalEventDate').innerText = info.event.extendedProps.formattedDateRange || info.event.start.toLocaleDateString();
+                    
+                    // Pokazujemy okienko
+                    document.getElementById('eventModal').style.display = 'block';
+                }
             });
+            
             
             this.calendarInstance.render();
             
@@ -191,7 +206,8 @@ async function fetchAndRenderFilteredEvents() {
             end: event.dateTo,
             backgroundColor: event.markerColor || '#3788d8', // Domyślny kolor jeśli brak
             extendedProps: {
-                type: event.type
+                type: event.type,
+                formattedDateRange: event.formattedDateRange // <-- TO DODAJEMY
             }
         }));
 
