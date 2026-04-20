@@ -25,6 +25,8 @@
         <link rel="stylesheet" th:href="@{/css/common/theme.css(v=${#dates.createNow().getTime()})}">
         <link rel="stylesheet" th:href="@{/css/common/global-banner.css(v=${#dates.createNow().getTime()})}">
 
+        <link rel="stylesheet" th:href="@{/css/common/welcome-modal.css(v=${#dates.createNow().getTime()})}">
+    
         <th:block layout:fragment="page-styles"></th:block>
         
         <script>
@@ -186,7 +188,22 @@
 
         <script th:src="@{/js/common/app-state.js(v=${#dates.createNow().getTime()})}" defer></script>
 
-        <th:block layout:fragment="page-scripts"></th:block>
+        <!-- Welcome Modal -->
+        <div id="welcomeModalOverlay" class="welcome-modal-overlay">
+            <div class="welcome-modal-card">
+                <div class="welcome-icon">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <h2>Witaj w PANSportal!</h2>
+                <div class="welcome-description">
+                    <p class="welcome-text-line">Cieszymy się, że jesteś z nami.</p>
+                    <p class="welcome-text-line">W PANSportalu znajdziesz wszystko, czego potrzebujesz do zarządzania studiami, komunikacji i korzystania z narzędzi akademickich - w jednym miejscu.</p>
+                </div>
+                <button id="welcomeStartBtn" class="welcome-btn-start">Zaczynajmy</button>
+            </div>
+        </div>
 
+        <script th:src="@{/js/common/welcome-modal.js(v=${#dates.createNow().getTime()})}"></script>
+        <th:block layout:fragment="page-scripts"></th:block>
     </body>
 </html>
