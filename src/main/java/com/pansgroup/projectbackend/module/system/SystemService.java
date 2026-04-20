@@ -42,6 +42,9 @@ public class SystemService {
         createSettingIfAbsent("module_starosta_schedule", "true", "Status modułu Harmonogramu zajęć Starosty");
         createSettingIfAbsent("module_analytics", "true", "Status modułu Telemetrii analitycznej");
         createSettingIfAbsent("module_chat", "true", "Status modułu Chat");
+        createSettingIfAbsent("module_group_drive", "true", "Status modułu Dysk grupowy");
+        createSettingIfAbsent("module_student_market", "true", "Status modułu Giełda studencka");
+        createSettingIfAbsent("module_surveys", "true", "Status modułu Ankiety i głosowania");
         createSettingIfAbsent("global_banner_text", "", "Treść komunikatu wyświetlanego wszystkim użytkownikom");
 
         // Populate cache

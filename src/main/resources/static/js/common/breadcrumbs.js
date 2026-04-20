@@ -88,6 +88,21 @@
             href: '/profile',
             parent: 'home'
         },
+        'group-drive': {
+            label: 'Dysk grupowy',
+            href: '/student/group-drive',
+            parent: 'student-panel'
+        },
+        'student-market': {
+            label: 'Giełda studencka',
+            href: '/student/student-market',
+            parent: 'student-panel'
+        },
+        surveys: {
+            label: 'Ankiety i Głosowania',
+            href: '/student/surveys',
+            parent: 'student-panel'
+        },
         'user-profile': {
             label: 'Profil użytkownika',
             href: '#',
