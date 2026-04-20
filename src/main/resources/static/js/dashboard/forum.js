@@ -14,7 +14,13 @@
             editingThreadId: null,
             editingCommentId: null,
             searchQuery: '',
-            searchScope: 'all'
+            searchScope: 'all',
+            liveUpdateIntervalMs: 3000,
+            liveUpdateTimerId: null,
+            liveUpdateRequestInFlight: false,
+            liveFeedRequestInFlight: false,
+            lastThreadRenderSignature: '',
+            lastFeedRenderSignature: ''
         },
 
         els: {
@@ -99,6 +105,15 @@
             document.addEventListener('keydown', (event) => {
                 if (event.key === 'Escape') this.closeDeleteModal();
             });
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) return;
+                this.pollThreadFeed();
+                this.pollSelectedThread();
+            });
+
+            window.addEventListener('beforeunload', () => this.stopLiveUpdates());
+            window.addEventListener('pagehide', () => this.stopLiveUpdates());
         },
 
         bindMarkdownToolbar() {
@@ -194,6 +209,8 @@
             if (!isBrowse) {
                 requestAnimationFrame(() => this.els.title?.focus());
             }
+
+            this.syncLiveUpdatesForSelection();
         },
 
         async loadGroups() {
@@ -221,15 +238,18 @@
 
                 const data = await response.json();
                 this.state.threads = Array.isArray(data) ? data : [];
+                this.state.lastFeedRenderSignature = this.buildFeedRenderSignature(this.state.threads);
 
                 this.refreshThreadSelectionForFilter();
 
                 this.renderThreadList();
                 await this.renderSelectedThread();
+                this.syncLiveUpdatesForSelection();
             } catch (err) {
                 this.els.list.innerHTML = this.emptyHtml('Nie udalo sie zaladowac watkow.');
                 this.els.detail.innerHTML = this.emptyHtml('Brak szczegolow watku.');
                 this.showError(err.message || 'Nieudane pobieranie forum.');
+                this.stopLiveUpdates();
             }
         },
 
@@ -282,25 +302,188 @@
             this.state.selectedThreadId = threadId;
             this.renderThreadList();
             await this.renderSelectedThread();
+            this.syncLiveUpdatesForSelection();
         },
 
         async renderSelectedThread() {
             const filteredThreads = this.getFilteredThreads();
             if (!this.state.selectedThreadId || !filteredThreads.some((t) => t.id === this.state.selectedThreadId)) {
+                this.state.currentThread = null;
+                this.state.lastThreadRenderSignature = '';
                 this.els.detail.innerHTML = this.emptyHtml('Wybierz watek z listy, aby zobaczyc szczegoly.');
                 return;
             }
 
             try {
-                const response = await fetch(`/api/forum/threads/${this.state.selectedThreadId}`);
-                if (!response.ok) throw new Error(await this.readError(response));
-
-                const thread = await response.json();
+                const thread = await this.fetchThreadById(this.state.selectedThreadId);
                 this.state.currentThread = thread;
+                this.state.lastThreadRenderSignature = this.buildThreadRenderSignature(thread);
                 this.renderThreadDetail(thread);
             } catch (err) {
                 this.els.detail.innerHTML = this.emptyHtml('Nie udalo sie pobrac szczegolow watku.');
                 this.showError(err.message || 'Blad ladowania szczegolow watku.');
+            }
+        },
+
+        syncLiveUpdatesForSelection() {
+            const shouldRun = this.state.activeView === 'browse';
+            if (shouldRun) {
+                this.startLiveUpdates();
+                return;
+            }
+            this.stopLiveUpdates();
+        },
+
+        startLiveUpdates() {
+            if (this.state.liveUpdateTimerId) return;
+            this.state.liveUpdateTimerId = window.setInterval(() => {
+                this.pollThreadFeed();
+                this.pollSelectedThread();
+            }, this.state.liveUpdateIntervalMs);
+        },
+
+        stopLiveUpdates() {
+            if (!this.state.liveUpdateTimerId) return;
+            window.clearInterval(this.state.liveUpdateTimerId);
+            this.state.liveUpdateTimerId = null;
+            this.state.liveUpdateRequestInFlight = false;
+            this.state.liveFeedRequestInFlight = false;
+        },
+
+        async pollThreadFeed() {
+            if (this.state.liveFeedRequestInFlight || this.state.activeView !== 'browse' || document.hidden) {
+                return;
+            }
+
+            this.state.liveFeedRequestInFlight = true;
+            try {
+                const refreshedThreads = await this.fetchThreadsFeed(true);
+                const nextFeedSignature = this.buildFeedRenderSignature(refreshedThreads);
+                if (nextFeedSignature === this.state.lastFeedRenderSignature) {
+                    return;
+                }
+
+                const prevSelectedId = this.state.selectedThreadId;
+                this.state.threads = refreshedThreads;
+                this.state.lastFeedRenderSignature = nextFeedSignature;
+
+                this.refreshThreadSelectionForFilter();
+                this.renderThreadList();
+
+                // Re-render details when selected thread changed/vanished after feed refresh.
+                if (!prevSelectedId || this.state.selectedThreadId !== prevSelectedId || !refreshedThreads.some((t) => t.id === prevSelectedId)) {
+                    await this.renderSelectedThread();
+                }
+            } catch (_) {
+                // Silent on background refresh - avoid noisy toasts every interval.
+            } finally {
+                this.state.liveFeedRequestInFlight = false;
+            }
+        },
+
+        async pollSelectedThread() {
+            const selectedThreadId = this.state.selectedThreadId;
+            if (!selectedThreadId || this.state.liveUpdateRequestInFlight || this.shouldPauseLiveUpdates()) {
+                return;
+            }
+
+            this.state.liveUpdateRequestInFlight = true;
+            try {
+                const thread = await this.fetchThreadById(selectedThreadId, true);
+                this.mergeThreadIntoFeed(thread);
+
+                if (selectedThreadId !== this.state.selectedThreadId) {
+                    return;
+                }
+
+                const nextSignature = this.buildThreadRenderSignature(thread);
+                if (nextSignature !== this.state.lastThreadRenderSignature) {
+                    this.state.currentThread = thread;
+                    this.state.lastThreadRenderSignature = nextSignature;
+                    this.renderThreadDetail(thread);
+                    this.renderThreadList();
+                }
+            } catch (_) {
+                // Silent on background refresh - avoid noisy toasts every interval.
+            } finally {
+                this.state.liveUpdateRequestInFlight = false;
+            }
+        },
+
+        shouldPauseLiveUpdates() {
+            return document.hidden
+                || !!this.state.editingThreadId
+                || !!this.state.editingCommentId
+                || this.hasUnsavedCommentDraft();
+        },
+
+        hasUnsavedCommentDraft() {
+            const form = document.getElementById('forumCommentForm');
+            if (!form) return false;
+
+            const textarea = form.querySelector('textarea');
+            const files = form.querySelector('input[type="file"]');
+            const textDirty = !!(textarea && (textarea.value || '').trim());
+            const filesDirty = !!(files && files.files && files.files.length > 0);
+            return textDirty || filesDirty;
+        },
+
+        buildThreadRenderSignature(thread) {
+            const commentsSignature = (thread.comments || [])
+                .map((comment) => [
+                    comment.id,
+                    comment.updatedAt || comment.createdAt || '',
+                    comment.voteScore || 0,
+                    comment.currentUserVote || ''
+                ].join(':'))
+                .join('|');
+
+            return [
+                thread.id,
+                thread.updatedAt || '',
+                thread.voteScore || 0,
+                thread.currentUserVote || '',
+                thread.locked ? '1' : '0',
+                thread.archived ? '1' : '0',
+                thread.pinned ? '1' : '0',
+                commentsSignature
+            ].join('::');
+        },
+
+        buildFeedRenderSignature(threads) {
+            return (threads || []).map((thread) => [
+                thread.id,
+                thread.updatedAt || thread.createdAt || '',
+                thread.voteScore || 0,
+                thread.currentUserVote || '',
+                (thread.comments || []).length,
+                thread.pinned ? '1' : '0',
+                thread.locked ? '1' : '0',
+                thread.archived ? '1' : '0'
+            ].join(':')).join('|');
+        },
+
+        async fetchThreadsFeed(bypassCache = false) {
+            const baseQuery = this.state.includeArchived ? '?includeArchived=true' : '';
+            const cacheBuster = bypassCache ? `${baseQuery ? '&' : '?'}ts=${Date.now()}` : '';
+            const response = await fetch(`/api/forum/threads${baseQuery}${cacheBuster}`, { cache: 'no-store' });
+            if (!response.ok) throw new Error(await this.readError(response));
+            const data = await response.json();
+            return Array.isArray(data) ? data : [];
+        },
+
+        async fetchThreadById(threadId, bypassCache = false) {
+            const suffix = bypassCache ? `?ts=${Date.now()}` : '';
+            const response = await fetch(`/api/forum/threads/${threadId}${suffix}`, { cache: 'no-store' });
+            if (!response.ok) throw new Error(await this.readError(response));
+            return response.json();
+        },
+
+        mergeThreadIntoFeed(thread) {
+            if (!thread || !thread.id) return;
+            const index = this.state.threads.findIndex((item) => item.id === thread.id);
+            if (index >= 0) {
+                this.state.threads[index] = thread;
             }
         },
 

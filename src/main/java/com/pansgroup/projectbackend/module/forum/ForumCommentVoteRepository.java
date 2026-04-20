@@ -12,6 +12,8 @@ public interface ForumCommentVoteRepository extends JpaRepository<ForumCommentVo
 
     void deleteByComment_IdAndUser_Id(Long commentId, Long userId);
 
+    void deleteByComment_Id(Long commentId);
+
     @Query("SELECT COALESCE(SUM(CASE WHEN v.voteType = 'UPVOTE' THEN 1 ELSE -1 END), 0) FROM ForumCommentVote v WHERE v.comment.id = ?1")
     Long getVoteScore(Long commentId);
 }
