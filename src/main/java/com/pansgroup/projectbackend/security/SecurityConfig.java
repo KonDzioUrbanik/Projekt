@@ -195,9 +195,10 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.GET,
                                                 "/api/groups",
                                                 "/api/schedule/all",
-                                                "/api/users",
-                                                "/api/users/search")
+                                                "/api/users")
                                 .hasAnyRole("ADMIN", "STAROSTA")
+                                .requestMatchers(HttpMethod.GET, "/api/users/search")
+                                .hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
 
                                 // API ogłoszeń
                                 .requestMatchers(HttpMethod.POST, "/api/announcements").hasAnyRole("STAROSTA", "ADMIN")

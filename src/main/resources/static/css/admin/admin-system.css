@@ -508,9 +508,166 @@ input:checked+.slider:before {
 }
 
 /* RESPONSIVENESS */
-@media (max-width: 768px) {
+@media (max-width: 992px) {
     .system-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .header-actions .last-sync {
+        text-align: left;
+    }
+
+    .health-summary-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .summary-item {
+        padding: 1rem;
+    }
+
+    .summary-item i {
+        width: 34px;
+        height: 34px;
+        font-size: 1.2rem;
+    }
+
+    .summary-value {
+        font-size: 1rem;
+    }
+
+    .card-header h3 {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .pagination-container {
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    .pagination-controls-wrap {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .pagination-main {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 480px) {
+    .health-summary-row {
+        grid-template-columns: 1fr;
+    }
+
+    .module-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 1.25rem 0;
+    }
+
+    .module-info {
+        padding-right: 0;
+    }
+
+    .module-item .switch {
+        align-self: flex-start;
+        margin-top: 0;
+    }
+
+    .banner-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .banner-actions button {
+        width: 100%;
+    }
+
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .card-header .badge {
+        font-size: 0.7rem;
+    }
+
+    .btn-clear-logs {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .logs-container {
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .system-management-wrapper {
+        padding: 0.5rem;
+    }
+
+    .header-section h2 {
+        font-size: 1.15rem;
+    }
+
+    .system-card {
+        padding: 0.75rem;
+    }
+
+    .card-header h3 {
+        font-size: 0.95rem;
+    }
+
+    .health-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+        padding: 0.75rem 0;
+    }
+
+    .health-status-indicator {
+        width: 100%;
+        justify-content: flex-start;
+        padding: 0.4rem 0.6rem;
+        font-size: 0.75rem;
+    }
+
+    .summary-item {
+        padding: 0.75rem;
+    }
+
+    .summary-value {
+        font-size: 0.9rem;
+    }
+
+    .log-entry {
+        padding: 0.5rem;
+        font-size: 0.7rem;
+    }
+
+    .log-time {
+        margin-right: 0.5rem;
     }
 }
 
@@ -646,8 +803,8 @@ input:checked+.slider:before {
 }
 
 [data-theme="dark"] #maintenanceConfirmModal .modal-card {
-    background: #1a1a2e;
-    border: 1px solid #2d2d4a;
+    background: #1a1a1a;
+    border: 1px solid #333;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
 }
 
@@ -660,7 +817,7 @@ input:checked+.slider:before {
 }
 
 [data-theme="dark"] #maintenanceConfirmModal .modal-footer-centered {
-    background: #1a1a2e;
+    background: #1a1a1a;
 }
 
 [data-theme="dark"] #maintenanceConfirmModal .modal-icon-wrapper.danger {
@@ -780,4 +937,34 @@ input:checked+.slider:before {
     font-size: 0.85rem;
     color: var(--text-muted, #64748b);
     font-weight: 500;
+}
+.btn-clear-logs {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.btn-clear-logs:hover {
+    background: #ef4444;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+}
+
+.btn-clear-logs i {
+    font-size: 0.85rem;
+}
+
+.btn-clear-logs:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }

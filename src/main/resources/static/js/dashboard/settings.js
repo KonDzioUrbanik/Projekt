@@ -171,13 +171,16 @@ document.addEventListener('DOMContentLoaded', function(){
 
     // Generowanie awatara z inicjałów
     function initializeAvatar(){
-        const firstName = document.getElementById('firstName').value || '';
-        const lastName = document.getElementById('lastName').value || '';
-        const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase() || 'PL';
+        const firstNameInput = document.getElementById('firstName');
+        const lastNameInput = document.getElementById('lastName');
         
-        const avatarSpan = document.querySelector('.avatar span');
-        if(avatarSpan && !document.querySelector('.avatar').style.backgroundImage){
-            avatarSpan.textContent = initials;
+        const firstName = firstNameInput ? firstNameInput.value : '';
+        const lastName = lastNameInput ? lastNameInput.value : '';
+        const initials = ((firstName.charAt(0) || '') + (lastName.charAt(0) || '')).toUpperCase() || 'U';
+        
+        const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+        if(avatarPlaceholder){
+            avatarPlaceholder.innerHTML = `<span style="font-size: 4rem; font-weight: 700; color: white;">${initials}</span>`;
         }
     }
 
@@ -495,14 +498,22 @@ document.addEventListener('DOMContentLoaded', function(){
                 removeAvatarBtn.style.display = 'none';
                 avatarInput.value = '';
                 
-                const zoomControl = document.getElementById('avatarZoomControl');
-                if(zoomControl) zoomControl.classList.remove('visible');
+                // Pokaż inicjały
+                initializeAvatar();
+                
+                Utils.showToast('Zdjęcie zostało usunięte z kolejki do zapisu.', 'info');
             });
         }
 
         // Walidacja w czasie rzeczywistym
         const nickNameInput = document.getElementById('nickName');
         const phoneInput = document.getElementById('phone');
+
+        if (nickNameInput) {
+            nickNameInput.addEventListener('input', () => {
+                validateField(nickNameInput, { maxLength: 50 });
+            });
+        }
 
         function validateField(input, rules) {
             if (!input) return true;

@@ -131,4 +131,12 @@ public class SystemController {
     public ResponseEntity<List<SystemLogCollector.LogEntry>> getRecentLogs() {
         return ResponseEntity.ok(logCollector.getRecentLogs());
     }
+
+    @DeleteMapping("/logs")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Clear all recent system logs")
+    public ResponseEntity<Void> clearRecentLogs() {
+        logCollector.clearLogs();
+        return ResponseEntity.ok().build();
+    }
 }

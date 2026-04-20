@@ -231,9 +231,9 @@ async function fetchTopUsers() {
 
             return `
                 <tr>
-                    <td style="text-align: center;">${rankHtml}</td>
-                    <td style="font-weight:600; opacity:0.6; font-size: 0.8rem;">#${user.id}</td>
-                    <td>
+                    <td style="text-align: center;" data-label="Poz.">${rankHtml}</td>
+                    <td style="font-weight:600; opacity:0.6; font-size: 0.8rem;" data-label="ID">#${user.id}</td>
+                    <td data-label="Użytkownik">
                         <div class="user-info-brief">
                             <a href="/profile/user?userId=${user.id}" class="user-profile-link" title="Przejdź do profilu użytkownika">
                                 <span class="user-name-cell">${adminUtils.escapeHtml(user.firstName || user.first_name || 'Użytkownik')} ${adminUtils.escapeHtml(user.lastName || user.last_name || '')}</span>
@@ -242,15 +242,15 @@ async function fetchTopUsers() {
                             <span class="user-email-cell">${adminUtils.escapeHtml(user.email)}</span>
                         </div>
                     </td>
-                    <td style="text-align: right;" class="storage-cell">
+                    <td style="text-align: right;" class="storage-cell" data-label="Awatary">
                         <i class="fas fa-portrait" style="font-size: 0.7rem; opacity: 0.4; margin-right: 4px;" title="Awatary"></i>
                         ${formatSize(user.avatarSize)}
                     </td>
-                    <td style="text-align: right;" class="storage-cell">
+                    <td style="text-align: right;" class="storage-cell" data-label="Załączniki">
                         <i class="fas fa-paperclip" style="font-size: 0.7rem; opacity: 0.4; margin-right: 4px;" title="Załączniki"></i>
                         ${formatSize(user.attachmentSize)}
                     </td>
-                    <td style="text-align: right;" class="storage-cell total">
+                    <td style="text-align: right;" class="storage-cell total" data-label="SUMA">
                         ${formatSize(user.totalSize)}
                     </td>
                 </tr>

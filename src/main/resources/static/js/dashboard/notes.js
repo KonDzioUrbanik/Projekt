@@ -41,7 +41,8 @@ const AppState = {
     selectedUsers: [],
     currentVisibility: 'PRIVATE',
     searchTimeout: null,
-    quill: null
+    quill: null,
+    currentUser: null
 };
 
 const DOM = {
@@ -115,10 +116,22 @@ const DOM = {
 
 document.addEventListener('DOMContentLoaded', initializeApp);
 
-function initializeApp() {
+async function initializeApp() {
     initQuillEditor();
     setupEventListeners();
+    await loadUserProfile();
     loadNotes();
+}
+
+async function loadUserProfile() {
+    try {
+        const response = await fetch('/api/users/me');
+        if (response.ok) {
+            AppState.currentUser = await response.json();
+        }
+    } catch (error) {
+        console.error('Błąd pobierania profilu:', error);
+    }
 }
 
 function initQuillEditor() {
@@ -1292,6 +1305,16 @@ function handleVisibilityChange() {
     
     if (DOM.visibilityHelp) {
         DOM.visibilityHelp.textContent = helpTexts[visibility] || '';
+        
+        // Specjalna obsługa dla braku grupy
+        if (visibility === 'GROUP' && AppState.currentUser && !AppState.currentUser.groupId) {
+            Utils.showToast('Nie masz przypisanego żadnego kierunku. Wybierz inną widoczność.', 'warning');
+            DOM.visibilityHelp.innerHTML = '<span style="color: var(--danger); font-weight: 500;">Brak przypisanego kierunku studiów!</span>';
+            // Opcjonalnie: zablokuj przycisk zapisu lub zresetuj wybór
+            DOM.btnSubmitForm.disabled = true;
+        } else {
+            DOM.btnSubmitForm.disabled = false;
+        }
     }
 }
 

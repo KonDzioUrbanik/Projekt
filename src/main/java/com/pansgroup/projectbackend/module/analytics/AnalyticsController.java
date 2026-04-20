@@ -67,4 +67,19 @@ public class AnalyticsController {
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
     }
+
+    /**
+     * Usuwa wszystkie błędy z bazy danych.
+     */
+    @DeleteMapping("/errors/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteAllErrors() {
+        try {
+            service.deleteAllErrors();
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("Błąd podczas usuwania wszystkich błędów: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
 }

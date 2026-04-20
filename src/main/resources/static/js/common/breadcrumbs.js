@@ -31,6 +31,11 @@
             href: '/starosta/dashboard',
             parent: 'home'
         },
+        'starosta-home': {
+            label: 'Panel Starosty',
+            href: '/starosta/dashboard',
+            parent: 'home'
+        },
         announcements: {
             label: 'Ogłoszenia grupy',
             href: '/starosta/announcements',
@@ -138,6 +143,26 @@
         feedback: {
             label: 'Zgłoszenia',
             href: '/admin/feedback',
+            parent: 'admin-panel'
+        },
+        'admin-home': {
+            label: 'Panel Administracyjny',
+            href: '/admin/dashboard',
+            parent: 'home'
+        },
+        system: {
+            label: 'System',
+            href: '/admin/system',
+            parent: 'admin-panel'
+        },
+        'admin-resources': {
+            label: 'Zasoby',
+            href: '/admin/resources',
+            parent: 'admin-panel'
+        },
+        'admin-security': {
+            label: 'Bezpieczeństwo',
+            href: '/admin/security',
             parent: 'admin-panel'
         }
     };

@@ -914,6 +914,67 @@
     .form-row {
         grid-template-columns: 1fr;
     }
+
+    /* Wyraźniejsze separatory dla wystąpień na mobile */
+    .occurrence-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px dashed var(--border-color, #e5e7eb);
+    }
+
+    .occurrence-index {
+        align-self: flex-start;
+        text-align: left;
+        margin-bottom: -4px;
+        font-size: 1rem;
+        color: var(--color-primary);
+    }
+
+    .occurrence-fields {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .occ-field {
+        width: 100%;
+    }
+
+    .occ-field input {
+        padding: 10px;
+        font-size: 1rem;
+    }
+
+    .btn-remove-occurrence {
+        margin-top: 5px;
+        width: 100%;
+        justify-content: center;
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        padding: 8px;
+    }
+
+    .teachers-input-wrapper {
+        padding: 10px;
+    }
+
+    /* Stopka modalu na małych ekranach */
+    .modal-footer {
+        flex-direction: column-reverse;
+        padding: 1.25rem;
+        gap: 0.75rem;
+    }
+
+    .modal-footer button {
+        width: 100%;
+        justify-content: center;
+        padding: 0.9rem !important;
+        font-size: 1rem;
+    }
 }
 
 .btn-export {
@@ -1155,7 +1216,7 @@
 
 .export-columns {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 0.5rem;
 }
 

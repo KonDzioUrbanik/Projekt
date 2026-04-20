@@ -143,18 +143,18 @@ function renderEventsTable(events, suspicious = {}) {
         const isSuspicious = suspicious[e.ipAddress] !== undefined;
         return `
             <tr class="${isSuspicious ? 'suspicious-row' : ''}">
-                <td style="white-space:nowrap; opacity:0.8;">${new Date(e.timestamp).toLocaleString()}</td>
-                <td>
+                <td data-label="Czas" style="white-space:nowrap; opacity:0.8;">${new Date(e.timestamp).toLocaleString()}</td>
+                <td data-label="Zdarzenie">
                     <span class="event-type-badge ${getBadgeClass(e.eventType)}">
                         ${adminUtils.escapeHtml(e.eventType)}
                     </span>
                 </td>
-                <td style="font-family: monospace;">
+                <td data-label="IP" style="font-family: monospace;">
                     ${isSuspicious ? '<i class="fas fa-exclamation-triangle suspicious-ip-warning" title="Adres oznaczony jako podejrzany"></i>' : ''}
                     ${adminUtils.escapeHtml(e.ipAddress || '—')}
                 </td>
-                <td class="audit-details" title="${adminUtils.escapeHtml(e.details)}">${adminUtils.escapeHtml(e.details)}</td>
-                <td style="text-align: center;">
+                <td data-label="Szczegóły" class="audit-details" title="${adminUtils.escapeHtml(e.details)}">${adminUtils.escapeHtml(e.details)}</td>
+                <td data-label="Akcje" style="text-align: center;">
                     <button class="action-btn btn-delete-single" title="Usuń ten wpis" onclick="deleteSecurityEvent(${e.id})">
                         <i class="fas fa-trash-alt"></i>
                     </button>
@@ -219,7 +219,13 @@ function renderPagination(pageData) {
     const container = document.getElementById('securityPagination');
     if (!container) return;
 
-    const { totalPages, number, first, last } = pageData;
+    // Obsługa nowej struktury PagedModel (VIA_DTO) oraz starej PageImpl
+    const page = pageData.page || pageData;
+    const { totalPages, number } = page;
+    
+    // VIA_DTO (PagedModel) nie zawiera pól first/last w obiekcie page
+    const first = page.first !== undefined ? page.first : (number === 0);
+    const last = page.last !== undefined ? page.last : (number >= totalPages - 1);
     
     container.innerHTML = `
         <div class="pagination-controls-wrap">
