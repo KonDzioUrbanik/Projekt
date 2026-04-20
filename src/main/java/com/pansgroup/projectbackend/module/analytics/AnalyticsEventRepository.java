@@ -66,7 +66,12 @@ public interface AnalyticsEventRepository extends JpaRepository<AnalyticsEvent, 
        long countClicksSince(@Param("since") LocalDateTime since);
 
        // --- Usuwanie błędów o konkretnej nazwie ---
+       @org.springframework.transaction.annotation.Transactional
        void deleteByEventTypeAndEventName(AnalyticsEvent.EventType eventType, String eventName);
+
+       // --- Usuwanie wszystkich błędów ---
+       @org.springframework.transaction.annotation.Transactional
+       void deleteByEventType(AnalyticsEvent.EventType eventType);
 
 	// --- Statystyki sesji (do średniego czasu) ---
 	@Query("SELECT e.sessionId, MIN(e.createdAt), MAX(e.createdAt) " +

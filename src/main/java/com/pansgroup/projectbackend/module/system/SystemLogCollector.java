@@ -44,6 +44,10 @@ public class SystemLogCollector extends AppenderBase<ILoggingEvent> {
         }
     }
 
+    public void clearLogs() {
+        logs.clear();
+    }
+
     public List<LogEntry> getRecentLogs() {
         List<LogEntry> result = new ArrayList<>(logs);
         Collections.reverse(result);

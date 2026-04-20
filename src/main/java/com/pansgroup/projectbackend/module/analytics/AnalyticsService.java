@@ -296,6 +296,14 @@ public class AnalyticsService {
         }
 
         /**
+         * Usuwa wszystkie błędy techniczne z bazy.
+         */
+        @Transactional
+        public void deleteAllErrors() {
+                repository.deleteByEventType(AnalyticsEvent.EventType.ERROR);
+        }
+
+        /**
          * Usuwa zbędne parametry query i fragmenty z URLa dla bezpieczeństwa i
          * spójności.
          */

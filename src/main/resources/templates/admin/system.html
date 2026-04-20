@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html layout:decorate="~{layout/main-layout}">
 <head>
-    <title>Zarządzanie systemem - PANSportal</title>
+    <title>Zarządzanie systemem</title>
     <th:block layout:fragment="page-styles">
         <link rel="stylesheet" th:href="@{/css/admin/admin-system.css(v=${#dates.createNow().getTime()})}">
     </th:block>
@@ -264,8 +264,15 @@
 
                 <div class="system-card logs-card">
                     <div class="card-header">
-                        <h3><i class="fas fa-terminal"></i> Ostatnie błędy (logi)</h3>
-                        <span class="badge">Ostatnie 10</span>
+                        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                            <h3><i class="fas fa-terminal"></i> Ostatnie błędy (logi)</h3>
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <span class="badge">Ostatnie 50</span>
+                                <button id="clearLogsBtn" class="btn-clear-logs" title="Wyczyść logi systemowe">
+                                    Wyczyść wszystko
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <div class="logs-container">
                         <div class="logs-empty" id="logsEmpty">Brak krytycznych błędów w ostatnim czasie.</div>

@@ -51,6 +51,12 @@ class AdminSystem {
             this.refreshHealth(true);
             adminUtils.refreshGlobalMetrics();
         });
+        
+        // Logs actions
+        const clearLogsBtn = document.getElementById('clearLogsBtn');
+        if (clearLogsBtn) {
+            clearLogsBtn.addEventListener('click', () => this.clearLogs());
+        }
 
         // Banner actions
         document.getElementById('saveBanner').addEventListener('click', () => this.saveBanner());
@@ -280,6 +286,34 @@ class AdminSystem {
 
         } catch (error) {
             console.error('Logs fetch failed:', error);
+        }
+    }
+
+    async clearLogs() {
+        if (!window.confirm('Czy na pewno chcesz wyczyścić wszystkie logi systemowe?')) {
+            return;
+        }
+
+        const btn = document.getElementById('clearLogsBtn');
+        if (btn) btn.disabled = true;
+
+        try {
+            const response = await fetch('/api/system/logs', {
+                method: 'DELETE',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            if (response.ok) {
+                Utils.showToast('Logi systemowe zostały wyczyszczone.', 'success');
+                await this.loadLogs();
+            } else {
+                throw new Error('Błąd serwera');
+            }
+        } catch (error) {
+            console.error('Clear logs failed:', error);
+            Utils.showToast('Nie udało się wyczyścić logów.', 'error');
+        } finally {
+            if (btn) btn.disabled = false;
         }
     }
 

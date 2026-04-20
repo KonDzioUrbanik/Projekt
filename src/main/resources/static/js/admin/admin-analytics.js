@@ -221,8 +221,43 @@
                 }
             });
         }
+        
+        // 5. Obsługa masowego usuwania błędów
+        const clearAllBtn = document.getElementById('clearAllErrorsBtn');
+        if (clearAllBtn) {
+            clearAllBtn.addEventListener('click', async () => {
+                if (!confirm('Czy na pewno chcesz wyczyścić CAŁĄ historię błędów technicznych? Tej operacji nie da się cofnąć.')) {
+                    return;
+                }
 
-        // 5. Automatyczne odświeżanie (co 60s) — tylko gdy karta jest aktywna
+                try {
+                    clearAllBtn.disabled = true;
+                    clearAllBtn.dataset.originalHtml = clearAllBtn.innerHTML;
+                    clearAllBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Czyszczenie...';
+                    
+                    const res = await fetch('/api/preferences/errors/all', {
+                        method: 'DELETE',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+
+                    if (res.ok) {
+                        Utils.showToast('Wszystkie logi błędów zostały wyczyszczone.', 'success');
+                        lastData = await loadData();
+                        render(lastData);
+                    } else {
+                        throw new Error('Błąd serwera');
+                    }
+                } catch (err) {
+                    console.error('[Analytics] Clear all failed:', err);
+                    Utils.showToast('Nie udało się wyczyścić logów.', 'error');
+                } finally {
+                    clearAllBtn.disabled = false;
+                    clearAllBtn.innerHTML = clearAllBtn.dataset.originalHtml || '<i class="fas fa-trash-alt"></i> Wyczyść wszystko';
+                }
+            });
+        }
+
+        // 6. Automatyczne odświeżanie (co 60s) — tylko gdy karta jest aktywna
         const refreshInterval = setInterval(async () => {
              if (document.visibilityState === 'visible') {
                  // data refresh logic...

@@ -85,7 +85,7 @@ public class AdminController {
     // Endpoint: /admin/schedule
     @GetMapping("/schedule")
     public String scheduleView(Model model) {
-        model.addAttribute("activePage", "schedule");
+        model.addAttribute("activePage", "schedule-management");
         return "admin/schedule-management";
     }
 }

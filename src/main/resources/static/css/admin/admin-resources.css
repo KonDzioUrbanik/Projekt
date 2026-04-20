@@ -309,3 +309,197 @@
     font-size: 0.75rem;
     color: var(--text-muted);
 }
+
+/* RESPONSIVENESS ENHANCEMENTS */
+
+@media (max-width: 1200px) {
+    .system-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .system-card[style*="grid-column: span 3"],
+    .system-card[style*="grid-column: span 2"] {
+        grid-column: span 2 !important;
+    }
+}
+
+@media (max-width: 992px) {
+    .health-summary-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .summary-item {
+        padding: 1rem;
+    }
+
+    .summary-label {
+        font-size: 0.7rem;
+        min-height: auto;
+    }
+
+    .summary-value {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .system-management-wrapper {
+        padding: 1rem;
+    }
+
+    .header-section {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1.25rem;
+        padding-bottom: 1.5rem;
+    }
+
+    .header-section h2 {
+        font-size: 1.5rem;
+        justify-content: center;
+    }
+
+    .header-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .system-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .system-card {
+        grid-column: span 1 !important;
+    }
+
+    /* Tabela Top Users na mobile */
+    .admin-table-premium thead th:nth-child(2),
+    .admin-table-premium tbody td:nth-child(2),
+    .admin-table-premium thead th:nth-child(4),
+    .admin-table-premium tbody td:nth-child(4),
+    .admin-table-premium thead th:nth-child(5),
+    .admin-table-premium tbody td:nth-child(5) {
+        display: none;
+    }
+
+    .admin-table-premium thead th,
+    .admin-table-premium tbody td {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .storage-cell.total {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 500px) {
+    .health-summary-row {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-row-technical {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+    }
+
+    /* CARD-LIKE TABLE FOR TOP USERS */
+    .admin-table-premium thead {
+        display: none;
+    }
+
+    .admin-table-premium tbody tr {
+        display: grid;
+        grid-template-areas:
+            "poz user"
+            "suma suma";
+        grid-template-columns: 50px 1fr;
+        gap: 0.75rem;
+        padding: 1.25rem;
+        border-bottom: 2px solid var(--border);
+        background: var(--bg-card);
+        position: relative;
+    }
+
+    .admin-table-premium tbody td {
+        display: block;
+        padding: 0 !important;
+        border: none !important;
+        text-align: left !important;
+    }
+
+    .admin-table-premium tbody td[data-label="Poz."] {
+        grid-area: poz;
+    }
+
+    .admin-table-premium tbody td[data-label="Użytkownik"] {
+        grid-area: user;
+        overflow: hidden;
+    }
+
+    .admin-table-premium tbody td[data-label="SUMA"] {
+        grid-area: suma;
+        padding-top: 0.75rem !important;
+        border-top: 1px solid var(--border) !important;
+        margin-top: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 700;
+        font-size: 1rem;
+    }
+
+    .admin-table-premium tbody td[data-label="SUMA"]::before {
+        content: 'Łączne zużycie:';
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-muted);
+    }
+
+    /* Keep ellipsis for long emails */
+    .user-email-cell {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        max-width: 100%;
+    }
+
+    /* Adjust badges font size */
+    .rank-badge {
+        width: 28px;
+        height: 28px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .system-management-wrapper {
+        padding: 0.5rem;
+    }
+
+    .system-card {
+        padding: 0.75rem;
+    }
+
+    .admin-table-premium tbody tr {
+        padding: 0.75rem;
+        grid-template-columns: 35px 1fr;
+        gap: 0.5rem;
+    }
+
+    .storage-label-row {
+        font-size: 0.75rem;
+    }
+
+    .stats-row-technical {
+        font-size: 0.7rem;
+    }
+
+    .rank-badge {
+        width: 24px;
+        height: 24px;
+        font-size: 0.8rem;
+    }
+}

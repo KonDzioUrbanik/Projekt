@@ -65,7 +65,7 @@ body {
     justify-content: center;
     align-items: center;
     padding: 20px;
-    background-image: 
+    background-image:
         linear-gradient(var(--grid-line) 1px, transparent 1px),
         linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size: 30px 30px;
@@ -81,6 +81,55 @@ body {
     max-width: 1000px;
     width: 100%;
     border: 1px solid var(--border-color);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Przycisk powrotu */
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    background: var(--bg-main);
+    color: var(--text-light);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    border: 1px solid var(--border-color);
+    margin-bottom: 25px;
+    width: fit-content;
+}
+
+.btn-back i {
+    font-size: 0.9rem;
+    transition: transform 0.2s ease;
+}
+
+.btn-back:hover {
+    background: white;
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.btn-back:hover i {
+    transform: translateX(-3px);
+}
+
+[data-theme="dark"] .btn-back {
+    background: var(--header-bg);
+    border-color: var(--border-color);
+    color: var(--text-white);
+}
+
+[data-theme="dark"] .btn-back:hover {
+    background: var(--header-bg);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
 }
 
 /* SEKCJA NAGŁÓWKA */

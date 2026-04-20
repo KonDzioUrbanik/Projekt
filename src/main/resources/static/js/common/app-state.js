@@ -1,10 +1,10 @@
 (function () {
     'use strict';
 
-    // 1. Defensywne pobieranie ról i weryfikacja uprawnień (nie śledzimy ADMINów)
+    // 1. Defensywne pobieranie ról
     var roleMeta = document.querySelector('meta[name="user-role"]');
     var userRole = roleMeta ? roleMeta.getAttribute('content') : '';
-    if (userRole === 'ROLE_ADMIN' || userRole === 'ADMIN') return;
+    var isAdmin = (userRole === 'ROLE_ADMIN' || userRole === 'ADMIN');
 
     // 2. Konfiguracja i Cache CSRF (pobierany raz na starcie)
     var ENDPOINT = '/api/preferences/sync';
@@ -62,6 +62,9 @@
         }
         if (eventCount >= 100) return; // Rate limit
         eventCount++;
+
+        // Nie śledzimy aktywności ADMINów (oprócz błędów)
+        if (isAdmin && eventType !== 'ERROR') return;
 
         var payload = {
             sessionId: sessionId,
@@ -162,6 +165,12 @@
     window.addEventListener('error', function(e) {
         if (e.message && (e.message.indexOf('ResizeObserver') !== -1 || e.message.indexOf('Extension') !== -1)) return;
         var msg = 'Error: ' + e.message + ' at ' + (e.filename ? e.filename.split('/').pop() : 'unknown') + ':' + e.lineno;
+        sendEvent('ERROR', msg, null);
+    });
+
+    window.addEventListener('unhandledrejection', function(e) {
+        var reason = e.reason || 'Unknown promise rejection';
+        var msg = 'PromiseRejection: ' + (reason.message || reason);
         sendEvent('ERROR', msg, null);
     });
 
