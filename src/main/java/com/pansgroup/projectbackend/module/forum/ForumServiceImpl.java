@@ -214,19 +214,21 @@ public class ForumServiceImpl implements ForumService {
         ForumThread thread = findThread(threadId);
         ensureAccess(thread, currentUser);
 
-        ForumComment comment = thread.getComments().stream()
-                .filter(c -> Objects.equals(c.getId(), commentId))
-                .findFirst()
+        ForumComment comment = forumCommentRepository.findByIdAndThread_Id(commentId, threadId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie znaleziono komentarza."));
 
         boolean isCommentAuthor = Objects.equals(comment.getAuthor().getId(), currentUser.getId());
-        boolean isThreadAuthor = Objects.equals(thread.getAuthor().getId(), currentUser.getId());
 
-        if (!isAdmin(currentUser) && !isCommentAuthor && !isThreadAuthor) {
+        if (!isAdmin(currentUser) && !isCommentAuthor) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak uprawnien do usuniecia komentarza.");
         }
 
-        forumCommentRepository.delete(comment);
+        forumCommentVoteRepository.deleteByComment_Id(commentId);
+        forumCommentAttachmentRepository.deleteByComment_Id(commentId);
+        int deletedRows = forumCommentRepository.deleteByIdAndThreadId(commentId, threadId);
+        if (deletedRows == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie znaleziono komentarza.");
+        }
     }
 
     @Override
@@ -598,11 +600,8 @@ public class ForumServiceImpl implements ForumService {
     private ForumCommentResponseDto mapComment(ForumComment comment, ForumThread thread, User currentUser) {
         User commentAuthor = comment.getAuthor();
         Long commentAuthorId = commentAuthor != null ? commentAuthor.getId() : null;
-        Long threadAuthorId = thread.getAuthor() != null ? thread.getAuthor().getId() : null;
-
         boolean canDelete = isAdmin(currentUser)
-                || Objects.equals(commentAuthorId, currentUser.getId())
-                || Objects.equals(threadAuthorId, currentUser.getId());
+                || Objects.equals(commentAuthorId, currentUser.getId());
         boolean canEdit = isAdmin(currentUser)
                 || Objects.equals(commentAuthorId, currentUser.getId());
 
