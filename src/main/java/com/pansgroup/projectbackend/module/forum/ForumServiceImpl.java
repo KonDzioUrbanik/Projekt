@@ -223,12 +223,7 @@ public class ForumServiceImpl implements ForumService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak uprawnien do usuniecia komentarza.");
         }
 
-        forumCommentVoteRepository.deleteByComment_Id(commentId);
-        forumCommentAttachmentRepository.deleteByComment_Id(commentId);
-        int deletedRows = forumCommentRepository.deleteByIdAndThreadId(commentId, threadId);
-        if (deletedRows == 0) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie znaleziono komentarza.");
-        }
+        thread.getComments().removeIf(c -> Objects.equals(c.getId(), commentId));
     }
 
     @Override
