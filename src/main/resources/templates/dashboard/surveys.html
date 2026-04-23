@@ -11,9 +11,6 @@
 </head>
 <body>
 <div layout:fragment="content">
-    <h1 class="page-title">Ankiety i głosowania</h1>
-    <p class="page-subtitle">Twórz ankiety dla grupy lub globalnie i śledź ich wyniki na żywo.</p>
-
     <section id="surveyModule"
              class="survey-module"
              th:attr="data-role=${currentUser != null ? currentUser.role : ''}">
