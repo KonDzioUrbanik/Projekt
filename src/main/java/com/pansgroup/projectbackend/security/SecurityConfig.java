@@ -237,6 +237,21 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.PATCH, "/api/forum/threads/*/moderation")
                                 .hasRole("ADMIN")
 
+                                // API ankiet i glosowan
+                                .requestMatchers(HttpMethod.GET, "/api/surveys/*/results").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/surveys/**")
+                                .hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/api/surveys")
+                                .hasAnyRole("STAROSTA", "ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/api/surveys/*/vote")
+                                .hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
+                                .requestMatchers(HttpMethod.PATCH, "/api/surveys/*/status")
+                                .hasAnyRole("STAROSTA", "ADMIN")
+                                .requestMatchers(HttpMethod.PATCH, "/api/surveys/*/extend")
+                                .hasAnyRole("STAROSTA", "ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/surveys/*")
+                                .hasAnyRole("STAROSTA", "ADMIN")
+
                                 // Widoki admin tylko dla ADMIN
                                 .requestMatchers("/admin/**").hasRole("ADMIN")
 
