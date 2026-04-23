@@ -61,7 +61,7 @@ public class SurveyServiceImpl implements SurveyService {
         Survey survey = findSurveyOrThrow(surveyId);
 
         if (!canAccessSurvey(currentUser, survey)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak dostepu do tej ankiety.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak dostępu do tej ankiety.");
         }
 
         return mapResponses(List.of(survey), currentUser, false).get(0);
@@ -81,12 +81,12 @@ public class SurveyServiceImpl implements SurveyService {
         String role = normalizeRole(currentUser);
 
         if (!isAdmin(role) && !isStarosta(role)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak uprawnien do tworzenia ankiet.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak uprawnień do tworzenia ankiet.");
         }
 
         List<String> cleanedOptions = normalizeOptions(dto.options());
         LocalDateTime endsAt = dto.endsAt();
-        validateFutureEndsAt(endsAt, "Data zakonczenia musi byc w przyszlosci.");
+        validateFutureEndsAt(endsAt, "Data zakończenia musi być w przyszłości.");
 
         Survey survey = new Survey();
         survey.setTitle(dto.title().trim());
@@ -102,7 +102,7 @@ public class SurveyServiceImpl implements SurveyService {
                 Long targetGroupId = dto.targetGroupId();
                 if (targetGroupId == null) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                            "Dla ankiety nieglobalnej wybierz grupe docelowa.");
+                            "Dla ankiety nieglobalnej wybierz grupę docelową.");
                 }
                 StudentGroup targetGroup = studentGroupRepository.findById(targetGroupId)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nie znaleziono grupy docelowej."));
@@ -112,7 +112,7 @@ public class SurveyServiceImpl implements SurveyService {
             StudentGroup ownGroup = currentUser.getStudentGroup();
             if (ownGroup == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Starosta musi miec przypisana grupe, aby tworzyc ankiety.");
+                        "Starosta musi mieć przypisaną grupę, aby tworzyć ankiety.");
             }
             survey.setGlobalScope(false);
             survey.setTargetGroup(ownGroup);
@@ -136,20 +136,20 @@ public class SurveyServiceImpl implements SurveyService {
         Survey survey = findSurveyOrThrow(surveyId);
 
         if (!canAccessSurvey(currentUser, survey)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak dostepu do tej ankiety.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak dostępu do tej ankiety.");
         }
 
         if (!isSurveyOpen(survey)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ta ankieta jest zamknieta.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ta ankieta jest zamknięta.");
         }
 
         SurveyOption selectedOption = survey.getOptions().stream()
                 .filter(option -> Objects.equals(option.getId(), dto.optionId()))
                 .findFirst()
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wybrana odpowiedz nie nalezy do ankiety."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wybrana odpowiedź nie należy do ankiety."));
 
         if (surveyVoteRepository.findBySurvey_IdAndUser_Id(surveyId, currentUser.getId()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Oddales juz glos w tej ankiecie.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Oddałeś już głos w tej ankiecie.");
         }
 
         SurveyVote vote = new SurveyVote();
@@ -167,13 +167,13 @@ public class SurveyServiceImpl implements SurveyService {
         Survey survey = findSurveyOrThrow(surveyId);
 
         if (!canManageSurvey(currentUser, survey)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak uprawnien do zarzadzania ta ankieta.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak uprawnień do zarządzania tą ankietą.");
         }
 
         // Wygasla ankieta jest juz zamknieta czasowo - zamiast "zamknij" oferujemy przedluzenie.
         if (isExpired(survey) && Boolean.FALSE.equals(dto.active())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Ankieta jest juz wygasla czasowo. Mozesz ja przedluzyc.");
+                    "Ankieta jest już wygasła czasowo. Możesz ją przedłużyć.");
         }
 
         survey.setActive(Boolean.TRUE.equals(dto.active()));
@@ -187,11 +187,11 @@ public class SurveyServiceImpl implements SurveyService {
         Survey survey = findSurveyOrThrow(surveyId);
 
         if (!canManageSurvey(currentUser, survey)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak uprawnien do zarzadzania ta ankieta.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak uprawnień do zarządzania tą ankietą.");
         }
 
         LocalDateTime newEndsAt = dto.endsAt();
-        validateFutureEndsAt(newEndsAt, "Nowa data zakonczenia musi byc w przyszlosci.");
+        validateFutureEndsAt(newEndsAt, "Nowa data zakończenia musi być w przyszłości.");
 
         survey.setEndsAt(newEndsAt);
         // Po przedluzeniu ankieta znow staje sie aktywna.
@@ -207,7 +207,7 @@ public class SurveyServiceImpl implements SurveyService {
         Survey survey = findSurveyOrThrow(surveyId);
 
         if (!canManageSurvey(currentUser, survey)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak uprawnien do usuniecia tej ankiety.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak uprawnień do usunięcia tej ankiety.");
         }
 
         // Usuwanie sekwencyjne minimalizuje ryzyko naruszenia NOT NULL na option_id w glosach.
@@ -337,17 +337,17 @@ public class SurveyServiceImpl implements SurveyService {
                 .toList();
 
         if (cleaned.size() < 2) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ankieta musi miec co najmniej 2 odpowiedzi.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ankieta musi mieć co najmniej 2 odpowiedzi.");
         }
         if (cleaned.size() > 12) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ankieta moze miec maksymalnie 12 odpowiedzi.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ankieta może mieć maksymalnie 12 odpowiedzi.");
         }
 
         Set<String> unique = new HashSet<>();
         for (String option : cleaned) {
             String key = option.toLowerCase();
             if (!unique.add(key)) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Odpowiedzi w ankiecie musza byc unikalne.");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Odpowiedzi w ankiecie muszą być unikalne.");
             }
         }
         return cleaned;
