@@ -17,4 +17,9 @@ public class ProjectBackendApplication {
 
         SpringApplication.run(ProjectBackendApplication.class, args);
     }
+
+    @org.springframework.context.annotation.Bean
+    public org.apache.tika.Tika tika() {
+        return new org.apache.tika.Tika();
+    }
 }

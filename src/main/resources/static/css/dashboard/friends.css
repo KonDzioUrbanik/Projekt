@@ -121,6 +121,7 @@
     position: relative;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
     overflow: hidden;
+    margin-bottom: 0.5rem;
 }
 
 .friend-card-inner {
@@ -244,6 +245,7 @@
     justify-content: space-between;
     align-items: center;
     transition: all 0.2s;
+    margin-bottom: 0.5rem;
 }
 
 .request-row:hover {

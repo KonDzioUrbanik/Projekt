@@ -73,4 +73,10 @@ public class User {
         this.createdAt = java.time.LocalDateTime.now();
     }
 
+    @Column(nullable = false, columnDefinition = "bigint default 524288000")
+    private Long storageLimit = 524288000L; // 500MB
+
+    @Column(nullable = false, columnDefinition = "bigint default 0")
+    private Long usedStorage = 0L;
+
 }

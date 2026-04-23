@@ -105,7 +105,9 @@ public class FriendshipService {
     }
 
     public List<FriendDTO> getFriends(Long userId) {
-        return friendshipRepository.findAllFriends(userId).stream()
+        Long uid = userId;
+        if (uid == null) return java.util.Collections.emptyList();
+        return friendshipRepository.findAllFriends(uid).stream()
                 .map(f -> {
                     User friend = f.getUser1().getId().equals(userId) ? f.getUser2() : f.getUser1();
                     return mapToDTO(friend, f.getId());

@@ -33,4 +33,12 @@ public interface UserRepository extends JpaRepository<User,Long> {
            "LOWER(CONCAT(u.firstName, ' ', u.lastName)) LIKE :q) " +
            "ORDER BY u.lastName, u.firstName")
     List<User> searchChatUsers(@Param("q") String q, @Param("excludeId") Long excludeId);
+
+    @org.springframework.data.jpa.repository.Modifying(flushAutomatically = true, clearAutomatically = true)
+    @org.springframework.data.jpa.repository.Query("UPDATE User u SET u.usedStorage = u.usedStorage + :size WHERE u.id = :userId AND u.usedStorage + :size <= u.storageLimit")
+    int incrementUsedStorage(@Param("userId") Long userId, @Param("size") long size);
+
+    @org.springframework.data.jpa.repository.Modifying(flushAutomatically = true, clearAutomatically = true)
+    @org.springframework.data.jpa.repository.Query("UPDATE User u SET u.usedStorage = CASE WHEN u.usedStorage >= :size THEN u.usedStorage - :size ELSE 0 END WHERE u.id = :userId")
+    void decrementUsedStorage(@Param("userId") Long userId, @Param("size") long size);
 }
