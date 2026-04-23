@@ -46,9 +46,11 @@ public class FileStorageService {
      * Zwraca UUID-based nazwę pliku do przechowywania w bazie.
      */
     public String storeFile(MultipartFile file) {
-        String originalFileName = StringUtils.cleanPath(
-                file.getOriginalFilename() != null ? file.getOriginalFilename() : "unknown"
-        );
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nazwa pliku nie może być pusta.");
+        }
+        String originalFileName = StringUtils.cleanPath(originalFilename);
 
         if (originalFileName.contains("..") || originalFileName.contains("/") || originalFileName.contains("\\")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,

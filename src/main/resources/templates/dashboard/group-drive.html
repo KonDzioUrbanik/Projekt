@@ -1,14 +1,166 @@
 <!DOCTYPE html>
 <html layout:decorate="~{layout/main-layout}">
-    <head>
-        <title>Dysk grupowy - PANSportal</title>
-    </head>
-    <body>
-        <div layout:fragment="content">
-            <div class="feature-under-development">
-                <h2>Dysk grupowy</h2>
-                <p>Funkcja w przygotowaniu.<br>Moduł dysku grupowego jest obecnie w fazie rozwoju technicznego.<br>Przepraszamy za czasowe niedogodności.</p>
+<head>
+    <title>Dysk grupowy</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard/group-drive.css}" />
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="drive-header-section">
+            <div class="drive-title">
+                <h2><i class="fas fa-hdd"></i> Dysk Grupowy</h2>
+                <p class="subtitle" id="groupDriveName">Informatyka III stacjonarne</p>
+            </div>
+            
+            <div class="quota-container">
+                <div class="quota-item tooltip" data-tooltip="Twoje osobiste miejsce na pliki">
+                    <div class="quota-info-title"><i class="fas fa-user"></i> Mój limit</div>
+                    <div class="quota-labels">
+                        <span id="userQuotaText">0 KB / 512.00 MB</span>
+                        <span id="userQuotaPercent" class="quota-badge">0.0%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="userQuotaBar" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="quota-item tooltip" data-tooltip="Limit na poziomie Twojego kierunku">
+                    <div class="quota-info-title"><i class="fas fa-users"></i> Limit grupy</div>
+                    <div class="quota-labels">
+                        <span id="quotaUsedText">0 KB / 2.00 GB</span>
+                        <span id="quotaPercentText" class="quota-badge">0.0%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="quotaBar" style="width: 0%;"></div>
+                    </div>
+                </div>
             </div>
         </div>
-    </body>
+
+        <div id="noGroupOverlay" class="error-overlay" style="display: none;">
+            <div class="error-content">
+                <i class="fas fa-exclamation-triangle error-icon"></i>
+                <h3>Brak przypisanego kierunku studiów</h3>
+                <p>Nie posiadasz uprawnień do korzystania z Dysku Grupowego, ponieważ nie jesteś przypisany do żadnego kierunku studiów.</p>
+                <p class="technical-note">Status: <code>403 Access Forbidden (Missing studentGroupId)</code></p>
+                <p>Skontaktuj się ze swoim Starostą lub Administratorem w celu przypisania do odpowiedniego kierunku.</p>
+            </div>
+        </div>
+
+        <div class="drive-workspace" id="driveWorkspace">
+            <div class="upload-zone" id="groupDriveUploadZone">
+                <input type="file" id="groupDriveUploadInput" class="hidden-input" multiple />
+                <div class="upload-zone-content">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <h3>Przeciągnij pliki tutaj lub <span class="browse-link">Wybierz pliki</span></h3>
+                    <p class="upload-hint">Formaty: PDF, DOC/DOCX, PPT/PPTX, JPG/PNG. Max: 50MB.</p>
+                </div>
+            </div>
+
+            <div class="upload-queue-container" id="uploadQueueContainer">
+                <div class="queue-header">
+                    <h4><i class="fas fa-list-ul"></i> Kolejka wysyłania plików</h4>
+                    <div class="queue-global-actions hidden" id="queueGlobalActions">
+                        <button class="btn btn-secondary btn-sm" id="clearQueueBtn" title="Wyczyść listę"><i class="fas fa-times"></i> Wyczyść</button>
+                        <button class="btn btn-primary btn-sm" id="startUploadsBtn"><i class="fas fa-plus"></i> Dodaj pliki</button>
+                    </div>
+                </div>
+                <div class="upload-queue" id="uploadQueueList">
+                </div>
+            </div>
+
+            <div class="files-panel glass-panel">
+                <div class="toolbar">
+                    <div class="search-filter">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="driveSearch" placeholder="Szukaj plików..." />
+                        </div>
+                        <div class="category-filter">
+                            <select id="driveCategoryFilter">
+                                <option value="">Wszystkie kategorie</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="files-table-container">
+                    <table class="files-table">
+                        <thead>
+                            <tr>
+                                <th>Typ</th>
+                                <th class="sortable" data-sort="fileName"><i class="fa-solid fa-file"></i> Nazwa</th>
+                            <th class="sortable" data-sort="category"><i class="fa-solid fa-tag"></i> Kategoria</th>
+                            <th class="sortable" data-sort="fileSize"><i class="fa-solid fa-weight-hanging"></i> Rozmiar</th>
+                            <th class="sortable" data-sort="uploader.lastName"><i class="fa-solid fa-user"></i> Dodał(a)</th>
+                            <th class="sortable" data-sort="uploadDate"><i class="fa-solid fa-calendar"></i> Data</th>
+                            <th class="sortable" data-sort="downloadCount"><i class="fa-solid fa-download"></i>Akcje</th>
+                            </tr>
+                        </thead>
+                        <tbody id="filesTableBody">
+                            <tr><td colspan="7" class="loading-cell"><div class="spinner"></div> Ładowanie plików...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="pagination-container" id="paginationContainer">
+                </div>
+            </div>
+        </div>
+
+        <div id="deleteModal" class="modal-overlay">
+            <div class="modal-card">
+                <div class="modal-body-centered">
+                    <div class="modal-icon-wrapper danger">
+                        <i class="fas fa-trash-alt"></i>
+                    </div>
+                    <h3>Potwierdź usunięcie</h3>
+                    <p>Czy na pewno chcesz usunąć plik: <strong id="deleteFileName"></strong>?</p>
+                    <p class="warning-text">Plik trafi do kosza. Administrator może go przywrócić w ciągu 30 dni.</p>
+                </div>
+                <div class="modal-footer-centered">
+                    <button class="btn-danger-block" id="confirmDeleteBtn">Przenieś do kosza</button>
+                    <button class="btn-text-gray cancel-delete">Anuluj</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="drawer-overlay" id="drawerOverlay"></div>
+        <div id="fileDetailsDrawer" class="file-drawer">
+            <div class="drawer-header">
+                <h3>Szczegóły pliku</h3>
+                <button class="close-btn action-btn-hover" id="closeDrawerBtn">&times;</button>
+            </div>
+            <div class="drawer-content">
+                <div class="drawer-preview-area" id="drawerPreviewArea" style="display:none; margin-bottom: 20px;">
+                </div>
+                <div class="drawer-file-icon" id="drawerFileIcon">
+                    <i class="far fa-file"></i>
+                </div>
+                <h4 id="drawerFileName" class="drawer-file-name">nazwa.pdf</h4>
+                
+                <div class="drawer-info-grid">
+                    <div class="info-label">Rozmiar:</div><div class="info-value" id="drawerFileSize">-</div>
+                    <div class="info-label">Dodany:</div><div class="info-value" id="drawerFileDate">-</div>
+                    <div class="info-label">Autor:</div><div class="info-value" id="drawerFileAuthor">-</div>
+                    <div class="info-label">Kategoria:</div><div class="info-value" id="drawerFileCategory">-</div>
+                </div>
+                
+                <div class="drawer-actions">
+                    <a href="#" class="btn btn-primary" id="drawerDownloadBtn"><i class="fas fa-download"></i> Pobierz</a>
+                    <button class="btn btn-danger" id="drawerDeleteBtn" style="display:none;"><i class="fas fa-trash"></i> Usuń</button>
+                </div>
+                
+                <div class="drawer-preview-action" style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                    <button class="btn btn-secondary" id="drawerPreviewBtn" style="width: 100%; border-radius:8px; padding: 12px; font-weight: 500;" onclick="if(typeof Utils !== 'undefined') Utils.showToast('Podgląd wkrótce dostępny', 'Podgląd pliku wkrótce dostępny', 'info'); else alert('Podgląd pliku wkrótce dostępny');"><i class="fas fa-eye"></i> Podgląd (Wkrótce)</button>
+                    <button class="btn btn-outline mobile-close-action" style="width: 100%; border-radius:8px; padding: 12px; font-weight: 600; margin-top: 10px; display: none; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary);" onclick="document.getElementById('closeDrawerBtn').click();"><i class="fas fa-times"></i> Zamknij widok</button>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <th:block layout:fragment="page-scripts">
+        <script th:src="@{/js/dashboard/group-drive.js}"></script>
+    </th:block>
+</body>
 </html>

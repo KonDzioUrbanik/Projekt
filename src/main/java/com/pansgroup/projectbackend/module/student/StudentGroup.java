@@ -9,7 +9,8 @@ import java.util.List;
 
 @Getter
 @Setter
-@Entity(name = "student_groups")
+@Entity
+@Table(name = "student_groups")
 public class StudentGroup {
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,5 +20,11 @@ public class StudentGroup {
 
     @ManyToMany(mappedBy = "studentGroups")
     List<ScheduleEntry> scheduleEntries;
+
+    @Column(nullable = false, columnDefinition = "bigint default 2147483648")
+    private Long storageLimit = 2147483648L; // 2GB
+
+    @Column(nullable = false, columnDefinition = "bigint default 0")
+    private Long usedStorage = 0L;
 
 }

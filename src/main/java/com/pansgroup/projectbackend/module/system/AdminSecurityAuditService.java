@@ -77,7 +77,8 @@ public class AdminSecurityAuditService {
                 cb.like(root.get("email"), "%" + query + "%")
             ));
         }
-        return securityEventRepository.findAll(spec, pageable);
+        org.springframework.data.domain.Pageable p = pageable != null ? pageable : org.springframework.data.domain.PageRequest.of(0, 10);
+        return securityEventRepository.findAll(spec, p);
     }
 
     public Map<String, Long> getSuspiciousIPs() {
