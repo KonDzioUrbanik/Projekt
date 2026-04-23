@@ -37,6 +37,9 @@ public class ForumComment {
     @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, orphanRemoval = true)
     private java.util.List<ForumCommentAttachment> attachments = new java.util.ArrayList<>();
 
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<ForumCommentVote> votes = new java.util.ArrayList<>();
+
     @PreUpdate
     void onUpdate() {
         this.updatedAt = LocalDateTime.now();
