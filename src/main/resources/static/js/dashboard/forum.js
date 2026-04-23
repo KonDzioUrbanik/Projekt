@@ -216,7 +216,7 @@
         async loadGroups() {
             try {
                 const response = await fetch('/api/groups');
-                if (!response.ok) throw new Error('Nie udalo sie pobrac grup.');
+                if (!response.ok) throw new Error('Nie udało się pobrać grup.');
                 this.state.groups = await response.json();
                 this.els.targetGroup.innerHTML = '<option value="">Moja grupa</option>';
                 this.state.groups.forEach((group) => {
@@ -226,7 +226,7 @@
                     this.els.targetGroup.appendChild(option);
                 });
             } catch (err) {
-                this.showError(err.message || 'Nie udalo sie pobrac grup.');
+                this.showError(err.message || 'Nie udało się pobrać grup.');
             }
         },
 
@@ -246,8 +246,8 @@
                 await this.renderSelectedThread();
                 this.syncLiveUpdatesForSelection();
             } catch (err) {
-                this.els.list.innerHTML = this.emptyHtml('Nie udalo sie zaladowac watkow.');
-                this.els.detail.innerHTML = this.emptyHtml('Brak szczegolow watku.');
+                this.els.list.innerHTML = this.emptyHtml('Nie udało się załadować wątków.');
+                this.els.detail.innerHTML = this.emptyHtml('Brak szczegółów wątku.');
                 this.showError(err.message || 'Nieudane pobieranie forum.');
                 this.stopLiveUpdates();
             }
@@ -260,7 +260,7 @@
             const content = (this.els.content.value || '').trim();
 
             if (!title || !content) {
-                this.showError('Uzupelnij tytul i tresc watku.');
+                this.showError('Uzupełnij tytuł i treść wątku.');
                 return;
             }
 
@@ -291,10 +291,10 @@
                 this.state.selectedThreadId = created.id;
                 this.updateCreatePreview();
                 this.setView('browse');
-                this.showSuccess('Watek zostal opublikowany.');
+                this.showSuccess('Wątek został opublikowany.');
                 await this.loadThreads();
             } catch (err) {
-                this.showError(err.message || 'Nie udalo sie utworzyc watku.');
+                this.showError(err.message || 'Nie udało się utworzyć wątku.');
             }
         },
 
@@ -310,7 +310,7 @@
             if (!this.state.selectedThreadId || !filteredThreads.some((t) => t.id === this.state.selectedThreadId)) {
                 this.state.currentThread = null;
                 this.state.lastThreadRenderSignature = '';
-                this.els.detail.innerHTML = this.emptyHtml('Wybierz watek z listy, aby zobaczyc szczegoly.');
+                this.els.detail.innerHTML = this.emptyHtml('Wybierz wątek z listy, aby zobaczyć szczegóły.');
                 return;
             }
 
@@ -320,8 +320,8 @@
                 this.state.lastThreadRenderSignature = this.buildThreadRenderSignature(thread);
                 this.renderThreadDetail(thread);
             } catch (err) {
-                this.els.detail.innerHTML = this.emptyHtml('Nie udalo sie pobrac szczegolow watku.');
-                this.showError(err.message || 'Blad ladowania szczegolow watku.');
+                this.els.detail.innerHTML = this.emptyHtml('Nie udało się pobrać szczegółów wątku.');
+                this.showError(err.message || 'Błąd ładowania szczegółów wątku.');
             }
         },
 
@@ -512,10 +512,10 @@
                 if (!response.ok) throw new Error(await this.readError(response));
 
                 this.state.editingThreadId = null;
-                this.showSuccess('Watek zaktualizowany.');
+                this.showSuccess('Wątek zaktualizowany.');
                 await this.loadThreads();
             } catch (err) {
-                this.showError(err.message || 'Nie udalo sie zaktualizowac watku.');
+                this.showError(err.message || 'Nie udało się zaktualizować wątku.');
             }
         },
 
@@ -546,14 +546,14 @@
                 this.showSuccess('Komentarz zaktualizowany.');
                 await this.loadThreads();
             } catch (err) {
-                this.showError(err.message || 'Nie udalo sie zaktualizowac komentarza.');
+                this.showError(err.message || 'Nie udało się zaktualizować komentarza.');
             }
         },
 
         async addComment(threadId, textarea) {
             const content = (textarea.value || '').trim();
             if (!content) {
-                this.showError('Komentarz nie moze byc pusty.');
+                this.showError('Komentarz nie może być pusty.');
                 return;
             }
 
@@ -580,7 +580,7 @@
                 if (filesInput2) filesInput2.value = '';
                 await this.loadThreads();
             } catch (err) {
-                this.showError(err.message || 'Nie udalo sie dodac komentarza.');
+                this.showError(err.message || 'Nie udało się dodać komentarza.');
             }
         },
 
@@ -593,7 +593,7 @@
 
                 await this.loadThreads();
             } catch (err) {
-                this.showError(err.message || 'Nie udalo sie zaktualizowac glosu.');
+                this.showError(err.message || 'Nie udało się zaktualizować głosu.');
             }
         },
 
@@ -606,7 +606,7 @@
 
                 await this.loadThreads();
             } catch (err) {
-                this.showError(err.message || 'Nie udalo sie zaktualizowac glosu.');
+                this.showError(err.message || 'Nie udało się zaktualizować głosu.');
             }
         },
 
@@ -617,11 +617,11 @@
 
         requestDeleteThread(id) {
             this.openDeleteModal(
-                'Czy na pewno chcesz usunac ten watek? Tej operacji nie da sie cofnac.',
+                'Czy na pewno chcesz usunąć ten wątek? Tej operacji nie da się cofnąć.',
                 async () => {
                     const response = await fetch(`/api/forum/threads/${id}`, { method: 'DELETE' });
                     if (!response.ok) throw new Error(await this.readError(response));
-                    this.showSuccess('Watek usuniety.');
+                    this.showSuccess('Wątek usunięty.');
                     await this.loadThreads();
                 }
             );
@@ -629,13 +629,13 @@
 
         requestDeleteComment(threadId, commentId) {
             this.openDeleteModal(
-                'Czy na pewno chcesz usunac ten komentarz? Tej operacji nie da sie cofnac.',
+                'Czy na pewno chcesz usunąć ten komentarz? Tej operacji nie da się cofnąć.',
                 async () => {
                     const response = await fetch(`/api/forum/threads/${threadId}/comments/${commentId}`, {
                         method: 'DELETE'
                     });
                     if (!response.ok) throw new Error(await this.readError(response));
-                    this.showSuccess('Komentarz usuniety.');
+                    this.showSuccess('Komentarz usunięty.');
                     await this.loadThreads();
                 }
             );
@@ -662,7 +662,7 @@
             try {
                 await action();
             } catch (err) {
-                this.showError(err.message || 'Nie udalo sie usunac elementu.');
+                this.showError(err.message || 'Nie udało się usunąć elementu.');
             }
         },
 
@@ -675,10 +675,10 @@
                 });
                 if (!response.ok) throw new Error(await this.readError(response));
 
-                this.showSuccess('Status watku zaktualizowany.');
+                this.showSuccess('Status wątku zaktualizowany.');
                 await this.loadThreads();
             } catch (err) {
-                this.showError(err.message || 'Nie udalo sie zmoderowac watku.');
+                this.showError(err.message || 'Nie udało się zmoderować wątku.');
             }
         },
 
@@ -691,8 +691,8 @@
             if (!visibleThreads.length) {
                 this.els.list.innerHTML = this.emptyHtml(
                     this.state.searchQuery
-                        ? 'Brak wynikow dla podanej frazy.'
-                        : 'Brak watkow. Dodaj pierwszy temat.'
+                        ? 'Brak wyników dla podanej frazy.'
+                        : 'Brak wątków. Dodaj pierwszy temat.'
                 );
                 return;
             }
@@ -701,7 +701,7 @@
                 const active = thread.id === this.state.selectedThreadId ? 'active' : '';
                 const snippet = this.toPlainText(thread.content).slice(0, 95);
                 const badges = [
-                    thread.pinned ? '<span class="forum-badge pinned">Przypiety</span>' : '',
+                    thread.pinned ? '<span class="forum-badge pinned">Przypięty</span>' : '',
                     thread.locked ? '<span class="forum-badge locked">Zablokowany</span>' : '',
                     thread.archived ? '<span class="forum-badge archived">Archiwum</span>' : '',
                     this.isEdited(thread.createdAt, thread.updatedAt) ? '<span class="forum-badge edited">Edytowano</span>' : ''
@@ -783,7 +783,7 @@
             const createdAt = this.formatDate(thread.createdAt);
             const editedAt = this.isEdited(thread.createdAt, thread.updatedAt) ? this.formatDate(thread.updatedAt) : null;
             const statusBadges = [
-                thread.pinned ? '<span class="forum-badge pinned">Przypiety</span>' : '',
+                thread.pinned ? '<span class="forum-badge pinned">Przypięty</span>' : '',
                 thread.locked ? '<span class="forum-badge locked">Zablokowany</span>' : '',
                 thread.archived ? '<span class="forum-badge archived">Archiwum</span>' : ''
             ].join('');
@@ -792,12 +792,12 @@
                 ? `
                     <button class="forum-mini-btn" data-action="toggle-lock" data-next="${!thread.locked}">${thread.locked ? 'Odblokuj' : 'Zablokuj'}</button>
                     <button class="forum-mini-btn" data-action="toggle-pin" data-next="${!thread.pinned}">${thread.pinned ? 'Odepnij' : 'Przypnij'}</button>
-                    <button class="forum-mini-btn" data-action="toggle-archive" data-next="${!thread.archived}">${thread.archived ? 'Przywroc' : 'Archiwizuj'}</button>
+                    <button class="forum-mini-btn" data-action="toggle-archive" data-next="${!thread.archived}">${thread.archived ? 'Przywróć' : 'Archiwizuj'}</button>
                 `
                 : '';
 
             const deleteBtn = thread.canDelete
-                ? '<button class="forum-mini-btn danger" data-action="delete-thread">Usun</button>'
+                ? '<button class="forum-mini-btn danger" data-action="delete-thread">Usuń</button>'
                 : '';
 
             const editBtn = thread.canEdit
@@ -817,18 +817,18 @@
                         <button class="forum-btn secondary" type="submit">Dodaj</button>
                     </form>
                 `
-                : '<div class="forum-empty">Komentowanie niedostepne dla zablokowanego/archiwalnego watku.</div>';
+                : '<div class="forum-empty">Komentowanie niedostępne dla zablokowanego/archiwalnego wątku.</div>';
 
             const isEditingThread = this.state.editingThreadId === thread.id;
             const threadBody = isEditingThread
                 ? `
                     <form id="forumThreadEditForm" class="forum-thread-edit-form" data-thread-id="${thread.id}">
                         <div class="forum-form-group">
-                            <label for="forumEditTitle">Tytul</label>
+                            <label for="forumEditTitle">Tytuł</label>
                             <input id="forumEditTitle" class="forum-input" maxlength="180" value="${Utils.escapeHtml(thread.title || '')}" required>
                         </div>
                         <div class="forum-form-group">
-                            <label for="forumEditContent">Tresc</label>
+                            <label for="forumEditContent">Treść</label>
                             <textarea id="forumEditContent" class="forum-textarea" maxlength="4000" required>${Utils.escapeHtml(thread.content || '')}</textarea>
                         </div>
                         <div class="forum-actions">
@@ -998,7 +998,7 @@
             const editedAt = this.isEdited(comment.createdAt, comment.updatedAt) ? this.formatDate(comment.updatedAt) : null;
             const isEditing = this.state.editingCommentId === comment.id;
             const deleteBtn = comment.canDelete
-                ? `<button class="forum-mini-btn danger" data-delete-comment-id="${comment.id}">Usun</button>`
+                ? `<button class="forum-mini-btn danger" data-delete-comment-id="${comment.id}">Usuń</button>`
                 : '';
             const editBtn = comment.canEdit
                 ? `<button class="forum-mini-btn" data-edit-comment-id="${comment.id}">Edytuj</button>`
@@ -1073,12 +1073,12 @@
             const fullName = this.authorName(firstName, lastName);
             const initials = this.authorInitials(firstName, lastName);
             const avatarSrc = userId ? `/api/users/${userId}/avatar` : '';
-            const roleLabel = role || 'Uzytkownik';
+            const roleLabel = role || 'Użytkownik';
             const compactClass = compact ? ' forum-author-chip--compact' : '';
             const roleClass = ` forum-author-chip--role-${this.authorRoleClass(role)}`;
 
             return `
-                <button type="button" class="forum-author-chip${compactClass}${roleClass}" data-author-id="${Utils.escapeHtml(userId || '')}" title="Przejdz do profilu">
+                <button type="button" class="forum-author-chip${compactClass}${roleClass}" data-author-id="${Utils.escapeHtml(userId || '')}" title="Przejdź do profilu">
                     <span class="forum-author-avatar" aria-hidden="true">
                         ${avatarSrc
                             ? `<img class="forum-author-avatar-img" src="${Utils.escapeHtml(avatarSrc)}" alt="" loading="lazy">`
@@ -1141,7 +1141,7 @@
             const value = (this.els.content?.value || '').trim();
             this.els.createPreview.innerHTML = value
                 ? this.renderMarkdown(value)
-                : '<span style="color: var(--text-placeholder);">Podglad tresci pojawi sie tutaj.</span>';
+                : '<span style="color: var(--text-placeholder);">Podgląd treści pojawi się tutaj.</span>';
         },
 
         renderMarkdown(input) {
@@ -1209,7 +1209,7 @@
 
         async readError(response) {
             const text = (await response.text()).trim();
-            if (!text) return 'Wystapil blad serwera.';
+            if (!text) return 'Wystąpił błąd serwera.';
             if (!text.startsWith('{')) return text;
             try {
                 const parsed = JSON.parse(text);
