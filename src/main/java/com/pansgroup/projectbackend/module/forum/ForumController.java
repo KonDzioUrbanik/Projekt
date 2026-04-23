@@ -76,9 +76,8 @@ public class ForumController {
     }
 
     @DeleteMapping("/threads/{threadId}/comments/{commentId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteComment(@PathVariable Long threadId, @PathVariable Long commentId) {
-        forumService.deleteComment(threadId, commentId);
+    public ForumThreadResponseDto deleteComment(@PathVariable Long threadId, @PathVariable Long commentId) {
+        return forumService.deleteComment(threadId, commentId);
     }
 
     @PostMapping("/threads/{id}/vote")
