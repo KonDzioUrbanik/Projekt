@@ -55,6 +55,12 @@ public class ForumThread {
     @OneToMany(mappedBy = "thread", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ForumThreadAttachment> attachments = new ArrayList<>();
 
+    @OneToMany(mappedBy = "thread", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ForumThreadVote> votes = new ArrayList<>();
+
+    @OneToMany(mappedBy = "thread", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ForumThreadLike> likes = new ArrayList<>();
+
     @PreUpdate
     void onUpdate() {
         this.updatedAt = LocalDateTime.now();

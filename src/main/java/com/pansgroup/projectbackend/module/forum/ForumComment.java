@@ -30,12 +30,18 @@ public class ForumComment {
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
+    @Column(columnDefinition = "boolean default false")
+    private boolean deleted = false;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "thread_id", nullable = false)
     private ForumThread thread;
 
     @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, orphanRemoval = true)
     private java.util.List<ForumCommentAttachment> attachments = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<ForumCommentVote> votes = new java.util.ArrayList<>();
 
     @PreUpdate
     void onUpdate() {

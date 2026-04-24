@@ -1,14 +1,145 @@
 <!DOCTYPE html>
-<html layout:decorate="~{layout/main-layout}">
-    <head>
-        <title>Ankiety i Głosowania - PANSportal</title>
-    </head>
-    <body>
-        <div layout:fragment="content">
-            <div class="feature-under-development">
-                <h2>Ankiety i Głosowania</h2>
-                <p>Funkcja w przygotowaniu.<br>Moduł ankiet i głosowań studenckich jest obecnie w fazie rozwoju technicznego.<br>Przepraszamy za czasowe niedogodności.</p>
+<html lang="pl"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <title>Ankiety i głosowania</title>
+    <th:block layout:fragment="page-styles">
+        <link rel="stylesheet" th:href="@{/css/dashboard/surveys.css(v=${#dates.createNow().getTime()})}">
+    </th:block>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <section id="surveyModule"
+             class="survey-module"
+             th:attr="data-role=${currentUser != null ? currentUser.role : ''}">
+        <div class="survey-view-switcher">
+            <button type="button" id="surveyBrowseViewBtn" class="survey-view-btn active">
+                <i class="fas fa-list"></i> Przeglądaj ankiety
+            </button>
+            <button type="button" id="surveyCreateViewBtn" class="survey-view-btn" style="display: none;">
+                <i class="fas fa-plus-circle"></i> Dodaj ankietę
+            </button>
+        </div>
+
+        <section id="surveyBrowseSection" class="survey-view-section">
+            <div class="survey-shell">
+                <aside class="survey-left">
+                    <section class="survey-card">
+                        <header class="survey-card-head">
+                            <h3><i class="fas fa-poll"></i> Lista ankiet</h3>
+                        </header>
+                        <div class="survey-list-tools">
+                            <div class="survey-search-wrapper">
+                                <i class="fas fa-search"></i>
+                                <input id="surveySearchInput" type="text" placeholder="Szukaj po tytule..." autocomplete="off">
+                            </div>
+                            <span class="survey-results-count" id="surveyResultsCount">0 wyników</span>
+                        </div>
+                        <div id="surveyList" class="survey-list"></div>
+                    </section>
+                </aside>
+
+                <section class="survey-right">
+                    <article id="surveyDetail" class="survey-card survey-detail-empty">
+                        <div class="survey-empty">Wybierz ankietę z listy, aby zobaczyć wyniki i oddać głos.</div>
+                    </article>
+                </section>
+            </div>
+        </section>
+
+        <section id="surveyCreateSection" class="survey-view-section survey-hidden">
+            <section class="survey-card survey-create-card">
+                <header class="survey-card-head">
+                    <h3><i class="fas fa-plus"></i> Nowa ankieta</h3>
+                </header>
+                <div class="survey-card-body">
+                    <form id="surveyCreateForm">
+                        <div class="survey-form-group">
+                            <label for="surveyTitle">Tytuł</label>
+                            <input id="surveyTitle" class="survey-input" maxlength="180" required>
+                        </div>
+
+                        <div class="survey-form-group">
+                            <label for="surveyDescription">Opis (opcjonalnie)</label>
+                            <textarea id="surveyDescription" class="survey-textarea" maxlength="2000"></textarea>
+                        </div>
+
+                        <div id="surveyAdminScope" class="survey-scope-panel" style="display: none;">
+                            <label class="survey-checkbox-label">
+                                <input id="surveyGlobalScope" type="checkbox" checked>
+                                Ankieta globalna (wszyscy studenci)
+                            </label>
+                            <div id="surveyTargetGroupWrap" class="survey-form-group" style="display: none; margin-top: 0.6rem;">
+                                <label for="surveyTargetGroup">Grupa docelowa</label>
+                                <select id="surveyTargetGroup" class="survey-input"></select>
+                            </div>
+                        </div>
+
+                        <div class="survey-form-group">
+                            <label for="surveyEndsAt">Data zakończenia (opcjonalnie)</label>
+                            <input id="surveyEndsAt" type="datetime-local" step="60" class="survey-input">
+                        </div>
+
+                        <div class="survey-form-group">
+                            <label>Odpowiedzi</label>
+                            <div id="surveyOptionsContainer" class="survey-options-edit"></div>
+                            <button id="surveyAddOptionBtn" type="button" class="survey-btn ghost" style="margin-top: 0.55rem;">
+                                <i class="fas fa-plus"></i> Dodaj odpowiedź
+                            </button>
+                        </div>
+
+                        <div class="survey-actions">
+                            <button class="survey-btn ghost" id="surveyCreateCancelBtn" type="button">Anuluj</button>
+                            <button class="survey-btn primary" type="submit">Utwórz ankietę</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </section>
+    </section>
+
+    <div class="survey-modal-overlay" id="surveyDeleteModal" aria-hidden="true">
+        <div class="survey-modal-card" role="dialog" aria-modal="true" aria-labelledby="surveyDeleteModalTitle">
+            <div class="survey-modal-icon">
+                <i class="fas fa-trash-alt"></i>
+            </div>
+            <h3 id="surveyDeleteModalTitle">Usuń ankietę</h3>
+            <p id="surveyDeleteModalText">Czy na pewno chcesz usunąć tę ankietę?</p>
+            <div class="survey-modal-actions">
+                <button class="survey-btn ghost" id="surveyDeleteCancelBtn" type="button">Anuluj</button>
+                <button class="survey-btn danger" id="surveyDeleteConfirmBtn" type="button">
+                    <i class="fas fa-trash-alt"></i> Usuń
+                </button>
             </div>
         </div>
-    </body>
+    </div>
+
+    <div class="survey-modal-overlay" id="surveyExtendModal" aria-hidden="true">
+        <div class="survey-modal-card" role="dialog" aria-modal="true" aria-labelledby="surveyExtendModalTitle">
+            <div class="survey-modal-icon survey-modal-icon-extend">
+                <i class="fas fa-hourglass-end"></i>
+            </div>
+            <h3 id="surveyExtendModalTitle">Przedłuż ankietę</h3>
+            <p id="surveyExtendModalText">Ankieta wygasła. Chcesz ją przedłużyć?</p>
+            <div class="survey-form-group" style="margin-bottom: 1rem;">
+                <label for="surveyNewEndsAt">Nowa data zakończenia</label>
+                <input id="surveyNewEndsAt" type="datetime-local" step="60" class="survey-input">
+            </div>
+            <div class="survey-modal-actions">
+                <button class="survey-btn ghost" id="surveyExtendCancelBtn" type="button">Anuluj</button>
+                <button class="survey-btn primary" id="surveyExtendConfirmBtn" type="button">
+                    <i class="fas fa-check"></i> Przedłuż
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="page-scripts">
+    <script th:src="@{/js/dashboard/surveys.js(v=${#dates.createNow().getTime()})}" defer></script>
+</th:block>
+</body>
 </html>

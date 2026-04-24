@@ -28,7 +28,7 @@ public interface ForumService {
 
     void deleteThread(Long id);
 
-    void deleteComment(Long threadId, Long commentId);
+    ForumThreadResponseDto deleteComment(Long threadId, Long commentId);
 
     ForumThreadResponseDto voteThread(Long id, String voteType); // "UPVOTE" or "DOWNVOTE"
 

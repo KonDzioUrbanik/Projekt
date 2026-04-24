@@ -17,6 +17,7 @@ public record ForumCommentResponseDto(
         String currentUserVote, // "UPVOTE", "DOWNVOTE", or null
         boolean canEdit,
         boolean canDelete,
+        boolean deleted,
         List<AttachmentResponseDto> attachments
 ) {
 }
