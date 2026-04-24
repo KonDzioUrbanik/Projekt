@@ -238,7 +238,6 @@ public class SecurityConfig {
                                 .hasRole("ADMIN")
 
                                 // API ankiet i glosowan
-                                .requestMatchers(HttpMethod.GET, "/api/surveys/*/results").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/surveys/**")
                                 .hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
                                 .requestMatchers(HttpMethod.POST, "/api/surveys")

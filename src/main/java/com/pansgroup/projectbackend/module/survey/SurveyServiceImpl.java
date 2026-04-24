@@ -70,8 +70,13 @@ public class SurveyServiceImpl implements SurveyService {
     @Override
     @Transactional
     public SurveyResponseDto getSurveyPublicResults(Long surveyId) {
+        User currentUser = requireCurrentUser();
         Survey survey = findSurveyOrThrow(surveyId);
-        User currentUser = findCurrentUserOptional();
+
+        if (!canAccessSurvey(currentUser, survey)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak dostępu do wyników tej ankiety.");
+        }
+
         return mapResponses(List.of(survey), currentUser, true).get(0);
     }
 
@@ -82,6 +87,23 @@ public class SurveyServiceImpl implements SurveyService {
 
         if (!isAdmin(role) && !isStarosta(role)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak uprawnień do tworzenia ankiet.");
+        }
+
+        // Limity tworzenia ankiet (nie dotyczą admina)
+        if (!isAdmin(role)) {
+            long activeSurveyCount = surveyRepository.countOpenByAuthorId(currentUser.getId());
+            if (activeSurveyCount >= 5) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Osiągnięto limit 5 aktywnych ankiet. Zamknij lub usuń istniejące ankiety.");
+            }
+
+            surveyRepository.findLatestCreatedAtByAuthorId(currentUser.getId())
+                    .ifPresent(lastCreated -> {
+                        if (lastCreated.plusMinutes(5).isAfter(LocalDateTime.now())) {
+                            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                                    "Musisz odczekać 5 minut od utworzenia ostatniej ankiety.");
+                        }
+                    });
         }
 
         List<String> cleanedOptions = normalizeOptions(dto.options());
