@@ -1,5 +1,6 @@
 package com.pansgroup.projectbackend.module.user;
 
+import lombok.extern.slf4j.Slf4j;
 import com.pansgroup.projectbackend.exception.*;
 import com.pansgroup.projectbackend.module.email.EmailService;
 import com.pansgroup.projectbackend.module.student.StudentGroup;
@@ -15,10 +16,13 @@ import com.pansgroup.projectbackend.module.forum.ForumService;
 import com.pansgroup.projectbackend.module.note.NoteService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import com.pansgroup.projectbackend.security.LoginAttemptService;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -28,6 +32,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @SuppressWarnings("ALL")
 @Service
 @Transactional
@@ -51,6 +56,7 @@ public class UserServiceImpl implements UserService {
     private final ForumService forumService;
     private final NoteService noteService;
     private final AdminSecurityAuditService securityAuditService;
+    private final LoginAttemptService loginAttemptService;
 
     public UserServiceImpl(UserRepository userRepository,
             PasswordEncoder passwordEncoder,
@@ -61,7 +67,8 @@ public class UserServiceImpl implements UserService {
             SystemService systemService,
             ForumService forumService,
             NoteService noteService,
-            AdminSecurityAuditService securityAuditService) {
+            AdminSecurityAuditService securityAuditService,
+            LoginAttemptService loginAttemptService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.studentGroupRepository = studentGroupRepository;
@@ -72,6 +79,7 @@ public class UserServiceImpl implements UserService {
         this.forumService = forumService;
         this.noteService = noteService;
         this.securityAuditService = securityAuditService;
+        this.loginAttemptService = loginAttemptService;
     }
 
     @Override
@@ -191,17 +199,27 @@ public class UserServiceImpl implements UserService {
     public User authenticate(LoginRequestDto dto) {
         String normalizedEmail = dto.getEmail().trim().toLowerCase(Locale.ROOT);
 
-        // Szukamy użytkownika po emailu
+        // 1. Sprawdzenie blokady (Account Lockout protection)
+        if (loginAttemptService.isBlocked(normalizedEmail)) {
+            securityAuditService.recordEvent("LOGIN_BLOCKED", getClientIp(),
+                    "Próba logowania na zablokowane konto: " + normalizedEmail, null, normalizedEmail);
+            throw new DisabledException("Konto zostało tymczasowo zablokowane z powodu zbyt wielu nieudanych prób logowania. Odczekaj 15 minut.");
+        }
+
+        // 2. Szukamy użytkownika
         User user = userRepository.findByEmail(normalizedEmail)
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "Nie znaleziono użytkownika o adresie: " + normalizedEmail));
 
-        // Sprawdzamy poprawność hasła
+        // 3. Sprawdzamy poprawność hasła
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-            throw new org.springframework.security.authentication.BadCredentialsException(
+            loginAttemptService.loginFailed(normalizedEmail); // Rejestracja porażki
+            throw new BadCredentialsException(
                     "Wprowadzone dane logowania są nieprawidłowe. Sprawdź adres e-mail i hasło.");
         }
 
+        // 4. Sukces - reset licznika
+        loginAttemptService.loginSucceeded(normalizedEmail);
         return user;
     }
 
@@ -350,7 +368,8 @@ public class UserServiceImpl implements UserService {
                         "Nie znaleziono użytkownika o adresie: " + normalizedEmail));
 
         // 2. Znajdź encję kierunku lub usuń przypisanie (jeśli groupId == null)
-        if (dto.groupId() == null) {
+        Long groupId = dto.groupId();
+        if (groupId == null) {
             // Zabezpieczenie: Nie można usunąć kierunku Staroście
             if ("STAROSTA".equalsIgnoreCase(userToUpdate.getRole())) {
                 throw new IllegalStateException("Nie można usunąć kierunku użytkownikowi z rolą Starosty. Najpierw zmień jego rolę.");
@@ -359,8 +378,8 @@ public class UserServiceImpl implements UserService {
             userToUpdate.setStudentGroup(null);
         } else {
             // użycie metody z studentGroupRepository, która zwróci encję kierunku
-            StudentGroup group = studentGroupRepository.findById(dto.groupId())
-                    .orElseThrow(() -> new StudentGroupNotFoundException(dto.groupId()));
+            StudentGroup group = studentGroupRepository.findById(groupId)
+                    .orElseThrow(() -> new StudentGroupNotFoundException(groupId));
             // 3. Przypisz kierunek do użytkownika
             userToUpdate.setStudentGroup(group);
         }
@@ -412,8 +431,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void requestPasswordReset(String email) {
+        String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
+
         // Rate limiting - sprawdź czy użytkownik nie spamuje
-        LocalDateTime lastRequest = passwordResetCooldown.get(email);
+        LocalDateTime lastRequest = passwordResetCooldown.get(normalizedEmail);
         if (lastRequest != null) {
             long secondsSinceLastRequest = Duration.between(lastRequest, LocalDateTime.now()).getSeconds();
             if (secondsSinceLastRequest < COOLDOWN_SECONDS) {
@@ -422,26 +443,33 @@ public class UserServiceImpl implements UserService {
                         "Poczekaj " + remainingSeconds + " sekund przed ponowną próbą wysłania linku resetującego.");
             }
         }
+        passwordResetCooldown.put(normalizedEmail, LocalDateTime.now());
 
-        Optional<User> user = userRepository.findByEmail(email);
-        if (user.isEmpty()) {
-            throw new UsernameNotFoundException("Nie znaleziono użytkownika o adresie: " + email);
-        } else if (!user.get().isActivated()) {
-            throw new AccountInactiveException("Konto z adresem e-mail " + email
-                    + " nie zostało aktywowane. Sprawdź swoją skrzynkę pocztową i kliknij w link aktywacyjny.");
-        } else {
-            User u = user.get();
-            PasswordResetToken passwordResetToken = new PasswordResetToken();
-            passwordResetToken.setUser(u);
-            passwordResetToken.setToken(UUID.randomUUID().toString());
-            passwordResetToken.setExpiryDate(LocalDateTime.now().plusMinutes(10));
-            passwordResetTokenRepository.save(passwordResetToken);
-            emailService.sendPasswordResetEmail(u.getEmail(), passwordResetToken.getToken());
-            securityAuditService.recordEvent("PASSWORD_RESET_REQUESTED", getClientIp(), "Wysłano link do resetowania hasła: " + u.getEmail(), u.getId(), u.getEmail());
+        Optional<User> userOpt = userRepository.findByEmail(normalizedEmail);
 
-            // Zapisz timestamp ostatniego wysłania dla tego emaila
-            passwordResetCooldown.put(email, LocalDateTime.now());
+        if (userOpt.isEmpty()) {
+            log.warn("Privacy-hardened: Password reset requested for non-existent email: {}", normalizedEmail);
+            // Zwracamy normalnie, aby nie zdradzać istnienia konta
+            return;
         }
+
+        User u = userOpt.get();
+        if (!u.isActivated()) {
+            log.warn("Privacy-hardened: Password reset requested for inactive account: {}", normalizedEmail);
+            // Również zwracamy normalnie (bezpieczeństwo przez niejasność)
+            return;
+        }
+
+        // Generowanie tokenu i wysyłka
+        PasswordResetToken passwordResetToken = new PasswordResetToken();
+        passwordResetToken.setUser(u);
+        passwordResetToken.setToken(UUID.randomUUID().toString());
+        passwordResetToken.setExpiryDate(LocalDateTime.now().plusMinutes(10));
+        passwordResetTokenRepository.save(passwordResetToken);
+
+        emailService.sendPasswordResetEmail(u.getEmail(), passwordResetToken.getToken());
+        securityAuditService.recordEvent("PASSWORD_RESET_REQUESTED", getClientIp(),
+                "Wysłano link do resetowania hasła: " + u.getEmail(), u.getId(), u.getEmail());
     }
 
     @Override
@@ -526,20 +554,27 @@ public class UserServiceImpl implements UserService {
                     org.springframework.http.HttpStatus.BAD_REQUEST, "Niedozwolony typ pliku: " + mimeType);
         }
 
-        if (file.getSize() > 5 * 1024 * 1024) {
-            throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.BAD_REQUEST, "Plik jest zbyt duży (max 5MB).");
-        }
-
-        if (userId == null) {
-            throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.BAD_REQUEST, "ID użytkownika jest wymagane.");
-        }
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
-
         try {
-            user.setAvatarData(file.getBytes());
+            byte[] fileData = file.getBytes();
+            
+            // Magic Bytes Verification (Anti-MIME Sniffing)
+            try (java.io.InputStream is = new java.io.ByteArrayInputStream(fileData)) {
+                String detectedMime = new org.apache.tika.Tika().detect(is);
+                if (!detectedMime.startsWith("image/")) {
+                    throw new org.springframework.web.server.ResponseStatusException(
+                            org.springframework.http.HttpStatus.BAD_REQUEST, 
+                            "Przesłany plik nie jest prawdziwym obrazem (wykryto: " + detectedMime + ")");
+                }
+            }
+
+            if (userId == null) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.BAD_REQUEST, "ID użytkownika jest wymagane.");
+            }
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new UserNotFoundException(userId));
+
+            user.setAvatarData(fileData);
             user.setAvatarContentType(mimeType);
             userRepository.save(user);
             securityAuditService.recordEvent("AVATAR_UPLOAD", null, "Wgrano nowy awatar dla: " + user.getEmail(), user.getId(), user.getEmail());

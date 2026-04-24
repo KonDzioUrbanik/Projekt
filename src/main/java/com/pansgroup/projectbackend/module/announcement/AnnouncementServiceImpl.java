@@ -20,6 +20,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 
 @Service
 @Transactional
@@ -258,8 +260,12 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         String role = normalizeRole(currentUser);
         boolean isAdmin = "ADMIN".equals(role);
         boolean isOwner = Objects.equals(announcement.getAuthor().getId(), currentUser.getId());
+        boolean isStarosta = "STAROSTA".equals(role);
+        boolean isGroupModerator = isStarosta && currentUser.getStudentGroup() != null &&
+                announcement.getTargetGroup() != null &&
+                Objects.equals(currentUser.getStudentGroup().getId(), announcement.getTargetGroup().getId());
 
-        if (!isAdmin && !isOwner) {
+        if (!isAdmin && !isOwner && !isGroupModerator) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak uprawnień do usunięcia tego ogłoszenia.");
         }
 
@@ -511,8 +517,13 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     private Announcement buildAnnouncement(AnnouncementCreateDto dto, User author, StudentGroup group,
             String broadcastKey) {
         Announcement announcement = new Announcement();
-        announcement.setTitle(dto.title().trim());
-        announcement.setContent(dto.content().trim());
+
+        // Sanityzacja HTML (ochrona XSS) dla tytułu i treści
+        String cleanTitle = Jsoup.clean(dto.title(), Safelist.none()).trim();
+        String cleanContent = Jsoup.clean(dto.content(), Safelist.relaxed()).trim();
+
+        announcement.setTitle(cleanTitle);
+        announcement.setContent(cleanContent);
         announcement.setAuthor(author);
         announcement.setTargetGroup(group);
         announcement.setBroadcastKey(broadcastKey);

@@ -25,6 +25,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import java.net.URI;
 import java.util.LinkedHashMap;
@@ -116,9 +119,25 @@ public class GlobalExceptionHandler {
     /* ====== 400: zły payload / typy ====== */
     @ExceptionHandler({ HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class })
     public ProblemDetail handleBadPayload(Exception ex, HttpServletRequest req) {
+        log.warn("Malformed request: {}", ex.getMessage());
         return pd(HttpStatus.BAD_REQUEST, "Malformed request",
-                "Nieprawidłowy format danych wejściowych.", req, "bad_payload",
-                Map.of("reason", ex.getMessage()));
+                "Nieprawidłowy format danych wejściowych.", req, "bad_payload");
+    }
+
+    /* ====== 413: Przekroczono rozmiar pliku ====== */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ProblemDetail handleMaxSizeException(MaxUploadSizeExceededException ex, HttpServletRequest req) {
+        log.warn("Zablokowano próbę wgrania zbyt dużego pliku. Limit to 15MB.");
+        return pd(HttpStatus.PAYLOAD_TOO_LARGE, "File too large",
+                "Plik jest zbyt duży. Maksymalny dozwolony rozmiar to 15 MB.", req, "file_too_large");
+    }
+
+    /* ====== 400: brakujące parametry / części żądania ====== */
+    @ExceptionHandler({ MissingServletRequestParameterException.class, MissingServletRequestPartException.class })
+    public ProblemDetail handleMissingParams(Exception ex, HttpServletRequest req) {
+        log.warn("Missing parameter or part: {}", ex.getMessage());
+        return pd(HttpStatus.BAD_REQUEST, "Missing request data",
+                "Brakujące wymagane dane w żądaniu (parametr lub część multipart).", req, "missing_data");
     }
 
     /* ====== 400: puste pole domenowe ====== */
@@ -240,11 +259,9 @@ public class GlobalExceptionHandler {
     /* ====== 409: naruszenie constraint DB. ====== */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail handleDataIntegrity(DataIntegrityViolationException ex, HttpServletRequest req) {
-        ex.getMostSpecificCause();
-        String reason = ex.getMostSpecificCause().getMessage();
+        log.error("Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
         return pd(HttpStatus.CONFLICT, "Constraint violation",
-                "Operacja narusza ograniczenia integralności danych.", req, "db_constraint",
-                Map.of("reason", reason));
+                "Operacja narusza ograniczenia integralności danych.", req, "db_constraint");
     }
 
     /* ====== 500: problem ze schematem SQL / kolumnami ====== */
@@ -277,7 +294,6 @@ public class GlobalExceptionHandler {
                 ex); // Dodajemy pełny stack trace do logów
 
         return pd(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error",
-                "Wewnętrzny błąd serwera.", req, "unexpected",
-                Map.of("reason", ex.getMessage()));
+                "Wewnętrzny błąd serwera. Spróbuj ponownie później.", req, "unexpected");
     }
 }

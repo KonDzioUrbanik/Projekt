@@ -343,14 +343,14 @@ document.addEventListener('DOMContentLoaded', () => {
         Array.from(files).forEach(file => {
             if (file.size > maxSizeBytes) {
                 if (typeof Utils !== 'undefined' && Utils.showToast) {
-                    Utils.showToast("Przekroczono limit wielkości", `Plik ${file.name} jest za duży. Maksymalny rozmiar to 50MB.`, "error");
+                    Utils.showToast(`Plik ${file.name} jest za duży (max 50MB).`, "error");
                 }
                 return;
             }
             if(validFiles.length + pendingFiles.length >= 20) {
                 if (!hasAlertedLimit) {
                     if (typeof Utils !== 'undefined' && Utils.showToast) {
-                        Utils.showToast("Limit plików", "Kolejka mieści max 20 plików naraz. Pozostałe pliki zostały pominięte.", "warning");
+                        Utils.showToast("Kolejka mieści max 20 plików naraz. Pozostałe pominięto.", "warning");
                     }
                     hasAlertedLimit = true;
                 }
@@ -520,6 +520,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         xhr.onload = () => {
             task.xhr = null;
+            let responseData = {};
+            try {
+                responseData = JSON.parse(xhr.responseText);
+            } catch (e) {
+                console.error("Nie udało się sparsować odpowiedzi serwera jako JSON", e);
+            }
+
             if (xhr.status >= 200 && xhr.status < 300) {
                 updateFileStatus(queueId, 'success');
                 loadQuota();
@@ -530,8 +537,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 activeUploads--;
                 startNextUploads();
             } else {
-                updateFileStatus(queueId, 'error', 'Błąd serwera');
+                const errMsg = responseData.detail || responseData.message || (xhr.status === 413 ? "Plik jest zbyt duży lub brak miejsca." : "Wystąpił błąd serwera.");
+                updateFileStatus(queueId, 'error', errMsg);
                 task.state = 'error';
+
+                if (typeof Utils !== 'undefined' && Utils.showToast) {
+                    Utils.showToast(errMsg, "error");
+                } else {
+                    alert(`Błąd wgrywania: ${errMsg}`);
+                }
+
                 activeUploads--;
                 startNextUploads();
             }

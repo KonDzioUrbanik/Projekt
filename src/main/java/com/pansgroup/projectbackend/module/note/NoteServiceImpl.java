@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 
 @Service
 @Transactional
@@ -34,8 +36,9 @@ public class NoteServiceImpl implements NoteService {
                 .orElseThrow(() -> new UsernameNotFoundException("Użytkownik o e-mailu: " + email + " nie istnieje"));
 
         Note note = new Note();
-        note.setTitle(dto.title().trim());
-        note.setContent(dto.content().trim());
+        // Sanityzacja HTML (ochrona XSS)
+        note.setTitle(Jsoup.clean(dto.title(), Safelist.none()).trim());
+        note.setContent(Jsoup.clean(dto.content(), Safelist.relaxed()).trim());
         note.setAuthor(author);
         note.setVisibility(NoteVisibility.PRIVATE); // Domyślnie prywatna
         note.setViewCount(0);
@@ -52,8 +55,9 @@ public class NoteServiceImpl implements NoteService {
     public NoteResponseDto update(Long id, NoteUpdateDto dto) {
         Note note = findNoteByIdAndEnsureOwnership(id);
 
-        note.setTitle(dto.title().trim());
-        note.setContent(dto.content().trim());
+        // Sanityzacja HTML (ochrona XSS)
+        note.setTitle(Jsoup.clean(dto.title(), Safelist.none()).trim());
+        note.setContent(Jsoup.clean(dto.content(), Safelist.relaxed()).trim());
         note.setUpdatedAt(LocalDateTime.now());
 
         Note updated = noteRepository.save(note);
@@ -71,10 +75,15 @@ public class NoteServiceImpl implements NoteService {
         Note note = noteRepository.findById(id)
                 .orElseThrow(() -> new NoteNotFoundException(id));
 
+        User currentUser = getCurrentUser();
+        // Sprawdź czy użytkownik ma dostęp do notatki
+        if (!hasAccessToNote(note, currentUser)) {
+            throw new NoteNotFoundException(id);
+        }
+
         note.incrementViewCount();
         noteRepository.save(note);
 
-        User currentUser = getCurrentUser();
         return NoteDTO.fromEntity(note, currentUser);
     }
 
@@ -235,7 +244,8 @@ public class NoteServiceImpl implements NoteService {
         User currentUser = getCurrentUser();
         Note note = findNoteByIdAndEnsureOwnership(noteId);
 
-        note.setTags(tags);
+        // Sanityzacja tagów (brak HTML)
+        note.setTags(tags != null ? Jsoup.clean(tags, Safelist.none()).trim() : null);
         note.setUpdatedAt(LocalDateTime.now());
 
         Note saved = noteRepository.save(note);

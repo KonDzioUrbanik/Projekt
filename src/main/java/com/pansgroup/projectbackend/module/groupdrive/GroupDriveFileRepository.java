@@ -1,6 +1,7 @@
 package com.pansgroup.projectbackend.module.groupdrive;
 
 import com.pansgroup.projectbackend.module.student.StudentGroup;
+import com.pansgroup.projectbackend.module.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -30,6 +31,8 @@ public interface GroupDriveFileRepository extends JpaRepository<GroupDriveFile, 
             @Param("category") FileCategory category, @Param("search") String search, Pageable pageable);
 
     List<GroupDriveFile> findByStudentGroupAndIsDeletedFalse(StudentGroup studentGroup);
+
+    long countByUploaderAndIsDeletedFalse(User uploader);
 
     @org.springframework.data.jpa.repository.Query("SELECT SUM(f.fileSize) FROM GroupDriveFile f WHERE f.isDeleted = false AND f.studentGroup.id = :groupId")
     Long sumSizeByGroupAndDeletedFalse(@Param("groupId") Long groupId);

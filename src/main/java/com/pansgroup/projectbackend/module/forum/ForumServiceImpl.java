@@ -1,13 +1,7 @@
 package com.pansgroup.projectbackend.module.forum;
 
 import com.pansgroup.projectbackend.exception.UsernameNotFoundException;
-import com.pansgroup.projectbackend.module.forum.dto.ForumCommentCreateDto;
-import com.pansgroup.projectbackend.module.forum.dto.ForumCommentResponseDto;
-import com.pansgroup.projectbackend.module.forum.dto.ForumCommentUpdateDto;
-import com.pansgroup.projectbackend.module.forum.dto.ForumThreadCreateDto;
-import com.pansgroup.projectbackend.module.forum.dto.ForumThreadModerationDto;
-import com.pansgroup.projectbackend.module.forum.dto.ForumThreadResponseDto;
-import com.pansgroup.projectbackend.module.forum.dto.ForumThreadUpdateDto;
+import com.pansgroup.projectbackend.module.forum.dto.*;
 import com.pansgroup.projectbackend.module.student.StudentGroup;
 import com.pansgroup.projectbackend.module.student.StudentGroupRepository;
 import com.pansgroup.projectbackend.module.user.User;
@@ -28,16 +22,16 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 
 @Service
 @Transactional
 public class ForumServiceImpl implements ForumService {
 
     private static final Logger log = LoggerFactory.getLogger(ForumServiceImpl.class);
-
-    private static final Pattern TAG_PATTERN = Pattern.compile("<[^>]+>");
+ 
     private static final int MAX_ATTACHMENTS = 5;
     private static final long MAX_FILE_SIZE_BYTES = 5L * 1024 * 1024; // 5MB
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
@@ -205,7 +199,12 @@ public class ForumServiceImpl implements ForumService {
         ForumThread thread = findThread(id);
 
         boolean isOwner = Objects.equals(thread.getAuthor().getId(), currentUser.getId());
-        if (!isAdmin(currentUser) && !isOwner) {
+        boolean isGroupModerator = isStarosta(currentUser) && 
+                currentUser.getStudentGroup() != null &&
+                thread.getStudentGroup() != null &&
+                Objects.equals(currentUser.getStudentGroup().getId(), thread.getStudentGroup().getId());
+
+        if (!isAdmin(currentUser) && !isOwner && !isGroupModerator) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak uprawnień do usunięcia wątku.");
         }
 
@@ -226,8 +225,12 @@ public class ForumServiceImpl implements ForumService {
         }
 
         boolean isCommentAuthor = Objects.equals(comment.getAuthor().getId(), currentUser.getId());
+        boolean isGroupModerator = isStarosta(currentUser) && 
+                currentUser.getStudentGroup() != null &&
+                thread.getStudentGroup() != null &&
+                Objects.equals(currentUser.getStudentGroup().getId(), thread.getStudentGroup().getId());
 
-        if (!isAdmin(currentUser) && !isCommentAuthor) {
+        if (!isAdmin(currentUser) && !isCommentAuthor && !isGroupModerator) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak uprawnień do usunięcia komentarza.");
         }
 
@@ -255,15 +258,12 @@ public class ForumServiceImpl implements ForumService {
         if (existingVote.isPresent()) {
             ForumThreadVote vote = existingVote.get();
             if (vote.getVoteType() == type) {
-                // Remove vote if it's the same type
                 forumThreadVoteRepository.delete(vote);
             } else {
-                // Change vote type
                 vote.setVoteType(type);
                 forumThreadVoteRepository.save(vote);
             }
         } else {
-            // Create new vote
             ForumThreadVote vote = new ForumThreadVote();
             vote.setThread(thread);
             vote.setUser(currentUser);
@@ -301,15 +301,12 @@ public class ForumServiceImpl implements ForumService {
         if (existingVote.isPresent()) {
             ForumCommentVote vote = existingVote.get();
             if (vote.getVoteType() == type) {
-                // Remove vote if it's the same type
                 forumCommentVoteRepository.delete(vote);
             } else {
-                // Change vote type
                 vote.setVoteType(type);
                 forumCommentVoteRepository.save(vote);
             }
         } else {
-            // Create new vote
             ForumCommentVote vote = new ForumCommentVote();
             vote.setComment(comment);
             vote.setUser(currentUser);
@@ -669,6 +666,10 @@ public class ForumServiceImpl implements ForumService {
                 .orElseThrow(() -> new UsernameNotFoundException("Użytkownik nie znaleziony: " + email));
     }
 
+    private boolean isStarosta(User user) {
+        return "STAROSTA".equalsIgnoreCase(user.getRole());
+    }
+
     private boolean isAdmin(User user) {
         return "ADMIN".equals(normalizeRole(user));
     }
@@ -681,22 +682,25 @@ public class ForumServiceImpl implements ForumService {
     }
 
     private String cleanText(String text, int maxLength, String fieldName) {
-        String noHtml = TAG_PATTERN.matcher(text == null ? "" : text).replaceAll("");
-        String normalizedWhitespace = noHtml.replace('\u00A0', ' ').trim();
-
-        if (normalizedWhitespace.isBlank()) {
+        if (text == null || text.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " nie może być puste.");
         }
-        if (normalizedWhitespace.length() > maxLength) {
+
+        // 1. Sanityzacja HTML (ochrona XSS)
+        String cleaned = Jsoup.clean(text, Safelist.relaxed());
+
+        // 2. Normalizacja spacji (usuwanie twardych spacji itp.)
+        String normalized = cleaned.replace('\u00A0', ' ').trim();
+
+        if (normalized.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " nie może zawierać samej białej znaki.");
+        }
+
+        if (normalized.length() > maxLength) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     fieldName + " przekracza maksymalną długość " + maxLength + " znaków.");
         }
 
-        return normalizedWhitespace;
+        return normalized;
     }
 }
-
-
-
-
-
