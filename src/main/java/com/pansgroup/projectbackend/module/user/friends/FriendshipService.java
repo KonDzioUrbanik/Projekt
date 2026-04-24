@@ -19,6 +19,11 @@ public class FriendshipService {
 
     @Transactional
     public void sendFriendRequest(Long senderId, Long receiverId) {
+        // Limit anty-spamowy: max 50 oczekujących zaproszeń wysłanych przez jednego użytkownika
+        long pendingCount = friendRequestRepository.countBySenderIdAndStatus(senderId, FriendRequestStatus.PENDING);
+        if (pendingCount >= 50) {
+            throw new IllegalStateException("Osiągnąłeś limit 50 oczekujących zaproszeń. Poczekaj na ich rozpatrzenie.");
+        }
         if (senderId.equals(receiverId)) {
             throw new IllegalArgumentException("Nie możesz zaprosić samego siebie.");
         }

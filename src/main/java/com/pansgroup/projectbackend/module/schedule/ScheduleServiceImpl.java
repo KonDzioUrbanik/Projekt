@@ -205,6 +205,26 @@ public class ScheduleServiceImpl implements ScheduleService {
     public ScheduleEntryResponseDto findById(Long id) {
         ScheduleEntry entry = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleEntryNotFoundException(id));
+
+        // IDOR protection: Student can only see entries for their own group
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated()) {
+            boolean isAdmin = auth.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            
+            if (!isAdmin) {
+                User user = userRepository.findByEmail(auth.getName()).orElse(null);
+                if (user != null && user.getStudentGroup() != null) {
+                    Long myGroupId = user.getStudentGroup().getId();
+                    boolean inMyGroup = entry.getStudentGroups().stream()
+                            .anyMatch(g -> g.getId().equals(myGroupId));
+                    if (!inMyGroup) {
+                        throw new ScheduleEntryNotFoundException(id); // Hide existence
+                    }
+                }
+            }
+        }
+
         return toResponse(entry);
     }
 
@@ -253,6 +273,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     public ScheduleEntryResponseDto archive(Long id) {
         ScheduleEntry entry = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleEntryNotFoundException(id));
+        checkStarostaPermission(entry);
         entry.setArchived(true);
         entry.setArchivedAt(LocalDateTime.now());
         return toResponse(scheduleRepository.save(entry));
@@ -262,6 +283,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     public ScheduleEntryResponseDto restore(Long id) {
         ScheduleEntry entry = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ScheduleEntryNotFoundException(id));
+        checkStarostaPermission(entry);
         entry.setArchived(false);
         entry.setArchivedAt(null);
         return toResponse(scheduleRepository.save(entry));

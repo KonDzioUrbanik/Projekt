@@ -21,6 +21,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -107,6 +109,7 @@ public class AnalyticsService {
         /**
          * Zwraca zagregowane statystyki dla panelu admina.
          */
+        @Cacheable(value = "analyticsSummary", key = "'global'")
         public AnalyticsSummaryDto getSummary() {
                 LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
 
@@ -291,6 +294,7 @@ public class AnalyticsService {
          * Usuwa wszystkie wystąpienia konkretnego błędu.
          */
         @Transactional
+        @CacheEvict(value = "analyticsSummary", allEntries = true)
         public void deleteError(String eventName) {
                 repository.deleteByEventTypeAndEventName(AnalyticsEvent.EventType.ERROR, eventName);
         }
@@ -299,6 +303,7 @@ public class AnalyticsService {
          * Usuwa wszystkie błędy techniczne z bazy.
          */
         @Transactional
+        @CacheEvict(value = "analyticsSummary", allEntries = true)
         public void deleteAllErrors() {
                 repository.deleteByEventType(AnalyticsEvent.EventType.ERROR);
         }

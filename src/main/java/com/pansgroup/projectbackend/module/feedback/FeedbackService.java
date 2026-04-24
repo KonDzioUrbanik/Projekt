@@ -9,6 +9,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import java.util.Arrays;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -77,8 +79,8 @@ public class FeedbackService {
 
         Feedback feedback = Feedback.builder()
                 .type(dto.getType())
-                .title(dto.getTitle())
-                .description(dto.getDescription())
+                .title(Jsoup.clean(dto.getTitle() != null ? dto.getTitle() : "", Safelist.none()))
+                .description(Jsoup.clean(dto.getDescription() != null ? dto.getDescription() : "", Safelist.relaxed()))
                 .email(email)
                 .userId(authenticatedUserId)
                 .url(dto.getUrl())

@@ -28,16 +28,16 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 
 @Service
 @Transactional
 public class ForumServiceImpl implements ForumService {
 
     private static final Logger log = LoggerFactory.getLogger(ForumServiceImpl.class);
-
-    private static final Pattern TAG_PATTERN = Pattern.compile("<[^>]+>");
+ 
     private static final int MAX_ATTACHMENTS = 5;
     private static final long MAX_FILE_SIZE_BYTES = 5L * 1024 * 1024; // 5MB
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
@@ -201,7 +201,10 @@ public class ForumServiceImpl implements ForumService {
         ForumThread thread = findThread(id);
 
         boolean isOwner = Objects.equals(thread.getAuthor().getId(), currentUser.getId());
-        if (!isAdmin(currentUser) && !isOwner) {
+        boolean isGroupModerator = isStarosta(currentUser) && 
+                Objects.equals(currentUser.getStudentGroup().getId(), thread.getAuthor().getStudentGroup().getId());
+
+        if (!isAdmin(currentUser) && !isOwner && !isGroupModerator) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak uprawnien do usuniecia watku.");
         }
 
@@ -218,8 +221,10 @@ public class ForumServiceImpl implements ForumService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie znaleziono komentarza."));
 
         boolean isCommentAuthor = Objects.equals(comment.getAuthor().getId(), currentUser.getId());
+        boolean isGroupModerator = isStarosta(currentUser) && 
+                Objects.equals(currentUser.getStudentGroup().getId(), thread.getAuthor().getStudentGroup().getId());
 
-        if (!isAdmin(currentUser) && !isCommentAuthor) {
+        if (!isAdmin(currentUser) && !isCommentAuthor && !isGroupModerator) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak uprawnien do usuniecia komentarza.");
         }
 
@@ -653,6 +658,10 @@ public class ForumServiceImpl implements ForumService {
                 .orElseThrow(() -> new UsernameNotFoundException("Uzytkownik nie znaleziony: " + email));
     }
 
+    private boolean isStarosta(User user) {
+        return "STAROSTA".equalsIgnoreCase(user.getRole());
+    }
+
     private boolean isAdmin(User user) {
         return "ADMIN".equals(normalizeRole(user));
     }
@@ -665,18 +674,26 @@ public class ForumServiceImpl implements ForumService {
     }
 
     private String cleanText(String text, int maxLength, String fieldName) {
-        String noHtml = TAG_PATTERN.matcher(text == null ? "" : text).replaceAll("");
-        String normalizedWhitespace = noHtml.replace('\u00A0', ' ').trim();
-
-        if (normalizedWhitespace.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " nie moze byc puste.");
+        if (text == null || text.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " nie może być puste.");
         }
-        if (normalizedWhitespace.length() > maxLength) {
+
+        // 1. Sanityzacja HTML (ochrona XSS) – pozwala na bezpieczny format (b, i, p, br, a, ul, li)
+        String cleaned = Jsoup.clean(text, Safelist.relaxed());
+
+        // 2. Normalizacja spacji (usuwanie twardych spacji itp.)
+        String normalized = cleaned.replace('\u00A0', ' ').trim();
+
+        if (normalized.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " nie może zawierać samej białej znaki.");
+        }
+
+        if (normalized.length() > maxLength) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    fieldName + " przekracza maksymalna dlugosc " + maxLength + " znakow.");
+                    fieldName + " przekracza maksymalną długość " + maxLength + " znaków.");
         }
 
-        return normalizedWhitespace;
+        return normalized;
     }
 }
 

@@ -3,6 +3,7 @@ package com.pansgroup.projectbackend.security;
 import com.pansgroup.projectbackend.module.user.User;
 import com.pansgroup.projectbackend.module.user.UserService;
 import com.pansgroup.projectbackend.module.system.SystemService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -20,19 +21,34 @@ import org.springframework.security.web.authentication.rememberme.PersistentToke
 import org.springframework.security.config.Customizer;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.List;
+
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+
+/* Główna konfiguracja Spring Security */
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
         @Bean
-        public UserDetailsService userDetailsService(UserService userService, SystemService systemService) {
+        public UserDetailsService userDetailsService(UserService userService, SystemService systemService,
+                        LoginAttemptService loginAttemptService) {
                 return email -> {
+                        // Ochrona Brute-Force: konto zablokowane po 5 nieudanych próbach (TTL 15 min)
+                        if (loginAttemptService.isBlocked(email)) {
+                                throw new DisabledException(
+                                                "Konto zostało tymczasowo zablokowane z powodu zbyt wielu błędnych prób logowania. Odczekaj 15 minut.");
+                        }
                         User user = userService.findUserByEmailInternal(email);
                         if (user == null) {
                                 throw new UsernameNotFoundException("Nie znaleziono użytkownika: " + email);
                         }
 
-                        // Blokada logowania dla użytkowników (nie dotyczy ADMIN)
+                        // Blokada logowania dla użytkowników
                         if (!systemService.isModuleEnabled("login_enabled")
                                         && !"ADMIN".equalsIgnoreCase(user.getRole())) {
                                 throw new DisabledException(
@@ -116,20 +132,44 @@ public class SecurityConfig {
                 return filter;
         }
 
+        /* CORS – Cross-Origin Resource Sharing */
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource(
+                        @Value("${app.cors.allowed-origins:http://localhost:8090,http://localhost:3000}") String originsRaw) {
+
+                CorsConfiguration cfg = new CorsConfiguration();
+                cfg.setAllowedOrigins(List.of(originsRaw.split(",")));
+                cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+                cfg.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Captcha-Token", "X-Requested-With"));
+                cfg.setAllowCredentials(true); // Wymagane dla ciasteczek sesji
+                cfg.setMaxAge(3600L); // Cache preflight na 1 godzinę
+
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", cfg);
+                return source;
+        }
+
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http,
                         RememberMeServices rememberMeServices,
                         AccountStatusFilter accountStatusFilter,
-                        SystemMaintenanceFilter systemMaintenanceFilter)
+                        SystemMaintenanceFilter systemMaintenanceFilter,
+                        RateLimitingFilter rateLimitingFilter)
                         throws Exception {
 
+                // CSRF WYŁĄCZONE
                 http.csrf(AbstractHttpConfigurer::disable);
                 http.httpBasic(AbstractHttpConfigurer::disable);
+                // CORS włączony z Beanem CorsConfigurationSource
+                http.cors(Customizer.withDefaults());
 
                 // Rejestracja filtra sprawdzającego status konta (blokady) oraz tryb
                 // konserwacji
                 http.addFilterBefore(systemMaintenanceFilter, AuthorizationFilter.class);
                 http.addFilterBefore(accountStatusFilter, AuthorizationFilter.class);
+
+                // Rate Limiting WEWNĄTRZ Łańcucha Spring Security
+                http.addFilterBefore(rateLimitingFilter, AuthorizationFilter.class);
 
                 // Dzięki temu Spring wie, że jak ktoś nie ma dostępu, to trzeba go rzucić na
                 // "/login"
@@ -152,8 +192,6 @@ public class SecurityConfig {
                                                 "/register",
                                                 "/tutorial",
                                                 "/api/auth/**",
-                                                "/swagger-ui/**",
-                                                "/v3/api-docs/**",
                                                 "/confirm",
                                                 "/reset-password",
                                                 "/forgot-password",
@@ -175,28 +213,38 @@ public class SecurityConfig {
                                 // API feedback dla niezalogowanych
                                 .requestMatchers(HttpMethod.POST, "/api/feedback").permitAll()
 
-                                // API endpoints tylko dla ADMIN
-                                .requestMatchers(HttpMethod.POST, "/api/schedule/**", "/api/groups")
+                                // API endpoints tylko dla ADMIN/STAROSTY (Harmonogram, Grupy)
+                                .requestMatchers(HttpMethod.POST, "/api/schedule/**", "/api/groups", "/api/groups/")
                                 .hasAnyRole("ADMIN", "STAROSTA")
+
+                                // Globalne zarzadzanie uzytkownikami tylko dla ADMINA
+                                .requestMatchers(HttpMethod.POST, "/api/users", "/api/users/")
+                                .hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.PUT,
                                                 "/api/schedule/**",
-                                                "/api/groups/**",
+                                                "/api/groups/**")
+                                .hasAnyRole("ADMIN", "STAROSTA")
+
+                                // Krytyczne zarzadzanie kontami (tylko ADMIN)
+                                .requestMatchers(HttpMethod.PUT,
                                                 "/api/users/role/update/**",
                                                 "/api/users/assign-group/**",
                                                 "/api/users/assignGroup/**",
                                                 "/api/users/activation/**",
                                                 "/api/users/block/**")
-                                .hasAnyRole("ADMIN", "STAROSTA")
+                                .hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.DELETE, "/api/schedule/**")
                                 .hasAnyRole("ADMIN", "STAROSTA")
                                 .requestMatchers(HttpMethod.DELETE, "/api/groups/**",
                                                 "/api/users/**")
                                 .hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.GET,
-                                                "/api/groups",
-                                                "/api/schedule/all",
-                                                "/api/users")
+                                                "/api/groups", "/api/groups/",
+                                                "/api/schedule/all", "/api/schedule/all/")
                                 .hasAnyRole("ADMIN", "STAROSTA")
+
+                                .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/")
+                                .hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.GET, "/api/users/search")
                                 .hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
 
@@ -214,7 +262,8 @@ public class SecurityConfig {
                                 .hasAnyRole("STAROSTA", "ADMIN")
                                 .requestMatchers(HttpMethod.PATCH, "/api/announcements/*/pin")
                                 .hasAnyRole("STAROSTA", "ADMIN")
-                                .requestMatchers(HttpMethod.GET, "/api/announcements/attachments/**", "/api/announcements/count/author/**")
+                                .requestMatchers(HttpMethod.GET, "/api/announcements/attachments/**",
+                                                "/api/announcements/count/author/**")
                                 .authenticated()
 
                                 // API forum
@@ -234,11 +283,31 @@ public class SecurityConfig {
                                 .hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
                                 .requestMatchers(HttpMethod.DELETE, "/api/forum/threads/*")
                                 .hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
-                                .requestMatchers(HttpMethod.PATCH, "/api/forum/threads/*/moderation")
+                                // System Management, Widoki Admin i Dokumentacja API
+                                .requestMatchers("/api/system/module-status/**").permitAll()
+                                .requestMatchers("/admin/**", "/api/admin/**", "/api/system/**", "/swagger-ui/**",
+                                                "/v3/api-docs/**")
                                 .hasRole("ADMIN")
 
-                                // Widoki admin tylko dla ADMIN
-                                .requestMatchers("/admin/**").hasRole("ADMIN")
+                                 // Feedback (studenci mogą tworzyć, ADMIN zarządza)
+                                 .requestMatchers(HttpMethod.POST, "/api/feedback").authenticated()
+                                 .requestMatchers("/api/feedback", "/api/feedback/**").hasRole("ADMIN")
+
+                                 // Ustawienia Roku, Błędy Telemetrii, Zarzadzanie Uzytkownikami na globalnym poziomie
+                                 .requestMatchers(HttpMethod.GET, "/api/academic-year/current").authenticated()
+                                 .requestMatchers("/api/academic-year", "/api/academic-year/**",
+                                                 "/api/preferences/errors/**")
+                                 .hasRole("ADMIN")
+
+                                // Kalendarz i Ankiety (Zarządzanie - POST, PUT, PATCH, DELETE)
+                                .requestMatchers(HttpMethod.POST, "/api/surveys", "/api/surveys/**", "/api/calendar",
+                                                "/api/calendar/**")
+                                .hasAnyRole("ADMIN", "STAROSTA")
+                                .requestMatchers(HttpMethod.PUT, "/api/surveys/**", "/api/calendar/**")
+                                .hasAnyRole("ADMIN", "STAROSTA")
+                                .requestMatchers(HttpMethod.PATCH, "/api/surveys/**").hasAnyRole("ADMIN", "STAROSTA")
+                                .requestMatchers(HttpMethod.DELETE, "/api/surveys/**", "/api/calendar/**")
+                                .hasAnyRole("ADMIN", "STAROSTA")
 
                                 // Widoki starosty tylko dla STAROSTA
                                 .requestMatchers("/starosta/**").hasRole("STAROSTA")
@@ -293,7 +362,7 @@ public class SecurityConfig {
                                                                 "font-src 'self' data: " +
                                                                 "https://fonts.gstatic.com " +
                                                                 "https://cdnjs.cloudflare.com; " +
-                                                                "img-src 'self' data: blob:; " +
+                                                                "img-src 'self' data: blob: https://ui-avatars.com; " +
                                                                 "connect-src 'self' ws: wss: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
                                                                 +
                                                                 "frame-ancestors 'none'; " +

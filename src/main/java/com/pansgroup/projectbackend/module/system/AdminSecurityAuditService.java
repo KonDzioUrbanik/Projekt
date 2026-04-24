@@ -29,10 +29,11 @@ public class AdminSecurityAuditService {
     public void recordEvent(String type, String ip, String details, Long userId, String email) {
         SecurityEvent event = new SecurityEvent();
         event.setEventType(type);
-        
+
         if (ip == null) {
             try {
-                ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+                ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder
+                        .currentRequestAttributes();
                 HttpServletRequest request = attr.getRequest();
                 event.setIpAddress(extractClientIp(request));
             } catch (Exception e) {
@@ -49,21 +50,16 @@ public class AdminSecurityAuditService {
     }
 
     public String extractClientIp(HttpServletRequest request) {
-        String xf = request.getHeader("X-Forwarded-For");
-        if (xf == null || xf.isEmpty() || "unknown".equalsIgnoreCase(xf)) {
-            return request.getRemoteAddr();
-        }
-        // Może zawierać listę IP (pierwszy to klient)
-        return xf.split(",")[0].trim();
+        return request.getRemoteAddr();
     }
 
     public List<SecurityEvent> getRecentEvents(int limit) {
         return securityEventRepository.findAll(
-            PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "timestamp"))
-        ).getContent();
+                PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "timestamp"))).getContent();
     }
 
-    public org.springframework.data.domain.Page<SecurityEvent> getEvents(org.springframework.data.domain.Pageable pageable, String eventType, String ipAddress, String query) {
+    public org.springframework.data.domain.Page<SecurityEvent> getEvents(
+            org.springframework.data.domain.Pageable pageable, String eventType, String ipAddress, String query) {
         Specification<SecurityEvent> spec = (root, queryObj, cb) -> cb.conjunction();
         if (eventType != null && !eventType.isEmpty()) {
             spec = spec.and((root, queryObj, cb) -> cb.equal(root.get("eventType"), eventType));
@@ -73,21 +69,19 @@ public class AdminSecurityAuditService {
         }
         if (query != null && !query.isEmpty()) {
             spec = spec.and((root, queryObj, cb) -> cb.or(
-                cb.like(root.get("details"), "%" + query + "%"),
-                cb.like(root.get("email"), "%" + query + "%")
-            ));
+                    cb.like(root.get("details"), "%" + query + "%"),
+                    cb.like(root.get("email"), "%" + query + "%")));
         }
-        org.springframework.data.domain.Pageable p = pageable != null ? pageable : org.springframework.data.domain.PageRequest.of(0, 10);
+        org.springframework.data.domain.Pageable p = pageable != null ? pageable
+                : org.springframework.data.domain.PageRequest.of(0, 10);
         return securityEventRepository.findAll(spec, p);
     }
 
     public Map<String, Long> getSuspiciousIPs() {
-        // Poprawka wydajnościowa: Agregacja SQL zamiast pobierania całej tabeli
         LocalDateTime window = LocalDateTime.now().minusHours(24);
         List<String> ips = securityEventRepository.findSuspiciousIPs(window, 5L);
-        
-        // Zwracamy mapę z licznikiem (uproszczone do 6 jako "powyżej progu")
-        return ips.stream().collect(Collectors.toMap(ip -> ip, ip -> 6L)); 
+
+        return ips.stream().collect(Collectors.toMap(ip -> ip, ip -> 6L));
     }
 
     @Scheduled(cron = "0 30 3 * * *")

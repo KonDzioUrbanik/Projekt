@@ -58,6 +58,14 @@ public class GroupDriveService {
         if (fileSize > 52428800L) { // 50MB
             throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "Przesłany plik przekracza limit wielkości (50 MB).");
         }
+
+        // Limit liczby plików (ochrona przed Resource Exhaustion)
+        long activeFilesCount = groupDriveFileRepository.countByUploaderAndIsDeletedFalse(user);
+        if (activeFilesCount >= 50) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, 
+                "Osiągnięto limit 50 aktywnych plików. Usuń stare pliki, aby wgrać nowe.");
+        }
+
         Long userId = user.getId();
         Long groupId = group.getId();
 
@@ -113,6 +121,10 @@ public class GroupDriveService {
 
             GroupDriveFile saved = groupDriveFileRepository.save(driveFile);
             groupDriveFileRepository.flush(); // Ensure SUM query sees this file
+
+            // Przeliczanie kwoty dopiero po sukcesie transakcji zapisu
+            recalculateQuota(user, group);
+
             return saved;
 
         } catch (Exception e) {
@@ -126,10 +138,6 @@ public class GroupDriveService {
                 throw (ResponseStatusException) e;
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Błąd serwera podczas zapisywania pliku w bazie danych. Zmiany zostały wycofane.", e);
-        } finally {
-            // Trigger self-healing after any upload attempt (success or fail) to ensure
-            // sync
-            recalculateQuota(user, group);
         }
     }
 

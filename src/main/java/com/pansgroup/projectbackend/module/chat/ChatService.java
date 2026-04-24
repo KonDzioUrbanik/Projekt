@@ -16,6 +16,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 
 @Slf4j
 @Service
@@ -190,10 +192,16 @@ public class ChatService {
         ChatConversation conv = getConversationSecure(conversationId, sender);
         conv.setLastMessageAt(LocalDateTime.now());
 
+        // Sanityzacja HTML (ochrona XSS) – dla czatu wystarczy prosty tekst (pogrubienie, kursywa)
+        String cleanText = Jsoup.clean(plaintext.trim(), Safelist.simpleText());
+        if (cleanText.isBlank()) {
+             throw new IllegalArgumentException("Wiadomość po sanityzacji jest pusta.");
+        }
+
         ChatMessage msg = new ChatMessage();
         msg.setConversation(conv);
         msg.setSender(sender);
-        msg.setContent(crypto.encrypt(plaintext.trim()));
+        msg.setContent(crypto.encrypt(cleanText));
         msg.setStatus(ChatMessage.MessageStatus.SENT);
         messageRepo.save(msg);
 
@@ -223,7 +231,12 @@ public class ChatService {
             throw new IllegalArgumentException("Nieprawidłowa treść wiadomości.");
         }
 
-        msg.setContent(crypto.encrypt(newContent.trim()));
+        String cleanText = Jsoup.clean(newContent.trim(), Safelist.simpleText());
+        if (cleanText.isBlank()) {
+            throw new IllegalArgumentException("Wiadomość po edycji i sanityzacji jest pusta.");
+        }
+
+        msg.setContent(crypto.encrypt(cleanText));
         msg.setEditedAt(LocalDateTime.now());
         return toMessageDto(msg, me);
     }
@@ -283,7 +296,7 @@ public class ChatService {
         boolean participant = conv.getUserA().getId().equals(me.getId())
                 || conv.getUserB().getId().equals(me.getId());
         if (!participant) {
-            throw new AccessDeniedException("Brak dostępu do tej konwersacji.");
+            throw new jakarta.persistence.EntityNotFoundException("Konwersacja nie istnieje");
         }
         return conv;
     }

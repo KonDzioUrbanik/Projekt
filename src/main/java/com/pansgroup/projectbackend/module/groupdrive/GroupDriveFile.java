@@ -8,7 +8,9 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.type.SqlTypes;
 
 @Getter
 @Setter
@@ -30,7 +32,8 @@ public class GroupDriveFile {
 
     @Basic(fetch = FetchType.LAZY)
     @Lob
-    @Column(name = "file_data", nullable = false, columnDefinition = "bytea")
+    @JdbcTypeCode(SqlTypes.VARBINARY)
+    @Column(name = "file_data", nullable = false)
     @com.fasterxml.jackson.annotation.JsonIgnore
     private byte[] fileData;
 
