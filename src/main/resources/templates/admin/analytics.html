@@ -10,8 +10,13 @@
     <div layout:fragment="content">
         <div class="analytics-wrapper">
             <div class="analytics-header">
-                <h2>Analityka Użytkowników</h2>
-                <span class="analytics-subtitle">Statystyki aktywności - ostatnie 30 dni</span>
+                <div>
+                    <h2>Analityka Użytkowników</h2>
+                    <span class="analytics-subtitle">Statystyki aktywności - ostatnie 30 dni</span>
+                </div>
+                <button id="refreshAnalyticsBtn" class="btn-refresh-cache" title="Wymuś odświeżenie danych z bazy">
+                    <i class="fas fa-sync-alt"></i> Odśwież dane
+                </button>
             </div>
 
             <div class="kpi-grid">

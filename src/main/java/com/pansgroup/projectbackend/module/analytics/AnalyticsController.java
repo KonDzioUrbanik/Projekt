@@ -27,7 +27,7 @@ public class AnalyticsController {
      * Dostępny dla STUDENT i STAROSTA. ADMIN jest odrzucany w serwisie.
      */
     @PostMapping("/sync")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("permitAll()") // Pozwalamy na logowanie zdarzeń (np. wejście na stronę logowania) dla anonimów
     public ResponseEntity<?> track(@Valid @RequestBody AnalyticsEventDto dto,
             Authentication auth) {
         if (!systemService.isModuleEnabled("module_analytics")) {
@@ -79,6 +79,21 @@ public class AnalyticsController {
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             log.error("Błąd podczas usuwania wszystkich błędów: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
+
+    /**
+     * Ręczne wymuszenie odświeżenia (wyczyszczenia) cache analityki.
+     */
+    @PostMapping("/refresh")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> refreshCache() {
+        try {
+            service.refreshCache();
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("Błąd podczas odświeżania cache: {}", e.getMessage());
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
     }

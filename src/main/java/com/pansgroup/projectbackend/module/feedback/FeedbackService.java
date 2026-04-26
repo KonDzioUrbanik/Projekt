@@ -21,6 +21,8 @@ public class FeedbackService {
 
     private final FeedbackRepository feedbackRepository;
     private final com.pansgroup.projectbackend.module.user.UserRepository userRepository;
+    private final com.pansgroup.projectbackend.module.system.AdminSecurityAuditService securityAuditService;
+    private final org.apache.tika.Tika tika;
 
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png", "pdf");
 
@@ -72,6 +74,21 @@ public class FeedbackService {
                 attachmentData = file.getBytes();
                 contentType = mimeType;
                 originalFileName = filename;
+
+                // Magic Bytes Verification (Apache Tika)
+                try (java.io.InputStream is = new java.io.ByteArrayInputStream(attachmentData)) {
+                    String detectedMime = tika.detect(is);
+                    boolean isImage = detectedMime.startsWith("image/");
+                    boolean isPdf = "application/pdf".equals(detectedMime);
+
+                    if (!isImage && !isPdf) {
+                        securityAuditService.recordEvent("FEEDBACK_FILE_REJECTED", null, 
+                            "Próba wgrania złośliwego pliku udającego obraz/PDF: " + filename + " (Wykryto: " + detectedMime + ")", 
+                            authenticatedUserId, email);
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                            "Przesłany plik nie jest prawdziwym obrazem ani dokumentem PDF (wykryto: " + detectedMime + ")");
+                    }
+                }
             } catch (java.io.IOException e) {
                 throw new RuntimeException("Błąd podczas przetwarzania załącznika", e);
             }
@@ -91,8 +108,12 @@ public class FeedbackService {
                 .originalFileName(originalFileName)
                 .createdAt(LocalDateTime.now())
                 .build();
-
-        return feedbackRepository.save(feedback);
+        Feedback savedFeedback = feedbackRepository.save(feedback);
+        if (file != null && !file.isEmpty()) {
+            securityAuditService.recordEvent("FEEDBACK_UPLOAD", null, 
+                "Wgrano załącznik do opinii: " + originalFileName, authenticatedUserId, email);
+        }
+        return savedFeedback;
     }
 
     @Transactional(readOnly = true)

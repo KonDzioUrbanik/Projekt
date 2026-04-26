@@ -520,11 +520,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         xhr.onload = () => {
             task.xhr = null;
-            let responseData = {};
-            try {
-                responseData = JSON.parse(xhr.responseText);
-            } catch (e) {
-                console.error("Nie udało się sparsować odpowiedzi serwera jako JSON", e);
+            let responseData = null;
+            
+            // Sprawdzamy czy odpowiedź to faktycznie JSON
+            const contentType = xhr.getResponseHeader("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                try {
+                    responseData = JSON.parse(xhr.responseText);
+                } catch (e) {
+                    console.error("Nie udało się sparsować odpowiedzi serwera jako JSON", e);
+                }
             }
 
             if (xhr.status >= 200 && xhr.status < 300) {
@@ -537,7 +542,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 activeUploads--;
                 startNextUploads();
             } else {
-                const errMsg = responseData.detail || responseData.message || (xhr.status === 413 ? "Plik jest zbyt duży lub brak miejsca." : "Wystąpił błąd serwera.");
+                // Wyciągamy wiadomość z JSONa, a jeśli go brak (np. błąd 413 w HTML), dajemy czytelny fallback
+                const errMsg = (responseData && (responseData.detail || responseData.message)) 
+                             || (xhr.status === 413 ? "Plik przekracza limity serwera (max 50MB)." : "Wystąpił błąd serwera.");
+                
                 updateFileStatus(queueId, 'error', errMsg);
                 task.state = 'error';
 
@@ -635,6 +643,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('drawerFileDate').textContent = new Date(file.uploadDate).toLocaleDateString('pl-PL');
         document.getElementById('drawerFileAuthor').textContent = file.uploaderName || '-';
         document.getElementById('drawerFileCategory').textContent = file.categoryName || categoryMap[file.categoryValue] || '-';
+        document.getElementById('drawerFileDownloadCount').textContent = file.downloadCount || 0;
         
         // Reset Drawer Preview/Icon icons
         const iconData = getFileIcon(file.mimeType, file.fileName);

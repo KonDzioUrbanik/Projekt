@@ -47,8 +47,11 @@ public class AnalyticsService {
          */
         @Transactional
         public void saveEvent(AnalyticsEventDto dto, Authentication auth) {
-                if (auth == null || !auth.isAuthenticated())
-                        return;
+                // Pozwalamy na zapis zdarzeń anonimowych (np. wejście na stronę logowania), 
+                // ale reszta logicznych kontroli (rate limiting, admin bypass) pozostaje aktywna.
+                if (auth != null && !auth.isAuthenticated()) {
+                    // Ciche logowanie dla deweloperów, ale nie blokujemy
+                }
 
                 // Backend Anti-Spam: max 1 event per 100ms na sessionId
                 if (dto.sessionId() == null || dto.sessionId().isBlank()) {
@@ -72,10 +75,10 @@ public class AnalyticsService {
                 log.info("Zdarzenie odebrane: sessionId={}, eventType={}, page={}", dto.sessionId(), dto.eventType(),
                                 dto.page());
 
-                // Odrzuć administratorów
-                boolean isAdmin = auth.getAuthorities().stream()
+                // Odrzuć administratorów (chyba że to błąd techniczny)
+                boolean isAdmin = auth != null && auth.getAuthorities().stream()
                                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-                if (isAdmin) {
+                if (isAdmin && !"ERROR".equals(dto.eventType().name())) {
                         log.info("Zdarzenie odrzucone (ADMIN)");
                         return;
                 }
@@ -85,12 +88,16 @@ public class AnalyticsService {
                         return;
                 }
 
-                String email = auth.getName();
-                Long userId = userRepository.findByEmail(email)
-                                .map(u -> u.getId())
-                                .orElse(null);
-                if (userId == null)
-                        return;
+                String email = (auth != null && !"anonymousUser".equals(auth.getPrincipal())) ? auth.getName() : null;
+                Long userId = null;
+                if (email != null) {
+                        userId = userRepository.findByEmail(email)
+                                        .map(u -> u.getId())
+                                        .orElse(null);
+                }
+                
+                // Jeśli userId jest null (anonim), zapisujemy z userId = null.
+                // Baza danych na to pozwala (nullable = true w AnalyticsEvent).
 
                 AnalyticsEvent event = new AnalyticsEvent();
                 event.setUserId(userId);
@@ -320,5 +327,14 @@ public class AnalyticsService {
                 if (h >= 0)
                         page = page.substring(0, h);
                 return page.length() <= 255 ? page : page.substring(0, 255);
+        }
+
+        /**
+         * Ręczne odświeżenie (wyczyszczenie) cache analityki.
+         */
+        @Transactional
+        @CacheEvict(value = "analyticsSummary", allEntries = true)
+        public void refreshCache() {
+                log.info("Ręczne odświeżanie cache analityki...");
         }
 }

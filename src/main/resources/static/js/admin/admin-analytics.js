@@ -32,13 +32,18 @@
 
         // 1. Pobieranie danych
         const loadData = async () => {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), 10000); // 10s timeout
             try {
                 const res = await fetch('/api/preferences/state', {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    signal: controller.signal
                 });
-                if (!res.ok) throw new Error('Błąd HTTP');
+                clearTimeout(id);
+                if (!res.ok) throw new Error('Błąd HTTP ' + res.status);
                 return await res.json();
             } catch (err) {
+                clearTimeout(id);
                 console.error('[Analytics] Fetch failed:', err);
                 return null;
             }
@@ -61,7 +66,7 @@
                 </tr>
             `);
             renderTable(SELECTORS.clicksBody, data.topClicks, (row, i, arr) => {
-                const max = arr[0].count || 1;
+                const max = (arr && arr.length > 0 && arr[0].count) ? arr[0].count : 1;
                 const pct = Math.round(((row.count || 0) / max) * 100);
                 return `
                 <tr>
@@ -222,7 +227,38 @@
             });
         }
         
-        // 5. Obsługa masowego usuwania błędów
+        // 5a. Obsługa ręcznego odświeżania cache
+        const refreshBtn = document.getElementById('refreshAnalyticsBtn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', async () => {
+                try {
+                    refreshBtn.disabled = true;
+                    const originalHtml = refreshBtn.innerHTML;
+                    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Odświeżanie...';
+                    
+                    const res = await fetch('/api/preferences/refresh', {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    
+                    if (res.ok) {
+                        Utils.showToast('Cache analityki został odświeżony.', 'success');
+                        lastData = await loadData();
+                        render(lastData);
+                    } else {
+                        throw new Error('Błąd odświeżania cache');
+                    }
+                } catch (err) {
+                    console.error('[Analytics] Refresh failed:', err);
+                    Utils.showToast('Nie udało się odświeżyć danych.', 'error');
+                } finally {
+                    refreshBtn.disabled = false;
+                    refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Odśwież dane';
+                }
+            });
+        }
+        
+        // 6. Obsługa masowego usuwania błędów
         const clearAllBtn = document.getElementById('clearAllErrorsBtn');
         if (clearAllBtn) {
             clearAllBtn.addEventListener('click', async () => {

@@ -26,6 +26,7 @@ public class GroupDriveService {
     private final UserRepository userRepository;
     private final StudentGroupRepository studentGroupRepository;
     private final Tika tika;
+    private final com.pansgroup.projectbackend.module.system.AdminSecurityAuditService securityAuditService;
 
     public Page<GroupDriveFile> getFilesForUserGroup(User user, FileCategory category, String search,
             Pageable pageable) {
@@ -125,6 +126,9 @@ public class GroupDriveService {
             // Przeliczanie kwoty dopiero po sukcesie transakcji zapisu
             recalculateQuota(user, group);
 
+            securityAuditService.recordEvent("DRIVE_UPLOAD", null, 
+                "Wgrano plik: " + originalFilename + " (" + detectedMime + ")", user.getId(), user.getEmail());
+
             return saved;
 
         } catch (Exception e) {
@@ -152,6 +156,8 @@ public class GroupDriveService {
 
         if (user.getStudentGroup() == null || file.getStudentGroup() == null
                 || !file.getStudentGroup().getId().equals(user.getStudentGroup().getId())) {
+            securityAuditService.recordEvent("DRIVE_IDOR_ATTEMPT", null, 
+                "Próba nieautoryzowanego pobrania pliku ID: " + fileId + " przez użytkownika z innej grupy.", user.getId(), user.getEmail());
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak dostępu do pliku innej grupy studenckiej.");
         }
 
@@ -194,6 +200,9 @@ public class GroupDriveService {
 
         // Sync quotas after deletion to ensure no negative values or drift persists
         recalculateQuota(uploader, group);
+
+        securityAuditService.recordEvent("DRIVE_FILE_DELETED", null, 
+            "Usunięto plik: " + file.getFileName() + " (ID: " + fileId + ")", user.getId(), user.getEmail());
     }
 
     @Transactional

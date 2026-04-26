@@ -68,6 +68,13 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     private final Cache<String, Bucket> apiIpCache = Caffeine.newBuilder()
             .expireAfterAccess(5, TimeUnit.MINUTES).maximumSize(10_000).build();
 
+    /** 
+     * Cache dla typów ścieżek (0=API, 1=AUTH, 2=SPAM). 
+     * Zapobiega powolnemu dopasowywaniu AntPathMatcher przy każdym zapytaniu.
+     */
+    private final Cache<String, Integer> pathTypeCache = Caffeine.newBuilder()
+            .expireAfterWrite(1, TimeUnit.HOURS).maximumSize(2000).build();
+
     // ============================================================
     // Fabryki bucketów
     // ============================================================
@@ -90,7 +97,8 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             "/api/forum/**", "/api/drive/**", "/api/notes/**",
             "/api/feedback/**", "/api/chat/messages/**",
             "/api/users/**", "/api/groups/**", "/api/announcements/**",
-            "/api/schedule/**", "/api/surveys/**", "/api/calendar/**"
+            "/api/schedule/**", "/api/surveys/**", "/api/calendar/**",
+            "/api/preferences/sync"
     };
 
     private boolean matchesAny(String path, String[] patterns) {
@@ -111,56 +119,65 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        // IP pobierane WYŁĄCZNIE z remoteAddr (lub z zarządzanego przez Spring proxy)
         String ip   = request.getRemoteAddr();
         String path = request.getRequestURI();
         String method = request.getMethod();
 
+        // --- 0. Szybka kategoryzacja ścieżki (z cache) ---
+        int pathType = pathTypeCache.get(path, p -> {
+            if (matchesAny(p, AUTH_PATTERNS)) return 1;
+            if (matchesAny(p, SPAM_PATTERNS)) return 2;
+            if (p.startsWith("/api/")) return 0;
+            return -1; // Nie dotyczy API
+        });
+
+        if (pathType == -1) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         // --- 1. Endpointy AUTH (logowanie, rejestracja) ---
-        if (matchesAny(path, AUTH_PATTERNS)) {
+        if (pathType == 1) {
             Bucket b = authIpCache.get(ip, k -> bucket(5));
             if (b == null || !b.tryConsume(1)) {
                 reject(response, "Zbyt wiele prób logowania. Spróbuj ponownie za minutę. (Limit: 5/min)");
                 return;
             }
-            filterChain.doFilter(request, response);
-            return;
         }
 
         // --- 2. Endpointy podatne na spam (mutacje danych) ---
-        boolean isMutation = method.equalsIgnoreCase("POST") || method.equalsIgnoreCase("PUT") ||
-                             method.equalsIgnoreCase("DELETE") || method.equalsIgnoreCase("PATCH");
+        if (pathType == 2) {
+            boolean isMutation = method.equalsIgnoreCase("POST") || method.equalsIgnoreCase("PUT") ||
+                                 method.equalsIgnoreCase("DELETE") || method.equalsIgnoreCase("PATCH");
 
-        if (isMutation && matchesAny(path, SPAM_PATTERNS)) {
-            // A) Limit per-IP (chroni przed botami z losowych adresów)
-            Bucket ipBucket = spamIpCache.get(ip, k -> bucket(40));
-            if (ipBucket == null || !ipBucket.tryConsume(1)) {
-                reject(response, "Wykryto nadmierne wysyłanie danych z Twojego adresu IP (Max: 40/min).");
-                return;
-            }
-
-            // B) Limit per-User (chroni gdy bot działa z wielu IP na jednym koncie)
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
-                String userKey = auth.getName();
-                Bucket userBucket = spamUserCache.get(userKey, k -> bucket(40));
-                if (userBucket == null || !userBucket.tryConsume(1)) {
-                    reject(response, "Wykryto nadmierną aktywność na Twoim koncie. Limit tworzenia zasobów: 40/min.");
+            if (isMutation) {
+                // A) Limit per-IP
+                Bucket ipBucket = spamIpCache.get(ip, k -> bucket(40));
+                if (ipBucket == null || !ipBucket.tryConsume(1)) {
+                    reject(response, "Wykryto nadmierne wysyłanie danych z Twojego adresu IP (Max: 40/min).");
                     return;
                 }
-            }
 
-            filterChain.doFilter(request, response);
-            return;
+                // B) Limit per-User
+                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+                    String userKey = auth.getName();
+                    Bucket userBucket = spamUserCache.get(userKey, k -> bucket(40));
+                    if (userBucket == null || !userBucket.tryConsume(1)) {
+                        reject(response, "Wykryto nadmierną aktywność na Twoim koncie. Limit tworzenia zasobów: 40/min.");
+                        return;
+                    }
+                }
+            }
+            // SPAM patterns are also API calls, so they fall through to API limiting IF we don't return here.
+            // But we already applied mutation limits. Let's still apply the base API limit of 150/min.
         }
 
-        // --- 3. Reszta API ---
-        if (path.startsWith("/api/")) {
-            Bucket b = apiIpCache.get(ip, k -> bucket(150));
-            if (b == null || !b.tryConsume(1)) {
-                reject(response, "Przekroczono limit zapytań API (150/min). Spróbuj za chwilę.");
-                return;
-            }
+        // --- 3. Ogólny limit API (dla wszystkich pathType 0, 1, 2) ---
+        Bucket apiBucket = apiIpCache.get(ip, k -> bucket(150));
+        if (apiBucket == null || !apiBucket.tryConsume(1)) {
+            reject(response, "Przekroczono limit zapytań API (150/min). Spróbuj za chwilę.");
+            return;
         }
 
         filterChain.doFilter(request, response);

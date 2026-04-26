@@ -36,8 +36,12 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private final com.pansgroup.projectbackend.module.system.AdminSecurityAuditService securityAuditService;
+
+    public GlobalExceptionHandler(com.pansgroup.projectbackend.module.system.AdminSecurityAuditService securityAuditService) {
+        this.securityAuditService = securityAuditService;
+    }
 
     /* ====== Helpers ====== */
 
@@ -128,6 +132,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ProblemDetail handleMaxSizeException(MaxUploadSizeExceededException ex, HttpServletRequest req) {
         log.warn("Zablokowano próbę wgrania zbyt dużego pliku. Limit to 15MB.");
+        securityAuditService.recordEvent("FILE_SIZE_VIOLATION", null, 
+            "Przekroczono limit uploadu (15MB). Żądanie odrzucone.", null, null);
         return pd(HttpStatus.PAYLOAD_TOO_LARGE, "File too large",
                 "Plik jest zbyt duży. Maksymalny dozwolony rozmiar to 15 MB.", req, "file_too_large");
     }
@@ -184,6 +190,8 @@ public class GlobalExceptionHandler {
     /* ====== 403: brak uprawnień (np. filtr JWT) ====== */
     @ExceptionHandler(AccessDeniedException.class)
     public ProblemDetail handleAccessDenied(HttpServletRequest req) {
+        securityAuditService.recordEvent("ACCESS_DENIED", null, 
+            "Brak uprawnień do zasobu: " + req.getRequestURI(), null, null);
         return pd(HttpStatus.FORBIDDEN, "Access denied",
                 "Brak uprawnień do wykonania tej operacji.", req, "access_denied");
     }
@@ -239,6 +247,8 @@ public class GlobalExceptionHandler {
     /* ====== 429: Too Many Requests - Rate Limiting ====== */
     @ExceptionHandler(TooManyRequestsException.class)
     public ProblemDetail handleTooManyRequests(TooManyRequestsException ex, HttpServletRequest req) {
+        securityAuditService.recordEvent("RATE_LIMIT_EXCEEDED", null, 
+            "Użytkownik przekroczył limit żądań (429).", null, null);
         return pd(HttpStatus.TOO_MANY_REQUESTS, "Too many requests",
                 ex.getMessage(), req, "rate_limit_exceeded");
     }
