@@ -216,6 +216,7 @@ public class SecurityConfig {
 
                 // Ankiety i Kalendarz
                 .requestMatchers(HttpMethod.GET, "/api/surveys/**", "/api/calendar/**").hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/surveys/*/vote").hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/surveys", "/api/surveys/**", "/api/calendar", "/api/calendar/**").hasAnyRole("ADMIN", "STAROSTA")
                 .requestMatchers(HttpMethod.PUT, "/api/surveys/**", "/api/calendar/**").hasAnyRole("ADMIN", "STAROSTA")
                 .requestMatchers(HttpMethod.PATCH, "/api/surveys/**").hasAnyRole("ADMIN", "STAROSTA")
