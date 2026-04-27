@@ -20,6 +20,7 @@ import java.util.List;
 public class FeedbackService {
 
     private final FeedbackRepository feedbackRepository;
+    private final FeedbackNoteRepository feedbackNoteRepository;
     private final com.pansgroup.projectbackend.module.user.UserRepository userRepository;
     private final com.pansgroup.projectbackend.module.system.AdminSecurityAuditService securityAuditService;
     private final org.apache.tika.Tika tika;
@@ -123,8 +124,9 @@ public class FeedbackService {
     }
 
     @Transactional
+    @SuppressWarnings("null")
     public Feedback updateStatus(Long id, FeedbackStatus status) {
-        Feedback feedback = feedbackRepository.findById(id)
+        Feedback feedback = feedbackRepository.findById(java.util.Objects.requireNonNull(id))
                 .orElseThrow(() -> new RuntimeException("Feedback not found with id: " + id));
 
         feedback.setStatus(status);
@@ -138,6 +140,36 @@ public class FeedbackService {
 
         feedback.setAdminComment(comment);
         return feedbackRepository.save(feedback);
+    }
+
+    @Transactional
+    public FeedbackNote addNote(Long feedbackId, String content) {
+        // Verify feedback exists
+        feedbackRepository.findById(feedbackId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Zgłoszenie nie istnieje"));
+
+        // Resolve author from security context
+        String authorEmail = "admin";
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+            authorEmail = auth.getName();
+        }
+
+        FeedbackNote note = FeedbackNote.builder()
+                .feedbackId(feedbackId)
+                .content(Jsoup.clean(content, Safelist.none()))
+                .authorEmail(authorEmail)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        @SuppressWarnings("null")
+        FeedbackNote saved = feedbackNoteRepository.save(note);
+        return saved;
+    }
+
+    @Transactional(readOnly = true)
+    public List<FeedbackNote> getNotes(Long feedbackId) {
+        return feedbackNoteRepository.findByFeedbackIdOrderByCreatedAtDesc(feedbackId);
     }
 
     @Transactional(readOnly = true)

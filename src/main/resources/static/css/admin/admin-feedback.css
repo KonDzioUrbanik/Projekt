@@ -518,16 +518,161 @@
     background: #1565c0;
 }
 
-.comment-wrapper {
-    overflow: hidden;
-    /* Clearfix for float */
+:root {
+    --notes-feed-bg: #f1f5f9;
+    --notes-feed-border: #e2e8f0;
+    --notes-empty-color: #94a3b8;
+    --note-card-bg: #ffffff;
+    --note-card-border: #e2e8f0;
+    --note-author-color: #1e293b;
+    --note-content-color: #1e293b;
+    --note-meta-color: #64748b;
+    --note-divider: #cbd5e1;
 }
 
-/* Email Response Section Styling */
+/* --- Ciemny motyw --- */
+[data-theme="dark"] {
+    --notes-feed-bg: #1a1f2e;
+    --notes-feed-border: #2d3748;
+    --notes-empty-color: #64748b;
+    --note-card-bg: #212940;
+    --note-card-border: #2d3748;
+    --note-author-color: #e2e8f0;
+    --note-content-color: #cbd5e1;
+    --note-meta-color: #94a3b8;
+    --note-divider: #2d3748;
+}
+
+.notes-feed {
+    max-height: 280px;
+    overflow-y: auto;
+    margin-top: 0.75rem;
+    border: 1px solid var(--notes-feed-border);
+    border-radius: 8px;
+    padding: 0.5rem;
+    background: var(--notes-feed-bg);
+    scrollbar-width: thin;
+    scrollbar-color: var(--note-card-border) transparent;
+}
+
+.notes-feed-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1.5rem;
+    color: var(--notes-empty-color);
+    font-size: 0.875rem;
+}
+
+.notes-feed-empty i {
+    font-size: 1.5rem;
+    opacity: 0.5;
+}
+
+.note-item {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background: var(--note-card-bg);
+    border: 1px solid var(--note-card-border);
+    border-left: 3px solid #1976d2;
+    border-radius: 6px;
+    transition: box-shadow 0.2s;
+    animation: noteSlideIn 0.3s ease;
+}
+
+@keyframes noteSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.note-item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+}
+
+[data-theme="dark"] .note-item:hover {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .35);
+}
+
+.note-avatar {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #1976d2;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.note-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.note-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    color: var(--note-meta-color);
+    margin-bottom: 0.3rem;
+}
+
+.note-author {
+    font-weight: 600;
+    color: var(--note-author-color);
+}
+
+.note-time {
+    font-size: 0.78rem;
+}
+
+.note-content {
+    font-size: 0.9rem;
+    color: var(--note-content-color);
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+.notes-input-area {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.25rem;
+    border-top: 1px dashed var(--note-divider);
+    overflow: hidden;
+}
+
+.notes-textarea {
+    width: 100%;
+    min-height: 80px !important;
+    resize: vertical;
+    font-family: inherit;
+    margin-top: 0 !important;
+}
+
+.comment-wrapper {
+    overflow: hidden;
+}
+
 .email-response-section {
-    display: none; 
-    margin-top: 2rem; 
-    padding-top: 1.5rem; 
+    display: none;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
     border-top: 1px dashed var(--border-color);
 }
 
@@ -544,25 +689,25 @@
 }
 
 #emailResponseText {
-    width: 100%; 
-    min-height: 120px; 
-    margin-top: 0.5rem; 
+    width: 100%;
+    min-height: 120px;
+    margin-top: 0.5rem;
     font-family: inherit;
 }
 
 .btn-send-email {
-    margin-top: 0.75rem; 
-    padding: 0.6rem 1.2rem; 
-    background: var(--color-primary, #005efa); 
-    color: white; 
-    border: none; 
-    border-radius: 6px; 
-    cursor: pointer; 
-    font-size: 0.9rem; 
-    transition: background 0.2s, transform 0.2s, box-shadow 0.2s; 
-    float: right; 
-    display: flex; 
-    align-items: center; 
+    margin-top: 0.75rem;
+    padding: 0.6rem 1.2rem;
+    background: var(--color-primary, #005efa);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    float: right;
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
 }
 
@@ -793,4 +938,3 @@
 [data-theme="dark"] #deleteConfirmOverlay .btn-danger-block {
     border: none;
 }
-

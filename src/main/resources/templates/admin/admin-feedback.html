@@ -110,11 +110,17 @@
                         </div>
 
                         <div class="detail-row comment-section">
-                            <span class="detail-label">Komentarz administratora</span>
-                            <div class="comment-wrapper">
-                                <textarea id="adminComment" class="feedback-description-full" style="width: 100%; min-height: 80px; margin-top: 0.5rem; font-family: inherit;" placeholder="Wewnętrzna notatka dotycząca tego zgłoszenia..."></textarea>
-                                <button class="btn-save-comment" onclick="FeedbackManager.saveComment()">
-                                    <i class="fas fa-save"></i> Zapisz notatkę
+                            <span class="detail-label"><i class="fas fa-sticky-note"></i> Notatki administracyjne</span>
+                            <div class="notes-feed" id="adminNotesList">
+                                <div class="notes-feed-empty" id="notesEmptyState">
+                                    <i class="fas fa-clipboard"></i>
+                                    <span>Brak notatek. Dodaj pierwszą poniżej.</span>
+                                </div>
+                            </div>
+                            <div class="notes-input-area">
+                                <textarea id="adminNoteInput" class="feedback-description-full notes-textarea" placeholder="Wpisz wewnętrzną notatkę dotyczącą tego zgłoszenia..."></textarea>
+                                <button class="btn-save-comment" id="addNoteBtn" onclick="FeedbackManager.addNote()">
+                                    <i class="fas fa-plus"></i> Dodaj notatkę
                                 </button>
                             </div>
                         </div>
