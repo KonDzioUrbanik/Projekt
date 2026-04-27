@@ -213,6 +213,19 @@ const FeedbackManager = {
         document.getElementById('modalType').textContent = this.translateType(item.type);
         document.getElementById('modalEmail').textContent = item.email || 'Anonim';
         document.getElementById('modalDescription').textContent = item.description;
+
+        // Sekcja odpowiedzi mailowej
+        const emailRow = document.getElementById('emailResponseRow');
+        const emailLabel = document.getElementById('emailResponseRecipientLabel');
+        const emailText = document.getElementById('emailResponseText');
+        
+        if (item.email && item.email.includes('@')) {
+            emailRow.style.display = 'block';
+            emailLabel.innerHTML = `Odpowiedź mailowa do: <strong style="color: var(--color-primary);">${Utils.escapeHtml(item.email)}</strong>`;
+            emailText.value = '';
+        } else {
+            emailRow.style.display = 'none';
+        }
         
         // Załącznik
         const attachmentRow = document.getElementById('attachmentRow');
@@ -294,6 +307,51 @@ const FeedbackManager = {
             console.error('Błąd zapisu komentarza:', error);
             Utils.showToast('Nie udało się zapisać notatki.', 'error');
             btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    },
+
+    // Wysyłka e-maila do użytkownika
+    async sendEmailResponse() {
+        const id = this.state.currentId;
+        const text = document.getElementById('emailResponseText').value;
+        
+        if (!text.trim()) {
+            Utils.showToast('Treść odpowiedzi nie może być pusta.', 'warning');
+            return;
+        }
+
+        const btn = document.querySelector('.btn-send-email');
+        const originalHtml = btn.innerHTML;
+        
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wysyłanie...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch(`/api/feedback/${id}/reply`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                Utils.showToast('Odpowiedź została wysłana pomyślnie!', 'success');
+                document.getElementById('emailResponseText').value = '';
+            } else {
+                // Specyficzny błąd gdy SMTP nie działa
+                if (response.status === 503) {
+                    Utils.showToast('Błąd serwera pocztowego (SMTP). Reakcja została zapisana w logach, ale mail nie dotarł.', 'error');
+                } else {
+                    throw new Error(data.message || 'Błąd wysyłki');
+                }
+            }
+        } catch (error) {
+            console.error('Błąd wysyłki e-maila:', error);
+            Utils.showToast('Nie udało się wysłać odpowiedzi. ' + error.message, 'error');
+        } finally {
+            btn.innerHTML = originalHtml;
             btn.disabled = false;
         }
     },

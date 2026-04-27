@@ -102,4 +102,14 @@ public class FeedbackController {
         feedbackService.deleteFeedback(id);
         return ResponseEntity.ok(Map.of("message", "Feedback deleted successfully"));
     }
+
+    @PostMapping("/{id}/reply")
+    public ResponseEntity<?> replyToFeedback(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String message = body.get("message");
+        if (message == null || message.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Treść wiadomości nie może być pusta"));
+        }
+        feedbackService.sendEmailReply(id, message);
+        return ResponseEntity.ok(Map.of("message", "Odpowiedź została wysłana"));
+    }
 }
