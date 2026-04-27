@@ -87,7 +87,8 @@ public class AnalyticsService {
                 String email = (auth != null && !"anonymousUser".equals(auth.getPrincipal())) ? auth.getName() : null;
                 Long userId = null;
                 if (email != null) {
-                        userId = userRepository.findByEmail(email)
+                        String normalizedEmail = email.trim().toLowerCase(java.util.Locale.ROOT);
+                        userId = userRepository.findByEmail(normalizedEmail)
                                         .map(u -> u.getId())
                                         .orElse(null);
                 }

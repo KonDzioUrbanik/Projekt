@@ -271,8 +271,12 @@ window.jumpToPage = (pageStr, totalPages) => {
 };
 
 function getBadgeClass(type) {
-    if (type.includes('FAILED') || type.includes('BRUTE')) return 'badge-failed';
+    if (type.includes('FAILED') || type.includes('BRUTE') || 
+        type.includes('TAMPERING') || type.includes('INJECTION') || type.includes('XSS')) {
+        return 'badge-failed';
+    }
     if (type.includes('SUCCESSFUL')) return 'badge-success';
+    if (type.includes('ERROR') || type.includes('ALERT')) return 'badge-warning';
     return 'badge-warning';
 }
 
