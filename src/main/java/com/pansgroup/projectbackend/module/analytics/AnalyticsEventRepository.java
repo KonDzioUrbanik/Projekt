@@ -44,7 +44,7 @@ public interface AnalyticsEventRepository extends JpaRepository<AnalyticsEvent, 
                      "GROUP BY e.eventName")
        List<Object[]> findScrollDepthStats();
 
-       // --- Zdarzenia z ostatnich N dni (do agregacji dziennej po stronie serwisu)
+       // --- Zdarzenia z ostatnich N dni (do agregacji dziennej po stronie serwisu) ---
        @Query("SELECT e FROM AnalyticsEvent e WHERE e.createdAt >= :since ORDER BY e.createdAt")
        List<AnalyticsEvent> findSince(@Param("since") LocalDateTime since);
 
@@ -73,11 +73,11 @@ public interface AnalyticsEventRepository extends JpaRepository<AnalyticsEvent, 
        @org.springframework.transaction.annotation.Transactional
        void deleteByEventType(AnalyticsEvent.EventType eventType);
 
-	// --- Statystyki sesji (do średniego czasu) ---
-	@Query("SELECT e.sessionId, MIN(e.createdAt), MAX(e.createdAt) " +
-			"FROM AnalyticsEvent e WHERE e.createdAt >= :since " +
-			"GROUP BY e.sessionId, CAST(e.createdAt AS date)")
-	List<Object[]> findSessionDurations(@Param("since") LocalDateTime since);
+       // --- Statystyki sesji (do średniego czasu) ---
+       @Query("SELECT e.sessionId, MIN(e.createdAt), MAX(e.createdAt) " +
+                     "FROM AnalyticsEvent e WHERE e.createdAt >= :since " +
+                     "GROUP BY e.sessionId, CAST(e.createdAt AS date)")
+       List<Object[]> findSessionDurations(@Param("since") LocalDateTime since);
 
        // --- Dane aktywnych użytkowników (ostatnie 5 min) ---
        @Query("SELECT e.userId, e.createdAt, e.page " +
@@ -93,11 +93,18 @@ public interface AnalyticsEventRepository extends JpaRepository<AnalyticsEvent, 
                      "FROM AnalyticsEvent e WHERE e.createdAt >= :since GROUP BY e.userId ORDER BY MAX(e.createdAt) DESC")
        List<Object[]> findActiveUsersLastActivity(@Param("since") LocalDateTime since);
 
-       // --- Pobieranie ostatniej strony dla konkretnego użytkownika we wskazanym
-       // czasie ---
+       // --- Pobieranie ostatniej strony dla konkretnego użytkownika we wskazanym czasie ---
        @Query("SELECT e.page FROM AnalyticsEvent e WHERE e.userId = :userId AND e.createdAt = :lastActivity")
        List<String> findPageAtTime(@Param("userId") Long userId, @Param("lastActivity") LocalDateTime lastActivity);
 
        // --- Zdarzenia konkretnego użytkownika ---
        List<AnalyticsEvent> findByUserIdOrderByCreatedAtDesc(Long userId);
+
+       // --- Ostatnie 100 zdarzeń konkretnego użytkownika (User Journey — fallback) ---
+       List<AnalyticsEvent> findTop100ByUserIdOrderByCreatedAtDesc(Long userId);
+
+       // --- User Journey: dynamiczny limit przez Pageable ---
+       @Query("SELECT e FROM AnalyticsEvent e WHERE e.userId = :userId ORDER BY e.createdAt DESC")
+       List<AnalyticsEvent> findTopNByUserIdOrderByCreatedAtDesc(
+               @Param("userId") Long userId, Pageable pageable);
 }

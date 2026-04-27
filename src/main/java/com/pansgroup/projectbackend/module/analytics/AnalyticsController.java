@@ -97,4 +97,22 @@ public class AnalyticsController {
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
     }
+    /**
+     * Szczegółowa ścieżka aktywności konkretnego użytkownika (User Journey).
+     * Dostępny tylko dla ADMIN.
+     */
+    @GetMapping("/user/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getUserJourney(
+            @PathVariable Long userId,
+            @org.springframework.web.bind.annotation.RequestParam(value = "limit", defaultValue = "100") int limit) {
+        try {
+            return ResponseEntity.ok(service.getUserJourney(userId, limit));
+        } catch (org.springframework.web.server.ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
+        } catch (Exception e) {
+            log.error("Błąd podczas pobierania ścieżki użytkownika: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body("Błąd serwera");
+        }
+    }
 }

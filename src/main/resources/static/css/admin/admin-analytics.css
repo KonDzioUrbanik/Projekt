@@ -393,9 +393,17 @@
 }
 
 @keyframes pulse-online {
-    0% { opacity: 1; }
-    50% { opacity: 0.6; }
-    100% { opacity: 1; }
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+
+    100% {
+        opacity: 1;
+    }
 }
 
 #activeUsersDetailsBody i {
@@ -404,6 +412,7 @@
     font-size: 1.1rem;
     vertical-align: middle;
 }
+
 .btn-clear-all {
     background: rgba(239, 68, 68, 0.1);
     color: #ef4444;
@@ -485,4 +494,405 @@
     cursor: not-allowed;
     transform: none !important;
     box-shadow: none !important;
+}
+
+/* === User Journey Modal === */
+
+/* Clickable rows in User Activity table */
+.clickable-row {
+    cursor: pointer;
+    transition: background-color 0.2s, border-left 0.2s;
+}
+
+.clickable-row:hover {
+    background: rgba(var(--primary-color-rgb, 108, 99, 255), 0.06) !important;
+    border-left: 3px solid var(--primary-color);
+}
+
+/* Overlay backdrop */
+.journey-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 25000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+    animation: fadeInOverlay 0.2s ease;
+}
+
+.journey-overlay.active {
+    display: flex;
+}
+
+@keyframes fadeInOverlay {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Modal card */
+.journey-modal {
+    background: var(--bg-card);
+    width: 100%;
+    max-width: 620px;
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    animation: slideUpModal 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideUpModal {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.journey-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    border-radius: 12px 12px 0 0;
+}
+
+.journey-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.journey-controls select {
+    background: var(--bg-step);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 5px 28px 5px 10px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m2 4 4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+}
+
+.journey-controls select option {
+    background: var(--bg-step);
+    color: var(--text-primary);
+}
+
+.journey-controls select:hover {
+    border-color: var(--primary-color);
+    background-color: var(--bg-secondary);
+}
+
+.journey-header h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.journey-header h2 i {
+    color: var(--primary-color);
+}
+
+.journey-subtitle {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.journey-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.journey-close-btn:hover {
+    background: var(--bg-step);
+    color: var(--text-primary);
+}
+
+/* Scrollable body */
+.journey-body {
+    padding: 2rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Loading state */
+.journey-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    gap: 1rem;
+    color: var(--text-muted);
+}
+
+/* Stats cards */
+.journey-stats {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.js-card {
+    flex: 1;
+    min-width: 130px;
+    background: var(--bg-step);
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.js-card span {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.js-card strong {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Error section */
+.journey-errors {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(239, 68, 68, 0.05);
+    border-left: 3px solid #ef4444;
+    border-radius: 0 8px 8px 0;
+}
+
+.err-tag {
+    display: inline-block;
+    background: #ef4444;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    margin: 4px 4px 0 0;
+}
+
+.device-tag {
+    display: inline-block;
+    background: rgba(var(--primary-color-rgb, 108, 99, 255), 0.1);
+    color: var(--primary-color);
+    border: 1px solid rgba(var(--primary-color-rgb, 108, 99, 255), 0.2);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    margin: 2px 4px 2px 0;
+}
+
+/* Timeline */
+.tl-container {
+    position: relative;
+    padding-left: 1.75rem;
+    border-left: 2px solid var(--border-color);
+}
+
+.tl-date-separator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 1.5rem 1rem;
+    position: relative;
+    left: -1.75rem;
+    width: calc(100% + 1.75rem);
+}
+
+.tl-date-separator::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
+}
+
+.tl-date-separator span {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: var(--bg-primary);
+    padding: 2px 10px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border-color);
+    white-space: nowrap;
+    z-index: 1;
+}
+
+.tl-item {
+    position: relative;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: flex-start;
+
+}
+
+.tl-icon {
+    position: relative;
+    left: calc(-1.75rem - 10px);
+    margin-right: -20px;
+    top: 3px;
+    width: 20px;
+    height: 20px;
+    background: var(--bg-primary);
+    border: 1.5px solid var(--border-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    z-index: 1;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.tl-icon--page_view {
+    color: #3b82f6;
+    border-color: #3b82f6;
+}
+
+.tl-icon--click {
+    color: #f59e0b;
+    border-color: #f59e0b;
+}
+
+.tl-icon--error {
+    color: #ef4444;
+    border-color: #ef4444;
+    background: #fee2e2;
+}
+
+.tl-icon--device_info {
+    color: #6366f1;
+    border-color: #6366f1;
+}
+
+.tl-icon--scroll_depth {
+    color: #10b981;
+    border-color: #10b981;
+}
+
+.tl-icon--form_submit {
+    color: #a855f7;
+    border-color: #a855f7;
+}
+
+.tl-item:hover .tl-icon {
+    transform: scale(1.15);
+    box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.2);
+}
+
+.tl-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+
+.tl-time {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.tl-detail {
+    font-size: 0.88rem;
+    color: var(--text-primary);
+    word-break: break-word;
+}
+
+/* Responsywność modalu na małych ekranach */
+@media (max-width: 768px) {
+    .journey-modal {
+        max-width: 95vw;
+        max-height: 92vh;
+        border-radius: 10px;
+        margin: 0 8px;
+    }
+
+    .journey-header {
+        padding: 0.85rem 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .journey-controls {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .journey-controls select {
+        flex: 1;
+        max-width: 45%;
+    }
+
+    .journey-body {
+        padding: 1.25rem;
+    }
+
+    .journey-stats {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .js-card {
+        min-width: unset;
+    }
+
+    .tl-container {
+        padding-left: 1.4rem;
+    }
+
+    .tl-icon {
+        left: -1.75rem;
+        width: 18px;
+        height: 18px;
+        font-size: 0.55rem;
+        border-width: 1px;
+    }
 }

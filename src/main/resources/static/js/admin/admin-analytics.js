@@ -1,7 +1,3 @@
-/**
- * admin-analytics.js — Panel analityczny
- * Pobiera dane z: /api/preferences/state
- */
 (function () {
     'use strict';
 
@@ -24,13 +20,11 @@
 
     let chartInstance = null;
 
-    /**
-     * Główna funkcja inicjalizująca panel
-     */
+    /* Główna funkcja inicjalizująca panel */
     async function init() {
         const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark';
 
-        // 1. Pobieranie danych
+        /* Pobieranie danych */
         const loadData = async () => {
             const controller = new AbortController();
             const id = setTimeout(() => controller.abort(), 10000); // 10s timeout
@@ -49,7 +43,7 @@
             }
         };
 
-        // 2. Renderowanie komponentów
+        /* Renderowanie komponentów */
         const render = (data) => {
             if (!data) {
                 document.querySelectorAll('.loading-cell').forEach(c => c.innerHTML = 'Błąd ładowania');
@@ -81,13 +75,14 @@
                 </tr>`;
             });
             renderTable(SELECTORS.usersBody, data.userActivity, (row, i) => `
-                <tr>
+                <tr class="clickable-row" data-userid="${row.userId}" title="Kliknij, aby zobaczyć ścieżkę użytkownika">
                     <td class="rank-cell">${i + 1}</td>
-                    <td>${esc(row.fullName)}</td>
+                    <td><i class="fas fa-user-secret" style="color:var(--primary-color);margin-right:6px;font-size:0.8rem;"></i>${esc(row.fullName)}</td>
                     <td class="num-cell">${(row.sessions || 0).toLocaleString('pl-PL')}</td>
                     <td class="num-cell">${(row.totalEvents || 0).toLocaleString('pl-PL')}</td>
                 </tr>
             `);
+
             renderTable(SELECTORS.deviceBody, data.deviceStats, row => `
                 <tr>
                     <td class="device-cell">${esc(row.deviceInfo)}</td>
@@ -179,7 +174,7 @@
             });
         };
 
-        // 3. Obserwowanie zmian motywu (izolowane w init)
+        // Obserwowanie zmian motywu (izolowane w init)
         let lastData = await loadData();
         render(lastData);
 
@@ -188,7 +183,7 @@
         });
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
-        // 4. Obsługa usuwania błędów (delegacja)
+        // Obsługa usuwania błędów (delegacja)
         const errorsBody = document.getElementById(SELECTORS.errorsBody);
         if (errorsBody) {
             errorsBody.addEventListener('click', async (e) => {
@@ -227,7 +222,7 @@
             });
         }
         
-        // 5a. Obsługa ręcznego odświeżania cache
+        // Obsługa ręcznego odświeżania cache
         const refreshBtn = document.getElementById('refreshAnalyticsBtn');
         if (refreshBtn) {
             refreshBtn.addEventListener('click', async () => {
@@ -258,7 +253,7 @@
             });
         }
         
-        // 6. Obsługa masowego usuwania błędów
+        // Obsługa masowego usuwania błędów
         const clearAllBtn = document.getElementById('clearAllErrorsBtn');
         if (clearAllBtn) {
             clearAllBtn.addEventListener('click', async () => {
@@ -293,7 +288,7 @@
             });
         }
 
-        // 6. Automatyczne odświeżanie (co 60s) — tylko gdy karta jest aktywna
+        // Automatyczne odświeżanie (co 60s) — tylko gdy karta jest aktywna
         const refreshInterval = setInterval(async () => {
              if (document.visibilityState === 'visible') {
                  // data refresh logic...
@@ -304,9 +299,12 @@
 
         // Zapobiegamy wyciekom przy demontażu (jeśli strona byłaby częścią SPA)
         window.addEventListener('beforeunload', () => clearInterval(refreshInterval));
+
+        // Bindujemy listenery modalu ścieżki użytkownika (event delegation)
+        setupJourneyModalListener();
     }
 
-    // --- Helpery ---
+    // Helpery
     function renderTable(id, items, templateFn) {
         const el = document.getElementById(id);
         if (!el) return;
@@ -338,6 +336,191 @@
         return String(str).replace(/[&<>"']/g, m => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
         }[m]));
+    }
+    
+    let _journeyOverlay = null;
+    let _journeyContent = null;
+    let _currentJourneyUserId = null;
+    let _currentJourneyLimit = 100;
+    let _currentJourneyFilter = 'ALL';
+
+    function setupJourneyModalListener() {
+        if (!_journeyOverlay) {
+            _journeyOverlay = document.createElement('div');
+            _journeyOverlay.className = 'journey-overlay';
+            _journeyOverlay.innerHTML = `
+                <div class="journey-modal">
+                    <div class="journey-header">
+                        <div>
+                            <h2><i class="fas fa-route"></i> Ścieżka użytkownika</h2>
+                            <span class="journey-subtitle" id="journeySubtitle">Analiza aktywności</span>
+                        </div>
+                        <div class="journey-controls">
+                            <select id="journeyTypeFilter" title="Filtruj po typie zdarzenia">
+                                <option value="ALL">Wszystkie typy</option>
+                                <option value="PAGE_VIEW">Odwiedziny</option>
+                                <option value="CLICK">Kliknięcia</option>
+                                <option value="SCROLL_DEPTH">Przewijanie</option>
+                                <option value="ERROR">Błędy</option>
+                                <option value="DEVICE_INFO">Urządzenia</option>
+                                <option value="FORM_SUBMIT">Formularze</option>
+                            </select>
+                            <select id="journeyLimitSelect" title="Liczba zdarzeń">
+                                <option value="50">50 zdarzeń</option>
+                                <option value="100" selected>100 zdarzeń</option>
+                                <option value="200">200 zdarzeń</option>
+                                <option value="500">500 zdarzeń</option>
+                            </select>
+                            <button class="journey-close-btn" id="closeJourneyModal" title="Zamknij"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+                    <div id="journeyContent" class="journey-body">
+                        <div class="journey-loading"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Ładowanie danych...</p></div>
+                    </div>
+                </div>`;
+            document.body.appendChild(_journeyOverlay);
+            _journeyContent = _journeyOverlay.querySelector('#journeyContent');
+
+            _journeyOverlay.querySelector('#closeJourneyModal')
+                .addEventListener('click', closeUserJourneyModal);
+            _journeyOverlay.addEventListener('click', (e) => {
+                if (e.target === _journeyOverlay) closeUserJourneyModal();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && _journeyOverlay.classList.contains('active'))
+                    closeUserJourneyModal();
+            });
+
+            // Limit select — ponownie pobiera dane
+            _journeyOverlay.querySelector('#journeyLimitSelect').addEventListener('change', (e) => {
+                _currentJourneyLimit = parseInt(e.target.value, 10);
+                if (_currentJourneyUserId) fetchAndRenderJourney(_currentJourneyUserId);
+            });
+
+            // Filtr typów — filtruje lokalnie bez nowego fetch
+            _journeyOverlay.querySelector('#journeyTypeFilter').addEventListener('change', (e) => {
+                _currentJourneyFilter = e.target.value;
+                applyJourneyFilter();
+            });
+        }
+
+        const usersBody = document.getElementById(SELECTORS.usersBody);
+        if (usersBody && !usersBody.dataset.journeyListened) {
+            usersBody.dataset.journeyListened = '1';
+            usersBody.addEventListener('click', (e) => {
+                const tr = e.target.closest('.clickable-row');
+                if (!tr) return;
+                const userId = tr.dataset.userid;
+                if (userId) openUserJourneyModal(userId);
+            });
+        }
+    }
+
+    function applyJourneyFilter() {
+        const items = _journeyContent ? _journeyContent.querySelectorAll('.tl-item') : [];
+        let visible = 0;
+        items.forEach(item => {
+            const type = item.dataset.type || '';
+            const show = _currentJourneyFilter === 'ALL' || type === _currentJourneyFilter;
+            item.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        const subtitle = _journeyOverlay.querySelector('#journeySubtitle');
+        if (subtitle) subtitle.textContent = `Pokazano ${visible} z ${items.length} zdarzeń`;
+    }
+
+    function closeUserJourneyModal() {
+        if (_journeyOverlay) {
+            _journeyOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    async function openUserJourneyModal(userId) {
+        _currentJourneyUserId = userId;
+        _currentJourneyLimit = parseInt(
+            _journeyOverlay ? _journeyOverlay.querySelector('#journeyLimitSelect').value : '100', 10);
+        _currentJourneyFilter = 'ALL';
+        if (_journeyOverlay) {
+            const f = _journeyOverlay.querySelector('#journeyTypeFilter');
+            if (f) f.value = 'ALL';
+        }
+        if (!_journeyOverlay) return;
+        _journeyOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        await fetchAndRenderJourney(userId);
+    }
+
+    async function fetchAndRenderJourney(userId) {
+        if (!_journeyContent) return;
+        _journeyContent.innerHTML = '<div class="journey-loading"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Ładowanie danych...</p></div>';
+
+        try {
+            const res = await fetch(`/api/preferences/user/${userId}?limit=${_currentJourneyLimit}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const data = await res.json();
+
+            const errorsHtml = (data.encounteredErrors && data.encounteredErrors.length > 0)
+                ? data.encounteredErrors.map(err => `<span class="err-tag"><i class="fas fa-bug"></i> ${esc(err)}</span>`).join('')
+                : '<span style="font-size:0.85rem;color:var(--text-muted);">Brak zarejestrowanych błędów</span>';
+
+            const devicesHtml = (data.devices && data.devices.length > 0)
+                ? data.devices.map(d => `<span class="device-tag"><i class="fas fa-laptop"></i> ${esc(d)}</span>`).join('')
+                : '<span style="font-size:0.85rem;color:var(--text-muted);">Nieznane</span>';
+
+            let lastDate = '';
+            const timelineHtml = (data.recentTimeline && data.recentTimeline.length > 0)
+                ? data.recentTimeline.map(t => {
+                    const currentDate = t.time.includes(' ') ? t.time.split(' ')[0] : 'Dzisiaj';
+                    let sep = '';
+                    if (currentDate !== lastDate) {
+                        lastDate = currentDate;
+                        sep = `<div class="tl-date-separator"><span>${esc(currentDate)}</span></div>`;
+                    }
+                    return sep + `
+                    <div class="tl-item" data-type="${esc(t.type)}">
+                        <div class="tl-icon tl-icon--${esc(t.type.toLowerCase())}"><i class="${esc(t.icon)}"></i></div>
+                        <div class="tl-body">
+                            <span class="tl-time">${esc(t.time)}</span>
+                            <span class="tl-detail">${esc(t.detail)}</span>
+                        </div>
+                    </div>`;
+                }).join('')
+                : '<p style="color:var(--text-muted);font-size:0.9rem;">Brak zdarzeń do wyświetlenia</p>';
+
+            _journeyContent.innerHTML = `
+                <h3 style="margin:0 0 1.25rem;font-size:1.1rem;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+                    <i class="fas fa-user-circle" style="color:var(--primary-color);"></i>${esc(data.fullName)}
+                </h3>
+                <div class="journey-stats">
+                    <div class="js-card">
+                        <span><i class="fas fa-star"></i> Ulubiona strona</span>
+                        <strong title="${esc(data.favoritePage)}">${esc(data.favoritePage)}</strong>
+                    </div>
+                    <div class="js-card">
+                        <span><i class="fas fa-clock"></i> Łączny czas (szac.)</span>
+                        <strong>${esc(data.totalTimeSpent)}</strong>
+                    </div>
+                    <div class="js-card">
+                        <span><i class="fas fa-desktop"></i> Urządzenia</span>
+                        <div style="margin-top:4px;">${devicesHtml}</div>
+                    </div>
+                </div>
+                <div class="journey-errors">
+                    <strong style="font-size:0.85rem;"><i class="fas fa-exclamation-triangle"></i> Napotkane błędy:</strong>
+                    <div style="margin-top:8px;">${errorsHtml}</div>
+                </div>
+                <h4 class="tl-heading">
+                    <i class="fas fa-history"></i> Oś czasu
+                </h4>
+                <div class="tl-container">${timelineHtml}</div>`;
+
+            applyJourneyFilter();
+        } catch (err) {
+            _journeyContent.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--error-text);"><i class="fas fa-exclamation-circle fa-2x"></i><p style="margin-top:1rem;">Nie udało się załadować danych.</p></div>`;
+        }
     }
 
     document.addEventListener('DOMContentLoaded', init);
