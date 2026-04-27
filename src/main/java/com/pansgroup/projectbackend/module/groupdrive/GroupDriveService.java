@@ -47,7 +47,8 @@ public class GroupDriveService {
         // Guard Clauses
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null || originalFilename.isBlank() || originalFilename.length() > 255) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Zła nazwa pliku lub jej długość przekracza 255 znaków.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Zła nazwa pliku lub jej długość przekracza 255 znaków.");
         }
         StudentGroup group = user.getStudentGroup();
         if (group == null) {
@@ -56,30 +57,30 @@ public class GroupDriveService {
         }
 
         long fileSize = file.getSize();
-        if (fileSize > 52428800L) { // 50MB
-            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "Przesłany plik przekracza limit wielkości (50 MB).");
+        if (fileSize > 31457280L) { // 30MB
+            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
+                    "Przesłany plik przekracza limit wielkości (30 MB).");
         }
 
         // Limit liczby plików (ochrona przed Resource Exhaustion)
         long activeFilesCount = groupDriveFileRepository.countByUploaderAndIsDeletedFalse(user);
         if (activeFilesCount >= 50) {
-            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, 
-                "Osiągnięto limit 50 aktywnych plików. Usuń stare pliki, aby wgrać nowe.");
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Osiągnięto limit 50 aktywnych plików. Usuń stare pliki, aby wgrać nowe.");
         }
 
         Long userId = user.getId();
         Long groupId = group.getId();
 
-        // 1. Quota Reservation (Atomic SQL updates)
         if (userRepository.incrementUsedStorage(userId, fileSize) == 0) {
-            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
-                    "Przekroczono osobisty limit miejsca (User Quota Full).");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Przekroczono limit miejsca dla twojego konta.");
         }
 
         if (studentGroupRepository.incrementUsedStorage(groupId, fileSize) == 0) {
             userRepository.decrementUsedStorage(userId, fileSize);
-            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
-                    "Przekroczono limit miejsca grupy studenckiej (Group Quota Full).");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Przekroczono limit miejsca dla twojego kierunku studenckiego.");
         }
 
         try {
@@ -126,8 +127,8 @@ public class GroupDriveService {
             // Przeliczanie kwoty dopiero po sukcesie transakcji zapisu
             recalculateQuota(user, group);
 
-            securityAuditService.recordEvent("DRIVE_UPLOAD", null, 
-                "Wgrano plik: " + originalFilename + " (" + detectedMime + ")", user.getId(), user.getEmail());
+            securityAuditService.recordEvent("DRIVE_UPLOAD", null,
+                    "Wgrano plik: " + originalFilename + " (" + detectedMime + ")", user.getId(), user.getEmail());
 
             return saved;
 
@@ -156,8 +157,9 @@ public class GroupDriveService {
 
         if (user.getStudentGroup() == null || file.getStudentGroup() == null
                 || !file.getStudentGroup().getId().equals(user.getStudentGroup().getId())) {
-            securityAuditService.recordEvent("DRIVE_IDOR_ATTEMPT", null, 
-                "Próba nieautoryzowanego pobrania pliku ID: " + fileId + " przez użytkownika z innej grupy.", user.getId(), user.getEmail());
+            securityAuditService.recordEvent("DRIVE_IDOR_ATTEMPT", null,
+                    "Próba nieautoryzowanego pobrania pliku ID: " + fileId + " przez użytkownika z innej grupy.",
+                    user.getId(), user.getEmail());
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak dostępu do pliku innej grupy studenckiej.");
         }
 
@@ -201,8 +203,8 @@ public class GroupDriveService {
         // Sync quotas after deletion to ensure no negative values or drift persists
         recalculateQuota(uploader, group);
 
-        securityAuditService.recordEvent("DRIVE_FILE_DELETED", null, 
-            "Usunięto plik: " + file.getFileName() + " (ID: " + fileId + ")", user.getId(), user.getEmail());
+        securityAuditService.recordEvent("DRIVE_FILE_DELETED", null,
+                "Usunięto plik: " + file.getFileName() + " (ID: " + fileId + ")", user.getId(), user.getEmail());
     }
 
     @Transactional

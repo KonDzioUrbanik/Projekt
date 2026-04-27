@@ -17,9 +17,6 @@ public enum FileCategory {
         return displayName;
     }
 
-    /**
-     * Safely parses category string, defaulting to OTHER if invalid or null.
-     */
     public static FileCategory fromString(String category) {
         if (category == null || category.isBlank()) {
             return OTHER;
