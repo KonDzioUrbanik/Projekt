@@ -23,6 +23,7 @@ public class FeedbackService {
     private final com.pansgroup.projectbackend.module.user.UserRepository userRepository;
     private final com.pansgroup.projectbackend.module.system.AdminSecurityAuditService securityAuditService;
     private final org.apache.tika.Tika tika;
+    private final org.springframework.mail.javamail.JavaMailSender mailSender;
 
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png", "pdf");
 
@@ -154,5 +155,36 @@ public class FeedbackService {
     @Transactional
     public void deleteFeedback(Long id) {
         feedbackRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void sendEmailReply(Long id, String messageContent) {
+        Feedback feedback = feedbackRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Zgłoszenie nie istnieje"));
+
+        String recipientEmail = feedback.getEmail();
+        if (recipientEmail == null || recipientEmail.trim().isEmpty() || !recipientEmail.contains("@")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Zgłoszenie nie posiada poprawnego adresu e-mail.");
+        }
+
+        try {
+            org.springframework.mail.SimpleMailMessage mailMessage = new org.springframework.mail.SimpleMailMessage();
+            mailMessage.setTo(recipientEmail);
+            mailMessage.setSubject("Odpowiedź na zgłoszenie: " + feedback.getTitle());
+            mailMessage.setText("Witaj,\n\nUdzielono odpowiedzi na Twoje zgłoszenie #" + feedback.getId() + " (" + feedback.getTitle() + "):\n\n" +
+                    messageContent + "\n\n---\nPozdrawiamy,\nZespół PANSportal");
+            
+            mailSender.send(mailMessage);
+
+            // Record in audit log
+            securityAuditService.recordEvent("FEEDBACK_REPLY_SENT", null, 
+                "Wysłano odpowiedź mailową do: " + recipientEmail + " dla zgłoszenia #" + id, null, null);
+            
+        } catch (org.springframework.mail.MailException e) {
+            // Log failure to audit log
+            securityAuditService.recordEvent("FEEDBACK_REPLY_FAILED", null, 
+                "Błąd podczas wysyłki odpowiedzi do " + recipientEmail + ": " + e.getMessage(), null, null);
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Błąd serwera pocztowego: " + e.getMessage());
+        }
     }
 }

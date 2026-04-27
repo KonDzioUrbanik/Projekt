@@ -119,6 +119,16 @@
                             </div>
                         </div>
 
+                        <div class="detail-row email-response-section" id="emailResponseRow" style="display:none; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px dashed var(--border-color);">
+                            <span class="detail-label" id="emailResponseRecipientLabel">Odpowiedź mailowa</span>
+                            <div class="comment-wrapper">
+                                <textarea id="emailResponseText" class="feedback-description-full" style="width: 100%; min-height: 120px; margin-top: 0.5rem; font-family: inherit;" placeholder="Wpisz treść odpowiedzi do użytkownika..."></textarea>
+                                <button class="btn-send-email" onclick="FeedbackManager.sendEmailResponse()" style="margin-top: 0.75rem; padding: 0.6rem 1.2rem; background: var(--color-primary, #005efa); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem; transition: background 0.2s; float: right; display: flex; align-items: center; gap: 0.5rem;">
+                                    <i class="fas fa-paper-plane"></i> Wyślij odpowiedź
+                                </button>
+                            </div>
+                        </div>
+
                         <div id="modalTechDetails" class="technical-details">
                         </div>
                     </div>

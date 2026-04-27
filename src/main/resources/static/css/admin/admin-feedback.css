@@ -523,6 +523,28 @@
     /* Clearfix for float */
 }
 
+/* Email Response Section Styling */
+.email-response-section .detail-label {
+    color: var(--text-main);
+    font-weight: 700;
+}
+
+.btn-send-email:hover {
+    background: #004ecc !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 94, 250, 0.2);
+}
+
+.btn-send-email:active {
+    transform: translateY(0);
+}
+
+.btn-send-email:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
 /* Fix focus border issue */
 .feedback-description-full,
 .feedback-input,
