@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (noGroupOverlay) noGroupOverlay.style.display = 'none';
                 if (driveWorkspace) driveWorkspace.style.display = 'block';
 
-                const limitUser = data.userStorageLimit || 524288000;
+                const limitUser = data.userStorageLimit || 314572800;
                 const usedUser = data.userUsedStorage || 0;
                 globalGroupStorageLimit = data.groupStorageLimit || globalGroupStorageLimit;
                 const usedGroup = data.groupUsedStorage || 0;
@@ -337,13 +337,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isQuotaLocked) return;
         
         let validFiles = [];
-        const maxSizeBytes = 50 * 1024 * 1024; // 50MB limit
+        const maxSizeBytes = 30 * 1024 * 1024; // 30MB limit
         
         let hasAlertedLimit = false;
         Array.from(files).forEach(file => {
             if (file.size > maxSizeBytes) {
                 if (typeof Utils !== 'undefined' && Utils.showToast) {
-                    Utils.showToast(`Plik ${file.name} jest za duży (max 50MB).`, "error");
+                    Utils.showToast(`Plik ${file.name} jest za duży (max 30MB).`, "error");
                 }
                 return;
             }
@@ -522,14 +522,14 @@ document.addEventListener('DOMContentLoaded', () => {
             task.xhr = null;
             let responseData = null;
             
-            // Sprawdzamy czy odpowiedź to faktycznie JSON
-            const contentType = xhr.getResponseHeader("content-type");
-            if (contentType && contentType.indexOf("application/json") !== -1) {
-                try {
+            // Próbujemy sparsować JSON, jeśli status nie jest sukcesem
+            try {
+                if (xhr.responseText && xhr.responseText.trim().startsWith('{')) {
                     responseData = JSON.parse(xhr.responseText);
-                } catch (e) {
-                    console.error("Nie udało się sparsować odpowiedzi serwera jako JSON", e);
                 }
+            } catch (e) {
+                console.warn("Nie udało się sparsować odpowiedzi serwera jako JSON (mimo statusu błędu)", e);
+                console.log("Raw response:", xhr.responseText);
             }
 
             if (xhr.status >= 200 && xhr.status < 300) {
@@ -542,9 +542,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 activeUploads--;
                 startNextUploads();
             } else {
-                // Wyciągamy wiadomość z JSONa, a jeśli go brak (np. błąd 413 w HTML), dajemy czytelny fallback
-                const errMsg = (responseData && (responseData.detail || responseData.message)) 
-                             || (xhr.status === 413 ? "Plik przekracza limity serwera (max 50MB)." : "Wystąpił błąd serwera.");
+                // Próbujemy wyciągnąć wiadomość z różnych standardowych pól JSON (Spring ProblemDetail, Error itp.)
+                const errMsg = (responseData && (responseData.detail || responseData.message || responseData.error || responseData.reason)) 
+                             || (xhr.status === 413 ? "Plik przekracza limit wielkości (max 30MB)." : "Wystąpił błąd serwera podczas wysyłania.");
                 
                 updateFileStatus(queueId, 'error', errMsg);
                 task.state = 'error';

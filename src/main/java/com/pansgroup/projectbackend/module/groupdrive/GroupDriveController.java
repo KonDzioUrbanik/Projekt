@@ -44,7 +44,7 @@ public class GroupDriveController {
             @RequestParam(defaultValue = "desc") String sortDirection) {
 
         User user = userRepository.findByEmail(authentication.getName())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         FileCategory cat = (category != null && !category.isBlank()) ? FileCategory.fromString(category) : null;
 
@@ -62,8 +62,8 @@ public class GroupDriveController {
             @RequestParam(value = "category", required = false) String category) {
 
         User user = userRepository.findByEmail(authentication.getName())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
         FileCategory cat = FileCategory.fromString(category);
 
         try {
@@ -73,22 +73,27 @@ public class GroupDriveController {
             throw e;
         } catch (Exception e) {
             log.error("Unexpected error during file upload: {}", e.getMessage(), e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Błąd serwera podczas zapisywania pliku.");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Błąd serwera podczas zapisywania pliku.");
         }
     }
 
     @GetMapping("/download/{id}")
-    public ResponseEntity<org.springframework.core.io.Resource> downloadFile(@PathVariable Long id, Authentication authentication) {
+    public ResponseEntity<org.springframework.core.io.Resource> downloadFile(@PathVariable Long id,
+            Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         GroupDriveFile driveFile = groupDriveService.getFileForDownload(id, user);
 
-        org.springframework.core.io.Resource resource = new org.springframework.core.io.ByteArrayResource(driveFile.getFileData());
+        org.springframework.core.io.Resource resource = new org.springframework.core.io.ByteArrayResource(
+                driveFile.getFileData());
         String contentType = driveFile.getMimeType();
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + (driveFile.getFileName() != null ? driveFile.getFileName() : "file") + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + (driveFile.getFileName() != null ? driveFile.getFileName() : "file")
+                                + "\"")
                 .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
                 .header(HttpHeaders.PRAGMA, "no-cache")
                 .header(HttpHeaders.EXPIRES, "0")
@@ -98,7 +103,7 @@ public class GroupDriveController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deleteFile(@PathVariable Long id, Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         groupDriveService.deleteFile(id, user);
 
         Map<String, String> response = new HashMap<>();
@@ -111,27 +116,24 @@ public class GroupDriveController {
         Map<String, String> categories = Arrays.stream(FileCategory.values())
                 .collect(Collectors.toMap(
                         FileCategory::name,
-                        FileCategory::getDisplayName
-                ));
+                        FileCategory::getDisplayName));
         return ResponseEntity.ok(categories);
     }
 
     @GetMapping("/quota")
     public ResponseEntity<Map<String, Object>> getQuotaInfo(Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        
-        // Ensure data is synced before returning (fixes manual DB edits issues)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
         groupDriveService.recalculateQuota(user, user.getStudentGroup());
-        
-        // Reload user to get updated fields
+
         user = userRepository.findById(java.util.Objects.requireNonNull(user.getId())).get();
-        
+
         Map<String, Object> quotaInfo = new HashMap<>();
-        
+
         quotaInfo.put("userStorageLimit", user.getStorageLimit());
         quotaInfo.put("userUsedStorage", user.getUsedStorage());
-        
+
         if (user.getStudentGroup() != null) {
             quotaInfo.put("hasGroup", true);
             quotaInfo.put("groupStorageLimit", user.getStudentGroup().getStorageLimit());

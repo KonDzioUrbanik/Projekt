@@ -131,11 +131,11 @@ public class GlobalExceptionHandler {
     /* ====== 413: Przekroczono rozmiar pliku ====== */
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ProblemDetail handleMaxSizeException(MaxUploadSizeExceededException ex, HttpServletRequest req) {
-        log.warn("Zablokowano próbę wgrania zbyt dużego pliku. Limit to 15MB.");
+        log.warn("Zablokowano próbę wgrania zbyt dużego pliku. Limit to 30MB.");
         securityAuditService.recordEvent("FILE_SIZE_VIOLATION", null, 
-            "Przekroczono limit uploadu (15MB). Żądanie odrzucone.", null, null);
+            "Przekroczono limit uploadu (30MB). Żądanie odrzucone.", null, null);
         return pd(HttpStatus.PAYLOAD_TOO_LARGE, "File too large",
-                "Plik jest zbyt duży. Maksymalny dozwolony rozmiar to 15 MB.", req, "file_too_large");
+                "Plik jest zbyt duży. Maksymalny dozwolony rozmiar to 30 MB.", req, "file_too_large");
     }
 
     /* ====== 400: brakujące parametry / części żądania ====== */
