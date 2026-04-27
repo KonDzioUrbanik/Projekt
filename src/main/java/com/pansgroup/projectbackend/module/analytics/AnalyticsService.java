@@ -8,6 +8,8 @@ import com.pansgroup.projectbackend.module.analytics.dto.DailyStatDto;
 import com.pansgroup.projectbackend.module.analytics.dto.UserActivityDto;
 import com.pansgroup.projectbackend.module.analytics.dto.DeviceStatDto;
 import com.pansgroup.projectbackend.module.analytics.dto.ActiveUserDto;
+import com.pansgroup.projectbackend.module.analytics.dto.UserJourneyDto;
+import com.pansgroup.projectbackend.module.analytics.dto.TimelineEventDto;
 import com.pansgroup.projectbackend.module.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -47,12 +49,6 @@ public class AnalyticsService {
          */
         @Transactional
         public void saveEvent(AnalyticsEventDto dto, Authentication auth) {
-                // Pozwalamy na zapis zdarzeń anonimowych (np. wejście na stronę logowania), 
-                // ale reszta logicznych kontroli (rate limiting, admin bypass) pozostaje aktywna.
-                if (auth != null && !auth.isAuthenticated()) {
-                    // Ciche logowanie dla deweloperów, ale nie blokujemy
-                }
-
                 // Backend Anti-Spam: max 1 event per 100ms na sessionId
                 if (dto.sessionId() == null || dto.sessionId().isBlank()) {
                         log.warn("Zdarzenie odrzucone (brak SESSION_ID)");
@@ -64,7 +60,7 @@ public class AnalyticsService {
                         rateLimiter.clear(); // safe clear
                 long now = System.currentTimeMillis();
                 Long lastEventTime = rateLimiter.get(dto.sessionId());
-                
+
                 boolean isHighPriority = "time_on_page".equals(dto.eventName());
                 if (!isHighPriority && lastEventTime != null && (now - lastEventTime) < 50) {
                         log.warn("Zdarzenie odrzucone (Spam z tej samej sesji): {}", dto.sessionId());
@@ -91,11 +87,12 @@ public class AnalyticsService {
                 String email = (auth != null && !"anonymousUser".equals(auth.getPrincipal())) ? auth.getName() : null;
                 Long userId = null;
                 if (email != null) {
-                        userId = userRepository.findByEmail(email)
+                        String normalizedEmail = email.trim().toLowerCase(java.util.Locale.ROOT);
+                        userId = userRepository.findByEmail(normalizedEmail)
                                         .map(u -> u.getId())
                                         .orElse(null);
                 }
-                
+
                 // Jeśli userId jest null (anonim), zapisujemy z userId = null.
                 // Baza danych na to pozwala (nullable = true w AnalyticsEvent).
 
@@ -202,7 +199,7 @@ public class AnalyticsService {
                         LocalDateTime end = (LocalDateTime) row[2];
                         if (start != null && end != null) {
                                 long diff = java.time.Duration.between(start, end).toSeconds();
-                                
+
                                 // Ignorujemy zbyt krótkie sesje (noise)
                                 if (diff < minSessionDuration) {
                                         continue;
@@ -212,7 +209,7 @@ public class AnalyticsService {
                                 if (diff > maxSessionDuration) {
                                         diff = maxSessionDuration;
                                 }
-                                
+
                                 totalSeconds += diff;
                                 count++;
                         }
@@ -316,17 +313,25 @@ public class AnalyticsService {
         }
 
         /**
-         * Usuwa zbędne parametry query i fragmenty z URLa dla bezpieczeństwa i
-         * spójności.
+         * Usuwa zbędne parametry query i fragmenty z URLa dla bezpieczeństwa i spójności.
          */
         private String sanitizePage(String page) {
                 if (page == null)
                         return "/";
-                // Zachowujemy parametry query (?userId=...), ale usuwamy fragmenty (#...)
                 int h = page.indexOf('#');
                 if (h >= 0)
                         page = page.substring(0, h);
                 return page.length() <= 255 ? page : page.substring(0, 255);
+        }
+
+        /**
+         * Formatuje milisekundy jako "Xm Ys".
+         */
+        private String formatDuration(long ms) {
+                long s = ms / 1000;
+                long minutes = s / 60;
+                long seconds = s % 60;
+                return minutes > 0 ? minutes + "m " + seconds + "s" : seconds + "s";
         }
 
         /**
@@ -336,5 +341,97 @@ public class AnalyticsService {
         @CacheEvict(value = "analyticsSummary", allEntries = true)
         public void refreshCache() {
                 log.info("Ręczne odświeżanie cache analityki...");
+        }
+
+        /**
+         * Zwraca pełną ścieżkę aktywności użytkownika (User Journey).
+         */
+        public UserJourneyDto getUserJourney(Long userId, int limit) {
+                var userOpt = userRepository.findById(userId);
+                if (userOpt.isEmpty()) {
+                        throw new org.springframework.web.server.ResponseStatusException(
+                                org.springframework.http.HttpStatus.NOT_FOUND, "Użytkownik nie istnieje.");
+                }
+                com.pansgroup.projectbackend.module.user.User user = userOpt.get();
+                String fullName = user.getFirstName() + " " + user.getLastName()
+                        + " (" + (user.getRole() != null ? user.getRole().replace("ROLE_", "") : "?") + ")";
+
+                int safeLimit = Math.max(10, Math.min(limit, 500));
+                List<AnalyticsEvent> events = repository.findTopNByUserIdOrderByCreatedAtDesc(
+                        userId, org.springframework.data.domain.PageRequest.of(0, safeLimit));
+
+                // Ulubiona strona
+                String favoritePage = events.stream()
+                        .filter(e -> e.getEventType() == AnalyticsEvent.EventType.PAGE_VIEW)
+                        .collect(Collectors.groupingBy(AnalyticsEvent::getPage, Collectors.counting()))
+                        .entrySet().stream()
+                        .max(Map.Entry.comparingByValue())
+                        .map(Map.Entry::getKey)
+                        .orElse("Brak danych");
+
+                // Unikalne błędy
+                List<String> errors = events.stream()
+                        .filter(e -> e.getEventType() == AnalyticsEvent.EventType.ERROR)
+                        .map(AnalyticsEvent::getEventName)
+                        .filter(java.util.Objects::nonNull)
+                        .distinct()
+                        .collect(Collectors.toList());
+
+                // Urządzenia
+                List<String> devices = events.stream()
+                        .filter(e -> e.getEventType() == AnalyticsEvent.EventType.DEVICE_INFO)
+                        .map(AnalyticsEvent::getEventName)
+                        .filter(java.util.Objects::nonNull)
+                        .distinct()
+                        .collect(Collectors.toList());
+
+                // Szacowany czas
+                long totalMs = events.stream()
+                        .filter(e -> e.getDurationMs() != null)
+                        .mapToLong(AnalyticsEvent::getDurationMs)
+                        .sum();
+                String totalTime = formatDuration(totalMs);
+
+                // Oś czasu
+                java.time.format.DateTimeFormatter dtf =
+                        java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
+
+                List<TimelineEventDto> timeline = events.stream().map(e -> {
+                        String type = e.getEventType().name();
+                        String detail;
+                        String icon;
+
+                        if (e.getEventType() == AnalyticsEvent.EventType.PAGE_VIEW) {
+                                detail = "Odwiedzono: " + e.getPage();
+                                icon = "fas fa-eye";
+                        } else if (e.getEventType() == AnalyticsEvent.EventType.CLICK) {
+                                detail = "Kliknięto: " + (e.getEventName() != null ? e.getEventName() : "-") + " na " + e.getPage();
+                                icon = "fas fa-hand-pointer";
+                        } else if (e.getEventType() == AnalyticsEvent.EventType.ERROR) {
+                                detail = "Błąd: " + (e.getEventName() != null ? e.getEventName() : "nieznany");
+                                icon = "fas fa-bug";
+                        } else if (e.getEventType() == AnalyticsEvent.EventType.SCROLL_DEPTH) {
+                                String depth = e.getEventName() != null ? e.getEventName().replace("reached_", "").replace("_", " ") : "";
+                                detail = "Przewinięto " + depth + " strony " + e.getPage();
+                                icon = "fas fa-arrows-alt-v";
+                        } else if (e.getEventType() == AnalyticsEvent.EventType.DEVICE_INFO) {
+                                detail = "Urządzenie: " + (e.getEventName() != null ? e.getEventName() : "-");
+                                icon = "fas fa-laptop";
+                        } else if (e.getEventType() == AnalyticsEvent.EventType.FORM_SUBMIT) {
+                                detail = "Formularz: " + e.getPage();
+                                icon = "fas fa-paper-plane";
+                        } else {
+                                detail = e.getPage();
+                                icon = "fas fa-circle";
+                        }
+
+                        String time = e.getCreatedAt() != null
+                                ? e.getCreatedAt().format(dtf)
+                                : "--.--.---- --:--:--";
+
+                        return new TimelineEventDto(time, type, detail, icon);
+                }).collect(Collectors.toList());
+
+                return new UserJourneyDto(userId, fullName, favoritePage, totalTime, devices, errors, timeline);
         }
 }
