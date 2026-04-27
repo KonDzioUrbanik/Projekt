@@ -103,6 +103,20 @@ public class FeedbackController {
         return ResponseEntity.ok(Map.of("message", "Feedback deleted successfully"));
     }
 
+    @GetMapping("/{id}/notes")
+    public ResponseEntity<List<FeedbackNote>> getNotes(@PathVariable Long id) {
+        return ResponseEntity.ok(feedbackService.getNotes(id));
+    }
+
+    @PostMapping("/{id}/notes")
+    public ResponseEntity<FeedbackNote> addNote(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String content = body.get("content");
+        if (content == null || content.trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(feedbackService.addNote(id, content));
+    }
+
     @PostMapping("/{id}/reply")
     public ResponseEntity<?> replyToFeedback(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String message = body.get("message");

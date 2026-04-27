@@ -248,8 +248,8 @@ const FeedbackManager = {
             attachmentDiv.innerHTML = '';
         }
 
-        // Komentarz Admina
-        document.getElementById('adminComment').value = item.adminComment || '';
+        // Załaduj notatki
+        this.loadNotes(id);
 
         // Dane techniczne
         const techDetails = `
@@ -270,44 +270,94 @@ const FeedbackManager = {
         this.state.currentId = null;
     },
 
-    // Zapisywanie komentarza admina
-    async saveComment() {
-        const id = this.state.currentId;
-        const comment = document.getElementById('adminComment').value;
-        const btn = document.querySelector('.btn-save-comment');
-        
-        const originalText = '<i class="fas fa-save"></i> Zapisz notatkę';
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Zapisywanie...';
-        btn.disabled = true;
+    // Ładowanie notatek admina
+    async loadNotes(feedbackId) {
+        const feed = document.getElementById('adminNotesList');
+        const emptyState = document.getElementById('notesEmptyState');
+        // Clear previous notes but keep empty state
+        Array.from(feed.children).forEach(el => {
+            if (!el.classList.contains('notes-feed-empty')) el.remove();
+        });
 
         try {
-            const response = await fetch(`/api/feedback/${id}/comment`, {
-                method: 'PUT',
+            const response = await fetch(`/api/feedback/${feedbackId}/notes`);
+            if (!response.ok) return;
+            const notes = await response.json();
+
+            if (notes.length === 0) {
+                emptyState.style.display = 'flex';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            // Server returns DESC (newest first) — appendChild maintains that visual order
+            notes.forEach(note => {
+                feed.appendChild(this.renderNote(note));
+            });
+        } catch (e) {
+            console.error('Błąd ładowania notatek:', e);
+        }
+    },
+
+    // Renderuje jeden element notatki
+    renderNote(note) {
+        const el = document.createElement('div');
+        el.className = 'note-item';
+        const initials = (note.authorEmail || 'A').split('@')[0].substring(0, 2).toUpperCase();
+        const dateStr = note.createdAt
+            ? new Date(note.createdAt).toLocaleString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+            : '';
+        el.innerHTML = `
+            <div class="note-avatar">${Utils.escapeHtml(initials)}</div>
+            <div class="note-body">
+                <div class="note-meta">
+                    <span class="note-author">${Utils.escapeHtml(note.authorEmail || 'Admin')}</span>
+                    <span class="note-time"><i class="fas fa-clock" style="font-size:0.7rem;"></i> ${dateStr}</span>
+                </div>
+                <div class="note-content">${Utils.escapeHtml(note.content || '')}</div>
+            </div>
+        `;
+        return el;
+    },
+
+    // Dodawanie nowej notatki
+    async addNote() {
+        const id = this.state.currentId;
+        const input = document.getElementById('adminNoteInput');
+        const content = input ? input.value.trim() : '';
+
+        if (!content) {
+            Utils.showToast('Notatka nie może być pusta.', 'warning');
+            return;
+        }
+
+        const btn = document.getElementById('addNoteBtn');
+        const originalHtml = btn ? btn.innerHTML : '';
+        if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Dodawanie...'; btn.disabled = true; }
+
+        try {
+            const response = await fetch(`/api/feedback/${id}/notes`, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ comment: comment })
+                body: JSON.stringify({ content })
             });
 
-            if (response.ok) {
-                 // Aktualizuj lokalny stan
-                const item = this.state.feedback.find(f => f.id === id);
-                item.adminComment = comment;
-                
-                // Show temporary success
-                btn.innerHTML = '<i class="fas fa-check"></i> Zapisano!';
-                btn.style.backgroundColor = '#10b981'; // Green
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.style.backgroundColor = '';
-                    btn.disabled = false;
-                }, 2000);
-            } else {
-                throw new Error('Server error');
-            }
+            if (!response.ok) throw new Error('Server error');
+            const note = await response.json();
+
+            // Prepend new note to feed
+            const feed = document.getElementById('adminNotesList');
+            const emptyState = document.getElementById('notesEmptyState');
+            if (emptyState) emptyState.style.display = 'none';
+            if (feed) feed.insertBefore(this.renderNote(note), feed.firstChild);
+
+            input.value = '';
+            Utils.showToast('Notatka została dodana.', 'success');
         } catch (error) {
-            console.error('Błąd zapisu komentarza:', error);
-            Utils.showToast('Nie udało się zapisać notatki.', 'error');
-            btn.innerHTML = originalText;
-            btn.disabled = false;
+            console.error('Błąd dodawania notatki:', error);
+            Utils.showToast('Nie udało się dodać notatki.', 'error');
+        } finally {
+            if (btn) { btn.innerHTML = originalHtml; btn.disabled = false; }
         }
     },
 
