@@ -52,6 +52,8 @@ class DashboardHome {
         this.scheduleData = [];
         // Aktywny okres specjalny (sesja, przerwa itp.)
         this.activeSpecialPeriod = null;
+        // Ostatnio zapamiętany dzień (do wykrywania zmiany daty o północy)
+        this.lastDateStr = new Date().toDateString();
         
         // Inicjalizacja
         this.init();
@@ -171,6 +173,22 @@ class DashboardHome {
         const now = new Date();
         timeElement.textContent = now.toLocaleTimeString('pl-PL');
         
+        // Sprawdź czy zmienił się dzień (północ)
+        const currentDateStr = now.toDateString();
+        if (currentDateStr !== this.lastDateStr) {
+            this.lastDateStr = currentDateStr;
+            this.displayCurrentDate(); // Odśwież datę i dzień tygodnia
+            this.setGreeting();       // Odśwież powitanie
+            this.loadUpcomingClasses(); // Odśwież harmonogram na nowy dzień
+            
+            // Jeśli to panel admina, odśwież też jego specyficzne dane
+            const adminDashboard = document.querySelector('.admin-dashboard');
+            if (adminDashboard) {
+                this.loadAdminStats();
+                this.loadAdminClasses();
+            }
+        }
+
         const weekBadge = document.getElementById('currentWeekType');
         if(weekBadge) {
             const weekType = this.getWeekType(now);
@@ -206,16 +224,27 @@ class DashboardHome {
     // Wyświetlenie aktualnej daty w nagłówku
     displayCurrentDate() {
         const dateElement = document.getElementById('currentDate');
-        if (!dateElement) return;
-        
+        const dayElement = document.getElementById('dayName');
         const now = new Date();
-        const options = { 
-            day: 'numeric', 
-            month: 'long',
-            year: 'numeric'
-        };
         
-        dateElement.textContent = now.toLocaleDateString('pl-PL', options);
+        // Aktualizacja pełnej daty
+        if (dateElement) {
+            const options = { 
+                day: 'numeric', 
+                month: 'long',
+                year: 'numeric'
+            };
+            dateElement.textContent = now.toLocaleDateString('pl-PL', options);
+        }
+
+        // Aktualizacja nazwy dnia tygodnia
+        if (dayElement) {
+            const days = [
+                "Niedziela", "Poniedziałek", "Wtorek", "Środa", 
+                "Czwartek", "Piątek", "Sobota"
+            ];
+            dayElement.textContent = days[now.getDay()];
+        }
     }
     
     // Pobranie aktywnego okresu specjalnego (sesja, przerwa, święto)
@@ -930,25 +959,9 @@ class DashboardHome {
 
 // Inicjalizacja po załadowaniu DOM
 document.addEventListener('DOMContentLoaded', () => {
-
     try {
         new DashboardHome();
     } catch (e) {
         console.error('[Dashboard] Critical error in DashboardHome init:', e);
-    }
-    
-    const days = [
-        "Niedziela",
-        "Poniedziałek",
-        "Wtorek",
-        "Środa",
-        "Czwartek",
-        "Piątek",
-        "Sobota"
-    ];
-
-    const element = document.getElementById("dayName");
-    if(element){
-        element.textContent = days[new Date().getDay()];
     }
 });
