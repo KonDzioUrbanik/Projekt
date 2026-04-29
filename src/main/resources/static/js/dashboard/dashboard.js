@@ -52,8 +52,9 @@ class DashboardHome {
         this.scheduleData = [];
         // Aktywny okres specjalny (sesja, przerwa itp.)
         this.activeSpecialPeriod = null;
-        // Ostatnio zapamiętany dzień (do wykrywania zmiany daty o północy)
+        // Ostatnio zapamiętany dzień i minuta (do wykrywania zmiany daty i czasu)
         this.lastDateStr = new Date().toDateString();
+        this.lastMinute = new Date().getMinutes();
         
         // Inicjalizacja
         this.init();
@@ -179,12 +180,25 @@ class DashboardHome {
             this.lastDateStr = currentDateStr;
             this.displayCurrentDate(); // Odśwież datę i dzień tygodnia
             this.setGreeting();       // Odśwież powitanie
-            this.loadUpcomingClasses(); // Odśwież harmonogram na nowy dzień
+            this.loadUpcomingClasses(); // Odśwież harmonogram na nowy dzień (pobiera nowe dane)
             
             // Jeśli to panel admina, odśwież też jego specyficzne dane
             const adminDashboard = document.querySelector('.admin-dashboard');
             if (adminDashboard) {
                 this.loadAdminStats();
+                this.loadAdminClasses();
+            }
+        }
+
+        // Odświeżaj sekcję "Najbliższe zajęcia" co minutę (aby liczniki "Zaczyna się za..." były aktualne)
+        const currentMinute = now.getMinutes();
+        if (currentMinute !== this.lastMinute) {
+            this.lastMinute = currentMinute;
+            this.displayUpcomingClasses(); // Przelicz statusy (current/upcoming) dla studenta
+            
+            // Dla admina również odświeżamy listę dzisiejszych zajęć
+            const adminDashboard = document.querySelector('.admin-dashboard');
+            if (adminDashboard) {
                 this.loadAdminClasses();
             }
         }
@@ -439,41 +453,52 @@ class DashboardHome {
     }
     
     // Filtrowanie zajęć dla danego dnia
-    getClassesForDay(dayName, date) {
+    getClassesForDay(dayName, date, data = this.scheduleData) {
         const dateStr = date.getFullYear() + '-' + 
                        String(date.getMonth() + 1).padStart(2, '0') + '-' + 
                        String(date.getDate()).padStart(2, '0');
 
-        return this.scheduleData
-            .map(item => {
-                // Sprawdź czy jest specyficzne wystąpienie dla tej daty
-                if (item.occurrences && item.occurrences.length > 0) {
-                    const occ = item.occurrences.find(o => o.startDateTime && o.startDateTime.startsWith(dateStr));
-                    if (occ) {
-                        return {
+        const result = [];
+        
+        if (!Array.isArray(data)) return result;
+
+        data.forEach(item => {
+            let matchedByOcc = false;
+            
+            // 1. Sprawdź wszystkie wystąpienia (occurrences) dla tej konkretnej daty
+            if (item.occurrences && item.occurrences.length > 0) {
+                // Szukamy wszystkich wystąpień z dzisiejszą datą (używamy filter zamiast find)
+                const dayOccs = item.occurrences.filter(o => o.startDateTime && o.startDateTime.startsWith(dateStr));
+                
+                if (dayOccs.length > 0) {
+                    dayOccs.forEach(occ => {
+                        result.push({
                             ...item,
                             startTime: Utils.extractTimeFromDateTime(occ.startDateTime),
                             endTime: Utils.extractTimeFromDateTime(occ.endDateTime),
                             room: occ.room || item.room,
                             buildingCode: occ.buildingCode || item.buildingCode,
                             _matchedByOcc: true
-                        };
-                    }
+                        });
+                    });
+                    matchedByOcc = true;
                 }
-                return item;
-            })
-            .filter(c => {
-                // Jeśli dopasowano przez wystąpienie, to akceptujemy bez dalszych sprawdzeń
-                if (c._matchedByOcc) return true;
-                
-                // W przeciwnym razie sprawdzamy standardowe reguły (dzień + tydzień A/B/Custom)
-                const matchesDay = c.dayOfWeek === dayName;
-                const matchesWeek = Utils.matchesScheduleRecurrence(c, date);
-                return matchesDay && matchesWeek;
-            })
-            .sort((a, b) => {
-                return this.timeToMinutes(a.startTime) - this.timeToMinutes(b.startTime);
-            });
+            }
+            
+            // 2. Jeśli nie dopasowano przez wystąpienie, sprawdź regułę bazową (dzień tygodnia + tydzień A/B/Custom)
+            if (!matchedByOcc) {
+                const matchesDay = item.dayOfWeek === dayName;
+                const matchesWeek = Utils.matchesScheduleRecurrence(item, date);
+                if (matchesDay && matchesWeek) {
+                    result.push(item);
+                }
+            }
+        });
+
+        // 3. Sortowanie po czasie rozpoczęcia
+        return result.sort((a, b) => {
+            return this.timeToMinutes(a.startTime) - this.timeToMinutes(b.startTime);
+        });
     }
     
     // Konwersja czasu do minut dla sortowania - używa Utils
@@ -863,14 +888,9 @@ class DashboardHome {
             
             const allSchedule = await response.json();
             
-            // Filtrowanie zajęć na dzisiaj
+            // Filtrowanie zajęć na dzisiaj z uwzględnieniem wyjątków (occurrences)
             const today = this.getDayOfWeek(new Date());
-            const todayClasses = allSchedule.filter(c => c.dayOfWeek === today && !c.archived);
-            
-            // Sortowanie po czasie rozpoczęcia
-            todayClasses.sort((a, b) => {
-                return this.timeToMinutes(a.startTime) - this.timeToMinutes(b.startTime);
-            });
+            const todayClasses = this.getClassesForDay(today, new Date(), allSchedule);
             
             if (todayClasses.length === 0) {
                 classList.innerHTML = `
