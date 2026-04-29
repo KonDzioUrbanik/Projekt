@@ -45,29 +45,79 @@
         }
     });
 
-    // 2. Monitorowanie manipulacji DOM (Attributes Tampering)
+    // Monitorowanie manipulacji DOM (Attributes Tampering)
+    const originalDisabledDescriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'disabled')
+        || Object.getOwnPropertyDescriptor(Element.prototype, 'disabled');
+
+    if (originalDisabledDescriptor && originalDisabledDescriptor.set) {
+        Object.defineProperty(HTMLElement.prototype, 'disabled', {
+            get: originalDisabledDescriptor.get,
+            set: function(value) {
+                if (value === true) {
+                    _appDisabled.add(this); // aplikacja blokuje element - zapamiętaj
+                } else {
+                    _appDisabled.delete(this); // aplikacja odblokowuje - usuń ze zbioru
+                }
+                originalDisabledDescriptor.set.call(this, value);
+            },
+            configurable: true
+        });
+    }
+
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
+            // 2a. Monitorowanie atrybutów (Attributes Tampering)
             if (mutation.type === 'attributes') {
                 const target = mutation.target;
 
-                // WYJĄTEK: Nie raportujemy zmian dla elementów ignorowanych lub przycisków w trakcie ładowania
-                if (target.dataset.securityIgnore === 'true' || 
-                    target.closest('.journey-overlay') || // Ignoruj zmiany w samym modalu analityki
-                    (target.tagName === 'BUTTON' && (target.querySelector('.fa-spinner') || target.querySelector('.fa-sync-alt')))) {
+                if (target.dataset.securityIgnore === 'true' || target.closest('.journey-overlay')) {
                     return;
                 }
 
-                // Ktoś odblokował przycisk lub pole zablokowane przez system
+                // Odblokowanie elementu (disabled)
                 if (mutation.attributeName === 'disabled' && !target.disabled) {
-                    // Sprawdzamy czy to nie jest zwykłe odblokowanie po zakończeniu akcji (np. fetch)
-                    // Prawdziwy haker odblokowuje pole, które zwykle nie ma ikony ładowania.
+                    if (_appDisabled.has(target)) return;
+                    if (target.tagName === 'BUTTON' && (target.querySelector('.fa-spinner') || target.querySelector('.fa-sync-alt'))) return;
                     sendThreatLog('DOM_TAMPERING', `Złośliwie odblokowano element: ${target.tagName}#${target.id || 'none'}`);
                 }
-                // Próba zmiany typu pola (np. z hidden na text lub z password na text)
-                if (mutation.attributeName === 'type' && mutation.oldValue) {
-                    sendThreatLog('DOM_TAMPERING', `Zmiana typu elementu: ${target.tagName}#${target.id || 'none'} z ${mutation.oldValue} na ${target.type}`);
+
+                // Usunięcie blokady edycji (readonly)
+                if (mutation.attributeName === 'readonly' && !target.readOnly && mutation.oldValue !== null) {
+                    sendThreatLog('DOM_TAMPERING', `Usunięto blokadę edycji (readonly): ${target.tagName}#${target.id || 'none'}`);
                 }
+
+                // Próba zmiany typu pola (np. password -> text)
+                if (mutation.attributeName === 'type' && mutation.oldValue && mutation.oldValue !== target.type) {
+                    const sensitiveOldTypes = ['password', 'hidden'];
+                    if (sensitiveOldTypes.includes(mutation.oldValue)) {
+                        sendThreatLog('DOM_TAMPERING', `Zmiana typu elementu: ${target.tagName}#${target.id || 'none'} z ${mutation.oldValue} na ${target.type}`);
+                    }
+                }
+
+                // Próba zmiany akcji formularza (Phishing/Data Exfiltration)
+                if (mutation.attributeName === 'action' && target.tagName === 'FORM' && mutation.oldValue) {
+                    sendThreatLog('FORM_HIJACKING', `Zmiana celu formularza: ${target.id || 'none'} z ${mutation.oldValue} na ${target.action}`);
+                }
+
+                // Próba zmiany źródła skryptu lub iframe
+                if (mutation.attributeName === 'src' && (target.tagName === 'SCRIPT' || target.tagName === 'IFRAME') && mutation.oldValue) {
+                    sendThreatLog('CODE_INJECTION', `Zmiana źródła ${target.tagName}: z ${mutation.oldValue} na ${target.src}`);
+                }
+            }
+
+            // 2b. Monitorowanie dodawania nowych elementów (Child List Injection)
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === 1) { // Element
+                        if (node.tagName === 'SCRIPT' || node.tagName === 'IFRAME') {
+                            // Ignoruj jeśli to nasze własne skrypty (można rozszerzyć o listę zaufanych domen)
+                            const src = node.src || '';
+                            if (src && !src.includes(window.location.hostname) && !src.startsWith('/') && !src.startsWith('data:')) {
+                                sendThreatLog('CODE_INJECTION', `Wstrzyknięto podejrzany element ${node.tagName}: src=${src}`);
+                            }
+                        }
+                    }
+                });
             }
         });
     });
@@ -76,8 +126,9 @@
     if (document.body) {
         observer.observe(document.body, { 
             attributes: true, 
+            childList: true, // Wykrywanie nowych elementów
             subtree: true, 
-            attributeFilter: ['disabled', 'readonly', 'type'],
+            attributeFilter: ['disabled', 'readonly', 'type', 'action', 'src'],
             attributeOldValue: true
         });
     }
