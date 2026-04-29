@@ -241,6 +241,7 @@
             this.els.list.querySelectorAll('[data-survey-id]').forEach((item) => {
                 item.addEventListener('click', async () => {
                     this.state.selectedSurveyId = Number(item.dataset.surveyId);
+                    document.querySelector('.survey-shell')?.classList.add('survey-shell--detail-active');
                     this.renderList();
                     await this.renderSelectedDetail();
                 });
@@ -344,9 +345,13 @@
                 : '';
 
             this.els.detail.classList.remove('survey-detail-empty');
+            
+            const backBtn = '<button class="survey-btn ghost survey-mobile-back-btn" id="surveyMobileBackBtn" type="button" style="margin-bottom: 0.75rem;"><i class="fas fa-arrow-left"></i> Wróć do listy</button>';
+            
             this.els.detail.innerHTML = `
                 <div class="survey-detail">
                     <header class="survey-detail-head">
+                        ${backBtn}
                         <h2 class="survey-detail-title">${Utils.escapeHtml(survey.title || '')}</h2>
                         <div class="survey-detail-meta">
                             <span class="survey-badge author"><i class="fas fa-user"></i> ${Utils.escapeHtml(authorName)}</span>
@@ -382,6 +387,10 @@
 
             this.els.detail.querySelector('#surveyExtendBtn')?.addEventListener('click', () => {
                 this.requestExtendSurvey(survey.id, survey.endsAt);
+            });
+
+            this.els.detail.querySelector('#surveyMobileBackBtn')?.addEventListener('click', () => {
+                document.querySelector('.survey-shell')?.classList.remove('survey-shell--detail-active');
             });
         },
 

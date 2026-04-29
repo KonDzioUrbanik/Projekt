@@ -477,6 +477,23 @@
         grid-template-columns: 1fr;
     }
 
+    .survey-shell .survey-right {
+        display: none;
+    }
+
+    .survey-shell--detail-active .survey-left {
+        display: none;
+    }
+
+    .survey-shell--detail-active .survey-right {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .survey-mobile-back-btn {
+        display: inline-flex;
+    }
+
     .survey-list {
         max-height: none;
     }

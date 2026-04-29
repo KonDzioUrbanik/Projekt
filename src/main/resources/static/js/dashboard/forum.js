@@ -32,9 +32,8 @@
             list: document.getElementById('forumThreadList'),
             detail: document.getElementById('forumThreadDetail'),
             createPreview: document.getElementById('forumCreatePreview'),
-            browseViewBtn: document.getElementById('forumBrowseViewBtn'),
-            createViewBtn: document.getElementById('forumCreateViewBtn'),
             browseSection: document.getElementById('forumBrowseSection'),
+            detailSection: document.getElementById('forumDetailSection'),
             createSection: document.getElementById('forumCreateSection'),
             createCancelBtn: document.getElementById('forumCreateCancelBtn'),
             deleteModal: document.getElementById('forumDeleteModal'),
@@ -55,10 +54,12 @@
             const threadId = urlParams.get('threadId');
             if (threadId) {
                 this.state.selectedThreadId = Number(threadId);
+                this.setView('detail');
+            } else {
+                this.setView('browse');
             }
 
             this.attachListeners();
-            this.setView('browse');
             this.bootstrap();
         },
 
@@ -93,9 +94,14 @@
                 this.renderSelectedThread();
             });
 
-            this.els.browseViewBtn?.addEventListener('click', () => this.setView('browse'));
-            this.els.createViewBtn?.addEventListener('click', () => this.setView('create'));
-            this.els.createCancelBtn?.addEventListener('click', () => this.setView('browse'));
+            this.els.createViewBtn = document.getElementById('forumCreateViewBtn');
+            this.els.createViewBtn?.addEventListener('click', () => {
+                this.state.selectedThreadId = null;
+                this.setView('create');
+            });
+            this.els.createCancelBtn?.addEventListener('click', () => {
+                this.setView('browse');
+            });
 
             this.els.deleteCancelBtn?.addEventListener('click', () => this.closeDeleteModal());
             this.els.deleteConfirmBtn?.addEventListener('click', () => this.confirmDelete());
@@ -199,14 +205,12 @@
 
         setView(view) {
             this.state.activeView = view;
-            const isBrowse = view === 'browse';
 
-            this.els.browseSection?.classList.toggle('forum-hidden', !isBrowse);
-            this.els.createSection?.classList.toggle('forum-hidden', isBrowse);
-            this.els.browseViewBtn?.classList.toggle('active', isBrowse);
-            this.els.createViewBtn?.classList.toggle('active', !isBrowse);
+            this.els.browseSection?.classList.toggle('forum-hidden', view !== 'browse');
+            this.els.detailSection?.classList.toggle('forum-hidden', view !== 'detail');
+            this.els.createSection?.classList.toggle('forum-hidden', view !== 'create');
 
-            if (!isBrowse) {
+            if (view === 'create') {
                 requestAnimationFrame(() => this.els.title?.focus());
             }
 
@@ -300,9 +304,8 @@
 
         async openThread(threadId) {
             this.state.selectedThreadId = threadId;
-            this.renderThreadList();
+            this.setView('detail');
             await this.renderSelectedThread();
-            this.syncLiveUpdatesForSelection();
         },
 
         async renderSelectedThread() {
@@ -666,21 +669,6 @@
             }
         },
 
-        async toggleModeration(threadId, patch) {
-            try {
-                const response = await fetch(`/api/forum/threads/${threadId}/moderation`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(patch)
-                });
-                if (!response.ok) throw new Error(await this.readError(response));
-
-                this.showSuccess('Status wątku zaktualizowany.');
-                await this.loadThreads();
-            } catch (err) {
-                this.showError(err.message || 'Nie udało się zmoderować wątku.');
-            }
-        },
 
         renderThreadList() {
             const visibleThreads = this.getFilteredThreads();
@@ -701,10 +689,10 @@
                 const active = thread.id === this.state.selectedThreadId ? 'active' : '';
                 const snippet = this.toPlainText(thread.content).slice(0, 95);
                 const badges = [
-                    thread.pinned ? '<span class="forum-badge pinned">Przypięty</span>' : '',
-                    thread.locked ? '<span class="forum-badge locked">Zablokowany</span>' : '',
-                    thread.archived ? '<span class="forum-badge archived">Archiwum</span>' : '',
-                    this.isEdited(thread.createdAt, thread.updatedAt) ? '<span class="forum-badge edited">Edytowano</span>' : ''
+                    thread.pinned ? '<span class="forum-badge pinned" title="Przypięty"><i class="fas fa-thumbtack"></i></span>' : '',
+                    thread.locked ? '<span class="forum-badge locked" title="Zablokowany"><i class="fas fa-lock"></i></span>' : '',
+                    thread.archived ? '<span class="forum-badge archived" title="Archiwum"><i class="fas fa-archive"></i></span>' : '',
+                    this.isEdited(thread.createdAt, thread.updatedAt) ? '<span class="forum-badge edited" title="Edytowano"><i class="fas fa-pen"></i></span>' : ''
                 ].join('');
 
                 return `
@@ -783,26 +771,18 @@
             const createdAt = this.formatDate(thread.createdAt);
             const editedAt = this.isEdited(thread.createdAt, thread.updatedAt) ? this.formatDate(thread.updatedAt) : null;
             const statusBadges = [
-                thread.pinned ? '<span class="forum-badge pinned">Przypięty</span>' : '',
-                thread.locked ? '<span class="forum-badge locked">Zablokowany</span>' : '',
-                thread.archived ? '<span class="forum-badge archived">Archiwum</span>' : ''
+                thread.pinned ? '<span class="forum-badge pinned" title="Przypięty"><i class="fas fa-thumbtack"></i></span>' : '',
+                thread.locked ? '<span class="forum-badge locked" title="Zablokowany"><i class="fas fa-lock"></i></span>' : '',
+                thread.archived ? '<span class="forum-badge archived" title="Archiwum"><i class="fas fa-archive"></i></span>' : ''
             ].join('');
 
-            const moderationButtons = thread.canModerate
-                ? `
-                    <button class="forum-mini-btn" data-action="toggle-lock" data-next="${!thread.locked}">${thread.locked ? 'Odblokuj' : 'Zablokuj'}</button>
-                    <button class="forum-mini-btn" data-action="toggle-pin" data-next="${!thread.pinned}">${thread.pinned ? 'Odepnij' : 'Przypnij'}</button>
-                    <button class="forum-mini-btn" data-action="toggle-archive" data-next="${!thread.archived}">${thread.archived ? 'Przywróć' : 'Archiwizuj'}</button>
-                `
-                : '';
-
-            const deleteBtn = thread.canDelete
-                ? '<button class="forum-mini-btn danger" data-action="delete-thread">Usuń</button>'
-                : '';
-
-            const editBtn = thread.canEdit
-                ? '<button class="forum-mini-btn" data-action="edit-thread">Edytuj</button>'
-                : '';
+            const hasThreadActions = thread.canDelete || thread.canEdit;
+            const threadPostControl = hasThreadActions ? `
+                <div class="forum-post-control" style="margin-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                    ${thread.canEdit ? `<button class="forum-btn ghost" data-action="edit-thread"><i class="fas fa-pen"></i> Edytuj</button>` : ''}
+                    ${thread.canDelete ? `<button class="forum-btn danger ghost" data-action="delete-thread"><i class="fas fa-trash-alt"></i> Usuń</button>` : ''}
+                </div>
+            ` : '';
 
             const comments = (thread.comments || []).map((comment) => this.commentHtml(thread.id, comment)).join('');
             const showLikeButton = !thread.canModerate;
@@ -819,6 +799,7 @@
                 `
                 : '<div class="forum-empty">Komentowanie niedostępne dla zablokowanego/archiwalnego wątku.</div>';
 
+            const backBtn = '<button class="forum-btn ghost" id="forumMobileBackBtn" type="button" style="margin-bottom: 1rem;"><i class="fas fa-arrow-left"></i> Wróć do listy</button>';
             const isEditingThread = this.state.editingThreadId === thread.id;
             const threadBody = isEditingThread
                 ? `
@@ -843,6 +824,7 @@
             this.els.detail.innerHTML = `
                 <div class="forum-detail">
                     <header class="forum-detail-head">
+                        ${backBtn}
                         <h2 class="forum-detail-title">${Utils.escapeHtml(thread.title || '')}</h2>
                         <div class="forum-detail-meta">
                             ${this.authorChipHtml({
@@ -852,12 +834,13 @@
                                 role: thread.authorRole,
                                 compact: false
                             })}
-                            <span>${Utils.escapeHtml(createdAt)}${editedAt ? ` <span class="forum-badge edited">Edytowano: ${Utils.escapeHtml(editedAt)}</span>` : ''} | ${Utils.escapeHtml(thread.groupName || '-')} ${statusBadges}</span>
+                            <span>${Utils.escapeHtml(createdAt)}${editedAt ? ` <span class="forum-badge edited" title="Edytowano: ${Utils.escapeHtml(editedAt)}"><i class="fas fa-pen"></i></span>` : ''} | ${Utils.escapeHtml(thread.groupName || '-')} ${statusBadges}</span>
                         </div>
                     </header>
 
                     <div class="forum-detail-body">
                         ${threadBody}
+                        ${threadPostControl}
                     </div>
 
                     ${thread.attachments && thread.attachments.length > 0 ? `
@@ -893,9 +876,6 @@
                             : '<span></span>'}
 
                         <div class="forum-mini-actions">
-                            ${moderationButtons}
-                            ${editBtn}
-                            ${deleteBtn}
                         </div>
                     </div>
 
@@ -940,15 +920,6 @@
             this.els.detail.querySelector('#forumCancelEditThreadBtn')?.addEventListener('click', () => {
                 this.cancelThreadEdit();
             });
-            this.els.detail.querySelector('[data-action="toggle-lock"]')?.addEventListener('click', (e) => {
-                this.toggleModeration(thread.id, { locked: e.currentTarget.dataset.next === 'true' });
-            });
-            this.els.detail.querySelector('[data-action="toggle-pin"]')?.addEventListener('click', (e) => {
-                this.toggleModeration(thread.id, { pinned: e.currentTarget.dataset.next === 'true' });
-            });
-            this.els.detail.querySelector('[data-action="toggle-archive"]')?.addEventListener('click', (e) => {
-                this.toggleModeration(thread.id, { archived: e.currentTarget.dataset.next === 'true' });
-            });
 
             this.els.detail.querySelectorAll('[data-delete-comment-id]').forEach((btn) => {
                 btn.addEventListener('click', () => this.requestDeleteComment(thread.id, Number(btn.dataset.deleteCommentId)));
@@ -990,6 +961,11 @@
                 });
             });
 
+            this.els.detail.querySelector('#forumMobileBackBtn')?.addEventListener('click', () => {
+                this.state.selectedThreadId = null;
+                this.setView('browse');
+            });
+
             this.bindAvatarFallbacks(this.els.detail);
         },
 
@@ -998,10 +974,10 @@
             const editedAt = this.isEdited(comment.createdAt, comment.updatedAt) ? this.formatDate(comment.updatedAt) : null;
             const isEditing = this.state.editingCommentId === comment.id;
             const deleteBtn = comment.canDelete
-                ? `<button class="forum-mini-btn danger" data-delete-comment-id="${comment.id}">Usuń</button>`
+                ? `<button class="forum-mini-btn danger" data-delete-comment-id="${comment.id}"><i class="fas fa-trash-alt"></i> Usuń</button>`
                 : '';
             const editBtn = comment.canEdit
-                ? `<button class="forum-mini-btn" data-edit-comment-id="${comment.id}">Edytuj</button>`
+                ? `<button class="forum-mini-btn" data-edit-comment-id="${comment.id}"><i class="fas fa-pen"></i> Edytuj</button>`
                 : '';
 
             const contentBlock = isEditing
@@ -1042,7 +1018,7 @@
                                       role: comment.authorRole,
                                       compact: true
                                   })}
-                                  <span>${Utils.escapeHtml(createdAt)}${editedAt ? ` <span class="forum-badge edited">Edytowano: ${Utils.escapeHtml(editedAt)}</span>` : ''}</span>
+                                  <span>${Utils.escapeHtml(createdAt)}${editedAt ? ` <span class="forum-badge edited" title="Edytowano: ${Utils.escapeHtml(editedAt)}"><i class="fas fa-pen"></i></span>` : ''}</span>
                               </span>
                               <span class="forum-mini-actions">${editBtn}${deleteBtn}</span>
                           </div>
