@@ -10,65 +10,47 @@
     </th:block>
 </head>
 <body>
-<div layout:fragment="content">
-    <div class="admin-header">
-        <div>
-            <h1>Kontrola postów</h1>
-            <p>Moderacja forum i zarządzanie wątkami.</p>
-        </div>
-    </div>
-
-
-    <div class="forum-view-switcher">
-        <button id="forumBrowseViewBtn" class="forum-view-btn active" type="button">
-            <i class="fas fa-stream"></i> Przeglądaj wątki
-        </button>
-        <button id="forumCreateViewBtn" class="forum-view-btn" type="button">
-            <i class="fas fa-plus-circle"></i> Dodaj nowy wątek
-        </button>
-    </div>
+<div layout:fragment="content" class="forum-container">
 
     <section id="forumBrowseSection" class="forum-view-section">
-        <div class="forum-shell">
-            <aside class="forum-left">
-                <section class="forum-card">
-                    <header class="forum-card-head forum-card-head-inline">
-                        <h3><i class="fas fa-stream"></i> Wątki</h3>
-                        <label class="forum-checkbox-label">
-                            <input type="checkbox" id="forumIncludeArchived" checked>
-                            Archiwum
-                        </label>
-                    </header>
-                    <div class="forum-list-tools">
-                        <div class="forum-search-wrapper">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="forumSearchInput" placeholder="Szukaj po tytule lub autorze..." autocomplete="off">
-                        </div>
-                        <div class="forum-list-tools-row">
-                            <select id="forumSearchScope" class="forum-search-scope" aria-label="Zakres wyszukiwania">
-                                <option value="all">Tytuł i autor</option>
-                                <option value="title">Tylko tytuł</option>
-                                <option value="author">Tylko autor</option>
-                            </select>
-                            <span class="forum-results-count" id="forumResultsCount">0 wyników</span>
-                        </div>
-                    </div>
-                    <div id="forumThreadList" class="forum-thread-list"></div>
-                </section>
-            </aside>
+        <header class="forum-page-header">
+            <div class="forum-page-title">
+                <h2><i class="fas fa-shield-alt"></i> Panel Kontroli Wątków</h2>
+            </div>
+            <button id="forumCreateViewBtn" class="forum-btn primary" type="button">
+                <i class="fas fa-plus"></i> Nowy wątek
+            </button>
+        </header>
 
-            <section class="forum-right">
-                <article id="forumThreadDetail" class="forum-card forum-detail-empty">
-                    <div class="forum-empty">Wybierz wątek z listy, aby zobaczyć szczegóły i komentarze.</div>
-                </article>
-            </section>
+        <div class="forum-list-tools">
+            <div class="forum-search-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="forumSearchInput" placeholder="Szukaj po tytule lub autorze..." autocomplete="off">
+            </div>
+            <div class="forum-list-tools-row">
+                <select id="forumSearchScope" class="forum-search-scope" aria-label="Zakres wyszukiwania">
+                    <option value="all">Tytuł i autor</option>
+                    <option value="title">Tylko tytuł</option>
+                    <option value="author">Tylko autor</option>
+                </select>
+                <label class="forum-checkbox-label">
+                    <input type="checkbox" id="forumIncludeArchived">
+                    Archiwum
+                </label>
+                <span class="forum-results-count" id="forumResultsCount">0 wyników</span>
+            </div>
         </div>
+        <div id="forumThreadList" class="forum-thread-list"></div>
+    </section>
+
+    <section id="forumDetailSection" class="forum-view-section forum-hidden">
+        <article id="forumThreadDetail" class="forum-detail-wrapper"></article>
     </section>
 
     <section id="forumCreateSection" class="forum-view-section forum-hidden">
         <section class="forum-card forum-create-card">
             <header class="forum-card-head">
-                <h3><i class="fas fa-plus"></i> Dodaj wątek</h3>
+                <h3><i class="fas fa-plus"></i> Dodaj nowy wątek</h3>
             </header>
             <div class="forum-card-body">
                 <form id="forumThreadForm" data-mode="admin">
@@ -93,20 +75,33 @@
                     </div>
 
                     <div class="forum-form-group">
-                        <label for="forumTargetGroup">Grupa docelowa</label>
-                        <select id="forumTargetGroup" class="forum-input">
-                            <option value="">Moja grupa</option>
-                        </select>
-                    </div>
-
-                    <div class="forum-form-group">
                         <label>Podgląd</label>
                         <div id="forumCreatePreview" class="forum-markdown-preview"></div>
                     </div>
 
+                    <div class="forum-form-group">
+                        <label for="forumTargetGroup">Grupa docelowa</label>
+                        <select id="forumTargetGroup" class="forum-input">
+                            <option value="">Wszystkie (Ogólne)</option>
+                        </select>
+                    </div>
+
+                    <div class="forum-form-group">
+                        <label for="forumThreadFiles">
+                            <i class="fas fa-paperclip"></i> Załączniki (max 5, po 5 MB)
+                        </label>
+                        <input type="file"
+                               id="forumThreadFiles"
+                               class="forum-input"
+                               multiple
+                               accept=".jpg,.jpeg,.png,.webp,.pdf,.docx">
+                        <div id="forumFileList" class="forum-file-list"></div>
+                        <div class="forum-hint">Dozwolone: JPG, PNG, WEBP, PDF, DOCX</div>
+                    </div>
+
                     <div class="forum-actions">
                         <button class="forum-btn ghost" id="forumCreateCancelBtn" type="button">Anuluj</button>
-                        <button class="forum-btn primary" type="submit">Dodaj</button>
+                        <button class="forum-btn primary" type="submit">Opublikuj</button>
                     </div>
                 </form>
             </div>
@@ -131,7 +126,7 @@
 </div>
 
 <th:block layout:fragment="page-scripts">
-    <script th:src="@{/js/dashboard/forum.js}" defer></script>
+    <script th:src="@{/js/dashboard/post-control.js}" defer></script>
 </th:block>
 </body>
 </html>

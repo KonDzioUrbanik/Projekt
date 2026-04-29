@@ -669,6 +669,21 @@
             }
         },
 
+        async toggleModeration(threadId, patch) {
+            try {
+                const response = await fetch(`/api/forum/threads/${threadId}/moderation`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(patch)
+                });
+                if (!response.ok) throw new Error(await this.readError(response));
+
+                this.showSuccess('Status wątku zaktualizowany.');
+                await this.loadThreads();
+            } catch (err) {
+                this.showError(err.message || 'Nie udało się zmoderować wątku.');
+            }
+        },
 
         renderThreadList() {
             const visibleThreads = this.getFilteredThreads();
@@ -776,6 +791,30 @@
                 thread.archived ? '<span class="forum-badge archived" title="Archiwum"><i class="fas fa-archive"></i></span>' : ''
             ].join('');
 
+            const moderationPanelHtml = thread.canModerate
+                ? `
+                    <div class="forum-moderation-panel">
+                        <div class="forum-moderation-panel-title">
+                            <i class="fas fa-shield-alt"></i> Panel Moderatora
+                        </div>
+                        <div class="forum-moderation-toggles">
+                            <label class="forum-toggle-wrapper">
+                                <span>Przypnij</span>
+                                <div class="forum-toggle-switch ${thread.pinned ? 'active' : ''}" data-action="toggle-pin" data-next="${!thread.pinned}"></div>
+                            </label>
+                            <label class="forum-toggle-wrapper">
+                                <span>Zablokuj</span>
+                                <div class="forum-toggle-switch ${thread.locked ? 'active' : ''}" data-action="toggle-lock" data-next="${!thread.locked}"></div>
+                            </label>
+                            <label class="forum-toggle-wrapper">
+                                <span>Archiwizuj</span>
+                                <div class="forum-toggle-switch ${thread.archived ? 'active' : ''}" data-action="toggle-archive" data-next="${!thread.archived}"></div>
+                            </label>
+                        </div>
+                    </div>
+                `
+                : '';
+
             const hasThreadActions = thread.canDelete || thread.canEdit;
             const threadPostControl = hasThreadActions ? `
                 <div class="forum-post-control" style="margin-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 1rem;">
@@ -837,6 +876,8 @@
                             <span>${Utils.escapeHtml(createdAt)}${editedAt ? ` <span class="forum-badge edited" title="Edytowano: ${Utils.escapeHtml(editedAt)}"><i class="fas fa-pen"></i></span>` : ''} | ${Utils.escapeHtml(thread.groupName || '-')} ${statusBadges}</span>
                         </div>
                     </header>
+
+                    ${moderationPanelHtml}
 
                     <div class="forum-detail-body">
                         ${threadBody}
@@ -919,6 +960,15 @@
             });
             this.els.detail.querySelector('#forumCancelEditThreadBtn')?.addEventListener('click', () => {
                 this.cancelThreadEdit();
+            });
+            this.els.detail.querySelector('[data-action="toggle-lock"]')?.addEventListener('click', (e) => {
+                this.toggleModeration(thread.id, { locked: e.currentTarget.dataset.next === 'true' });
+            });
+            this.els.detail.querySelector('[data-action="toggle-pin"]')?.addEventListener('click', (e) => {
+                this.toggleModeration(thread.id, { pinned: e.currentTarget.dataset.next === 'true' });
+            });
+            this.els.detail.querySelector('[data-action="toggle-archive"]')?.addEventListener('click', (e) => {
+                this.toggleModeration(thread.id, { archived: e.currentTarget.dataset.next === 'true' });
             });
 
             this.els.detail.querySelectorAll('[data-delete-comment-id]').forEach((btn) => {
