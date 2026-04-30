@@ -265,11 +265,13 @@ const Utils = {
                            String(date.getMonth() + 1).padStart(2, '0') + '-' + 
                            String(date.getDate()).padStart(2, '0');
             
-            return item.occurrences.some(occ => {
+            const hasMatchingOcc = item.occurrences.some(occ => {
                 if (!occ.startDateTime) return false;
                 const occDateStr = occ.startDateTime.split('T')[0];
                 return occDateStr === dateStr;
             });
+
+            if (hasMatchingOcc) return true;
         }
 
         const weekType = this.getWeekType(date);
