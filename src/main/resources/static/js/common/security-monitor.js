@@ -8,6 +8,7 @@
 
     // Debouncing, aby nie zalewać bazy wieloma raportami tego samego typu w krótkim czasie
     const _sentThreats = new Set();
+    const _appDisabled = new WeakSet();
     const sendThreatLog = (type, details) => {
         const key = `${type}:${details}`;
         if (_sentThreats.has(key)) return;
@@ -46,23 +47,53 @@
     });
 
     // Monitorowanie manipulacji DOM (Attributes Tampering)
-    const originalDisabledDescriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'disabled')
-        || Object.getOwnPropertyDescriptor(Element.prototype, 'disabled');
+    const ignoreModifications = function(element) {
+        if (element && element.dataset) {
+            element.dataset.securityIgnore = 'true';
+            setTimeout(() => {
+                if (element && element.dataset) delete element.dataset.securityIgnore;
+            }, 100);
+        }
+    };
 
-    if (originalDisabledDescriptor && originalDisabledDescriptor.set) {
-        Object.defineProperty(HTMLElement.prototype, 'disabled', {
-            get: originalDisabledDescriptor.get,
-            set: function(value) {
-                if (value === true) {
-                    _appDisabled.add(this); // aplikacja blokuje element - zapamiętaj
-                } else {
-                    _appDisabled.delete(this); // aplikacja odblokowuje - usuń ze zbioru
-                }
-                originalDisabledDescriptor.set.call(this, value);
-            },
-            configurable: true
-        });
-    }
+    const originalSetAttribute = Element.prototype.setAttribute;
+    Element.prototype.setAttribute = function(name, value) {
+        if (['disabled', 'readonly', 'type', 'action', 'src'].includes(name.toLowerCase())) {
+            ignoreModifications(this);
+        }
+        return originalSetAttribute.call(this, name, value);
+    };
+
+    const originalRemoveAttribute = Element.prototype.removeAttribute;
+    Element.prototype.removeAttribute = function(name) {
+        if (['disabled', 'readonly', 'type', 'action', 'src'].includes(name.toLowerCase())) {
+            ignoreModifications(this);
+        }
+        return originalRemoveAttribute.call(this, name);
+    };
+
+    const patchDisabledProperty = (proto) => {
+        const descriptor = Object.getOwnPropertyDescriptor(proto, 'disabled');
+        if (descriptor && descriptor.set && !proto._disabledPatched) {
+            const originalSet = descriptor.set;
+            Object.defineProperty(proto, 'disabled', {
+                get: descriptor.get,
+                set: function(value) {
+                    if (value === true) {
+                        _appDisabled.add(this);
+                    } else {
+                        _appDisabled.delete(this);
+                    }
+                    ignoreModifications(this);
+                    originalSet.call(this, value);
+                },
+                configurable: true
+            });
+            proto._disabledPatched = true;
+        }
+    };
+
+    [HTMLElement.prototype, HTMLButtonElement.prototype, HTMLInputElement.prototype, HTMLSelectElement.prototype, HTMLTextAreaElement.prototype].forEach(patchDisabledProperty);
 
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
@@ -76,8 +107,8 @@
 
                 // Odblokowanie elementu (disabled)
                 if (mutation.attributeName === 'disabled' && !target.disabled) {
-                    if (_appDisabled.has(target)) return;
                     if (target.tagName === 'BUTTON' && (target.querySelector('.fa-spinner') || target.querySelector('.fa-sync-alt'))) return;
+                    
                     sendThreatLog('DOM_TAMPERING', `Złośliwie odblokowano element: ${target.tagName}#${target.id || 'none'}`);
                 }
 
@@ -112,7 +143,10 @@
                         if (node.tagName === 'SCRIPT' || node.tagName === 'IFRAME') {
                             // Ignoruj jeśli to nasze własne skrypty (można rozszerzyć o listę zaufanych domen)
                             const src = node.src || '';
-                            if (src && !src.includes(window.location.hostname) && !src.startsWith('/') && !src.startsWith('data:')) {
+                            const trustedDomains = ['cdn.jsdelivr.net', 'cdnjs.cloudflare.com', 'unpkg.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
+                            const isTrusted = trustedDomains.some(domain => src.includes(domain));
+                            
+                            if (src && !src.includes(window.location.hostname) && !src.startsWith('/') && !src.startsWith('data:') && !isTrusted) {
                                 sendThreatLog('CODE_INJECTION', `Wstrzyknięto podejrzany element ${node.tagName}: src=${src}`);
                             }
                         }

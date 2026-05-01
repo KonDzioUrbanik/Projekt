@@ -13,7 +13,8 @@ import java.util.Set;
 
 @Getter
 @Setter
-@Entity(name = "schedule_entries")
+@Entity
+@Table(name = "schedule_entries")
 public class ScheduleEntry {
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,7 +23,9 @@ public class ScheduleEntry {
 
     private String title;
 
-    /** Prowadzący – serializowani jako JSON array, np. ["Jan Kowalski","Anna Nowak"] */
+    /**
+     * Prowadzący – serializowani jako JSON array, np. ["Jan Kowalski","Anna Nowak"]
+     */
     @Column(columnDefinition = "text")
     private String teachers;
 

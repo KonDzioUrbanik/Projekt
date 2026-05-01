@@ -15,10 +15,21 @@ public interface ScheduleRepository extends JpaRepository<ScheduleEntry,Long> {
     List<ScheduleEntry> findAll();
     
     @EntityGraph(attributePaths = {"occurrences", "studentGroups"})
+    List<ScheduleEntry> findByArchivedFalse();
+    
+    @EntityGraph(attributePaths = {"occurrences", "studentGroups"})
     List<ScheduleEntry> findByStudentGroups(StudentGroup studentGroup);
+
+    @EntityGraph(attributePaths = {"occurrences", "studentGroups"})
+    List<ScheduleEntry> findByStudentGroupsInAndArchivedFalse(java.util.Collection<StudentGroup> studentGroups);
     
     long countByStudentGroups(StudentGroup studentGroup);
     
     @EntityGraph(attributePaths = {"occurrences", "studentGroups"})
     List<ScheduleEntry> findByYearPlanIgnoreCase(String yearPlan);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("UPDATE ScheduleEntry e SET e.archived = true, e.archivedAt = CURRENT_TIMESTAMP " +
+            "WHERE e.archived = false AND (:yearPlan IS NULL OR e.yearPlan = :yearPlan)")
+    int archiveActivePlans(@org.springframework.data.repository.query.Param("yearPlan") String yearPlan);
 }

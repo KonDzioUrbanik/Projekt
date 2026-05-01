@@ -257,6 +257,25 @@
                 </div>
             </div>
 
+            <!-- Delete Confirmation Modal -->
+            <div class="modal-overlay" id="deleteConfirmOverlay">
+                <div class="modal-card modal-sm modal-center-content">
+                    <div class="modal-body-centered">
+                        <div class="modal-icon-wrapper danger">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                        <h3>Uwaga</h3>
+                        <p class="text-muted" id="deleteModalText">
+                            Czy na pewno chcesz usunąć te zajęcia?
+                        </p>
+                    </div>
+                    <div class="modal-footer-centered">
+                        <button class="btn-text-gray" id="btnCancelDelete">Anuluj</button>
+                        <button class="btn-danger-block" id="btnConfirmDelete">Usuń zajęcia</button>
+                    </div>
+                </div>
+            </div>
+
             <div class="modal-overlay" id="collisionModal">
                 <div class="modal-card modal-center-content">
                     <div class="modal-body-centered">

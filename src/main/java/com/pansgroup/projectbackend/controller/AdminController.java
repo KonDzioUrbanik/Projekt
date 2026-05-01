@@ -88,4 +88,11 @@ public class AdminController {
         model.addAttribute("activePage", "schedule-management");
         return "admin/schedule-management";
     }
+
+    // Endpoint: /admin/university-schedule
+    @GetMapping("/university-schedule")
+    public String universityScheduleView(Model model) {
+        model.addAttribute("activePage", "university-schedule");
+        return "admin/admin-schedule";
+    }
 }

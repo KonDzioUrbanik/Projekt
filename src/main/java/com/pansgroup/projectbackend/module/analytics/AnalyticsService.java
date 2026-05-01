@@ -28,7 +28,9 @@ import org.springframework.cache.annotation.CacheEvict;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.concurrent.ConcurrentHashMap;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -39,7 +41,10 @@ public class AnalyticsService {
         private final AnalyticsEventRepository repository;
         private final UserRepository userRepository;
 
-        private final Map<String, Long> rateLimiter = new ConcurrentHashMap<>();
+        private final Cache<String, Long> rateLimiter = Caffeine.newBuilder()
+                        .expireAfterWrite(1, TimeUnit.MINUTES)
+                        .maximumSize(10000)
+                        .build();
 
         private static final Pageable TOP_20 = PageRequest.of(0, 20);
         private static final Pageable TOP_50 = PageRequest.of(0, 50);
@@ -56,10 +61,8 @@ public class AnalyticsService {
                 }
 
                 // Backend Anti-Spam: Omijamy limit dla ważnych raportów czasu, dla reszty 50ms
-                if (rateLimiter.size() > 10000)
-                        rateLimiter.clear(); // safe clear
                 long now = System.currentTimeMillis();
-                Long lastEventTime = rateLimiter.get(dto.sessionId());
+                Long lastEventTime = rateLimiter.getIfPresent(dto.sessionId());
 
                 boolean isHighPriority = "time_on_page".equals(dto.eventName());
                 if (!isHighPriority && lastEventTime != null && (now - lastEventTime) < 50) {
