@@ -18,12 +18,54 @@
                 </div>
 
                 <div class="timeline">
+                    <!-- Maj 2026 - Premium Schedule & Architectural Optimization -->
+                    <details id="v1-5-1" class="version-block latest" open>
+                        <summary class="version-summary-header">
+                            <div class="version-title">
+                                <span class="version-number">Maj 2026 - v1.5.1</span>
+                                <span class="latest-badge" style="margin-left: 0.5rem;">Aktualna wersja</span>
+                            </div>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </summary>
+                        <div class="version-content">
+                            <div class="version-desc">
+                                Aktualizacja ulepszająca architekturę modułu harmonogramu oraz optymalizująca wydajność zapytań bazodanowych. Skupiono się na ujednoliceniu interfejsu dla wszystkich ról użytkowników oraz poprawie stabilności systemów analitycznych i bezpieczeństwa.
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
+                                <ul class="change-list added">
+                                    <li><strong>Ujednolicone kontrolki nawigacji:</strong> Wdrożenie standardowych przycisków sterowania oraz selektora trybu widoku (tydzień/semestr) w całym module harmonogramu.</li>
+                                    <li><strong>Walidacja ram czasowych:</strong> Implementacja technicznych ograniczeń nawigacji w harmonogramie do granic zdefiniowanego roku akademickiego.</li>
+                                    <li><strong>Mechanizm Cache (Caffeine):</strong> Integracja profesjonalnej pamięci podręcznej w module analityki w celu optymalizacji obciążenia serwera i stabilizacji rate-limitera.</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
+                                <ul class="change-list changed">
+                                    <li><strong>Standaryzacja stylistyki:</strong> Ujednolicenie arkuszy stylów CSS dla paneli studenta i administratora, zapewniające identyczne zachowanie elementów UI.</li>
+                                    <li><strong>Logika dopasowania kierunków:</strong> Przejście na precyzyjne dopasowanie nazw bazowych kierunków, eliminujące błędy w filtrowaniu przy nazwach o wspólnych przedrostkach.</li>
+                                    <li><strong>Optymalizacja warstwy danych:</strong> Refaktoryzacja zapytań JPA (eliminacja problemu N+1) oraz przeniesienie procesów archiwizacji bezpośrednio do bazy danych (UPDATE).</li>
+                                    <li><strong>Korekta kontrastu:</strong> Dostosowanie parametrów wizualnych aktywnego dnia w trybie ciemnym w celu poprawy parametrów czytelności.</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
+                                <ul class="change-list fixed">
+                                    <li><strong>Parametryzacja Hikari:</strong> Korekta czasu życia połączeń (max-lifetime) w celu zapewnienia ciągłości komunikacji z bazą PostgreSQL.</li>
+                                    <li><strong>Stabilność DOM Monitor:</strong> Wyeliminowanie błędów typu "Illegal invocation" w module monitorowania integralności interfejsu.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </details>
+
                     <!-- Kwiecień 2026 - Group Drive & Cloud Persistence -->
-                    <details id="v1-5-0" class="version-block latest" open>
+                    <details id="v1-5-0" class="version-block">
                         <summary class="version-summary-header">
                             <div class="version-title">
                                 <span class="version-number">Kwiecień 2026 - v1.5.0</span>
-                                <span class="latest-badge" style="margin-left: 0.5rem;">Aktualna wersja</span>
                             </div>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </summary>

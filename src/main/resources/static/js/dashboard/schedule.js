@@ -31,6 +31,8 @@ class ScheduleCalendar{
         this.activeFilters = new Set(); // Przechowuje aktualnie wybrane filtry typów zajęć
         
         // Stan kalendarza
+        this.viewMode = 'weekly'; // 'weekly' lub 'semester'
+        this.zoomLevel = 100; // Poziom powiększenia w %
         this.currentDate = new Date();
         this.currentWeekStart = this.getStartOfWeek(this.currentDate);
         
@@ -120,7 +122,6 @@ class ScheduleCalendar{
         if (!this.calendarEvents || this.calendarEvents.length === 0) return null;
 
         const checkDateStr = this.formatDateLocal(date);
-        const checkTime = date.getTime();
         
         // Typy wydarzeń które blokują zajęcia
         const blockingTypes = ['BREAK', 'HOLIDAY', 'EXAM'];
@@ -166,8 +167,20 @@ class ScheduleCalendar{
 
     // Zmiana tygodnia
     changeWeek(offset) {
-        this.currentDate.setDate(this.currentDate.getDate() + (offset * 7));
-        this.currentWeekStart = this.getStartOfWeek(this.currentDate);
+        const nextWeekStart = new Date(this.currentWeekStart);
+        nextWeekStart.setDate(nextWeekStart.getDate() + (offset * 7));
+        
+        // Dynamiczna blokada na koniec semestru letniego (z konfiguracji API)
+        if (offset > 0 && Utils.AcademicConfig) {
+            const summerEnd = new Date(Utils.AcademicConfig.summerSemesterEnd + 'T23:59:59');
+            if (nextWeekStart > summerEnd) {
+                Utils.showToast('Harmonogram kończy się na obecnym semestrze.', 'info');
+                return;
+            }
+        }
+
+        this.currentWeekStart = nextWeekStart;
+        this.currentDate = new Date(this.currentWeekStart);
         this.renderSchedule();
         this.updateControls();
         this.updateRealTimeFeatures();
@@ -209,8 +222,11 @@ class ScheduleCalendar{
                 if (prevBtn) { prevBtn.disabled = false; prevBtn.style.opacity = '1'; }
             }
 
-            // Blokuj następny tydzień, jeśli wyszliśmy już za koniec semestru letniego
-            if (end > summerEnd) {
+            // Blokuj następny tydzień, jeśli zaczyna się już po zakończeniu semestru letniego
+            const nextWeekStart = new Date(start);
+            nextWeekStart.setDate(nextWeekStart.getDate() + 7);
+
+            if (nextWeekStart > summerEnd) {
                 if (nextBtn) { nextBtn.disabled = true; nextBtn.style.opacity = '0.3'; }
             } else {
                 if (nextBtn) { nextBtn.disabled = false; nextBtn.style.opacity = '1'; }
@@ -315,50 +331,70 @@ class ScheduleCalendar{
     // renderowanie harmonogramu zajec
     renderSchedule(){
         const grid = document.getElementById('scheduleGrid');
-        grid.innerHTML = '';
-        
-        // sprwadzenie czy sa dane
-        if(!this.scheduleData || this.scheduleData.length === 0){
-             grid.innerHTML = `
-                <div class="empty-schedule">
-                    <h3>Brak harmonogramu zajęć</h3>
-                    <p>Nie znaleziono żadnych zajęć w systemie.</p>
-                     <p style="font-size: 0.9rem; color: #6c757d; margin-top: 1rem;">Skontaktuj się z administratorem.</p>
-                </div>
-            `;
-            grid.style.display = 'flex';
-            this.updateNextClassWidget(); 
-            return;
-        }
+        const emptyState = document.getElementById('emptySchedule');
+        const zoomControls = document.querySelector('.zoom-controls');
 
+        if (grid) grid.innerHTML = '';
+        
         // Filtrujemy zajęcia mające przynajmniej jedno wystąpienie w bieżącym tygodniu
         const weekStart = this.currentWeekStart;
         const weekEnd   = new Date(weekStart); weekEnd.setDate(weekEnd.getDate() + 7);
-        const weekFilteredData = this.flattenOccurrencesForWeek(this.scheduleData, weekStart, weekEnd);
+        const weekFilteredData = this.viewMode === 'semester' 
+            ? this.getSemesterAggregatedData(this.scheduleData)
+            : this.flattenOccurrencesForWeek(this.scheduleData, weekStart, weekEnd);
+
+        // Zawsze pokazujemy grid i ukrywamy emptyState (komunikat o braku zajęć obsłużymy inaczej)
+        if (grid) grid.style.display = 'grid';
+        if (emptyState) emptyState.style.display = 'none';
+        if (zoomControls) zoomControls.style.display = 'flex';
+
+        const hasData = weekFilteredData && weekFilteredData.length > 0;
+
 
         // naglowek godzin
         grid.innerHTML += '<div class="time-header">Godziny</div>';
         
         // naglowki dni (z datami)
         const workDays = ScheduleCalendar.CONFIG.WORK_DAYS;
+        const DAY_NAMES_EN = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
         const specialDaysMap = {}; // Cache dla dni wolnych w tym tygodniu
 
+        if (this.viewMode === 'semester') {
+             // W widoku semestralnym nie ma "dni wolnych" bo to widok ogólny
+        } else {
+            const specialDays = this.calendarEvents.filter(event => 
+                ['BREAK', 'HOLIDAY', 'EXAM'].includes(event.type) &&
+                new Date(event.dateFrom) < weekEnd && new Date(event.dateTo) >= weekStart
+            );
+            specialDays.forEach(event => {
+                let start = new Date(event.dateFrom);
+                let end = new Date(event.dateTo);
+                let current = new Date(start);
+                while (current <= end) {
+                    if (current >= weekStart && current < weekEnd) {
+                        specialDaysMap[DAY_NAMES_EN[current.getDay()]] = { name: event.title, type: event.type };
+                    }
+                    current.setDate(current.getDate() + 1);
+                }
+            });
+        }
+
         workDays.forEach((dayKey, index) => {
-            const dayDate = new Date(this.currentWeekStart);
+            const dayDate = new Date(weekStart);
             dayDate.setDate(dayDate.getDate() + index);
             const dateStr = dayDate.toLocaleDateString('pl-PL', { day: 'numeric', month: 'numeric'});
             
-            const specialInfo = this.getSpecialDayInfo(dayDate);
-            if(specialInfo) {
-                specialDaysMap[dayKey] = specialInfo;
-            }
+            const specialInfo = specialDaysMap[dayKey];
 
             const isSpecialClass = specialInfo ? 'special-day-header' : '';
             const safeSpecialName = specialInfo ? Utils.escapeHtml(specialInfo.name) : '';
             const specialLabel = specialInfo ? `<span class="special-label">${safeSpecialName}</span>` : '';
             
+            // W widoku semestralnym ukrywamy konkretną datę w nagłówku
+            const dateHtml = this.viewMode === 'semester' ? '' : `<span class="header-date">${dateStr}</span>`;
+
             grid.innerHTML += `<div class="day-header ${isSpecialClass}" data-date="${this.formatDateLocal(dayDate)}">
-                ${this.dayNames[dayKey]} <span class="header-date">${dateStr}</span>
+                ${this.dayNames[dayKey]} ${dateHtml}
                 ${specialLabel}
             </div>`;
         });
@@ -414,9 +450,10 @@ class ScheduleCalendar{
                 
                 // JESLI DZIEN JEST WOLNY -> Nie renderuj zajec
                 if (specialDaysMap[dayKey]) {
+                     const specialInfo = specialDaysMap[dayKey];
                      const cell = document.createElement('div');
-                     cell.className = 'class-cell special-day-cell';
-                     cell.title = specialDaysMap[dayKey].name;
+                     cell.className = `class-cell special-day-cell special-day-${specialInfo.type.toLowerCase()}`;
+                     cell.title = specialInfo.name;
                      cell.style.gridRow = rowIndex;
                      cell.style.gridColumn = columnIndex;
                      cell.setAttribute('data-col', columnIndex);
@@ -439,7 +476,8 @@ class ScheduleCalendar{
                     if(renderedClasses.has(classId)) return false;
                     const itemStartNum = this.timeToNumber(c._startTime);
                     const slotStartNum = slotObj.startTime;
-                    return Math.abs(itemStartNum - slotStartNum) < 0.01;
+                    const slotEndNum = slotStartNum + 0.25; // 15 minut
+                    return itemStartNum >= slotStartNum && itemStartNum < slotEndNum;
                 });
                 
                 if(startingClasses.length > 0){
@@ -480,7 +518,7 @@ class ScheduleCalendar{
                         
                         classItem.innerHTML = `
                             <div class="class-title">${safeTitle}</div>
-                            <div class="class-time">${this.formatTimeFromDt(c._occStart)} - ${this.formatTimeFromDt(c._occEnd)}</div>
+                            <div class="class-time">${c._startTime || '--:--'} - ${c._endTime || '--:--'}</div>
                             ${teachersHtml ? `<div class="class-teachers-list">${teachersHtml}</div>` : ''}
                             <div class="class-room">
                                 ${[safeRoom ? `${safeRoom}` : '', safeBuilding].filter(Boolean).join(', ')}
@@ -490,6 +528,7 @@ class ScheduleCalendar{
                                 ${safeGroupNum}
                                 ${safeSpec}
                             </div>
+                            ${c._frequency ? `<div class="frequency-tag"><i class="fas fa-redo"></i> ${c._frequency}</div>` : ''}
                         `;
                         grid.appendChild(classItem);
                     });
@@ -497,7 +536,23 @@ class ScheduleCalendar{
             });
         });
 
+        // Jeśli brak zajęć, dodaj informację "Brak zajęć" rozciągniętą na całą siatkę
+        if (!hasData) {
+            const noClassesMsg = document.createElement('div');
+            noClassesMsg.className = 'no-classes-info-overlay';
+            noClassesMsg.innerHTML = `
+                <i class="fas fa-calendar-check"></i>
+                <p>Brak zaplanowanych zajęć w tym okresie</p>
+            `;
+            noClassesMsg.style.gridRow = `2 / span ${timeSlots.length}`;
+            noClassesMsg.style.gridColumn = `2 / span ${workDays.length}`;
+            grid.appendChild(noClassesMsg);
+        }
+
         this.applyFilters();
+        
+        // Aktualizacja znaczników czasu rzeczywistego (DZIŚ, Linia czasu) od razu po renderowaniu
+        this.updateRealTimeFeatures();
     }
     
     /**
@@ -529,6 +584,141 @@ class ScheduleCalendar{
             }
         }
         return result;
+    }
+
+    getSemesterAggregatedData(entries) {
+        const result = [];
+        const DAY_MAP = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        const globalGroups = {};
+
+        // 1. Liczymy łączną liczbę wystąpień dla każdego przedmiotu/typu/grupy
+        const totalOccCountPerSubject = {};
+        entries.forEach(entry => {
+            const subjectKey = `${entry.title}-${entry.classType}-${(entry.studentGroups || []).map(g => g.id).sort().join(',')}`;
+            totalOccCountPerSubject[subjectKey] = (entry.occurrences || []).length;
+        });
+
+        // 2. Grupowanie wystąpień
+        entries.forEach(entry => {
+            if (!entry.occurrences || entry.occurrences.length === 0) return;
+            const groupsStr = (entry.studentGroups || []).map(g => g.id).sort().join(',');
+
+            entry.occurrences.forEach(occ => {
+                if (!occ.startDateTime) return;
+                const dt = new Date(occ.startDateTime);
+                const day = DAY_MAP[dt.getDay()];
+                const start = `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+                const end = occ.endDateTime ? (() => { const d = new Date(occ.endDateTime); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; })() : '';
+                
+                const teachersStr = (entry.teachers || []).sort().join(',');
+                const key = `${entry.title}-${entry.classType}-${teachersStr}-${groupsStr}-${day}-${start}`;
+                
+                if (!globalGroups[key]) {
+                    globalGroups[key] = {
+                        entry: entry,
+                        occurrences: [],
+                        day: day,
+                        start: start,
+                        maxEnd: end,
+                        rooms: new Set(),
+                        endTimes: new Set(),
+                        firstOcc: occ.startDateTime,
+                        lastOcc: occ.endDateTime
+                    };
+                }
+                globalGroups[key].occurrences.push(occ);
+                globalGroups[key].rooms.add(occ.room || '');
+                globalGroups[key].endTimes.add(end);
+                
+                if (end > globalGroups[key].maxEnd) {
+                    globalGroups[key].maxEnd = end;
+                    globalGroups[key].lastOcc = occ.endDateTime;
+                }
+            });
+        });
+
+        // 3. Obliczamy etykiety
+        Object.values(globalGroups).forEach(group => {
+            let frequency = "niestandardowa częstotliwość";
+            const occCountInThisSlot = group.occurrences.length;
+            
+            const hasTimeVariation = group.endTimes.size > 1;
+            const hasRoomVariation = group.rooms.size > 1;
+
+            if (occCountInThisSlot > 1 && !hasTimeVariation && !hasRoomVariation) {
+                const weekTypes = group.occurrences.map(o => Utils.getWeekType(new Date(o.startDateTime)));
+                const allA = weekTypes.every(t => t === 'WEEK_A');
+                const allB = weekTypes.every(t => t === 'WEEK_B');
+                const isMixed = weekTypes.includes('WEEK_A') && weekTypes.includes('WEEK_B');
+
+                if (isMixed) {
+                    frequency = "co tydzień";
+                } else if (allA) {
+                    frequency = "raz na dwa tygodnie - nieparzyste";
+                } else if (allB) {
+                    frequency = "raz na dwa tygodnie - parzyste";
+                } else {
+                    frequency = "niestandardowa częstotliwość";
+                }
+            } else if (occCountInThisSlot === 1) {
+                // Nawet jeśli to część serii, ale w TYM konkretnym dniu/godzinie jest tylko raz
+                const dt = new Date(group.occurrences[0].startDateTime);
+                frequency = `jednorazowo: ${dt.toLocaleDateString('pl-PL')}`;
+            } else {
+                frequency = "niestandardowa częstotliwość";
+            }
+
+            const mainRoom = Array.from(group.rooms).filter(Boolean)[0] || '';
+
+            result.push({
+                ...group.entry,
+                dayOfWeek:     group.day,
+                _startTime:    group.start,
+                _endTime:      group.maxEnd,
+                _occStart:     group.firstOcc,
+                _occEnd:       group.lastOcc,
+                _room:         hasRoomVariation ? 'Różne sale' : mainRoom,
+                _buildingCode: hasRoomVariation ? '' : group.entry.buildingCode,
+                _location:     hasRoomVariation ? '' : group.entry.location,
+                _frequency:    frequency
+            });
+        });
+
+        return result;
+    }
+
+    setViewMode(mode) {
+        if (this.viewMode === mode) return;
+        this.viewMode = mode;
+        
+        // Jeśli to panel admina, sprawdzamy czy wybrano grupę
+        const isAdminEmpty = this.groupSelector && !this.groupSelector.value;
+
+        // Ukrywanie/pokazywanie nawigacji tygodniowej w trybie semestralnym
+        const weekNav = document.querySelector('.week-navigation');
+        const weekInfo = document.querySelector('.current-week-info');
+        const controls = document.querySelector('.schedule-controls');
+
+        if (mode === 'semester') {
+            if (weekNav) weekNav.style.display = 'none';
+            if (weekInfo) weekInfo.style.display = 'none';
+            const filters = document.getElementById('classFilters');
+            if (controls && (!filters || filters.children.length === 0)) {
+                controls.style.display = 'none';
+            }
+        } else {
+            if (weekNav) weekNav.style.display = 'flex';
+            if (weekInfo) weekInfo.style.display = 'flex';
+            // Pokaż kontrolki tylko jeśli nie jesteśmy w pustym stanie admina
+            if (controls && !isAdminEmpty) {
+                controls.style.display = 'flex';
+            }
+        }
+
+        // Renderuj tylko jeśli mamy dane lub nie jesteśmy w panelu admina
+        if (!isAdminEmpty) {
+            this.renderSchedule();
+        }
     }
 
     /** Formats an ISO datetime string to HH:MM */
@@ -648,7 +838,7 @@ class ScheduleCalendar{
             });
 
             const numCols = columns.length;
-            if (numCols > absoluteMaxCols) absoluteMaxCols = numCols; // Aktualizuj max kolumn dla całego dnia
+            if (numCols > absoluteMaxCols) absoluteMaxCols = numCols; // Aktualuj max kolumn dla całego dnia
             
             cluster.forEach(cls => {
                 const classId = `${dayKey}-${cls.id || cls.title}-${this.formatTimeFromDt(cls._occStart) || this.formatTime(cls.startTime)}`;
@@ -708,6 +898,18 @@ class ScheduleCalendar{
         document.getElementById('nextWeekBtn')?.addEventListener('click', () => this.changeWeek(1));
         document.getElementById('todayBtn')?.addEventListener('click', () => this.resetToToday());
 
+        // Obsługa Zoomu
+        document.getElementById('zoomInBtn')?.addEventListener('click', () => this.changeZoom(10));
+        document.getElementById('zoomOutBtn')?.addEventListener('click', () => this.changeZoom(-10));
+        document.getElementById('zoomResetBtn')?.addEventListener('click', () => this.resetZoom());
+
+        // Obsługa trybu widoku (Weekly / Semester)
+        document.querySelectorAll('input[name="viewMode"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                this.setViewMode(e.target.value);
+            });
+        });
+
         // Obsługa akordeonu wystąpień
         const occToggle = document.getElementById('modalOccurrencesToggle');
         const occContent = document.getElementById('modalOccurrencesList');
@@ -721,6 +923,41 @@ class ScheduleCalendar{
         // Uruchomienie timera do aktualizacji "Next Class" i linii czasu
         this.updateRealTimeFeatures();
         setInterval(() => this.updateRealTimeFeatures(), 60000); // Co minutę
+    }
+
+    changeZoom(delta) {
+        const newZoom = this.zoomLevel + delta;
+        if (newZoom >= 70 && newZoom <= 130) {
+            this.zoomLevel = newZoom;
+            this.applyZoom();
+        }
+    }
+
+    resetZoom() {
+        this.zoomLevel = 100;
+        this.applyZoom();
+    }
+
+    applyZoom() {
+        const grid = document.getElementById('scheduleGrid');
+        const label = document.getElementById('zoomLevelLabel');
+        if (!grid) return;
+
+        // Usuń stare klasy zoomu
+        for (let i = 70; i <= 130; i += 10) {
+            grid.classList.remove(`zoom-${i}`);
+        }
+
+        // Dodaj nową klasę
+        grid.classList.add(`zoom-${this.zoomLevel}`);
+
+        // Aktualizuj etykietę
+        if (label) {
+            label.textContent = `${this.zoomLevel}%`;
+        }
+
+        // Jeśli przybliżamy, warto upewnić się, że linia czasu jest na miejscu
+        this.updateTimeLine();
     }
 
     updateRealTimeFeatures() {
@@ -905,15 +1142,24 @@ class ScheduleCalendar{
         
         document.getElementById('modalClassTitle').textContent = classData.title || '';
         
-        // Time from _occStart/_occEnd (flattened occurrence) or fallback
-        const startStr = classData._occStart ? this.formatTimeFromDt(classData._occStart) : Utils.formatTime(classData.startTime);
-        const endStr   = classData._occEnd    ? this.formatTimeFromDt(classData._occEnd)   : Utils.formatTime(classData.endTime);
-        const dateStr  = classData._occStart ? (() => { 
-            const d = new Date(classData._occStart); 
-            const dayName = ScheduleCalendar.CONFIG.DAY_NAMES[classData.dayOfWeek] || '';
-            const date = d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' });
-            return `${dayName}, ${date}`;
-        })() : '';
+        const startStr = classData._startTime || (classData._occStart ? this.formatTimeFromDt(classData._occStart) : Utils.formatTime(classData.startTime));
+        const endStr   = classData._endTime   || (classData._occEnd    ? this.formatTimeFromDt(classData._occEnd)   : Utils.formatTime(classData.endTime));
+        
+        let dateStr = '';
+        const dayName = ScheduleCalendar.CONFIG.DAY_NAMES[classData.dayOfWeek] || '';
+        
+        if (this.viewMode === 'semester') {
+            // W widoku semestralnym pokazujemy Dzień + Częstotliwość (np. Poniedziałek, co tydzień)
+            const freq = classData._frequency || '';
+            dateStr = freq ? `${dayName}, ${freq}` : dayName;
+        } else {
+            // W widoku tygodniowym pokazujemy Dzień + Konkretną datę
+            dateStr = classData._occStart ? (() => { 
+                const d = new Date(classData._occStart); 
+                const date = d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' });
+                return `${dayName}, ${date}`;
+            })() : dayName;
+        }
         
         document.getElementById('modalClassDate').textContent = dateStr;
         document.getElementById('modalClassTime').textContent = `${startStr} – ${endStr}`;

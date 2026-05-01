@@ -11,12 +11,12 @@ public interface ScheduleService {
     // ----------- OPERACJE CRUD -----------
     ScheduleEntryResponseDto create(ScheduleEntryCreateDto dto);
 
-    /** Tworzy wpis z opcjonalnym pominięciem walidacji kolizji (force=true) */
+    /** Tworzy wpis z opcjonalnym pominieciem walidacji kolizji (force=true) */
     ScheduleEntryResponseDto create(ScheduleEntryCreateDto dto, boolean force);
 
     ScheduleEntryResponseDto update(Long id, ScheduleEntryUpdateDto dto);
 
-    /** Aktualizuje wpis z opcjonalnym pominięciem walidacji kolizji (force=true) */
+    /** Aktualizuje wpis z opcjonalnym pominieciem walidacji kolizji (force=true) */
     ScheduleEntryResponseDto update(Long id, ScheduleEntryUpdateDto dto, boolean force);
 
     void delete(Long id);
@@ -37,4 +37,8 @@ public interface ScheduleService {
     List<ScheduleEntryResponseDto> findAllForStarosta(String starostaEmail);
 
     List<ScheduleEntryResponseDto> getMySchedule(String userEmail);
+
+    List<ScheduleEntryResponseDto> findAllByGroupId(Long groupId);
+
+    List<ScheduleEntryResponseDto> findAllByFieldOfStudy(String fieldName);
 }

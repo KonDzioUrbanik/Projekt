@@ -693,9 +693,14 @@ class ScheduleManagement {
     closeCollisionModal() { document.getElementById('collisionModal')?.classList.remove('active'); }
 
     openDeleteConfirmModal(id, msg, type = 'single') {
-        document.getElementById('deleteModalText').innerHTML = msg;
-        this.pendingDeleteId = id; this.pendingDeleteType = type;
-        document.getElementById('deleteConfirmOverlay').classList.add('active');
+        const textEl = document.getElementById('deleteModalText');
+        if (textEl) textEl.innerHTML = msg;
+        
+        this.pendingDeleteId = id; 
+        this.pendingDeleteType = type;
+        
+        const modalEl = document.getElementById('deleteConfirmOverlay');
+        if (modalEl) modalEl.classList.add('active');
     }
 
     async deleteSchedule(id) {

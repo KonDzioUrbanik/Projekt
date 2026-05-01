@@ -1,21 +1,31 @@
 <!DOCTYPE html>
 <html layout:decorate="~{layout/main-layout}">
     <head>
-        <title>Harmonogram zajęć</title>
+        <title>Harmonogram uczelni</title>
         <th:block layout:fragment="page-styles">
             <link rel="stylesheet" th:href="@{/css/dashboard/schedule.css(v=${#dates.createNow().getTime()})}" href="../../static/css/dashboard/schedule.css">
+            <link rel="stylesheet" th:href="@{/css/admin/admin-schedule.css(v=${#dates.createNow().getTime()})}" href="../../static/css/admin/admin-schedule.css">
         </th:block>
     </head>
     <body>
 
         <div layout:fragment="content">
             <div class="schedule-wrapper">
-                <h2 class="page-title-large">Harmonogram zajęć</h2>
-                
+                <div class="admin-schedule-header">
+                    <h2 class="page-title-large" style="margin-bottom: 0;">Harmonogram uczelni</h2>
+                    
+                    <div class="group-selector-wrapper">
+                        <label for="adminGroupSelector"><i class="fas fa-layer-group"></i> Wybierz kierunek:</label>
+                        <select id="adminGroupSelector">
+                            <option value="">Wybierz z listy</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="schedule-view-actions">
                     <div class="view-mode-selector">
                         <label class="mode-option">
-                            <input type="radio" name="viewMode" value="weekly" checked="">
+                            <input type="radio" name="viewMode" value="weekly" checked>
                             <span><i class="fas fa-calendar-week"></i> Tygodniowy</span>
                         </label>
                         <label class="mode-option">
@@ -24,7 +34,7 @@
                         </label>
                     </div>
 
-                    <div class="zoom-controls" style="display: flex;">
+                    <div class="zoom-controls">
                         <button id="zoomOutBtn" class="zoom-btn" title="Pomniejsz">
                             <i class="fas fa-search-minus"></i>
                         </button>
@@ -38,7 +48,7 @@
                     </div>
                 </div>
 
-                <div class="schedule-controls">
+                <div class="schedule-controls" id="adminScheduleControls" style="display: none;">
                     <div class="week-navigation">
                         <button id="prevWeekBtn" class="nav-btn" title="Poprzedni tydzień">
                             <i class="fas fa-chevron-left"></i>
@@ -58,25 +68,23 @@
                     </div>
                 </div>
 
-                <div class="next-class-widget" id="nextClassWidget" style="display: none;">
-                    <div class="next-class-content">
-                        <div class="next-class-icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="next-class-info">
-                            <span class="next-label">Następne zajęcia (za <span id="timeToNext">--</span> min):</span>
-                            <h3 id="nextClassTitle">--</h3>
-                            <p id="nextClassDetails">--</p>
-                        </div>
+                <div id="adminInitialState" class="initial-empty-state">
+                    <i class="fas fa-university"></i>
+                    <div class="empty-schedule" style="padding: 0; margin: 0; background: transparent;">
+                        <h3>Brak harmonogramu zajęć</h3>
+                        <p>Wybierz kierunek z listy powyżej, aby wyświetlić pełny harmonogram zajęć.</p>
                     </div>
                 </div>
 
-                <div class="schedule-grid" id="scheduleGrid">
+                <div id="emptySchedule" class="initial-empty-state" style="display: none;">
+                    <i class="fas fa-calendar-times"></i>
+                    <div class="empty-schedule" style="padding: 0; margin: 0; background: transparent;">
+                        <h3>Brak harmonogramu zajęć</h3>
+                        <p>Nie znaleziono żadnych zajęć w wybranym okresie.</p>
+                    </div>
                 </div>
 
-                <div class="loading" id="loading">
-                    <div class="spinner"></div>
-                    <p>Ładowanie harmonogramu zajęć...</p>
+                <div class="schedule-grid" id="scheduleGrid" style="display: none;">
                 </div>
             </div>
 
@@ -160,13 +168,7 @@
 
         <th:block layout:fragment="page-scripts">
             <script th:src="@{/js/dashboard/schedule.js(v=${#dates.createNow().getTime()})}"></script>
-            <script>
-                document.addEventListener('DOMContentLoaded', () => {
-                    if(typeof ScheduleCalendar !== 'undefined'){
-                        new ScheduleCalendar();
-                    }
-                });
-            </script>
+            <script th:src="@{/js/admin/admin-schedule.js(v=${#dates.createNow().getTime()})}"></script>
         </th:block>
 
     </body>
