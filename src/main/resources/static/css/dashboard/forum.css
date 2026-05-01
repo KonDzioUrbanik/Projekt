@@ -4,6 +4,31 @@
     max-width: 1200px;
     margin: 0 auto;
     width: 100%;
+    min-height: calc(100vh - 140px);
+    display: flex;
+    flex-direction: column;
+}
+
+#forumBrowseSection {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.forum-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: auto;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.forum-page-info {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-dark);
 }
 
 .forum-page-header {
@@ -25,7 +50,7 @@
 }
 
 .forum-hidden {
-    display: none;
+    display: none !important;
 }
 
 .forum-card {
@@ -238,6 +263,31 @@
     font-size: 0.74rem;
     color: var(--text-light);
     white-space: nowrap;
+}
+
+.forum-filter-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    padding: 0.35rem 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.forum-filter-btn:hover {
+    background: rgba(0, 94, 250, 0.05);
+    color: var(--color-primary);
+    border-color: rgba(0, 94, 250, 0.3);
+}
+
+.forum-filter-btn.active {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 10px rgba(0, 94, 250, 0.2);
 }
 
 .forum-create-card {

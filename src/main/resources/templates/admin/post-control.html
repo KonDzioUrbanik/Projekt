@@ -13,16 +13,20 @@
 <div layout:fragment="content" class="forum-container">
 
     <section id="forumBrowseSection" class="forum-view-section">
-        <header class="forum-page-header">
-            <div class="forum-page-title">
-                <h2><i class="fas fa-shield-alt"></i> Panel Kontroli Wątków</h2>
-            </div>
+        <header class="forum-page-header" style="justify-content: flex-end;">
             <button id="forumCreateViewBtn" class="forum-btn primary" type="button">
                 <i class="fas fa-plus"></i> Nowy wątek
             </button>
         </header>
 
         <div class="forum-list-tools">
+            <div class="forum-toolbar-top" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div class="forum-filters" id="forumFilterTabs" style="display: flex; gap: 0.5rem;">
+                    <button class="forum-filter-btn active" data-filter="newest">Najnowsze</button>
+                    <button class="forum-filter-btn" data-filter="hot">Popularne</button>
+                    <button class="forum-filter-btn" data-filter="open">Otwarte</button>
+                </div>
+            </div>
             <div class="forum-search-wrapper">
                 <i class="fas fa-search"></i>
                 <input type="text" id="forumSearchInput" placeholder="Szukaj po tytule lub autorze..." autocomplete="off">
@@ -41,6 +45,11 @@
             </div>
         </div>
         <div id="forumThreadList" class="forum-thread-list"></div>
+        <div class="forum-pagination" id="forumPagination" style="display: none;">
+            <button type="button" class="forum-btn ghost" id="forumPrevPageBtn" disabled><i class="fas fa-chevron-left"></i> Poprzednia</button>
+            <span id="forumPageIndicator" class="forum-page-info">Strona 1 z 1</span>
+            <button type="button" class="forum-btn ghost" id="forumNextPageBtn" disabled>Następna <i class="fas fa-chevron-right"></i></button>
+        </div>
     </section>
 
     <section id="forumDetailSection" class="forum-view-section forum-hidden">

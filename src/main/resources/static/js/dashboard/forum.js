@@ -20,7 +20,10 @@
             liveUpdateRequestInFlight: false,
             liveFeedRequestInFlight: false,
             lastThreadRenderSignature: '',
-            lastFeedRenderSignature: ''
+            lastFeedRenderSignature: '',
+            currentPage: 1,
+            pageSize: 8,
+            filterType: 'newest'
         },
 
         els: {
@@ -42,7 +45,12 @@
             deleteConfirmBtn: document.getElementById('forumDeleteConfirmBtn'),
             searchInput: document.getElementById('forumSearchInput'),
             searchScope: document.getElementById('forumSearchScope'),
-            resultsCount: document.getElementById('forumResultsCount')
+            resultsCount: document.getElementById('forumResultsCount'),
+            pagination: document.getElementById('forumPagination'),
+            prevPageBtn: document.getElementById('forumPrevPageBtn'),
+            nextPageBtn: document.getElementById('forumNextPageBtn'),
+            pageIndicator: document.getElementById('forumPageIndicator'),
+            filterTabs: document.querySelectorAll('.forum-filter-btn')
         },
 
         init() {
@@ -77,11 +85,13 @@
             this.bindMarkdownToolbar();
             this.els.includeArchived?.addEventListener('change', () => {
                 this.state.includeArchived = !!this.els.includeArchived.checked;
+                this.state.currentPage = 1;
                 this.loadThreads();
             });
 
             this.els.searchInput?.addEventListener('input', Utils.debounce((event) => {
                 this.state.searchQuery = (event.target.value || '').trim().toLowerCase();
+                this.state.currentPage = 1;
                 this.refreshThreadSelectionForFilter();
                 this.renderThreadList();
                 this.renderSelectedThread();
@@ -89,9 +99,33 @@
 
             this.els.searchScope?.addEventListener('change', (event) => {
                 this.state.searchScope = event.target.value || 'all';
+                this.state.currentPage = 1;
                 this.refreshThreadSelectionForFilter();
                 this.renderThreadList();
                 this.renderSelectedThread();
+            });
+
+            this.els.prevPageBtn?.addEventListener('click', () => {
+                if (this.state.currentPage > 1) {
+                    this.state.currentPage--;
+                    this.renderThreadList();
+                }
+            });
+
+            this.els.nextPageBtn?.addEventListener('click', () => {
+                this.state.currentPage++;
+                this.renderThreadList();
+            });
+
+            this.els.filterTabs?.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    this.els.filterTabs.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    this.state.filterType = btn.dataset.filter;
+                    this.state.currentPage = 1;
+                    this.refreshThreadSelectionForFilter();
+                    this.renderThreadList();
+                });
             });
 
             this.els.createViewBtn = document.getElementById('forumCreateViewBtn');
@@ -671,10 +705,19 @@
 
 
         renderThreadList() {
-            const visibleThreads = this.getFilteredThreads();
+            const allVisibleThreads = this.getFilteredThreads();
             if (this.els.resultsCount) {
-                this.els.resultsCount.textContent = `${visibleThreads.length} wyników`;
+                this.els.resultsCount.textContent = `${allVisibleThreads.length} wyników`;
             }
+
+            const totalPages = Math.max(1, Math.ceil(allVisibleThreads.length / this.state.pageSize));
+            if (this.state.currentPage > totalPages) {
+                this.state.currentPage = totalPages;
+            }
+
+            const startIndex = (this.state.currentPage - 1) * this.state.pageSize;
+            const endIndex = startIndex + this.state.pageSize;
+            const visibleThreads = allVisibleThreads.slice(startIndex, endIndex);
 
             if (!visibleThreads.length) {
                 this.els.list.innerHTML = this.emptyHtml(
@@ -682,6 +725,7 @@
                         ? 'Brak wyników dla podanej frazy.'
                         : 'Brak wątków. Dodaj pierwszy temat.'
                 );
+                if (this.els.pagination) this.els.pagination.style.display = 'none';
                 return;
             }
 
@@ -735,6 +779,17 @@
             });
 
             this.bindAvatarFallbacks(this.els.list);
+
+            if (this.els.pagination) {
+                if (allVisibleThreads.length > 0) {
+                    this.els.pagination.style.display = 'flex';
+                    this.els.pageIndicator.textContent = `Strona ${this.state.currentPage} z ${totalPages}`;
+                    this.els.prevPageBtn.disabled = this.state.currentPage <= 1;
+                    this.els.nextPageBtn.disabled = this.state.currentPage >= totalPages;
+                } else {
+                    this.els.pagination.style.display = 'none';
+                }
+            }
         },
 
         refreshThreadSelectionForFilter() {
@@ -750,21 +805,29 @@
         },
 
         getFilteredThreads() {
-            if (!this.state.searchQuery) {
-                return this.state.threads;
+            let filtered = this.state.threads;
+
+            if (this.state.searchQuery) {
+                const query = this.state.searchQuery;
+                const scope = this.state.searchScope || 'all';
+
+                filtered = filtered.filter((thread) => {
+                    const title = (thread.title || '').toLowerCase();
+                    const author = this.authorName(thread.authorFirstName, thread.authorLastName).toLowerCase();
+
+                    if (scope === 'title') return title.includes(query);
+                    if (scope === 'author') return author.includes(query);
+                    return title.includes(query) || author.includes(query);
+                });
             }
 
-            const query = this.state.searchQuery;
-            const scope = this.state.searchScope || 'all';
+            if (this.state.filterType === 'hot') {
+                filtered = [...filtered].sort((a, b) => (b.voteScore || 0) - (a.voteScore || 0));
+            } else if (this.state.filterType === 'open') {
+                filtered = filtered.filter(t => !t.locked && !t.archived);
+            }
 
-            return this.state.threads.filter((thread) => {
-                const title = (thread.title || '').toLowerCase();
-                const author = this.authorName(thread.authorFirstName, thread.authorLastName).toLowerCase();
-
-                if (scope === 'title') return title.includes(query);
-                if (scope === 'author') return author.includes(query);
-                return title.includes(query) || author.includes(query);
-            });
+            return filtered;
         },
 
         renderThreadDetail(thread) {
