@@ -17,19 +17,27 @@
             liveIntervalMs: 4000,
             lastFeedSignature: '',
             lastDetailSignature: '',
-            pendingAction: null
+            pendingAction: null,
+            filterType: 'all',
+            currentPage: 1,
+            pageSize: 8
         },
 
         els: {
             module: document.getElementById('surveyModule'),
-            browseBtn: document.getElementById('surveyBrowseViewBtn'),
-            createBtn: document.getElementById('surveyCreateViewBtn'),
             browseSection: document.getElementById('surveyBrowseSection'),
+            detailSection: document.getElementById('surveyDetailSection'),
             createSection: document.getElementById('surveyCreateSection'),
             list: document.getElementById('surveyList'),
             detail: document.getElementById('surveyDetail'),
             search: document.getElementById('surveySearchInput'),
             resultsCount: document.getElementById('surveyResultsCount'),
+            filterTabs: document.getElementById('surveyFilterTabs'),
+            pagination: document.getElementById('surveyPagination'),
+            prevPageBtn: document.getElementById('surveyPrevPageBtn'),
+            nextPageBtn: document.getElementById('surveyNextPageBtn'),
+            pageIndicator: document.getElementById('surveyPageIndicator'),
+            createHeaderBtn: document.getElementById('surveyCreateHeaderBtn'),
             createForm: document.getElementById('surveyCreateForm'),
             title: document.getElementById('surveyTitle'),
             description: document.getElementById('surveyDescription'),
@@ -58,9 +66,10 @@
             this.state.role = String(this.els.module.dataset.role || '').toUpperCase().replace('ROLE_', '');
             this.state.canCreate = this.state.role === 'STAROSTA' || this.state.role === 'ADMIN';
 
-            if (this.state.canCreate) {
-                this.els.createBtn.style.display = 'inline-flex';
+            if (this.state.canCreate && this.els.createHeaderBtn) {
+                this.els.createHeaderBtn.style.display = 'inline-flex';
             }
+
             if (this.state.role === 'ADMIN' && this.els.adminScope) {
                 this.els.adminScope.style.display = 'block';
             }
@@ -82,16 +91,45 @@
         },
 
         attachListeners() {
-            this.els.browseBtn?.addEventListener('click', () => this.setView('browse'));
-            this.els.createBtn?.addEventListener('click', () => this.setView('create'));
+            this.els.createHeaderBtn?.addEventListener('click', () => {
+                this.state.selectedSurveyId = null;
+                this.setView('create');
+            });
             this.els.createCancelBtn?.addEventListener('click', () => this.setView('browse'));
 
             this.els.search?.addEventListener('input', Utils.debounce((event) => {
                 this.state.search = (event.target.value || '').trim().toLowerCase();
+                this.state.currentPage = 1;
                 this.syncSelectionWithFilter();
                 this.renderList();
                 this.renderDetailFallbackIfNeeded();
             }, 200));
+
+            this.els.filterTabs?.addEventListener('click', (e) => {
+                const btn = e.target.closest('.survey-filter-btn');
+                if (!btn) return;
+                
+                this.els.filterTabs.querySelectorAll('.survey-filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                this.state.filterType = btn.dataset.filter;
+                this.state.currentPage = 1;
+                this.syncSelectionWithFilter();
+                this.renderList();
+                this.renderDetailFallbackIfNeeded();
+            });
+
+            this.els.prevPageBtn?.addEventListener('click', () => {
+                if (this.state.currentPage > 1) {
+                    this.state.currentPage--;
+                    this.renderList();
+                }
+            });
+
+            this.els.nextPageBtn?.addEventListener('click', () => {
+                this.state.currentPage++;
+                this.renderList();
+            });
 
             this.els.addOptionBtn?.addEventListener('click', () => this.addOptionRow(''));
 
@@ -138,11 +176,14 @@
 
         setView(view) {
             this.state.activeView = view;
-            const isBrowse = view === 'browse';
-            this.els.browseSection?.classList.toggle('survey-hidden', !isBrowse);
-            this.els.createSection?.classList.toggle('survey-hidden', isBrowse);
-            this.els.browseBtn?.classList.toggle('active', isBrowse);
-            this.els.createBtn?.classList.toggle('active', !isBrowse);
+            
+            this.els.browseSection?.classList.toggle('survey-hidden', view !== 'browse');
+            this.els.detailSection?.classList.toggle('survey-hidden', view !== 'detail');
+            this.els.createSection?.classList.toggle('survey-hidden', view !== 'create');
+
+            if (view === 'create') {
+                requestAnimationFrame(() => this.els.title?.focus());
+            }
         },
 
         async loadGroups() {
@@ -184,8 +225,16 @@
         },
 
         getFilteredSurveys() {
-            if (!this.state.search) return this.state.surveys;
-            return this.state.surveys.filter((survey) => String(survey.title || '').toLowerCase().includes(this.state.search));
+            let visible = this.state.surveys;
+            if (this.state.search) {
+                visible = visible.filter((survey) => String(survey.title || '').toLowerCase().includes(this.state.search));
+            }
+            if (this.state.filterType === 'active') {
+                visible = visible.filter(s => s.active && !s.expired);
+            } else if (this.state.filterType === 'unanswered') {
+                visible = visible.filter(s => s.active && !s.expired && !s.hasVoted);
+            }
+            return visible;
         },
 
         syncSelectionWithFilter() {
@@ -202,18 +251,32 @@
         },
 
         renderList() {
-            const visible = this.getFilteredSurveys();
-            this.els.resultsCount.textContent = `${visible.length} wyników`;
+            const allVisible = this.getFilteredSurveys();
+            if (this.els.resultsCount) {
+                this.els.resultsCount.textContent = `${allVisible.length} ankiet`;
+            }
+
+            const totalPages = Math.max(1, Math.ceil(allVisible.length / this.state.pageSize));
+            if (this.state.currentPage > totalPages) {
+                this.state.currentPage = totalPages;
+            }
+
+            const startIndex = (this.state.currentPage - 1) * this.state.pageSize;
+            const endIndex = startIndex + this.state.pageSize;
+            const visible = allVisible.slice(startIndex, endIndex);
+
+            let html = '';
 
             if (!visible.length) {
-                this.els.list.innerHTML = this.emptyHtml(this.state.search
-                    ? 'Brak ankiet dla podanej frazy.'
-                    : 'Brak ankiet w Twoim zakresie.');
+                this.els.list.innerHTML = this.emptyHtml(this.state.search || this.state.filterType !== 'all'
+                    ? 'Brak wyników dla podanych filtrów.'
+                    : 'Brak ankiet do wyświetlenia.');
+                if (this.els.pagination) this.els.pagination.style.display = 'none';
                 return;
             }
 
-            this.els.list.innerHTML = visible.map((survey) => {
-                const active = survey.id === this.state.selectedSurveyId ? 'active' : '';
+            html += visible.map((survey) => {
+                const activeClass = !survey.active ? 'closed' : (survey.expired ? 'closed' : 'active');
                 const statusBadge = !survey.active 
                     ? '<span class="survey-badge closed"><i class="fas fa-lock"></i> Zamknięta</span>' 
                     : (survey.expired 
@@ -221,31 +284,67 @@
                         : '<span class="survey-badge active"><i class="fas fa-check-circle"></i> Aktywna</span>');
                 
                 const scopeBadge = survey.globalScope 
-                    ? '<span class="survey-badge scope"><i class="fas fa-globe"></i> Globalna</span>'
+                    ? '<span class="survey-badge global"><i class="fas fa-globe"></i> Globalna</span>'
                     : '';
+                
+                const totalVotes = Number(survey.totalVotes || 0);
+
+                const isUnanswered = survey.active && !survey.expired && !survey.hasVoted;
+                const unansweredClass = isUnanswered ? 'unanswered' : '';
 
                 return `
-                    <article class="survey-list-item ${active}" data-survey-id="${survey.id}">
-                        <h4 class="survey-item-title">${Utils.escapeHtml(survey.title || '')}</h4>
-                        <div class="survey-item-meta" style="margin-top: 0.5rem;">
-                            ${statusBadge} ${scopeBadge}
+                    <article class="survey-card-item ${activeClass} ${unansweredClass}" data-survey-id="${survey.id}">
+                        <div class="survey-item-meta-top">
+                            <div style="display:flex; gap:0.5rem; align-items:center;">
+                                ${statusBadge}
+                                ${isUnanswered ? '<span class="survey-badge pending" title="Nie oddano jeszcze głosu"><i class="fas fa-exclamation-circle"></i> Twój ruch</span>' : ''}
+                            </div>
+                            ${scopeBadge}
                         </div>
-                        <div class="survey-item-meta" style="margin-top: 0.35rem;">
-                            <span><i class="fas fa-poll-h"></i> ${Number(survey.totalVotes || 0)} głosów</span>
-                            <span><i class="fas fa-layer-group"></i> ${Utils.escapeHtml(survey.targetGroupName || '-')}</span>
+                        <h4 class="survey-item-title">${Utils.escapeHtml(survey.title || '')}</h4>
+                        
+                        <div class="survey-item-footer">
+                            <div class="survey-item-stats">
+                                <span><i class="fas fa-poll-h"></i> ${totalVotes} głosów</span>
+                                <span><i class="fas fa-users"></i> ${Utils.escapeHtml(survey.targetGroupName || 'Wszyscy')}</span>
+                            </div>
+                            <div class="survey-mini-progress">
+                                <div class="survey-mini-progress-fill" style="width: 0%;" data-target-width="${Math.min(100, totalVotes * 5)}"></div>
+                            </div>
                         </div>
                     </article>
                 `;
             }).join('');
 
+            this.els.list.innerHTML = html;
+
             this.els.list.querySelectorAll('[data-survey-id]').forEach((item) => {
                 item.addEventListener('click', async () => {
                     this.state.selectedSurveyId = Number(item.dataset.surveyId);
-                    document.querySelector('.survey-shell')?.classList.add('survey-shell--detail-active');
-                    this.renderList();
+                    this.setView('detail');
                     await this.renderSelectedDetail();
                 });
             });
+
+            // Render pagination
+            if (this.els.pagination) {
+                if (allVisible.length > 0) {
+                    this.els.pagination.style.display = 'flex';
+                    this.els.pageIndicator.textContent = `Strona ${this.state.currentPage} z ${totalPages}`;
+                    this.els.prevPageBtn.disabled = this.state.currentPage <= 1;
+                    this.els.nextPageBtn.disabled = this.state.currentPage >= totalPages;
+                } else {
+                    this.els.pagination.style.display = 'none';
+                }
+            }
+
+            // Trigger grid animations
+            setTimeout(() => {
+                this.els.list.querySelectorAll('.survey-mini-progress-fill').forEach((bg) => {
+                    const target = bg.dataset.targetWidth;
+                    if (target) bg.style.width = target + '%';
+                });
+            }, 50);
         },
 
         async renderSelectedDetail() {
@@ -282,20 +381,22 @@
             const canManage = !!survey.canManage;
             const options = (survey.options || []).map((option) => {
                 const selectedClass = option.selectedByCurrentUser ? 'selected' : '';
-                const voteButton = survey.canVote
-                    ? `<button class="survey-btn primary" data-vote-option-id="${option.id}" type="button">Głosuj</button>`
-                    : '';
-
+                const percentage = Math.max(0, Math.min(100, Number(option.percentage || 0)));
+                
+                const voteActionAttr = survey.canVote ? `data-vote-option-id="${option.id}"` : '';
+                
                 return `
-                    <div class="survey-option-card ${selectedClass}">
-                        <div class="survey-option-top">
-                            <span class="survey-option-text">${Utils.escapeHtml(option.text || '')}</span>
-                            <span class="survey-option-stats">${option.percentage}% (${option.votes})</span>
+                    <div class="survey-option-block ${selectedClass}" ${voteActionAttr}>
+                        <div class="survey-option-bg" style="width: 0%;" data-target-width="${percentage}"></div>
+                        <div class="survey-option-content">
+                            <div class="survey-option-check">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <span>${Utils.escapeHtml(option.text || '')}</span>
                         </div>
-                        <div class="survey-progress">
-                            <div class="survey-progress-fill" style="width: ${Math.max(0, Math.min(100, Number(option.percentage || 0)))}%;"></div>
+                        <div class="survey-option-percent">
+                            ${percentage}%
                         </div>
-                        <div class="survey-option-actions">${voteButton}</div>
                     </div>
                 `;
             }).join('');
@@ -346,7 +447,7 @@
 
             this.els.detail.classList.remove('survey-detail-empty');
             
-            const backBtn = '<button class="survey-btn ghost survey-mobile-back-btn" id="surveyMobileBackBtn" type="button" style="margin-bottom: 0.75rem;"><i class="fas fa-arrow-left"></i> Wróć do listy</button>';
+            const backBtn = '<button class="survey-btn ghost" id="surveyBackBtn" type="button" style="margin-bottom: 0.75rem;"><i class="fas fa-arrow-left"></i> Wróć do listy</button>';
             
             this.els.detail.innerHTML = `
                 <div class="survey-detail">
@@ -363,7 +464,9 @@
                     </header>
                     <div class="survey-detail-body">
                         ${survey.description ? `<p class="survey-description">${Utils.escapeHtml(survey.description)}</p>` : ''}
-                        ${options || this.emptyHtml('Brak odpowiedzi w ankiecie.')}
+                        
+                        ${options ? `<div class="survey-options-grid">${options}</div>` : this.emptyHtml('Brak odpowiedzi w ankiecie.')}
+                        
                         <div class="survey-toolbar">
                             <strong><i class="fas fa-poll-h"></i> Liczba głosów: ${Number(survey.totalVotes || 0)}</strong>
                             ${survey.hasVoted ? '<span class="survey-badge global"><i class="fas fa-check"></i> Twój głos został zapisany</span>' : ''}
@@ -389,9 +492,17 @@
                 this.requestExtendSurvey(survey.id, survey.endsAt);
             });
 
-            this.els.detail.querySelector('#surveyMobileBackBtn')?.addEventListener('click', () => {
-                document.querySelector('.survey-shell')?.classList.remove('survey-shell--detail-active');
+            this.els.detail.querySelector('#surveyBackBtn')?.addEventListener('click', () => {
+                this.setView('browse');
             });
+
+            // Trigger animations
+            setTimeout(() => {
+                this.els.detail.querySelectorAll('.survey-option-bg').forEach((bg) => {
+                    const target = bg.dataset.targetWidth;
+                    if (target) bg.style.width = target + '%';
+                });
+            }, 50);
         },
 
         authorName(survey) {
