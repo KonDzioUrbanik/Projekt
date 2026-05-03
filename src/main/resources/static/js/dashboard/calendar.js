@@ -61,6 +61,22 @@ class FullCalendarInitializer {
                 handleWindowResize: true,
                 windowResizeDelay: FullCalendarInitializer.CONFIG.TIMING.RESIZE_DELAY,
 
+                eventDidMount: function(info) {
+                    const title = info.event.title.toLowerCase();
+                    const element = info.el;
+                    
+                    if (title.includes('wykład')) {
+                        element.style.setProperty('background-color', '#3b82f6', 'important');
+                        element.style.setProperty('border-color', '#2563eb', 'important');
+                    } else if (title.includes('ćwiczenia') || title.includes('laboratoria')) {
+                        element.style.setProperty('background-color', '#10b981', 'important');
+                        element.style.setProperty('border-color', '#059669', 'important');
+                    } else if (title.includes('egzamin') || title.includes('sesja')) {
+                        element.style.setProperty('background-color', '#ef4444', 'important');
+                        element.style.setProperty('border-color', '#dc2626', 'important');
+                    }
+                },
+
                 headerToolbar: {
                     left: 'prev',
                     right: 'next',
@@ -217,3 +233,56 @@ async function fetchAndRenderFilteredEvents() {
         console.error("Błąd podczas pobierania filtrowanych zdarzeń:", error);
     }
 }
+
+// --- EKSPORT DO ICS ---
+document.addEventListener('DOMContentLoaded', () => {
+    const exportBtn = document.getElementById('exportIcsBtn');
+    
+    if (exportBtn) {
+        exportBtn.addEventListener('click', () => {
+            // Pobieramy instancję z Twojej klasy!
+            const calendar = window.fullCalendarInstance; 
+            
+            if (!calendar) {
+                alert("Kalendarz jeszcze się nie załadował!");
+                return;
+            }
+
+            const events = calendar.getEvents();
+            if (events.length === 0) {
+                alert("Brak wydarzeń do wyeksportowania.");
+                return;
+            }
+
+            let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Twoja Uczelnia//Kalendarz//PL\n";
+
+            events.forEach(event => {
+                const start = event.start ? event.start.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z' : '';
+                const end = event.end ? event.end.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z' : start;
+
+                icsContent += "BEGIN:VEVENT\n";
+                if (start) icsContent += `DTSTART:${start}\n`;
+                if (end) icsContent += `DTEND:${end}\n`;
+                icsContent += `SUMMARY:${event.title}\n`;
+                
+                if (event.extendedProps) {
+                    if (event.extendedProps.room) icsContent += `LOCATION:${event.extendedProps.room}\n`;
+                    if (event.extendedProps.lecturer) icsContent += `DESCRIPTION:Prowadzący: ${event.extendedProps.lecturer}\n`;
+                }
+                icsContent += "END:VEVENT\n";
+            });
+
+            icsContent += "END:VCALENDAR";
+
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'moj_plan_zajec.ics');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    }
+});
