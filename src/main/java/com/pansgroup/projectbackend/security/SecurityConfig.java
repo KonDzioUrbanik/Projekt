@@ -214,6 +214,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/academic-year/current").authenticated()
                 .requestMatchers("/api/academic-year", "/api/academic-year/**", "/api/preferences/errors/**").hasRole("ADMIN")
 
+                // Wordle
+                .requestMatchers("/api/wordle/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/wordle/**").hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
+
                 // Ankiety i Kalendarz
                 .requestMatchers(HttpMethod.GET, "/api/surveys/**", "/api/calendar/**").hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/surveys/*/vote").hasAnyRole("STUDENT", "STAROSTA", "ADMIN")

@@ -63,6 +63,11 @@
                     <span class="link-text">Ankiety i głosowania</span>
                 </a>
 
+                <a th:href="@{/student/wordle}" class="btn-navbar-left" th:classappend="${activePage == 'wordle'} ? 'active'">
+                    <i class="fas fa-puzzle-piece"></i>
+                    <span class="link-text">Wordle</span>
+                </a>
+
                 <a th:href="@{/student/notes}" class="btn-navbar-left" th:classappend="${activePage == 'notes'} ? 'active'">
                     <i class="fas fa-sticky-note"></i>
                     <span class="link-text">Notatki</span>
@@ -160,6 +165,11 @@
                 <a th:href="@{/student/surveys}" class="btn-navbar-left" th:classappend="${activePage == 'surveys'} ? 'active'">
                     <i class="fas fa-poll-h"></i>
                     <span class="link-text">Ankiety i głosowania</span>
+                </a>
+
+                <a th:href="@{/student/wordle}" class="btn-navbar-left" th:classappend="${activePage == 'wordle'} ? 'active'">
+                    <i class="fas fa-puzzle-piece"></i>
+                    <span class="link-text">Wordle</span>
                 </a>
 
                 <a th:href="@{/admin/feedback}" class="btn-navbar-left" th:classappend="${activePage == 'feedback'} ? 'active'">
