@@ -1,10 +1,10 @@
 package com.pansgroup.projectbackend.module.survey.dto;
 
-import jakarta.validation.constraints.NotNull;
-
+import jakarta.validation.constraints.NotEmpty;
+import java.util.List;
 public record SurveyVoteRequestDto(
-        @NotNull(message = "Wybierz odpowiedz")
-        Long optionId
+        @NotEmpty(message = "Wybierz odpowiedz")
+        List<Long> optionIds
 ) {
 }
 

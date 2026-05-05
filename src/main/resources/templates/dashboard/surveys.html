@@ -91,6 +91,13 @@
                             </div>
 
                             <div class="survey-form-group">
+                                <label class="survey-checkbox-label">
+                                    <input id="surveyMultipleChoice" type="checkbox">
+                                    Możliwość zaznaczenia wielu odpowiedzi
+                                </label>
+                            </div>
+
+                            <div class="survey-form-group">
                                 <label>Odpowiedzi</label>
                                 <div id="surveyOptionsContainer" class="survey-options-edit"></div>
                                 <button id="surveyAddOptionBtn" type="button" class="survey-btn ghost"
@@ -143,6 +150,31 @@
                         <i class="fas fa-check"></i> Przedłuż
                     </button>
                 </div>
+            </div>
+        </div>
+
+        <div class="survey-modal-overlay" id="surveyEditModal" aria-hidden="true">
+            <div class="survey-modal-card" role="dialog" aria-modal="true" aria-labelledby="surveyEditModalTitle">
+                <div class="survey-modal-icon">
+                    <i class="fas fa-edit"></i>
+                </div>
+                <h3 id="surveyEditModalTitle">Edytuj ankietę</h3>
+                <form id="surveyEditForm">
+                    <div class="survey-form-group">
+                        <label for="surveyEditTitle">Tytuł</label>
+                        <input id="surveyEditTitle" class="survey-input" maxlength="180" required>
+                    </div>
+                    <div class="survey-form-group">
+                        <label for="surveyEditDescription">Opis (opcjonalnie)</label>
+                        <textarea id="surveyEditDescription" class="survey-textarea" maxlength="2000"></textarea>
+                    </div>
+                    <div class="survey-modal-actions" style="margin-top: 1rem;">
+                        <button class="survey-btn ghost" id="surveyEditCancelBtn" type="button">Anuluj</button>
+                        <button class="survey-btn primary" type="submit">
+                            <i class="fas fa-save"></i> Zapisz
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

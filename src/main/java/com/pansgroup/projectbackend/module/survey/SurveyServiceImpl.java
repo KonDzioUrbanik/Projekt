@@ -8,6 +8,7 @@ import com.pansgroup.projectbackend.module.survey.dto.SurveyResponseDto;
 import com.pansgroup.projectbackend.module.survey.dto.SurveyStatusUpdateDto;
 import com.pansgroup.projectbackend.module.survey.dto.SurveyVoteRequestDto;
 import com.pansgroup.projectbackend.module.survey.dto.SurveyExtendDto;
+import com.pansgroup.projectbackend.module.survey.dto.SurveyUpdateDto;
 import com.pansgroup.projectbackend.module.user.User;
 import com.pansgroup.projectbackend.module.user.UserRepository;
 import jakarta.transaction.Transactional;
@@ -116,6 +117,7 @@ public class SurveyServiceImpl implements SurveyService {
         survey.setAuthor(currentUser);
         survey.setActive(true);
         survey.setEndsAt(endsAt);
+        survey.setMultipleChoice(Boolean.TRUE.equals(dto.multipleChoice()));
 
         if (isAdmin(role)) {
             boolean global = dto.global() == null || dto.global();
@@ -165,21 +167,51 @@ public class SurveyServiceImpl implements SurveyService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ta ankieta jest zamknięta.");
         }
 
-        SurveyOption selectedOption = survey.getOptions().stream()
-                .filter(option -> Objects.equals(option.getId(), dto.optionId()))
-                .findFirst()
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wybrana odpowiedź nie należy do ankiety."));
+        List<Long> requestedOptionIds = dto.optionIds();
+        if (requestedOptionIds == null || requestedOptionIds.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wybierz przynajmniej jedną odpowiedź.");
+        }
 
-        if (surveyVoteRepository.findBySurvey_IdAndUser_Id(surveyId, currentUser.getId()).isPresent()) {
+        if (!survey.isMultipleChoice() && requestedOptionIds.size() > 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "W tej ankiecie można wybrać tylko jedną odpowiedź.");
+        }
+
+        List<SurveyOption> selectedOptions = survey.getOptions().stream()
+                .filter(option -> requestedOptionIds.contains(option.getId()))
+                .toList();
+
+        if (selectedOptions.size() != requestedOptionIds.size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wybrane odpowiedzi nie należą do tej ankiety.");
+        }
+
+        if (!surveyVoteRepository.findBySurvey_IdAndUser_Id(surveyId, currentUser.getId()).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Oddałeś już głos w tej ankiecie.");
         }
 
-        SurveyVote vote = new SurveyVote();
-        vote.setSurvey(survey);
-        vote.setUser(currentUser);
-        vote.setOption(selectedOption);
-        surveyVoteRepository.save(vote);
+        for (SurveyOption option : selectedOptions) {
+            SurveyVote vote = new SurveyVote();
+            vote.setSurvey(survey);
+            vote.setUser(currentUser);
+            vote.setOption(option);
+            surveyVoteRepository.save(vote);
+        }
 
+        return mapResponses(List.of(survey), currentUser, false).get(0);
+    }
+
+    @Override
+    public SurveyResponseDto updateSurvey(Long surveyId, SurveyUpdateDto dto) {
+        User currentUser = requireCurrentUser();
+        Survey survey = findSurveyOrThrow(surveyId);
+
+        if (!canManageSurvey(currentUser, survey)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak uprawnień do zarządzania tą ankietą.");
+        }
+
+        survey.setTitle(dto.title().trim());
+        survey.setDescription(dto.description() == null ? null : dto.description().trim());
+
+        surveyRepository.save(survey);
         return mapResponses(List.of(survey), currentUser, false).get(0);
     }
 
@@ -252,18 +284,20 @@ public class SurveyServiceImpl implements SurveyService {
         Map<Long, Long> totalBySurvey = toCountMap(surveyVoteRepository.countVotesBySurveyIds(surveyIds));
         Map<Long, Long> votesByOption = toCountMap(surveyVoteRepository.countVotesByOptionIds(surveyIds));
 
-        Map<Long, Long> selectedOptionBySurvey = new HashMap<>();
+        Map<Long, List<Long>> selectedOptionsBySurvey = new HashMap<>();
         if (currentUser != null) {
             for (Object[] row : surveyVoteRepository.findUserVotesForSurveys(currentUser.getId(), surveyIds)) {
-                selectedOptionBySurvey.put((Long) row[0], (Long) row[1]);
+                Long sId = (Long) row[0];
+                Long oId = (Long) row[1];
+                selectedOptionsBySurvey.computeIfAbsent(sId, k -> new ArrayList<>()).add(oId);
             }
         }
 
         List<SurveyResponseDto> result = new ArrayList<>();
         for (Survey survey : surveys) {
             long totalVotes = totalBySurvey.getOrDefault(survey.getId(), 0L);
-            Long selectedOptionId = selectedOptionBySurvey.get(survey.getId());
-            boolean hasVoted = selectedOptionId != null;
+            List<Long> selectedOptionIds = selectedOptionsBySurvey.getOrDefault(survey.getId(), List.of());
+            boolean hasVoted = !selectedOptionIds.isEmpty();
             boolean expired = isExpired(survey);
             boolean canManage = currentUser != null && canManageSurvey(currentUser, survey);
             boolean canVote = !publicView && currentUser != null && canAccessSurvey(currentUser, survey)
@@ -278,7 +312,7 @@ public class SurveyServiceImpl implements SurveyService {
                                 option.getText(),
                                 optionVotes,
                                 percentage,
-                                Objects.equals(option.getId(), selectedOptionId));
+                                selectedOptionIds.contains(option.getId()));
                     })
                     .toList();
 
@@ -300,7 +334,8 @@ public class SurveyServiceImpl implements SurveyService {
                     survey.getUpdatedAt(),
                     totalVotes,
                     hasVoted,
-                    selectedOptionId,
+                    selectedOptionIds,
+                    survey.isMultipleChoice(),
                     canManage,
                     canVote,
                     optionDtos));
