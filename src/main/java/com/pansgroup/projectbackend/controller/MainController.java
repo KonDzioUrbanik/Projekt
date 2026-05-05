@@ -263,6 +263,12 @@ public class MainController {
         return "dashboard/surveys";
     }
 
+    @GetMapping("/student/wordle")
+    public String wordleView(Model model) {
+        model.addAttribute("activePage", "wordle");
+        return "dashboard/wordle";
+    }
+
     // zarządzanie harmonogramem zajęć
     @GetMapping("/admin/schedule-management")
     public String scheduleManagementView(Model model) {
