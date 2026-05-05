@@ -61,22 +61,6 @@ class FullCalendarInitializer {
                 handleWindowResize: true,
                 windowResizeDelay: FullCalendarInitializer.CONFIG.TIMING.RESIZE_DELAY,
 
-                eventDidMount: function(info) {
-                    const title = info.event.title.toLowerCase();
-                    const element = info.el;
-                    
-                    if (title.includes('wykład')) {
-                        element.style.setProperty('background-color', '#3b82f6', 'important');
-                        element.style.setProperty('border-color', '#2563eb', 'important');
-                    } else if (title.includes('ćwiczenia') || title.includes('laboratoria')) {
-                        element.style.setProperty('background-color', '#10b981', 'important');
-                        element.style.setProperty('border-color', '#059669', 'important');
-                    } else if (title.includes('egzamin') || title.includes('sesja')) {
-                        element.style.setProperty('background-color', '#ef4444', 'important');
-                        element.style.setProperty('border-color', '#dc2626', 'important');
-                    }
-                },
-
                 headerToolbar: {
                     left: 'prev',
                     right: 'next',
@@ -84,26 +68,11 @@ class FullCalendarInitializer {
                     right: 'today next'
                 },
 
-
                 // Tutaj można dodać events: this.fetchEventsFromApi(),
                 events: eventsData,
                 eventContent: this.customEventContent,
-                datesSet: this.updateMonthTitle.bind(this), 
-
-                //WYSKAKUJĄCE OKIENKO ===
-                eventClick: function(info) {
-                    info.jsEvent.preventDefault(); // Blokuje domyślne zachowanie przeglądarki
-                    
-                    // Wstrzykujemy dane do okienka
-                    document.getElementById('modalEventTitle').innerText = info.event.title;
-                    document.getElementById('modalEventType').innerText = info.event.extendedProps.type || 'Wydarzenie';
-                    document.getElementById('modalEventDate').innerText = info.event.extendedProps.formattedDateRange || info.event.start.toLocaleDateString();
-                    
-                    // Pokazujemy okienko
-                    document.getElementById('eventModal').style.display = 'block';
-                }
+                datesSet: this.updateMonthTitle.bind(this)
             });
-            
             
             this.calendarInstance.render();
             
@@ -187,102 +156,3 @@ class FullCalendarInitializer {
 
 // Udostępnienie klasy globalnie, bez automatycznej inicjalizacji
 window.FullCalendarInitializer = FullCalendarInitializer;
-
-// Filtrowanie
-async function fetchAndRenderFilteredEvents() {
-    const filterSelect = document.getElementById('eventTypeFilter');
-    const selectedType = filterSelect.value;
-    
-    const initializer = window.calendarInitializerInstance || new FullCalendarInitializer();
-    // Żeby nie tworzyć w kółko nowych instancji
-    window.calendarInitializerInstance = initializer;
-
-    try {
-        let apiUrl = '/api/calendar';
-        if (selectedType !== 'ALL') {
-            apiUrl = `/api/calendar/filter?type=${selectedType}`;
-        }
-        
-        // Pokazujemy loader
-        if(initializer.loadingEl) initializer.loadingEl.classList.add('active');
-        if(initializer.calendarEl) initializer.calendarEl.style.display = 'none';
-
-        const response = await fetch(apiUrl);
-        if (!response.ok) {
-            throw new Error(`Błąd HTTP: ${response.status}`);
-        }
-        
-        const rawData = await response.json();
-        
-        // Mapowanie DTO ze Springa na format FullCalendar
-        const formattedEvents = rawData.map(event => ({
-            id: event.id,
-            title: event.title,
-            start: event.dateFrom,
-            end: event.dateTo,
-            backgroundColor: event.markerColor || '#3788d8', // Domyślny kolor jeśli brak
-            extendedProps: {
-                type: event.type,
-                formattedDateRange: event.formattedDateRange // <-- TO DODAJEMY
-            }
-        }));
-
-        await initializer.renderCalendar(formattedEvents);
-
-    } catch (error) {
-        console.error("Błąd podczas pobierania filtrowanych zdarzeń:", error);
-    }
-}
-
-// --- EKSPORT DO ICS ---
-document.addEventListener('DOMContentLoaded', () => {
-    const exportBtn = document.getElementById('exportIcsBtn');
-    
-    if (exportBtn) {
-        exportBtn.addEventListener('click', () => {
-            // Pobieramy instancję z Twojej klasy!
-            const calendar = window.fullCalendarInstance; 
-            
-            if (!calendar) {
-                alert("Kalendarz jeszcze się nie załadował!");
-                return;
-            }
-
-            const events = calendar.getEvents();
-            if (events.length === 0) {
-                alert("Brak wydarzeń do wyeksportowania.");
-                return;
-            }
-
-            let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Twoja Uczelnia//Kalendarz//PL\n";
-
-            events.forEach(event => {
-                const start = event.start ? event.start.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z' : '';
-                const end = event.end ? event.end.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z' : start;
-
-                icsContent += "BEGIN:VEVENT\n";
-                if (start) icsContent += `DTSTART:${start}\n`;
-                if (end) icsContent += `DTEND:${end}\n`;
-                icsContent += `SUMMARY:${event.title}\n`;
-                
-                if (event.extendedProps) {
-                    if (event.extendedProps.room) icsContent += `LOCATION:${event.extendedProps.room}\n`;
-                    if (event.extendedProps.lecturer) icsContent += `DESCRIPTION:Prowadzący: ${event.extendedProps.lecturer}\n`;
-                }
-                icsContent += "END:VEVENT\n";
-            });
-
-            icsContent += "END:VCALENDAR";
-
-            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'moj_plan_zajec.ics');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        });
-    }
-});
