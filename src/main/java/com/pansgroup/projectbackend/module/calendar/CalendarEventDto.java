@@ -18,5 +18,8 @@ public class CalendarEventDto {
     private LocalDate dateTo;
     private CalendarEventType type;
     private String markerColor;
-    private String formattedDateRange; // Np. "1 października - 21 grudnia"
+    private String formattedDateRange;
+    
+    private String room;     // np. "Sala 304, Budynek B"
+    private String teacher;  // np. "dr Jan Kowalski"
 }
