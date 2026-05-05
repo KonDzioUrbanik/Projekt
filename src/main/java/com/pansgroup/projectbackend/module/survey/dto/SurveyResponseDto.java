@@ -21,7 +21,8 @@ public record SurveyResponseDto(
         LocalDateTime updatedAt,
         long totalVotes,
         boolean hasVoted,
-        Long selectedOptionId,
+        List<Long> selectedOptionIds,
+        boolean multipleChoice,
         boolean canManage,
         boolean canVote,
         List<SurveyOptionResultDto> options

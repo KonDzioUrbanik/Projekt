@@ -4,6 +4,7 @@ import com.pansgroup.projectbackend.module.survey.dto.SurveyCreateDto;
 import com.pansgroup.projectbackend.module.survey.dto.SurveyExtendDto;
 import com.pansgroup.projectbackend.module.survey.dto.SurveyResponseDto;
 import com.pansgroup.projectbackend.module.survey.dto.SurveyStatusUpdateDto;
+import com.pansgroup.projectbackend.module.survey.dto.SurveyUpdateDto;
 import com.pansgroup.projectbackend.module.survey.dto.SurveyVoteRequestDto;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -45,6 +46,11 @@ public class SurveyController {
     @PostMapping("/{surveyId}/vote")
     public SurveyResponseDto vote(@PathVariable Long surveyId, @Valid @RequestBody SurveyVoteRequestDto dto) {
         return surveyService.vote(surveyId, dto);
+    }
+
+    @PutMapping("/{surveyId}")
+    public SurveyResponseDto update(@PathVariable Long surveyId, @Valid @RequestBody SurveyUpdateDto dto) {
+        return surveyService.updateSurvey(surveyId, dto);
     }
 
     @PatchMapping("/{surveyId}/status")

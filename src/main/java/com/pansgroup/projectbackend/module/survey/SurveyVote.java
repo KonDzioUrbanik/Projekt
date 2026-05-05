@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(
         name = "portal_survey_votes",
-        uniqueConstraints = @UniqueConstraint(name = "uq_portal_survey_vote_user", columnNames = { "survey_id", "user_id" })
+        uniqueConstraints = @UniqueConstraint(name = "uq_portal_survey_vote_user", columnNames = { "option_id", "user_id" })
 )
 @Getter
 @Setter

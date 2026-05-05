@@ -20,7 +20,8 @@
             pendingAction: null,
             filterType: 'all',
             currentPage: 1,
-            pageSize: 8
+            pageSize: 8,
+            selectedVoteOptionIds: []
         },
 
         els: {
@@ -57,7 +58,13 @@
             extendModalText: document.getElementById('surveyExtendModalText'),
             extendNewEndsAt: document.getElementById('surveyNewEndsAt'),
             extendCancelBtn: document.getElementById('surveyExtendCancelBtn'),
-            extendConfirmBtn: document.getElementById('surveyExtendConfirmBtn')
+            extendConfirmBtn: document.getElementById('surveyExtendConfirmBtn'),
+            multipleChoice: document.getElementById('surveyMultipleChoice'),
+            editModal: document.getElementById('surveyEditModal'),
+            editForm: document.getElementById('surveyEditForm'),
+            editTitle: document.getElementById('surveyEditTitle'),
+            editDescription: document.getElementById('surveyEditDescription'),
+            editCancelBtn: document.getElementById('surveyEditCancelBtn')
         },
 
         init() {
@@ -156,11 +163,19 @@
                 if (event.target === this.els.extendModal) this.closeExtendModal();
             });
 
+            // Modal edit
+            this.els.editCancelBtn?.addEventListener('click', () => this.closeEditModal());
+            this.els.editForm?.addEventListener('submit', (e) => this.confirmEdit(e));
+            this.els.editModal?.addEventListener('click', (event) => {
+                if (event.target === this.els.editModal) this.closeEditModal();
+            });
+
             // Keyboard shortcuts
             document.addEventListener('keydown', (event) => {
                 if (event.key === 'Escape') {
                     this.closeDeleteModal();
                     this.closeExtendModal();
+                    this.closeEditModal();
                 }
             });
 
@@ -378,19 +393,24 @@
         },
 
         renderDetail(survey) {
+            this.state.selectedVoteOptionIds = [];
+            
             const canManage = !!survey.canManage;
             const options = (survey.options || []).map((option) => {
                 const selectedClass = option.selectedByCurrentUser ? 'selected' : '';
                 const percentage = Math.max(0, Math.min(100, Number(option.percentage || 0)));
                 
                 const voteActionAttr = survey.canVote ? `data-vote-option-id="${option.id}"` : '';
+                const checkIcon = survey.multipleChoice 
+                    ? (option.selectedByCurrentUser ? 'fa-check-square' : 'fa-square') 
+                    : 'fa-check';
                 
                 return `
                     <div class="survey-option-block ${selectedClass}" ${voteActionAttr}>
                         <div class="survey-option-bg" style="width: 0%;" data-target-width="${percentage}"></div>
                         <div class="survey-option-content">
                             <div class="survey-option-check">
-                                <i class="fas fa-check"></i>
+                                <i class="far ${checkIcon}"></i>
                             </div>
                             <span>${Utils.escapeHtml(option.text || '')}</span>
                         </div>
@@ -414,6 +434,7 @@
             const createdAt = this.formatDate(survey.createdAt);
             const endsAt = survey.endsAt ? this.formatDate(survey.endsAt) : 'bez terminu';
             const authorName = this.authorName(survey);
+            const editedBadge = survey.updatedAt ? '<span class="survey-badge" style="background:#4a5568;"><i class="fas fa-pencil-alt"></i> Edytowano</span>' : '';
 
             let extendButton = '';
             if (canManage && survey.expired) {
@@ -435,14 +456,19 @@
 
             const manageControls = canManage
                 ? `
-                    <div class="survey-toolbar">
+                    <div class="survey-toolbar" style="margin-top:1rem;">
                         <div>
                             ${managePrimaryButton}
+                            <button class="survey-btn ghost" id="surveyEditBtn" type="button" style="margin-left: 0.45rem;"><i class="fas fa-edit"></i> Edytuj</button>
                             ${extendButton}
                             <button class="survey-btn danger" id="surveyDeleteBtn" type="button" style="margin-left: 0.45rem;">Usuń ankietę</button>
                         </div>
                     </div>
                 `
+                : '';
+
+            const multipleChoiceSubmitBtn = (survey.canVote && survey.multipleChoice) 
+                ? `<div style="margin-top: 1rem;"><button type="button" class="survey-btn primary" id="surveyMultipleChoiceVoteBtn" disabled>Wyślij głosy</button></div>` 
                 : '';
 
             this.els.detail.classList.remove('survey-detail-empty');
@@ -460,14 +486,16 @@
                             ${statusBadge}
                             <span class="survey-badge time"><i class="fas fa-calendar-alt"></i> Od: ${Utils.escapeHtml(createdAt)}</span>
                             ${survey.endsAt ? `<span class="survey-badge time"><i class="fas fa-clock"></i> Do: ${Utils.escapeHtml(endsAt)}</span>` : ''}
+                            ${editedBadge}
                         </div>
                     </header>
                     <div class="survey-detail-body">
                         ${survey.description ? `<p class="survey-description">${Utils.escapeHtml(survey.description)}</p>` : ''}
                         
                         ${options ? `<div class="survey-options-grid">${options}</div>` : this.emptyHtml('Brak odpowiedzi w ankiecie.')}
+                        ${multipleChoiceSubmitBtn}
                         
-                        <div class="survey-toolbar">
+                        <div class="survey-toolbar" style="margin-top: 1rem;">
                             <strong><i class="fas fa-poll-h"></i> Liczba głosów: ${Number(survey.totalVotes || 0)}</strong>
                             ${survey.hasVoted ? '<span class="survey-badge global"><i class="fas fa-check"></i> Twój głos został zapisany</span>' : ''}
                         </div>
@@ -477,7 +505,26 @@
             `;
 
             this.els.detail.querySelectorAll('[data-vote-option-id]').forEach((button) => {
-                button.addEventListener('click', () => this.vote(survey.id, Number(button.dataset.voteOptionId)));
+                button.addEventListener('click', () => {
+                    const optId = Number(button.dataset.voteOptionId);
+                    if (survey.multipleChoice) {
+                        this.toggleOptionSelection(optId, button);
+                        const submitBtn = this.els.detail.querySelector('#surveyMultipleChoiceVoteBtn');
+                        if (submitBtn) submitBtn.disabled = this.state.selectedVoteOptionIds.length === 0;
+                    } else {
+                        this.vote(survey.id, [optId]);
+                    }
+                });
+            });
+
+            this.els.detail.querySelector('#surveyMultipleChoiceVoteBtn')?.addEventListener('click', () => {
+                if (this.state.selectedVoteOptionIds.length > 0) {
+                    this.vote(survey.id, this.state.selectedVoteOptionIds);
+                }
+            });
+
+            this.els.detail.querySelector('#surveyEditBtn')?.addEventListener('click', () => {
+                this.openEditModal(survey);
             });
 
             this.els.detail.querySelector('#surveyToggleStatusBtn')?.addEventListener('click', () => {
@@ -577,7 +624,8 @@
                 title,
                 description: (this.els.description?.value || '').trim(),
                 options,
-                endsAt
+                endsAt,
+                multipleChoice: !!this.els.multipleChoice?.checked
             };
 
             if (this.state.role === 'ADMIN') {
@@ -596,6 +644,9 @@
             this.refreshCreateEndsAtMin();
             if (this.els.targetGroupWrap) {
                 this.els.targetGroupWrap.style.display = this.els.globalScope?.checked ? 'none' : 'block';
+            }
+            if (this.els.multipleChoice) {
+                this.els.multipleChoice.checked = false;
             }
         },
 
@@ -621,12 +672,12 @@
             }
         },
 
-        async vote(surveyId, optionId) {
+        async vote(surveyId, optionIds) {
             try {
                 const response = await fetch(`/api/surveys/${surveyId}/vote`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ optionId })
+                    body: JSON.stringify({ optionIds })
                 });
                 if (!response.ok) throw new Error(await this.readError(response));
 
@@ -739,6 +790,71 @@
                 await this.loadSurveys();
             } catch (err) {
                 this.showError(err.message || 'Nie udało się przedłużyć ankiety.');
+            }
+        },
+
+        openEditModal(survey) {
+            this.state.pendingAction = { type: 'edit', surveyId: survey.id };
+            if (this.els.editTitle) this.els.editTitle.value = survey.title || '';
+            if (this.els.editDescription) this.els.editDescription.value = survey.description || '';
+            
+            this.els.editModal?.classList.add('active');
+            this.els.editModal?.setAttribute('aria-hidden', 'false');
+        },
+
+        closeEditModal() {
+            this.els.editModal?.classList.remove('active');
+            this.els.editModal?.setAttribute('aria-hidden', 'true');
+            this.state.pendingAction = null;
+        },
+
+        async confirmEdit(event) {
+            event.preventDefault();
+            const action = this.state.pendingAction;
+            if (!action || action.type !== 'edit') return;
+
+            const title = (this.els.editTitle?.value || '').trim();
+            const description = (this.els.editDescription?.value || '').trim();
+
+            if (!title) {
+                this.showError('Podaj tytuł ankiety.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/surveys/${action.surveyId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, description })
+                });
+                if (!response.ok) throw new Error(await this.readError(response));
+                
+                this.showSuccess('Ankieta została zaktualizowana.');
+                this.closeEditModal();
+                await this.loadSurveys();
+            } catch (err) {
+                this.showError(err.message || 'Nie udało się zaktualizować ankiety.');
+            }
+        },
+
+        toggleOptionSelection(optId, blockElement) {
+            const index = this.state.selectedVoteOptionIds.indexOf(optId);
+            const icon = blockElement.querySelector('.survey-option-check i');
+            
+            if (index >= 0) {
+                this.state.selectedVoteOptionIds.splice(index, 1);
+                blockElement.classList.remove('selected');
+                if (icon) {
+                    icon.classList.remove('fa-check-square');
+                    icon.classList.add('fa-square');
+                }
+            } else {
+                this.state.selectedVoteOptionIds.push(optId);
+                blockElement.classList.add('selected');
+                if (icon) {
+                    icon.classList.remove('fa-square');
+                    icon.classList.add('fa-check-square');
+                }
             }
         },
 

@@ -21,7 +21,8 @@ public record SurveyCreateDto(
 
         Boolean global,
         Long targetGroupId,
-        LocalDateTime endsAt
+        LocalDateTime endsAt,
+        Boolean multipleChoice
 ) {
 }
 

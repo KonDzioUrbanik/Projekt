@@ -9,12 +9,12 @@ import java.util.Optional;
 
 public interface SurveyVoteRepository extends JpaRepository<SurveyVote, Long> {
 
-    Optional<SurveyVote> findBySurvey_IdAndUser_Id(Long surveyId, Long userId);
+    List<SurveyVote> findBySurvey_IdAndUser_Id(Long surveyId, Long userId);
 
     long deleteBySurvey_Id(Long surveyId);
 
     @Query("""
-            select v.survey.id, count(v)
+            select v.survey.id, count(distinct v.user.id)
             from SurveyVote v
             where v.survey.id in :surveyIds
             group by v.survey.id

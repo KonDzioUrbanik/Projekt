@@ -55,6 +55,9 @@ public class Survey {
     @OneToMany(mappedBy = "survey", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SurveyVote> votes = new ArrayList<>();
 
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean multipleChoice = false;
+
     @PreUpdate
     void onUpdate() {
         this.updatedAt = LocalDateTime.now();
