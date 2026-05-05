@@ -27,12 +27,6 @@ public class CalendarEventService {
                 .collect(Collectors.toList());
     }
 
-    public List<CalendarEventDto> getEventsByType(CalendarEventType type) {
-    return calendarEventRepository.findAllByTypeOrderByDateFromAsc(type).stream()
-            .map(this::mapToDto)
-            .collect(Collectors.toList());
-}
-
     /**
      * Zwraca aktywny okres specjalny (BREAK, HOLIDAY, EXAM) dla podanej daty.
      * Jeśli brak takiego okresu, zwraca Optional.empty()

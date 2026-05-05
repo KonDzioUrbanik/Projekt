@@ -23,14 +23,6 @@ public class CalendarEventController {
         return ResponseEntity.ok(calendarEventService.getAllEvents());
     }
 
-
-    /*filtrowanie */
-    @GetMapping("/filter")
-    public ResponseEntity<List<CalendarEventDto>> getFilteredEvents(@RequestParam CalendarEventType type) {
-        return ResponseEntity.ok(calendarEventService.getEventsByType(type));
-    }
-
-
     /**
      * Zwraca aktywny okres specjalny (sesja, przerwa, święto) dla dzisiejszej daty.
      * Jeśli brak takiego okresu, zwraca 204 No Content.
