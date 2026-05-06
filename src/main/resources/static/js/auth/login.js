@@ -53,17 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    if (togglePassword && passwordInput) {
-        togglePassword.addEventListener('click', function() {
-            // Przełącz typ pola
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-
-            // Przełącz ikonę
-            this.classList.toggle('fa-eye');
-            this.classList.toggle('fa-eye-slash');
-        });
-    }
+    initPasswordToggle('password', 'togglePassword');
 
     loginForm.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -78,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // walidacja pol
         if(!email || !password){
-            displayMessage(errorMessageContainer, "Proszę uzupełnić wszystkie wymagane pola.");
+            displaySafeMessage(errorMessageContainer, "Proszę uzupełnić wszystkie wymagane pola.");
             return;
         }
 
@@ -95,20 +85,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: JSON.stringify({ email, password, rememberMe }),
             });
 
-            let data = null;
-            try{
-                data = await response.json();
-            } 
-            catch(jsonError){
-                // Serwer nie zwrócił poprawnego JSON - używamy pustego obiektu
-                console.warn('Odpowiedź serwera nie jest poprawnym JSON:', jsonError);
-                data = {};
-            }
+            const data = await response.json().catch(() => ({}));
 
             // obsluga odpowiedzi HTTP
             if(response.ok){
                 // SUKCES 
-
                 if (rememberMe && email) {
                     localStorage.setItem('remembered_email', email);
                 } else {
@@ -119,8 +100,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 displayMessage(errorMessageContainer, "Logowanie przebiegło pomyślnie. Przekierowywanie...", true);
                 
-                // przekierowanie na strone główną portalu
-                redirectAfterDelay("/home");
+                // przekierowanie na strone główną portalu (bezpieczne replace)
+                redirectAfterDelay("/home", 500);
             } 
             else{
                 // BŁĘDY
@@ -130,11 +111,11 @@ document.addEventListener("DOMContentLoaded", () => {
         } 
         catch(error){
             console.error("Błąd połączenia:", error);
-            displayMessage(errorMessageContainer, "Nie udało się nawiązać połączenia z serwerem. Sprawdź połączenie internetowe i spróbuj ponownie.");
+            displaySafeMessage(errorMessageContainer, "Nie udało się nawiązać połączenia z serwerem. Sprawdź połączenie internetowe.");
         } 
         finally{
             // odblokowanie przycisku
-            enableButton(loginButton, "Zaloguj się");
+            enableButton(loginButton, "<span>Zaloguj się</span>");
         }
     });
-});
+});

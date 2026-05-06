@@ -14,29 +14,53 @@ const AUTH_CONFIG = {
         BUTTON_DISABLE_TIMEOUT: 3000
     },
     REGEX: {
+        // Akceptujemy domenę uczelnianą
         STUDENT_EMAIL: /^\d+@student\.kpu\.krosno\.pl$/,
         ONLY_DIGITS: /^\d+$/,
-        EMAIL_BASIC: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        EMAIL_BASIC: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        // Ujednolicony regex dla silnego hasła: min 8 znaków, duża, mała, cyfra, znak specjalny
+        STRONG_PASSWORD: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$#!%*?&])[A-Za-z\d@$#!%*?&]{8,}$/
     },
     DOMAINS: {
         STUDENT: '@student.kpu.krosno.pl'
     }
 };
 
-/* Wyświetla komunikat HTML w kontenerze */
-function displayMessage(container, message, isSuccess = false) {
-    if (!container) {
-        console.error('Brak kontenera dla komunikatu');
-        return;
+/**
+ * Ujednolicona walidacja siły hasła
+ */
+function validateStrongPassword(password) {
+    return AUTH_CONFIG.REGEX.STRONG_PASSWORD.test(password);
+}
+
+/**
+ * Inicjalizuje przełącznik widoczności hasła (oczko)
+ */
+function initPasswordToggle(inputId, toggleId) {
+    const input = document.getElementById(inputId);
+    const toggle = document.getElementById(toggleId);
+    
+    if (input && toggle) {
+        toggle.addEventListener('click', function() {
+            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+            input.setAttribute('type', type);
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
     }
+}
+
+/* Wyświetla komunikat HTML w kontenerze (tylko dla zaufanego HTML) */
+function displayMessage(container, message, isSuccess = false) {
+    if (!container) return;
     container.innerHTML = message;
     container.className = isSuccess ? 'form-message success' : 'form-message error';
     container.setAttribute('role', 'alert');
     container.setAttribute('aria-live', isSuccess ? 'polite' : 'assertive');
 }
 
-/* Bezpieczna wersja displayMessage dla czystego tekstu */
-function displaySafeText(container, text, isSuccess = false) {
+/* Bezpieczna wersja displayMessage dla czystego tekstu (ZAPOBIEGA XSS) */
+function displaySafeMessage(container, text, isSuccess = false) {
     if (!container) return;
     container.textContent = text;
     container.className = isSuccess ? 'form-message success' : 'form-message error';
@@ -67,30 +91,36 @@ function disableButton(button, text) {
         button.disabled = true;
         const span = button.querySelector('span');
         if (span) {
+            span.dataset.oldHtml = span.innerHTML;
             span.textContent = text;
         } else {
+            button.dataset.oldHtml = button.innerHTML;
             button.textContent = text;
         }
     }
 }
 
 /* Włącza przycisk i przywraca jego tekst */
-function enableButton(button, text) {
+function enableButton(button, text = null) {
     if (button) {
         button.disabled = false;
+        const oldHtml = button.dataset.oldHtml;
         const span = button.querySelector('span');
-        if (span) {
-            span.textContent = text;
-        } else {
-            button.textContent = text;
+        
+        if (text) {
+            if (span) span.innerHTML = text;
+            else button.innerHTML = text;
+        } else if (oldHtml) {
+            if (span) span.innerHTML = oldHtml;
+            else button.innerHTML = oldHtml;
         }
     }
 }
 
-/* Przekierowuje na podany URL po opóźnieniu */
+/* Przekierowuje na podany URL po opóźnieniu przy użyciu replace (lepsze dla Security) */
 function redirectAfterDelay(url, delay = AUTH_CONFIG.TIMING.REDIRECT_DELAY) {
     setTimeout(() => {
-        window.location.href = url;
+        window.location.replace(url);
     }, delay);
 }
 
@@ -107,36 +137,35 @@ function escapeHtmlForAuth(text) {
 
 /* Obsługuje błędy HTTP i zwraca odpowiedni komunikat */
 function getErrorMessage(response, data = {}) {
-    let errorMsg = 'Wystąpił nieoczekiwany błąd. Proszę skontaktować się z administratorem, jeśli problem będzie się powtarzać.';
+    let errorMsg = 'Wystąpił nieoczekiwany błąd. Proszę skontaktować się z administratorem.';
     
     switch (response.status) {
         case 400:
-            errorMsg = data.message || 'Nieprawidłowe dane formularza. Sprawdź poprawność wypełnienia wszystkich pól.';
+            errorMsg = data.message || 'Nieprawidłowe dane formularza.';
             break;
         case 401:
-            errorMsg = data.message || 'Nieprawidłowe dane uwierzytelniające. Sprawdź adres e-mail i hasło.';
+            errorMsg = data.message || 'Nieprawidłowy e-mail lub hasło.';
             break;
         case 403:
-            errorMsg = data.message || 'Nie masz uprawnień do wykonania tej operacji.';
+            errorMsg = data.message || 'Brak uprawnień do wykonania tej operacji.';
             break;
         case 404:
-            errorMsg = data.message || 'Usługa jest tymczasowo niedostępna. Spróbuj ponownie za chwilę.';
+            errorMsg = data.message || 'Zasób nie został znaleziony.';
+            break;
+        case 429:
+            errorMsg = data.message || 'Zbyt wiele prób. Spróbuj ponownie za chwilę.';
             break;
         case 500:
-            // Pole 'reason' zawiera czytelny opis systemowy (np. o wyłączonej rejestracji)
-            errorMsg = data.reason || data.message || 'Błąd serwera. Spróbuj ponownie później lub skontaktuj się z administratorem.';
+            errorMsg = data.reason || data.message || 'Wewnętrzny błąd serwera.';
             break;
-
         default:
-            errorMsg = data.message || data.detail || 'Wystąpił nieoczekiwany błąd. Proszę skontaktować się z administratorem, jeśli problem będzie się powtarzać.';
+            errorMsg = data.message || data.detail || errorMsg;
     }
     
-    // Escapowanie głównego komunikatu
     let safeErrorMsg = escapeHtmlForAuth(errorMsg);
     
-    // Dodanie listy błędów walidacji, jeśli istnieje (każdy element escapowany)
     if (data.errors && Array.isArray(data.errors)) {
-        safeErrorMsg += '<ul>';
+        safeErrorMsg += '<ul class="error-list">';
         data.errors.forEach(err => {
             safeErrorMsg += `<li>${escapeHtmlForAuth(err)}</li>`;
         });

@@ -94,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <path class="checkmark-check" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
                         </svg>
                         <h3>Wysłano link!</h3>
-                        <p>${data.message || "Na podany adres e-mail został wysłany link umożliwiający zresetowanie hasła. Sprawdź swoją skrzynkę odbiorczą."}</p>
+                        <p id="success-msg-text"></p>
                         <p style="margin-top: 15px; font-size: 0.9em; color: var(--text-light);">
                             Przekierowanie do logowania za <span id="redirectCountdown" style="font-weight: bold; color: var(--color-primary, #005efa);">5</span> s...
                         </p>
@@ -102,6 +102,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 `;
 
                 document.body.appendChild(overlay);
+
+                // BEZPIECZNE wstawienie tekstu (Ochrona XSS)
+                const msgElement = document.getElementById('success-msg-text');
+                if (msgElement) {
+                    msgElement.textContent = data.message || "Na podany adres e-mail został wysłany link umożliwiający zresetowanie hasła. Sprawdź swoją skrzynkę odbiorczą.";
+                }
 
                 // Animacja wejścia
                 setTimeout(() => overlay.classList.add('show'), 10);
@@ -118,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         clearInterval(interval);
                         overlay.classList.remove('show');
                         setTimeout(() => overlay.remove(), 300);
-                        window.location.href = '/login';
+                        window.location.replace('/login');
                     }
                 }, 1000);
             }
