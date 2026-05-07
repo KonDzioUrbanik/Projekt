@@ -16,6 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.context.event.EventListener;
+import com.pansgroup.projectbackend.module.user.event.UserDeletedEvent;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -46,6 +50,9 @@ public class ForumServiceImpl implements ForumService {
     private final ForumCommentAttachmentRepository forumCommentAttachmentRepository;
     private final UserRepository userRepository;
     private final StudentGroupRepository studentGroupRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public ForumServiceImpl(ForumThreadRepository forumThreadRepository,
                             ForumCommentRepository forumCommentRepository,
@@ -702,5 +709,32 @@ public class ForumServiceImpl implements ForumService {
         }
 
         return normalized;
+    }
+
+    @EventListener
+    public void onUserDeleted(UserDeletedEvent event) {
+        Long userId = event.getUser().getId();
+        
+        // 1. Wyczyszczenie bezpośrednich głosów (liście) z pominięciem ładowania obiektów do pamięci
+        entityManager.createQuery("DELETE FROM ForumCommentVote v WHERE v.user.id = :userId")
+                .setParameter("userId", userId)
+                .executeUpdate();
+                
+        entityManager.createQuery("DELETE FROM ForumThreadVote v WHERE v.user.id = :userId")
+                .setParameter("userId", userId)
+                .executeUpdate();
+                
+        entityManager.createQuery("DELETE FROM ForumThreadLike l WHERE l.user.id = :userId")
+                .setParameter("userId", userId)
+                .executeUpdate();
+
+        // 2. Usunięcie wszystkich komentarzy autora (własnych wpisów w cudzych i własnych wątkach)
+        List<ForumComment> userComments = forumCommentRepository.findByAuthor_IdOrderByCreatedAtDesc(userId);
+        forumCommentRepository.deleteAll(userComments);
+
+        // 3. Usunięcie całych wątków utworzonych przez użytkownika 
+        // (to wywoła kaskadowe usunięcie cudzych komentarzy w jego wątkach dzięki CascadeType.ALL)
+        List<ForumThread> userThreads = forumThreadRepository.findByAuthor_IdOrderByCreatedAtDesc(userId);
+        forumThreadRepository.deleteAll(userThreads);
     }
 }

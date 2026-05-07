@@ -18,16 +18,22 @@ import java.util.*;
 import java.util.stream.Collectors;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
+import com.pansgroup.projectbackend.module.user.event.UserDeletedEvent;
 
+@Slf4j
 @Service
 @Transactional
 public class NoteServiceImpl implements NoteService {
     private final NoteRepository noteRepository;
     private final UserRepository userRepository;
+    private final jakarta.persistence.EntityManager entityManager;
 
-    public NoteServiceImpl(NoteRepository noteRepository, UserRepository userRepository) {
+    public NoteServiceImpl(NoteRepository noteRepository, UserRepository userRepository, jakarta.persistence.EntityManager entityManager) {
         this.noteRepository = noteRepository;
         this.userRepository = userRepository;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -388,5 +394,31 @@ public class NoteServiceImpl implements NoteService {
         }
 
         return note;
+    }
+
+    @EventListener
+    @Transactional
+    public void onUserDeleted(UserDeletedEvent event) {
+        Long userId = event.getUser().getId();
+        
+        // Krok 1: Bezpieczne pobranie wszystkich notatek użytkownika
+        List<Note> userNotes = noteRepository.findByAuthor_Id(userId);
+        
+        // Krok 2: Używamy standardowych metod czyszczenia list po obu stronach relacji ManyToMany
+        // (to wyczyści wpisy w note_shared_with i note_favorites dla notatek autora)
+        for (Note note : userNotes) {
+            note.getSharedWith().clear();
+            note.getFavoritedBy().clear();
+        }
+        noteRepository.saveAllAndFlush(userNotes);
+
+        // Krok 3: Czyszczenie złącz, gdzie usunięty użytkownik "wisiał" w notatkach innych osób
+        noteRepository.deleteUserFromSharedNotes(userId);
+        noteRepository.deleteUserFromFavoriteNotes(userId);
+        
+        // Krok 4: Ostateczne, twarde usunięcie notatek autora
+        noteRepository.deleteAllInBatch(userNotes); // Twardy, bezpośredni flush usunięcia
+        
+        log.info("[Notes] Completely wiped notes and relations for user ID={}", userId);
     }
 }

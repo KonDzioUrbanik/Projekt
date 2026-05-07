@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.context.event.EventListener;
+import com.pansgroup.projectbackend.module.user.event.UserDeletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDateTime;
@@ -230,5 +232,24 @@ public class GroupDriveService {
                 studentGroupRepository.saveAndFlush(freshGroup);
             });
         }
+    }
+
+    @EventListener
+    @Transactional
+    public void onUserDeleted(UserDeletedEvent event) {
+        Long userId = event.getUser().getId();
+
+        // 1. Soft-delete wszystkich plików
+        groupDriveFileRepository.softDeleteByUploaderId(userId, LocalDateTime.now());
+        
+        // 2. ODPIĘCIE Klucza obcego! Bez tego baza nie pozwoli usunąć usera.
+        groupDriveFileRepository.detachUploader(userId);
+
+        userRepository.findById(userId).ifPresent(user -> {
+            user.setUsedStorage(0L);
+            userRepository.saveAndFlush(user);
+        });
+
+        log.info("[GroupDrive] Soft-deleted and detached files of deleted user ID={}", userId);
     }
 }

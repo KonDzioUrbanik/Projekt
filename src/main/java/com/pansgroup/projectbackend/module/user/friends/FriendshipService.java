@@ -9,6 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.context.event.EventListener;
+import com.pansgroup.projectbackend.module.user.event.UserDeletedEvent;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +20,9 @@ public class FriendshipService {
     private final FriendshipRepository friendshipRepository;
     private final FriendRequestRepository friendRequestRepository;
     private final UserRepository userRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Transactional
     public void sendFriendRequest(Long senderId, Long receiverId) {
@@ -179,5 +186,21 @@ public class FriendshipService {
                 user.getFieldOfStudy(),
                 user.getYearOfStudy(),
                 user.getAvatarData() != null);
+    }
+
+    @EventListener
+    @Transactional
+    public void onUserDeleted(UserDeletedEvent event) {
+        Long userId = event.getUser().getId();
+        
+        // Usunięcie relacji znajomych, w których użytkownik brał udział
+        entityManager.createQuery("DELETE FROM Friendship f WHERE f.user1.id = :userId OR f.user2.id = :userId")
+                .setParameter("userId", userId)
+                .executeUpdate();
+
+        // Usunięcie wszystkich zaproszeń wysłanych lub otrzymanych przez użytkownika
+        entityManager.createQuery("DELETE FROM FriendRequest r WHERE r.sender.id = :userId OR r.receiver.id = :userId")
+                .setParameter("userId", userId)
+                .executeUpdate();
     }
 }

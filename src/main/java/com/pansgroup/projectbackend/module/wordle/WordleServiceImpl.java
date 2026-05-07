@@ -15,6 +15,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.event.EventListener;
+import com.pansgroup.projectbackend.module.user.event.UserDeletedEvent;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -48,6 +52,9 @@ public class WordleServiceImpl implements WordleService {
     private final WordleAttemptRepository attemptRepo;
     private final UserRepository userRepo;
     private final ObjectMapper objectMapper;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     /** Pula 5-literowych polskich słów (lowercase, bez nazw własnych) - używana do losowania hasła dnia */
     private List<String> wordPool = new ArrayList<>();
@@ -460,5 +467,14 @@ public class WordleServiceImpl implements WordleService {
                 "gameDate", today.toString(),
                 "message", "Nowe hasło dnia zostało wylosowane."
         );
+    }
+
+    @EventListener
+    @Transactional
+    public void onUserDeleted(UserDeletedEvent event) {
+        Long userId = event.getUser().getId();
+        entityManager.createQuery("DELETE FROM WordleAttempt a WHERE a.user.id = :userId")
+                .setParameter("userId", userId)
+                .executeUpdate();
     }
 }

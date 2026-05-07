@@ -18,6 +18,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
+import org.springframework.context.event.EventListener;
+import com.pansgroup.projectbackend.module.user.event.UserDeletedEvent;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 @Slf4j
 @Service
@@ -32,6 +36,9 @@ public class ChatService {
     private final ChatMessageRepository messageRepo;
     private final UserRepository userRepository;
     private final ChatCryptoService crypto;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     // User resolution helpers
 
@@ -323,5 +330,22 @@ public class ChatService {
                 m.getDeletedAt(),
                 m.getStatus().name(),
                 m.getSender().getId().equals(me.getId()));
+    }
+
+    @EventListener
+    @Transactional
+    public void onUserDeleted(UserDeletedEvent event) {
+        Long userId = event.getUser().getId();
+        
+        // Usunięcie wszystkich wiadomości w konwersacjach, w których brał udział ten użytkownik
+        entityManager.createQuery("DELETE FROM ChatMessage m WHERE m.conversation.id IN " +
+                                  "(SELECT c.id FROM ChatConversation c WHERE c.userA.id = :userId OR c.userB.id = :userId)")
+                .setParameter("userId", userId)
+                .executeUpdate();
+
+        // Usunięcie samych konwersacji
+        entityManager.createQuery("DELETE FROM ChatConversation c WHERE c.userA.id = :userId OR c.userB.id = :userId")
+                .setParameter("userId", userId)
+                .executeUpdate();
     }
 }

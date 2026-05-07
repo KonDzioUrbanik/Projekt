@@ -21,6 +21,8 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
+import com.pansgroup.projectbackend.module.user.event.UserDeletedEvent;
 import org.springframework.web.server.ResponseStatusException;
 import com.pansgroup.projectbackend.security.LoginAttemptService;
 
@@ -57,6 +59,8 @@ public class UserServiceImpl implements UserService {
     private final NoteService noteService;
     private final AdminSecurityAuditService securityAuditService;
     private final LoginAttemptService loginAttemptService;
+    private final ApplicationEventPublisher eventPublisher;
+    private final jakarta.persistence.EntityManager entityManager;
 
     public UserServiceImpl(UserRepository userRepository,
             PasswordEncoder passwordEncoder,
@@ -68,7 +72,9 @@ public class UserServiceImpl implements UserService {
             ForumService forumService,
             NoteService noteService,
             AdminSecurityAuditService securityAuditService,
-            LoginAttemptService loginAttemptService) {
+            LoginAttemptService loginAttemptService,
+            ApplicationEventPublisher eventPublisher,
+            jakarta.persistence.EntityManager entityManager) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.studentGroupRepository = studentGroupRepository;
@@ -80,6 +86,8 @@ public class UserServiceImpl implements UserService {
         this.noteService = noteService;
         this.securityAuditService = securityAuditService;
         this.loginAttemptService = loginAttemptService;
+        this.eventPublisher = eventPublisher;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -481,23 +489,56 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
-        // Nie pozwalaj usuwać użytkowników z rolą ADMIN
         if ("ADMIN".equals(user.getRole())) {
-            throw new IllegalStateException(
-                    "Nie można usunąć konta administratora. Konta z uprawnieniami administratora są chronione.");
+            throw new IllegalStateException("Nie można usunąć konta administratora.");
         }
 
-        // Usuwamy tokeny powiązane
-        confirmationTokenRepository.deleteByUser(user);
-        passwordResetTokenRepository.deleteByUser(user);
+        // --- 1. EVENT DRIVEN CLEANUP ---
+        // Najpierw informujemy Notatki i Dysk (korzystamy z usera w pamięci)
+        eventPublisher.publishEvent(new UserDeletedEvent(this, user));
 
-        // Odłączamy od grupy (ManyToOne)
-        user.setStudentGroup(null);
+        // --- 2. TWARDE CIĘCIE CYKLU (NATIVE SQL) ---
+        // Zerujemy klucze bezpośrednio w bazie
+        entityManager.createNativeQuery("UPDATE users SET confirmation_token_id = NULL WHERE id = :uid")
+                .setParameter("uid", userId).executeUpdate();
 
-        // Czyścimy pole w User (OneToOne)
-        user.setConfirmationToken(null);
+        entityManager.createNativeQuery("DELETE FROM confirmation_token WHERE user_id = :uid")
+                .setParameter("uid", userId).executeUpdate();
+                
+        entityManager.createNativeQuery("DELETE FROM password_reset_token WHERE user_id = :uid")
+                .setParameter("uid", userId).executeUpdate();
 
-        userRepository.delete(user);
+        // --- 2.1 BEZWZGLĘDNE USUNIĘCIE POWIADOMIEŃ (GENERYCZNE WYKRYWANIE) ---
+        // Używamy zapytania, które znajdzie kolumnę łączącą 'notifications' z 'users'
+        // niezależnie od tego, jak Hibernate nazwał klucz obcy (FK).
+        try {
+            String columnName = (String) entityManager.createNativeQuery(
+                "SELECT kcu.column_name FROM information_schema.table_constraints AS tc " +
+                "JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name " +
+                "JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name " +
+                "WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_name='notifications' AND ccu.table_name='users' LIMIT 1"
+            ).getSingleResult();
+
+            if (columnName != null) {
+                entityManager.createNativeQuery("DELETE FROM notifications WHERE " + columnName + " = :uid")
+                        .setParameter("uid", userId).executeUpdate();
+            }
+        } catch (Exception e) {
+            // Jeśli tabela nie istnieje lub nie ma powiązań, ignorujemy błąd, by dokończyć usuwanie usera
+        }
+
+        // --- 3. AMNEZJA HIBERNATE ---
+        // Synchronizujemy zmiany SQL z sesją JPA i czyścimy cache L1, 
+        // aby finałowe delete nie widziało już starych powiązań (np. z tokenami).
+        entityManager.flush();
+        entityManager.clear();
+
+        // --- 4. FINALNE USUNIĘCIE ---
+        User cleanUser = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+                
+        userRepository.delete(cleanUser);
+        userRepository.flush();
     }
 
     @Override

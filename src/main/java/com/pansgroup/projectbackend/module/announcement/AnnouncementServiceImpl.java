@@ -16,6 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.context.event.EventListener;
+import com.pansgroup.projectbackend.module.user.event.UserDeletedEvent;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import java.io.IOException;
 import java.util.*;
@@ -40,6 +44,9 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     private final AnnouncementAttachmentRepository attachmentRepository;
     private final StudentGroupRepository studentGroupRepository;
     private final UserRepository userRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Value("${app.upload.base-url:/api/announcements/attachments}")
     private String attachmentBaseUrl;
@@ -599,5 +606,23 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                     .map(a -> mapToDto(a, currentUser, currentRole, readByCurrentUser, readCountByAnnouncement))
                     .toList();
         }
+    }
+
+    @EventListener
+    @Transactional
+    public void onUserDeleted(UserDeletedEvent event) {
+        Long userId = event.getUser().getId();
+        
+        // 1. Wyczyszczenie odczytów ogłoszeń przez tego użytkownika
+        entityManager.createQuery("DELETE FROM AnnouncementReadConfirmation r WHERE r.reader.id = :userId")
+                .setParameter("userId", userId)
+                .executeUpdate();
+
+        // 2. Usunięcie ogłoszeń (wraz z załącznikami i listą czytelników) autorstwa tego użytkownika
+        List<Announcement> userAnnouncements = entityManager.createQuery("SELECT a FROM Announcement a WHERE a.author.id = :userId", Announcement.class)
+                .setParameter("userId", userId)
+                .getResultList();
+                
+        announcementRepository.deleteAll(userAnnouncements);
     }
 }

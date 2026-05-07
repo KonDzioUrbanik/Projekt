@@ -3,6 +3,7 @@ package com.pansgroup.projectbackend.module.note;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -36,6 +37,12 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
     // Najpopularniejsze notatki publiczne
     @Query("SELECT n FROM Note n WHERE n.visibility = 'PUBLIC' ORDER BY n.viewCount DESC")
     List<Note> findTopPublicNotes();
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(value = "DELETE FROM note_shared_with WHERE user_id = :userId", nativeQuery = true)
+    void deleteUserFromSharedNotes(@Param("userId") Long userId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(value = "DELETE FROM note_favorites WHERE user_id = :userId", nativeQuery = true)
+    void deleteUserFromFavoriteNotes(@Param("userId") Long userId);
 }
-
-

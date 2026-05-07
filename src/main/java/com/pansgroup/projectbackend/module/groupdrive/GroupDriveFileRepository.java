@@ -45,4 +45,11 @@ public interface GroupDriveFileRepository extends JpaRepository<GroupDriveFile, 
     void incrementDownloadCount(@Param("id") Long id);
 
     List<GroupDriveFile> findByIsDeletedTrueAndDeletedAtBefore(java.time.LocalDateTime cutoffDate);
+
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
+    @org.springframework.data.jpa.repository.Query("UPDATE GroupDriveFile f SET f.isDeleted = true, f.deletedAt = :now WHERE f.uploader.id = :userId AND f.isDeleted = false")
+    int softDeleteByUploaderId(@Param("userId") Long userId, @Param("now") java.time.LocalDateTime now);
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
+    @org.springframework.data.jpa.repository.Query("UPDATE GroupDriveFile f SET f.uploader = null WHERE f.uploader.id = :userId")
+    void detachUploader(@org.springframework.data.repository.query.Param("userId") Long userId);
 }
