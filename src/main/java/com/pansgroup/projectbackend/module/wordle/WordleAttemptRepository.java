@@ -29,4 +29,12 @@ public interface WordleAttemptRepository extends JpaRepository<WordleAttempt, Lo
              )
            """)
     long countCurrentStreak(User user, LocalDate since);
+
+    java.util.List<WordleAttempt> findByUser(User user);
+
+    @Query("SELECT new com.pansgroup.projectbackend.module.wordle.dto.WordleRankingDto(a.user.firstName, a.user.lastName, COUNT(a)) " +
+           "FROM WordleAttempt a WHERE a.solved = true GROUP BY a.user.id, a.user.firstName, a.user.lastName ORDER BY COUNT(a) DESC")
+    java.util.List<com.pansgroup.projectbackend.module.wordle.dto.WordleRankingDto> findTopPlayers(org.springframework.data.domain.Pageable pageable);
+
+    void deleteByGameDate(LocalDate gameDate);
 }

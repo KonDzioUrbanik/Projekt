@@ -36,19 +36,23 @@ public class WordleServiceImpl implements WordleService {
     private static final int MAX_ATTEMPTS = 6;
     private static final int WORD_LENGTH = 5;
 
-    /** URL do pobrania polskiego słownika (SJP-based, GitHub) */
-    private static final String WORD_LIST_URL =
+    /** URL do pobrania wszystkich polskich słów (SJP-based, GitHub) - jako poprawne zgadnięcia */
+    private static final String ALL_WORDS_URL =
             "https://raw.githubusercontent.com/kkrypt0nn/wordlists/main/wordlists/languages/polish.txt";
+
+    /** URL do pobrania kuratorowanych 5-literowych słów (Slowotok, GitHub) - jako hasła dnia */
+    private static final String DAILY_WORDS_URL =
+            "https://raw.githubusercontent.com/MarekRudzki/Slowotok/master/assets/5_letter_words.txt";
 
     private final WordleWordRepository wordRepo;
     private final WordleAttemptRepository attemptRepo;
     private final UserRepository userRepo;
     private final ObjectMapper objectMapper;
 
-    /** Pula 5-literowych polskich słów (lowercase, bez nazw własnych) */
+    /** Pula 5-literowych polskich słów (lowercase, bez nazw własnych) - używana do losowania hasła dnia */
     private List<String> wordPool = new ArrayList<>();
 
-    /** Zbiór wszystkich akceptowanych słów (do walidacji prób) */
+    /** Zbiór wszystkich akceptowanych słów (do walidacji prób) - szersza baza słów */
     private Set<String> validWords = new HashSet<>();
 
     /** Data uruchomienia gry — do obliczania numeru gry */
@@ -68,64 +72,93 @@ public class WordleServiceImpl implements WordleService {
 
     @PostConstruct
     public void init() {
-        loadWordPool();
+        loadDictionaries();
         ensureTodayWord();
     }
 
-    /**
-     * Pobiera listę polskich 5-literowych słów z kuratorowanego źródła (Slowotok).
-     * Lista zawiera wyłącznie polskie słowa pospolite — bez nazw własnych.
-     * Fallback: wbudowana lista, gdyby pobieranie zawiodło.
-     */
-    private void loadWordPool() {
+    private void loadDictionaries() {
+        HttpClient client = HttpClient.newBuilder()
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .build();
+
+        // 1. Załaduj hasła dnia (Slowotok)
         try {
-            log.info("[Wordle] Pobieranie listy słów z {}...", WORD_LIST_URL);
-            HttpClient client = HttpClient.newBuilder()
-                    .followRedirects(HttpClient.Redirect.NORMAL)
-                    .build();
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(WORD_LIST_URL))
-                    .GET()
-                    .build();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() == 200) {
-                Set<String> fiveLetterWords = new LinkedHashSet<>();
-
-                try (BufferedReader reader = new BufferedReader(
-                        new java.io.StringReader(response.body()))) {
+            log.info("[Wordle] Pobieranie puli haseł dnia z {}...", DAILY_WORDS_URL);
+            HttpRequest reqDaily = HttpRequest.newBuilder().uri(URI.create(DAILY_WORDS_URL)).GET().build();
+            HttpResponse<String> resDaily = client.send(reqDaily, HttpResponse.BodyHandlers.ofString());
+            if (resDaily.statusCode() == 200) {
+                Set<String> dailyWords = new LinkedHashSet<>();
+                try (BufferedReader reader = new BufferedReader(new java.io.StringReader(resDaily.body()))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         String w = line.trim().toLowerCase();
-                        // Akceptuj tylko czyste polskie słowa o odpowiedniej długości
-                        if (w.isEmpty() || w.contains("-") || w.contains(" ")) continue;
-                        if (!w.matches("[a-ząćęłńóśźż]+")) continue;
+                        if (w.isEmpty() || w.contains("-") || w.contains(" ") || !w.matches("[a-ząćęłńóśźż]+")) continue;
                         if (w.length() == WORD_LENGTH) {
-                            fiveLetterWords.add(w);
+                            dailyWords.add(w);
                         }
                     }
                 }
-
-                validWords = new HashSet<>(fiveLetterWords);
-                wordPool = new ArrayList<>(fiveLetterWords);
-                log.info("[Wordle] Załadowano {} polskich 5-literowych słów.", wordPool.size());
+                wordPool = new ArrayList<>(dailyWords);
+                log.info("[Wordle] Załadowano {} haseł dnia.", wordPool.size());
             } else {
-                log.warn("[Wordle] Nieudane pobieranie słów (HTTP {}). Użycie listy awaryjnej.", response.statusCode());
-                loadFallbackWords();
+                log.warn("[Wordle] Błąd pobierania haseł dnia (HTTP {}).", resDaily.statusCode());
             }
         } catch (Exception e) {
-            log.warn("[Wordle] Błąd pobierania słów: {}. Użycie listy awaryjnej.", e.getMessage());
-            loadFallbackWords();
+            log.warn("[Wordle] Wyjątek podczas pobierania haseł dnia: {}", e.getMessage());
         }
 
-        if (wordPool.isEmpty()) {
+        // 2. Załaduj słownik walidacji (kkrypt0nn)
+        try {
+            log.info("[Wordle] Pobieranie słownika poprawnych zgadnięć z {}...", ALL_WORDS_URL);
+            HttpRequest reqAll = HttpRequest.newBuilder().uri(URI.create(ALL_WORDS_URL)).GET().build();
+            HttpResponse<String> resAll = client.send(reqAll, HttpResponse.BodyHandlers.ofString());
+            if (resAll.statusCode() == 200) {
+                Set<String> allFiveLetterWords = new HashSet<>();
+                try (BufferedReader reader = new BufferedReader(new java.io.StringReader(resAll.body()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        String w = line.trim().toLowerCase();
+                        if (w.isEmpty() || w.contains("-") || w.contains(" ") || !w.matches("[a-ząćęłńóśźż]+")) continue;
+                        if (w.length() == WORD_LENGTH) {
+                            allFiveLetterWords.add(w);
+                        }
+                    }
+                }
+                validWords = allFiveLetterWords;
+                log.info("[Wordle] Załadowano {} poprawnych zgadnięć.", validWords.size());
+            } else {
+                log.warn("[Wordle] Błąd pobierania słownika (HTTP {}).", resAll.statusCode());
+            }
+        } catch (Exception e) {
+            log.warn("[Wordle] Wyjątek podczas pobierania słownika: {}", e.getMessage());
+        }
+
+        // Odfiltruj pulę haseł: zostaw tylko te, które znajdują się też w głównym słowniku
+        if (!wordPool.isEmpty() && !validWords.isEmpty()) {
+            List<String> intersection = new ArrayList<>();
+            for (String w : wordPool) {
+                if (validWords.contains(w)) {
+                    intersection.add(w);
+                }
+            }
+            wordPool = intersection;
+            log.info("[Wordle] Po filtracji z głównym słownikiem zostało {} haseł dnia.", wordPool.size());
+        }
+
+        // Dodaj pozostałą wordPool do validWords na wszelki wypadek
+        if (!wordPool.isEmpty()) {
+            validWords.addAll(wordPool);
+        }
+
+        // Fallback w razie awarii sieci lub wyzerowania puli
+        if (wordPool.isEmpty() || validWords.isEmpty()) {
             loadFallbackWords();
         }
     }
 
     /** Lista awaryjna gdyby internet zawiódł */
     private void loadFallbackWords() {
-        wordPool = new ArrayList<>(Arrays.asList(
+        List<String> fallback = Arrays.asList(
                 "stary", "walka", "piąty", "motyw", "droga", "kolor", "praca", "świat", "kilka",
                 "firma", "seria", "model", "forma", "klasa", "kryzys", "nauka", "pokój", "punkt",
                 "miłość", "efekt", "wyraz", "obraz", "burza", "książ", "zamek", "taniec", "obrót",
@@ -135,11 +168,11 @@ public class WordleServiceImpl implements WordleService {
                 "chmur", "płyta", "kawał", "ulica", "młody", "cichy", "mocny", "jasny", "biały",
                 "czarn", "numer", "adres", "salon", "hotel", "miast", "osoba", "pomoc", "wiara",
                 "siłow", "dźwię", "piętr", "butel", "liczy", "tytuł", "dział", "płaszcz"
-        ));
-        // Filtruj do dokładnie 5 liter
-        wordPool = wordPool.stream().filter(w -> w.length() == WORD_LENGTH).collect(Collectors.toList());
-        validWords = new HashSet<>(wordPool);
-        log.info("[Wordle] Załadowano {} słów z listy awaryjnej.", wordPool.size());
+        );
+        List<String> filtered = fallback.stream().filter(w -> w.length() == WORD_LENGTH).collect(Collectors.toList());
+        if (wordPool.isEmpty()) wordPool = new ArrayList<>(filtered);
+        if (validWords.isEmpty()) validWords = new HashSet<>(filtered);
+        log.info("[Wordle] Użyto słów z listy awaryjnej.");
     }
 
     // ─── Scheduler ───────────────────────────────────────────────────
@@ -278,7 +311,28 @@ public class WordleServiceImpl implements WordleService {
         // Oblicz streak — ile dni z rzędu rozwiązano (wstecz od dziś)
         long streak = calculateStreak(user);
 
-        return new WordleStatsDto(played, won, winPct, streak, streak);
+        // Oblicz dystrybucję zgadnięć
+        Map<Integer, Integer> distribution = new HashMap<>();
+        for (int i = 1; i <= MAX_ATTEMPTS; i++) distribution.put(i, 0);
+
+        List<WordleAttempt> allAttempts = attemptRepo.findByUser(user);
+        for (WordleAttempt a : allAttempts) {
+            if (a.isSolved()) {
+                List<String> guesses = parseGuesses(a.getGuesses());
+                int attempts = guesses.size();
+                if (attempts > 0 && attempts <= MAX_ATTEMPTS) {
+                    distribution.put(attempts, distribution.get(attempts) + 1);
+                }
+            }
+        }
+
+        return new WordleStatsDto(played, won, winPct, streak, streak, distribution);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<com.pansgroup.projectbackend.module.wordle.dto.WordleRankingDto> getRanking() {
+        return attemptRepo.findTopPlayers(org.springframework.data.domain.PageRequest.of(0, 10));
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────
@@ -374,7 +428,8 @@ public class WordleServiceImpl implements WordleService {
         return Map.of(
                 "currentWord", todayWord != null ? todayWord.getWord() : "BRAK",
                 "gameDate", today.toString(),
-                "wordPoolSize", wordPool.size()
+                "wordPoolSize", wordPool.size(),
+                "validWordsSize", validWords.size()
         );
     }
 
@@ -386,9 +441,11 @@ public class WordleServiceImpl implements WordleService {
             return Map.of("error", "Pula słów jest pusta!");
         }
 
-        // Usuń stare hasło dnia
+        // Usuń stare hasło dnia oraz wszystkie dotychczasowe próby dzisiejszej gry
         wordRepo.findByGameDate(today).ifPresent(wordRepo::delete);
+        attemptRepo.deleteByGameDate(today);
         wordRepo.flush();
+        attemptRepo.flush();
 
         // Wylosuj nowe
         String chosen = wordPool.get(ThreadLocalRandom.current().nextInt(wordPool.size())).toUpperCase();
