@@ -47,6 +47,11 @@ public class WordleController {
         return wordleService.getStats();
     }
 
+    @GetMapping("/ranking")
+    public java.util.List<com.pansgroup.projectbackend.module.wordle.dto.WordleRankingDto> getRanking() {
+        return wordleService.getRanking();
+    }
+
     // ─── Admin ───────────────────────────────────────────────────────
 
     @GetMapping("/admin/info")

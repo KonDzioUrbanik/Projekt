@@ -5,5 +5,6 @@ public record WordleStatsDto(
     long gamesWon,
     int winPercentage,
     long currentStreak,
-    long maxStreak
+    long maxStreak,
+    java.util.Map<Integer, Integer> guessDistribution
 ) {}

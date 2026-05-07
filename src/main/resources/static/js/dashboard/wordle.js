@@ -19,6 +19,7 @@
     // Modals
     const helpModal   = document.getElementById('wordleHelpModal');
     const statsModal  = document.getElementById('wordleStatsModal');
+    const rankingModal = document.getElementById('wordleRankingModal');
 
     // ─── State ───────────────────────────────────────────
     let currentRow    = 0;
@@ -39,6 +40,7 @@
 
     // ─── Board builder ───────────────────────────────────
     function buildBoard() {
+        if (!board) return;
         board.innerHTML = '';
         for (let r = 0; r < MAX_ATTEMPTS; r++) {
             const row = document.createElement('div');
@@ -57,6 +59,8 @@
 
     // ─── Keyboard ────────────────────────────────────────
     function bindKeyboard() {
+        if (!keyboard) return;
+
         // On-screen keyboard
         keyboard.addEventListener('click', (e) => {
             const btn = e.target.closest('button[data-key]');
@@ -244,6 +248,7 @@
 
     // ─── Load game from API ──────────────────────────────
     async function loadGame() {
+        if (!board) return;
         try {
             const res = await fetch('/api/wordle/today');
             if (!res.ok) return;
@@ -331,14 +336,23 @@
         });
 
         // Stats
-        document.getElementById('wordleStatsBtn').addEventListener('click', openStatsModal);
+        const statsBtn = document.getElementById('wordleStatsBtn');
+        if (statsBtn) statsBtn.addEventListener('click', openStatsModal);
         document.getElementById('closeStatsModal').addEventListener('click', () => {
             statsModal.classList.remove('active');
             statsModal.setAttribute('aria-hidden', 'true');
         });
 
+        // Ranking
+        const rankingBtn = document.getElementById('wordleRankingBtn');
+        if (rankingBtn) rankingBtn.addEventListener('click', openRankingModal);
+        document.getElementById('closeRankingModal').addEventListener('click', () => {
+            rankingModal.classList.remove('active');
+            rankingModal.setAttribute('aria-hidden', 'true');
+        });
+
         // Close on overlay click
-        [helpModal, statsModal].forEach(modal => {
+        [helpModal, statsModal, rankingModal].forEach(modal => {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
                     modal.classList.remove('active');
@@ -357,6 +371,52 @@
                 document.getElementById('statWon').textContent     = stats.gamesWon;
                 document.getElementById('statWinPct').textContent   = stats.winPercentage;
                 document.getElementById('statStreak').textContent   = stats.currentStreak;
+
+                // Render distribution
+                const distContainer = document.getElementById('guessDistributionContainer');
+                if (distContainer && stats.guessDistribution) {
+                    distContainer.innerHTML = '';
+                    let maxCount = 0;
+                    for (let i = 1; i <= MAX_ATTEMPTS; i++) {
+                        if (stats.guessDistribution[i] > maxCount) maxCount = stats.guessDistribution[i];
+                    }
+                    for (let i = 1; i <= MAX_ATTEMPTS; i++) {
+                        const count = stats.guessDistribution[i] || 0;
+                        const widthPct = maxCount > 0 ? Math.max(5, Math.round((count / maxCount) * 100)) : 5;
+                        
+                        const row = document.createElement('div');
+                        row.style.display = 'flex';
+                        row.style.alignItems = 'center';
+                        row.style.gap = '0.5rem';
+
+                        const numLabel = document.createElement('div');
+                        numLabel.textContent = i;
+                        numLabel.style.width = '1rem';
+                        numLabel.style.fontWeight = 'bold';
+                        numLabel.style.color = 'var(--text-secondary)';
+
+                        const barContainer = document.createElement('div');
+                        barContainer.style.flex = '1';
+                        barContainer.style.background = 'var(--bg-step)';
+                        barContainer.style.borderRadius = '4px';
+
+                        const bar = document.createElement('div');
+                        bar.style.width = widthPct + '%';
+                        bar.style.background = count > 0 ? '#16a34a' : '#4b5563';
+                        bar.style.color = '#fff';
+                        bar.style.fontSize = '0.8rem';
+                        bar.style.padding = '0.1rem 0.4rem';
+                        bar.style.borderRadius = '4px';
+                        bar.style.textAlign = 'right';
+                        bar.style.fontWeight = 'bold';
+                        bar.textContent = count;
+
+                        barContainer.appendChild(bar);
+                        row.appendChild(numLabel);
+                        row.appendChild(barContainer);
+                        distContainer.appendChild(row);
+                    }
+                }
             }
         } catch (err) {
             console.error('[Wordle] Błąd statystyk:', err);
@@ -364,11 +424,77 @@
         statsModal.classList.add('active');
         statsModal.setAttribute('aria-hidden', 'false');
     }
+
+    async function openRankingModal() {
+        try {
+            const res = await fetch('/api/wordle/ranking');
+            if (res.ok) {
+                const ranking = await res.json();
+                const list = document.getElementById('wordleRankingList');
+                list.innerHTML = '';
+                
+                if (ranking.length === 0) {
+                    list.innerHTML = '<li style="text-align: center; color: var(--text-secondary);">Brak wyników. Zagraj, aby być pierwszym!</li>';
+                } else {
+                    ranking.forEach((player, idx) => {
+                        const initial = player.lastName ? player.lastName.charAt(0) + '.' : '';
+                        const name = player.firstName + ' ' + initial;
+                        
+                        const li = document.createElement('li');
+                        li.style.display = 'flex';
+                        li.style.justifyContent = 'space-between';
+                        li.style.padding = '0.5rem 0';
+                        li.style.borderBottom = '1px solid var(--border-color)';
+                        
+                        let medal = '';
+                        if (idx === 0) medal = '🥇 ';
+                        else if (idx === 1) medal = '🥈 ';
+                        else if (idx === 2) medal = '🥉 ';
+                        else medal = `<span style="display:inline-block; width:1.5rem; text-align:center;">${idx + 1}.</span> `;
+
+                        const nameSpan = document.createElement('span');
+                        nameSpan.innerHTML = `${medal} <strong>${name}</strong>`;
+                        
+                        const scoreSpan = document.createElement('span');
+                        scoreSpan.textContent = `${player.gamesWon} wygranych`;
+                        scoreSpan.style.color = '#16a34a';
+                        scoreSpan.style.fontWeight = 'bold';
+
+                        li.appendChild(nameSpan);
+                        li.appendChild(scoreSpan);
+                        list.appendChild(li);
+                    });
+                }
+            }
+        } catch (err) {
+            console.error('[Wordle] Błąd rankingu:', err);
+        }
+        rankingModal.classList.add('active');
+        rankingModal.setAttribute('aria-hidden', 'false');
+    }
     // ─── Admin panel ─────────────────────────────────────
     const adminPanel = document.getElementById('wordleAdminPanel');
     if (adminPanel) {
         loadAdminInfo();
         document.getElementById('adminRerollBtn').addEventListener('click', rerollWord);
+        
+        const revealBtn = document.getElementById('adminRevealBtn');
+        const wordSpan = document.getElementById('adminCurrentWord');
+        if (revealBtn && wordSpan) {
+            revealBtn.addEventListener('click', () => {
+                if (wordSpan.style.filter === 'none') {
+                    wordSpan.style.filter = 'blur(5px)';
+                    revealBtn.innerHTML = '<i class="fas fa-eye"></i> Pokaż';
+                } else {
+                    wordSpan.style.filter = 'none';
+                    revealBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Ukryj';
+                }
+            });
+            wordSpan.addEventListener('click', () => {
+                wordSpan.style.filter = wordSpan.style.filter === 'none' ? 'blur(5px)' : 'none';
+                revealBtn.innerHTML = wordSpan.style.filter === 'none' ? '<i class="fas fa-eye-slash"></i> Ukryj' : '<i class="fas fa-eye"></i> Pokaż';
+            });
+        }
     }
 
     async function loadAdminInfo() {
@@ -378,7 +504,10 @@
                 const data = await res.json();
                 document.getElementById('adminCurrentWord').textContent = data.currentWord;
                 document.getElementById('adminGameDate').textContent = data.gameDate;
-                document.getElementById('adminPoolSize').textContent = data.wordPoolSize + ' słów';
+                document.getElementById('adminPoolSize').textContent = data.wordPoolSize;
+                
+                const validWordsEl = document.getElementById('adminValidWordsSize');
+                if (validWordsEl) validWordsEl.textContent = data.validWordsSize || 0;
             }
         } catch (err) {
             console.error('[Wordle] Błąd ładowania info admina:', err);
