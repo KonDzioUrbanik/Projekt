@@ -31,7 +31,7 @@ public class Note {
     private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
     // === WSPÓŁDZIELENIE NOTATEK ===

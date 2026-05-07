@@ -17,6 +17,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.context.event.EventListener;
+import com.pansgroup.projectbackend.module.user.event.UserDeletedEvent;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -31,6 +35,9 @@ public class SurveyServiceImpl implements SurveyService {
     private final StudentGroupRepository studentGroupRepository;
     private final UserRepository userRepository;
     private final com.pansgroup.projectbackend.module.notification.NotificationService notificationService;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public SurveyServiceImpl(SurveyRepository surveyRepository,
                              SurveyVoteRepository surveyVoteRepository,
@@ -463,6 +470,28 @@ public class SurveyServiceImpl implements SurveyService {
 
     private boolean isStarosta(String role) {
         return "STAROSTA".equals(role);
+    }
+
+    @EventListener
+    @Transactional
+    public void onUserDeleted(UserDeletedEvent event) {
+        Long userId = event.getUser().getId();
+        
+        // 1. Usunięcie oddanych głosów użytkownika
+        entityManager.createQuery("DELETE FROM SurveyVote v WHERE v.user.id = :userId")
+                .setParameter("userId", userId)
+                .executeUpdate();
+
+        // 2. Usunięcie ankiet (i kaskadowo ich opcji/głosów) utworzonych przez użytkownika (np. starostę)
+        List<Long> surveyIds = entityManager.createQuery("SELECT s.id FROM Survey s WHERE s.author.id = :userId", Long.class)
+                .setParameter("userId", userId)
+                .getResultList();
+
+        for (Long id : surveyIds) {
+            surveyVoteRepository.deleteBySurvey_Id(id);
+            surveyOptionRepository.deleteBySurvey_Id(id);
+            surveyRepository.deleteById(id);
+        }
     }
 }
 
