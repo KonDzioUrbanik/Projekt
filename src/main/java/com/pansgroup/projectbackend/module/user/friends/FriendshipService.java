@@ -16,6 +16,7 @@ public class FriendshipService {
     private final FriendshipRepository friendshipRepository;
     private final FriendRequestRepository friendRequestRepository;
     private final UserRepository userRepository;
+    private final com.pansgroup.projectbackend.module.notification.NotificationService notificationService;
 
     @Transactional
     public void sendFriendRequest(Long senderId, Long receiverId) {
@@ -52,6 +53,13 @@ public class FriendshipService {
         request.setReceiver(receiver);
         request.setStatus(FriendRequestStatus.PENDING);
         friendRequestRepository.save(request);
+
+        notificationService.createNotification(
+                receiver,
+                com.pansgroup.projectbackend.module.notification.NotificationType.FRIEND_REQUEST,
+                sender.getFirstName() + " " + sender.getLastName() + " wysłał(a) Ci zaproszenie do znajomych.",
+                "/profile/user?userId=" + sender.getId()
+        );
     }
 
     private boolean isAdmin(User user) {

@@ -8,7 +8,9 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <meta name="view-transition" content="same-origin" />
-        <meta name="user-role" th:content="${#authorization.expression('hasRole(''ADMIN'')') ? 'ROLE_ADMIN' : 'ROLE_USER'}">
+        <!-- Rozdzielone meta dla roli użytkownika dla czytelności i uniknięcia złożonego escapingu -->
+        <meta name="user-role" sec:authorize="hasRole('ADMIN')" content="ROLE_ADMIN" />
+        <meta name="user-role" sec:authorize="!hasRole('ADMIN')" content="ROLE_USER" />
         <title layout:title-pattern="$CONTENT_TITLE - PANSportal">PANSportal</title>
 
         <link rel="icon" th:href="@{/favicon.png}" type="image/png">
@@ -24,11 +26,12 @@
         <link rel="stylesheet" th:href="@{/css/common/style.css(v=${#dates.createNow().getTime()})}">
         <link rel="stylesheet" th:href="@{/css/common/theme.css(v=${#dates.createNow().getTime()})}">
         <link rel="stylesheet" th:href="@{/css/common/global-banner.css(v=${#dates.createNow().getTime()})}">
+        <link rel="stylesheet" th:href="@{/css/common/notifications.css(v=${#dates.createNow().getTime()})}">
 
         <link rel="stylesheet" th:href="@{/css/common/welcome-modal.css(v=${#dates.createNow().getTime()})}">
-    
+
         <th:block layout:fragment="page-styles"></th:block>
-        
+
         <script>
             (function() {
                 var stored = localStorage.getItem('theme');
@@ -40,7 +43,7 @@
             })();
         </script>
     </head>
-    
+
     <body>
         <!-- Globalny baner systemowy -->
         <div th:if="${globalBannerText}" class="global-system-banner">
@@ -84,9 +87,9 @@
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                
+
                 <div class="feedback-modal-body">
-                    
+
                     <form id="feedbackForm">
                         <div class="feedback-form-group">
                             <label class="required">Typ zgłoszenia</label>
@@ -117,11 +120,11 @@
 
                         <div class="feedback-form-group">
                             <label for="feedback-title" class="required">Tytuł</label>
-                            <input 
-                                type="text" 
-                                id="feedback-title" 
+                            <input
+                                type="text"
+                                id="feedback-title"
                                 name="title"
-                                class="feedback-input" 
+                                class="feedback-input"
                                 placeholder="Krótki opis problemu"
                                 maxlength="150"
                                 required>
@@ -129,10 +132,10 @@
 
                         <div class="feedback-form-group">
                             <label for="feedback-description" class="required">Szczegółowy opis</label>
-                            <textarea 
-                                id="feedback-description" 
+                            <textarea
+                                id="feedback-description"
                                 name="description"
-                                class="feedback-textarea" 
+                                class="feedback-textarea"
                                 placeholder="Opisz szczegółowo zaistniały problem, uwzględniając: co się stało, na której stronie wystąpił problem, jakie kroki poprzedzały błąd"
                                 maxlength="1000"
                                 required></textarea>
@@ -143,27 +146,27 @@
 
                         <div class="feedback-form-group">
                             <label for="feedback-email">Email kontaktowy (opcjonalnie)</label>
-                            <input 
-                                type="email" 
-                                id="feedback-email" 
+                            <input
+                                type="email"
+                                id="feedback-email"
                                 name="email"
-                                class="feedback-input" 
+                                class="feedback-input"
                                 placeholder="Adres e-mail (opcjonalnie, jeśli oczekujesz odpowiedzi)">
                         </div>
 
                         <div class="feedback-form-group">
                             <label for="feedback-file">Załącznik (opcjonalnie)</label>
-                            <input 
-                                type="file" 
-                                id="feedback-file" 
+                            <input
+                                type="file"
+                                id="feedback-file"
                                 name="file"
-                                class="feedback-input" 
+                                class="feedback-input"
                                 accept=".jpg,.jpeg,.png,.pdf">
                             <small style="display:block; margin-top:0.25rem; color:var(--text-muted); font-size:0.8rem;">
                                 Maksymalny rozmiar pliku: 5MB. Dozwolone formaty: Obrazy, PDF.
                             </small>
                         </div>
-                        
+
                         <input type="text" name="website" style="display:none !important" tabindex="-1" autocomplete="off">
                     </form>
                 </div>
@@ -182,12 +185,16 @@
         <script th:src="@{/js/common/utils.js(v=${#dates.createNow().getTime()})}"></script>
         <script th:src="@{/js/common/theme.js(v=${#dates.createNow().getTime()})}"></script>
         <script th:src="@{/js/common/security-monitor.js(v=${#dates.createNow().getTime()})}"></script>
-        <script th:src="@{/js/common/user-menu.js(v=${#dates.createNow().getTime()})}"></script> 
+        <script th:src="@{/js/common/user-menu.js(v=${#dates.createNow().getTime()})}"></script>
         <script th:src="@{/js/dashboard/sidebar.js(v=${#dates.createNow().getTime()})}" defer></script>
         <script th:src="@{/js/common/feedback-modal.js(v=${#dates.createNow().getTime()})}" defer></script>
         <script th:src="@{/js/common/breadcrumbs.js(v=${#dates.createNow().getTime()})}" defer></script>
 
         <script th:src="@{/js/common/app-state.js(v=${#dates.createNow().getTime()})}" defer></script>
+
+        <!-- Global STOMP and Notifications -->
+        <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+        <script th:src="@{/js/common/notification-bell.js(v=${#dates.createNow().getTime()})}" defer></script>
 
         <!-- Welcome Modal -->
         <div id="welcomeModalOverlay" class="welcome-modal-overlay">

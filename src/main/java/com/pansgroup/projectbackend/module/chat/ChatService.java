@@ -32,6 +32,7 @@ public class ChatService {
     private final ChatMessageRepository messageRepo;
     private final UserRepository userRepository;
     private final ChatCryptoService crypto;
+    private final com.pansgroup.projectbackend.module.notification.NotificationService notificationService;
 
     // User resolution helpers
 
@@ -204,6 +205,15 @@ public class ChatService {
         msg.setContent(crypto.encrypt(cleanText));
         msg.setStatus(ChatMessage.MessageStatus.SENT);
         messageRepo.save(msg);
+
+        // Powiadomienie (tylko zeby badge na froncie mignal / zwiekszyl licznik)
+        User recipient = conv.getUserA().getId().equals(sender.getId()) ? conv.getUserB() : conv.getUserA();
+        notificationService.createNotification(
+                recipient,
+                com.pansgroup.projectbackend.module.notification.NotificationType.CHAT_MESSAGE,
+                "Nowa wiadomość od " + sender.getFirstName() + " " + sender.getLastName(),
+                "/student/chat/" + conversationId
+        );
 
         log.debug("Chat message saved: conv={} sender={}", conversationId, sender.getId());
         return toMessageDto(msg, sender);

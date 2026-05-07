@@ -162,7 +162,6 @@
     </div>
 
     <th:block layout:fragment="page-scripts">
-        <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
         <script type="module" th:src="@{/js/dashboard/chat/main.js(v=${#dates.createNow().getTime()})}"></script>
     </th:block>
 </body>

@@ -15,6 +15,7 @@ public interface UserRepository extends JpaRepository<User,Long> {
     boolean existsByNrAlbumu(Integer nrAlbumu);
     long countByStudentGroup(com.pansgroup.projectbackend.module.student.StudentGroup studentGroup);
     long countByRoleIgnoreCaseAndIsActivatedTrue(String role);
+    List<User> findByStudentGroup_Id(Long studentGroupId);
 
     @Query("SELECT u FROM User u WHERE " +
            "LOWER(u.firstName) LIKE :pattern OR " +

@@ -64,6 +64,31 @@ document.addEventListener('DOMContentLoaded', function(){
             if(response.ok){
                 const userData = await response.json();
                 
+                // Fetch notification settings
+                try {
+                    const settingsResponse = await fetch('/api/settings/notifications', {
+                        method: 'GET',
+                        headers: {'Accept': 'application/json'},
+                        credentials: 'include'
+                    });
+                    if (settingsResponse.ok) {
+                        const settingsData = await settingsResponse.json();
+                        const notifyForum = document.getElementById('notifyForum');
+                        const notifySurveys = document.getElementById('notifySurveys');
+                        const notifyChat = document.getElementById('notifyChat');
+                        const notifyFriends = document.getElementById('notifyFriends');
+                        const notifyAnnouncements = document.getElementById('notifyAnnouncements');
+                        
+                        if (notifyForum) notifyForum.checked = settingsData.notifyForum;
+                        if (notifySurveys) notifySurveys.checked = settingsData.notifySurveys;
+                        if (notifyChat) notifyChat.checked = settingsData.notifyChat;
+                        if (notifyFriends) notifyFriends.checked = settingsData.notifyFriends;
+                        if (notifyAnnouncements) notifyAnnouncements.checked = settingsData.notifyAnnouncements;
+                    }
+                } catch(err) {
+                    console.error('Błąd pobierania ustawień powiadomień:', err);
+                }
+
                 if(userData.nickName) document.getElementById('nickName').value = userData.nickName;
                 if(userData.phoneNumber) {
                     const phoneStr = userData.phoneNumber.replace(/\s/g, ''); // usuń ewentualne spacje z bazy
@@ -689,7 +714,28 @@ document.addEventListener('DOMContentLoaded', function(){
                         body: JSON.stringify(profileData)
                     });
 
-                    if(response.ok){
+                    // Zapis ustawień powiadomień
+                    const notifyForum = document.getElementById('notifyForum')?.checked ?? true;
+                    const notifySurveys = document.getElementById('notifySurveys')?.checked ?? true;
+                    const notifyChat = document.getElementById('notifyChat')?.checked ?? true;
+                    const notifyFriends = document.getElementById('notifyFriends')?.checked ?? true;
+                    const notifyAnnouncements = document.getElementById('notifyAnnouncements')?.checked ?? true;
+
+                    const settingsData = {
+                        notifyForum, notifySurveys, notifyChat, notifyFriends, notifyAnnouncements
+                    };
+
+                    const settingsResponse = await fetch('/api/settings/notifications', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify(settingsData)
+                    });
+
+                    if(response.ok && settingsResponse.ok){
                         // Obsługa Awatara (Upload / Delete)
                         try {
                             if (shouldDeleteAvatar) {

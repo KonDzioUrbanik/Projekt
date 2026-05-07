@@ -79,4 +79,6 @@ public class User {
     @Column(nullable = false, columnDefinition = "bigint default 0")
     private Long usedStorage = 0L;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private com.pansgroup.projectbackend.module.notification.NotificationSettings notificationSettings;
 }

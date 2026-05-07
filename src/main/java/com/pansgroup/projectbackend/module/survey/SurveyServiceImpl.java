@@ -30,17 +30,20 @@ public class SurveyServiceImpl implements SurveyService {
     private final SurveyOptionRepository surveyOptionRepository;
     private final StudentGroupRepository studentGroupRepository;
     private final UserRepository userRepository;
+    private final com.pansgroup.projectbackend.module.notification.NotificationService notificationService;
 
     public SurveyServiceImpl(SurveyRepository surveyRepository,
                              SurveyVoteRepository surveyVoteRepository,
                              SurveyOptionRepository surveyOptionRepository,
                              StudentGroupRepository studentGroupRepository,
-                             UserRepository userRepository) {
+                             UserRepository userRepository,
+                             com.pansgroup.projectbackend.module.notification.NotificationService notificationService) {
         this.surveyRepository = surveyRepository;
         this.surveyVoteRepository = surveyVoteRepository;
         this.surveyOptionRepository = surveyOptionRepository;
         this.studentGroupRepository = studentGroupRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -151,6 +154,25 @@ public class SurveyServiceImpl implements SurveyService {
         }
 
         Survey saved = surveyRepository.save(survey);
+
+        // Powiadomienia
+        if (!saved.isGlobalScope() && saved.getTargetGroup() != null) {
+            List<User> groupMembers = userRepository.findByStudentGroup_Id(saved.getTargetGroup().getId());
+            String message = currentUser.getFirstName() + " " + currentUser.getLastName() + " utworzył(a) nową ankietę: " + saved.getTitle();
+            String url = "/student/surveys"; 
+
+            for (User member : groupMembers) {
+                if (!Objects.equals(member.getId(), currentUser.getId())) {
+                    notificationService.createNotification(
+                            member,
+                            com.pansgroup.projectbackend.module.notification.NotificationType.SURVEY_NEW,
+                            message,
+                            url
+                    );
+                }
+            }
+        }
+
         return mapResponses(List.of(saved), currentUser, false).get(0);
     }
 
