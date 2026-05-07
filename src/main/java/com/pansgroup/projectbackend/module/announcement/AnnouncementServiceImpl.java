@@ -40,6 +40,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     private final AnnouncementAttachmentRepository attachmentRepository;
     private final StudentGroupRepository studentGroupRepository;
     private final UserRepository userRepository;
+    private final com.pansgroup.projectbackend.module.notification.NotificationService notificationService;
 
     @Value("${app.upload.base-url:/api/announcements/attachments}")
     private String attachmentBaseUrl;
@@ -48,12 +49,14 @@ public class AnnouncementServiceImpl implements AnnouncementService {
             AnnouncementReadConfirmationRepository readConfirmationRepository,
             AnnouncementAttachmentRepository attachmentRepository,
             StudentGroupRepository studentGroupRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            com.pansgroup.projectbackend.module.notification.NotificationService notificationService) {
         this.announcementRepository = announcementRepository;
         this.readConfirmationRepository = readConfirmationRepository;
         this.attachmentRepository = attachmentRepository;
         this.studentGroupRepository = studentGroupRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     // ── Create ──────────────────────────────────────────────────────────────────
@@ -77,6 +80,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
         Announcement saved = announcementRepository.save(buildAnnouncement(dto, currentUser, group, null));
         saveAttachments(saved, files);
+        notifyGroupMembers(group, currentUser, saved);
         return mapAnnouncementsForUser(List.of(saved), currentUser).get(0);
     }
 
@@ -95,6 +99,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                 Announcement saved = announcementRepository
                         .save(buildAnnouncement(dto, adminUser, group, broadcastKey));
                 saveAttachments(saved, files); // Teraz przypisujemy załączniki do KAŻDEJ grupy
+                notifyGroupMembers(group, adminUser, saved);
                 if (firstSaved == null) {
                     firstSaved = saved;
                 }
@@ -119,12 +124,28 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         for (StudentGroup group : targetGroups) {
             Announcement saved = announcementRepository.save(buildAnnouncement(dto, adminUser, group, null));
             saveAttachments(saved, files); // Przypisujemy do każdej wybranej grupy
+            notifyGroupMembers(group, adminUser, saved);
             if (firstSaved == null) {
                 firstSaved = saved;
             }
         }
 
         return mapAnnouncementsForUser(List.of(firstSaved), adminUser).get(0);
+    }
+
+    private void notifyGroupMembers(StudentGroup group, User author, Announcement saved) {
+        List<User> members = userRepository.findByStudentGroup_Id(group.getId());
+        String message = author.getFirstName() + " " + author.getLastName() + " dodał(a) nowe ogłoszenie: " + saved.getTitle();
+        for (User member : members) {
+            if (!Objects.equals(member.getId(), author.getId())) {
+                notificationService.createNotification(
+                        member,
+                        com.pansgroup.projectbackend.module.notification.NotificationType.ANNOUNCEMENT,
+                        message,
+                        "/student/announcements"
+                );
+            }
+        }
     }
 
     private void saveAttachments(Announcement announcement, List<MultipartFile> files) {

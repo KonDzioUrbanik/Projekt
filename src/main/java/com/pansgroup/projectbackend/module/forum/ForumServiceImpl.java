@@ -46,6 +46,7 @@ public class ForumServiceImpl implements ForumService {
     private final ForumCommentAttachmentRepository forumCommentAttachmentRepository;
     private final UserRepository userRepository;
     private final StudentGroupRepository studentGroupRepository;
+    private final com.pansgroup.projectbackend.module.notification.NotificationService notificationService;
 
     public ForumServiceImpl(ForumThreadRepository forumThreadRepository,
                             ForumCommentRepository forumCommentRepository,
@@ -54,7 +55,8 @@ public class ForumServiceImpl implements ForumService {
                             ForumThreadAttachmentRepository forumThreadAttachmentRepository,
                             ForumCommentAttachmentRepository forumCommentAttachmentRepository,
                             UserRepository userRepository,
-                            StudentGroupRepository studentGroupRepository) {
+                            StudentGroupRepository studentGroupRepository,
+                            com.pansgroup.projectbackend.module.notification.NotificationService notificationService) {
         this.forumThreadRepository = forumThreadRepository;
         this.forumCommentRepository = forumCommentRepository;
         this.forumThreadVoteRepository = forumThreadVoteRepository;
@@ -63,6 +65,7 @@ public class ForumServiceImpl implements ForumService {
         this.forumCommentAttachmentRepository = forumCommentAttachmentRepository;
         this.userRepository = userRepository;
         this.studentGroupRepository = studentGroupRepository;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -144,6 +147,35 @@ public class ForumServiceImpl implements ForumService {
         comment.setContent(cleanText(dto.content(), 2000, "Komentarz"));
         ForumComment saved = forumCommentRepository.save(comment);
         saveCommentAttachments(saved, files);
+
+        // Wysyłanie powiadomień
+        java.util.Set<User> recipientsToNotify = new java.util.HashSet<>();
+        
+        // Autor wątku
+        if (thread.getAuthor() != null && !Objects.equals(thread.getAuthor().getId(), currentUser.getId())) {
+            recipientsToNotify.add(thread.getAuthor());
+        }
+        
+        // Inni komentujący
+        if (thread.getComments() != null) {
+            for (ForumComment c : thread.getComments()) {
+                if (c.getAuthor() != null && !Objects.equals(c.getAuthor().getId(), currentUser.getId())) {
+                    recipientsToNotify.add(c.getAuthor());
+                }
+            }
+        }
+        
+        String notificationMessage = currentUser.getFirstName() + " " + currentUser.getLastName() + " dodał(a) komentarz w wątku: " + thread.getTitle();
+        String notificationUrl = "/student/forum";
+        
+        for (User recipient : recipientsToNotify) {
+            notificationService.createNotification(
+                    recipient,
+                    com.pansgroup.projectbackend.module.notification.NotificationType.FORUM_COMMENT,
+                    notificationMessage,
+                    notificationUrl
+            );
+        }
 
         ForumThread refreshed = findThread(threadId);
         return mapThread(refreshed, currentUser);
