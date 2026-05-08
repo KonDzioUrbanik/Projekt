@@ -22,6 +22,8 @@ public class AdminSystemResourcesService {
     private final UserRepository userRepository;
     private final AnnouncementAttachmentRepository attachmentRepository;
     private final SystemResourceStatsRepository statsRepository;
+    private final com.pansgroup.projectbackend.module.groupdrive.GroupDriveFileRepository groupDriveFileRepository;
+    private final com.pansgroup.projectbackend.module.student.StudentGroupRepository studentGroupRepository;
 
     private SystemResourceStats cachedStats;
 
@@ -43,6 +45,44 @@ public class AdminSystemResourcesService {
         log.info("Tworzenie dziennego snapshotu zasobów...");
         SystemResourceStats stats = calculateStats();
         statsRepository.save(stats);
+        
+        // Przy okazji snapshotu wykonajmy synchronizację kwot, aby uniknąć dryfu danych
+        performFullQuotaSync();
+    }
+
+    /**
+     * Re-calculates usedStorage for all users and groups based on actual active files.
+     * Fixes discrepancies where used_storage in users table doesn't match sum of files.
+     */
+    @Transactional
+    public void performFullQuotaSync() {
+        log.info("Rozpoczynanie pełnej synchronizacji kwot dyskowych...");
+        
+        // 1. Sync for all users
+        List<com.pansgroup.projectbackend.module.user.User> allUsers = userRepository.findAll();
+        for (com.pansgroup.projectbackend.module.user.User user : allUsers) {
+            Long actualSize = groupDriveFileRepository.sumSizeByUploaderAndDeletedFalse(user.getId());
+            long newSize = (actualSize != null) ? actualSize : 0L;
+            if (user.getUsedStorage() != newSize) {
+                log.info("Sync User {}: {} -> {}", user.getEmail(), user.getUsedStorage(), newSize);
+                user.setUsedStorage(newSize);
+                userRepository.save(user);
+            }
+        }
+
+        // 2. Sync for all groups
+        List<com.pansgroup.projectbackend.module.student.StudentGroup> allGroups = studentGroupRepository.findAll();
+        for (com.pansgroup.projectbackend.module.student.StudentGroup group : allGroups) {
+            Long actualSize = groupDriveFileRepository.sumSizeByGroupAndDeletedFalse(group.getId());
+            long newSize = (actualSize != null) ? actualSize : 0L;
+            if (group.getUsedStorage() != newSize) {
+                log.info("Sync Group {}: {} -> {}", group.getName(), group.getUsedStorage(), newSize);
+                group.setUsedStorage(newSize);
+                studentGroupRepository.save(group);
+            }
+        }
+        
+        log.info("Synchronizacja kwot zakończona pomyślnie.");
     }
 
     private SystemResourceStats calculateStats() {
@@ -73,8 +113,28 @@ public class AdminSystemResourcesService {
                 "SELECT COALESCE(SUM(OCTET_LENGTH(attachment_data)), 0) FROM feedback", Long.class);
             long fbSize = fbSizeRes != null ? fbSizeRes : 0L;
 
-            stats.setAttachmentLogicalSize(annSize + fbSize);
-            stats.setAttachmentCount(annCount + fbCount);
+            // 5. LOGICAL: Group Drive Files
+            long driveCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM group_drive_files WHERE is_deleted = false", Long.class);
+            Long driveSizeRes = jdbcTemplate.queryForObject(
+                "SELECT COALESCE(SUM(file_size), 0) FROM group_drive_files WHERE is_deleted = false", Long.class);
+            long driveSize = driveSizeRes != null ? driveSizeRes : 0L;
+
+            // 6. LOGICAL: Forum Attachments
+            Long forumThreadCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM portal_forum_thread_attachments", Long.class);
+            Long forumThreadSize = jdbcTemplate.queryForObject(
+                "SELECT COALESCE(SUM(file_size), 0) FROM portal_forum_thread_attachments", Long.class);
+            Long forumCommentCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM portal_forum_comment_attachments", Long.class);
+            Long forumCommentSize = jdbcTemplate.queryForObject(
+                "SELECT COALESCE(SUM(file_size), 0) FROM portal_forum_comment_attachments", Long.class);
+
+            long forumCount = (forumThreadCount != null ? forumThreadCount : 0) + (forumCommentCount != null ? forumCommentCount : 0);
+            long forumSize = (forumThreadSize != null ? forumThreadSize : 0) + (forumCommentSize != null ? forumCommentSize : 0);
+
+            stats.setAttachmentLogicalSize(annSize + fbSize + driveSize + forumSize);
+            stats.setAttachmentCount(annCount + fbCount + driveCount + forumCount);
 
             // 5. Totals
             stats.setTotalLogicalSize(stats.getAvatarLogicalSize() + stats.getAttachmentLogicalSize());
@@ -136,9 +196,21 @@ public class AdminSystemResourcesService {
             "OCTET_LENGTH(attachment_data), 'bytea' " +
             "FROM feedback WHERE attachment_data IS NOT NULL " +
             "UNION ALL " +
-            "SELECT 'Announcement' as source, announcement_id::text, 'FILE: ' || file_path, " +
-            "file_size, 'filesystem' " +
-            "FROM announcement_attachments";
+            "SELECT 'Announcement' as source, announcement_id::text, 'FILE: ' || file_name, " +
+            "file_size, 'database' " +
+            "FROM announcement_attachments" +
+            " UNION ALL " +
+            "SELECT 'Group Drive' as source, id::text, file_name, " +
+            "file_size, 'database' " +
+            "FROM group_drive_files WHERE is_deleted = false" +
+            " UNION ALL " +
+            "SELECT 'Forum Thread' as source, thread_id::text, file_name, " +
+            "file_size, 'database' " +
+            "FROM portal_forum_thread_attachments" +
+            " UNION ALL " +
+            "SELECT 'Forum Comment' as source, comment_id::text, file_name, " +
+            "file_size, 'database' " +
+            "FROM portal_forum_comment_attachments";
         
         try {
             return jdbcTemplate.queryForList(sql);
@@ -168,6 +240,15 @@ public class AdminSystemResourcesService {
             "    SELECT ga.author_id, aa.file_size, 'ATTACHMENT' \n" +
             "    FROM announcement_attachments aa \n" +
             "    JOIN group_announcements ga ON aa.announcement_id = ga.id\n" +
+            "    UNION ALL\n" +
+            "    -- Group Drive\n" +
+            "    SELECT uploader_id, file_size, 'ATTACHMENT' FROM group_drive_files WHERE is_deleted = false AND uploader_id IS NOT NULL\n" +
+            "    UNION ALL\n" +
+            "    -- Forum Threads\n" +
+            "    SELECT ft.author_id, fta.file_size, 'ATTACHMENT' FROM portal_forum_thread_attachments fta JOIN forum_threads ft ON fta.thread_id = ft.id\n" +
+            "    UNION ALL\n" +
+            "    -- Forum Comments\n" +
+            "    SELECT fc.author_id, fca.file_size, 'ATTACHMENT' FROM portal_forum_comment_attachments fca JOIN forum_comments fc ON fca.comment_id = fc.id\n" +
             ")\n" +
             "SELECT \n" +
             "    u.id, u.email, u.first_name as \"firstName\", u.last_name as \"lastName\",\n" +

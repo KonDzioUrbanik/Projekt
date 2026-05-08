@@ -57,6 +57,13 @@ public class AdminExtensionController {
         return ResponseEntity.ok().build();
     }
 
+    @org.springframework.web.bind.annotation.PostMapping("/resources/sync-quotas")
+    @Operation(summary = "Perform a full quota sync (Audit & Fix used_storage columns)")
+    public ResponseEntity<Map<String, String>> syncQuotas() {
+        resourcesService.performFullQuotaSync();
+        return ResponseEntity.ok(Map.of("message", "Synchronizacja kwot została ukończona."));
+    }
+
     @GetMapping("/resources/debug")
     @Operation(summary = "Get debug info for storage columns (bytea sizes)")
     public ResponseEntity<List<Map<String, Object>>> getDebugInfo() {
