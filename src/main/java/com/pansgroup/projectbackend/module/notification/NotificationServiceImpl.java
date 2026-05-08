@@ -4,6 +4,8 @@ import com.pansgroup.projectbackend.exception.UsernameNotFoundException;
 import com.pansgroup.projectbackend.module.notification.dto.NotificationDto;
 import com.pansgroup.projectbackend.module.user.User;
 import com.pansgroup.projectbackend.module.user.UserRepository;
+import com.pansgroup.projectbackend.module.user.event.UserDeletedEvent;
+import org.springframework.context.event.EventListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -42,6 +44,14 @@ public class NotificationServiceImpl implements NotificationService {
         } catch (Exception e) {
             log.warn("Could not drop notifications_type_check constraint: {}", e.getMessage());
         }
+    }
+
+    @EventListener
+    @Transactional
+    public void onUserDeleted(UserDeletedEvent event) {
+        Long userId = event.getUser().getId();
+        notificationRepository.deleteAllByRecipientId(userId);
+        log.info("[Notifications] Wiped all notifications for user ID={}", userId);
     }
 
     @Override

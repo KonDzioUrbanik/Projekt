@@ -9,7 +9,9 @@ public record NoteCreateDto(
         @NotBlank(message = "Treść jest wymagana.") String content,
 
         // Opcjonalne tagi przy tworzeniu
-        String tags
+        String tags,
 
+        Integer semester,
+        String subject
 ) {
 }

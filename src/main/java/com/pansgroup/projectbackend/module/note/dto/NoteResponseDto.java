@@ -12,5 +12,7 @@ public record NoteResponseDto(
         String visibility,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        String studentGroupName) {
+        String studentGroupName,
+        Integer semester,
+        String subject) {
 }

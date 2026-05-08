@@ -747,26 +747,32 @@ public class ForumServiceImpl implements ForumService {
     public void onUserDeleted(UserDeletedEvent event) {
         Long userId = event.getUser().getId();
         
-        // 1. Wyczyszczenie bezpośrednich głosów (liście) z pominięciem ładowania obiektów do pamięci
         entityManager.createQuery("DELETE FROM ForumCommentVote v WHERE v.user.id = :userId")
-                .setParameter("userId", userId)
-                .executeUpdate();
-                
+                .setParameter("userId", userId).executeUpdate();
         entityManager.createQuery("DELETE FROM ForumThreadVote v WHERE v.user.id = :userId")
-                .setParameter("userId", userId)
-                .executeUpdate();
-                
+                .setParameter("userId", userId).executeUpdate();
         entityManager.createQuery("DELETE FROM ForumThreadLike l WHERE l.user.id = :userId")
-                .setParameter("userId", userId)
-                .executeUpdate();
+                .setParameter("userId", userId).executeUpdate();
 
-        // 2. Usunięcie wszystkich komentarzy autora (własnych wpisów w cudzych i własnych wątkach)
-        List<ForumComment> userComments = forumCommentRepository.findByAuthor_IdOrderByCreatedAtDesc(userId);
-        forumCommentRepository.deleteAll(userComments);
+        entityManager.createNativeQuery("DELETE FROM portal_forum_comment_attachments WHERE comment_id IN (SELECT id FROM portal_forum_comments WHERE author_id = :userId)")
+                .setParameter("userId", userId).executeUpdate();
+        entityManager.createQuery("DELETE FROM ForumCommentVote v WHERE v.comment.id IN (SELECT c.id FROM ForumComment c WHERE c.author.id = :userId)")
+                .setParameter("userId", userId).executeUpdate();
+        entityManager.createQuery("DELETE FROM ForumComment c WHERE c.author.id = :userId")
+                .setParameter("userId", userId).executeUpdate();
 
-        // 3. Usunięcie całych wątków utworzonych przez użytkownika 
-        // (to wywoła kaskadowe usunięcie cudzych komentarzy w jego wątkach dzięki CascadeType.ALL)
-        List<ForumThread> userThreads = forumThreadRepository.findByAuthor_IdOrderByCreatedAtDesc(userId);
-        forumThreadRepository.deleteAll(userThreads);
+        entityManager.createNativeQuery("DELETE FROM portal_forum_comment_attachments WHERE comment_id IN (SELECT id FROM portal_forum_comments WHERE thread_id IN (SELECT id FROM portal_forum_threads WHERE author_id = :userId))")
+                .setParameter("userId", userId).executeUpdate();
+        entityManager.createQuery("DELETE FROM ForumCommentVote v WHERE v.comment.id IN (SELECT c.id FROM ForumComment c WHERE c.thread.id IN (SELECT t.id FROM ForumThread t WHERE t.author.id = :userId))")
+                .setParameter("userId", userId).executeUpdate();
+        entityManager.createQuery("DELETE FROM ForumComment c WHERE c.thread.id IN (SELECT t.id FROM ForumThread t WHERE t.author.id = :userId)")
+                .setParameter("userId", userId).executeUpdate();
+
+        entityManager.createNativeQuery("DELETE FROM portal_forum_thread_attachments WHERE thread_id IN (SELECT id FROM portal_forum_threads WHERE author_id = :userId)")
+                .setParameter("userId", userId).executeUpdate();
+        entityManager.createQuery("DELETE FROM ForumThreadVote v WHERE v.thread.id IN (SELECT t.id FROM ForumThread t WHERE t.author.id = :userId)")
+                .setParameter("userId", userId).executeUpdate();
+        entityManager.createQuery("DELETE FROM ForumThread t WHERE t.author.id = :userId")
+                .setParameter("userId", userId).executeUpdate();
     }
 }

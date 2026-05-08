@@ -52,6 +52,8 @@ public class NoteServiceImpl implements NoteService {
         if (dto.tags() != null) {
             note.setTags(dto.tags().trim());
         }
+        note.setSemester(dto.semester());
+        note.setSubject(dto.subject() != null ? Jsoup.clean(dto.subject(), Safelist.none()).trim() : null);
 
         Note saved = noteRepository.save(note);
         return toResponse(saved);
@@ -64,6 +66,8 @@ public class NoteServiceImpl implements NoteService {
         // Sanityzacja HTML (ochrona XSS)
         note.setTitle(Jsoup.clean(dto.title(), Safelist.none()).trim());
         note.setContent(Jsoup.clean(dto.content(), Safelist.relaxed()).trim());
+        note.setSemester(dto.semester());
+        note.setSubject(dto.subject() != null ? Jsoup.clean(dto.subject(), Safelist.none()).trim() : null);
         note.setUpdatedAt(LocalDateTime.now());
 
         Note updated = noteRepository.save(note);
@@ -289,6 +293,8 @@ public class NoteServiceImpl implements NoteService {
         copy.setAuthor(currentUser);
         copy.setVisibility(NoteVisibility.PRIVATE);
         copy.setTags(originalNote.getTags());
+        copy.setSemester(originalNote.getSemester());
+        copy.setSubject(originalNote.getSubject());
         copy.setViewCount(0);
         copy.setIsPinned(false);
 
@@ -334,7 +340,9 @@ public class NoteServiceImpl implements NoteService {
                 n.getVisibility().name(),
                 n.getCreatedAt(),
                 n.getUpdatedAt(),
-                groupName);
+                groupName,
+                n.getSemester(),
+                n.getSubject());
     }
 
     private User getCurrentUser() {

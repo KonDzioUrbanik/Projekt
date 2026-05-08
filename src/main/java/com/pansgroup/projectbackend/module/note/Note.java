@@ -30,6 +30,11 @@ public class Note {
 
     private LocalDateTime updatedAt;
 
+    private Integer semester;
+
+    @Column(length = 100)
+    private String subject;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "author_id", nullable = false)
     private User author;

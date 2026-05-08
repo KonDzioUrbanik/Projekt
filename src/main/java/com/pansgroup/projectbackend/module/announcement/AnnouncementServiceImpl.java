@@ -634,16 +634,19 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     public void onUserDeleted(UserDeletedEvent event) {
         Long userId = event.getUser().getId();
         
-        // 1. Wyczyszczenie odczytów ogłoszeń przez tego użytkownika
-        entityManager.createQuery("DELETE FROM AnnouncementReadConfirmation r WHERE r.reader.id = :userId")
+        // 1. Wyczyszczenie potwierdzeń przeczytania (moich odczytów cudzych ogłoszeń oraz cudzych odczytów moich ogłoszeń)
+        entityManager.createQuery("DELETE FROM AnnouncementReadConfirmation r WHERE r.reader.id = :userId OR r.announcement.id IN (SELECT a.id FROM Announcement a WHERE a.author.id = :userId)")
                 .setParameter("userId", userId)
                 .executeUpdate();
 
-        // 2. Usunięcie ogłoszeń (wraz z załącznikami i listą czytelników) autorstwa tego użytkownika
-        List<Announcement> userAnnouncements = entityManager.createQuery("SELECT a FROM Announcement a WHERE a.author.id = :userId", Announcement.class)
+        // 2. Usunięcie załączników ogłoszeń użytkownika
+        entityManager.createNativeQuery("DELETE FROM portal_announcement_attachments WHERE announcement_id IN (SELECT id FROM portal_announcements WHERE author_id = :userId)")
                 .setParameter("userId", userId)
-                .getResultList();
-                
-        announcementRepository.deleteAll(userAnnouncements);
+                .executeUpdate();
+
+        // 3. Usunięcie samych ogłoszeń
+        entityManager.createQuery("DELETE FROM Announcement a WHERE a.author.id = :userId")
+                .setParameter("userId", userId)
+                .executeUpdate();
     }
 }

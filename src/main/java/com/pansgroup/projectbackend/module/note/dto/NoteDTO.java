@@ -18,6 +18,8 @@ public class NoteDTO {
     private String content;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Integer semester;
+    private String subject;
 
     // Autor
     private Long authorId;
@@ -46,6 +48,8 @@ public class NoteDTO {
         dto.setContent(note.getContent());
         dto.setCreatedAt(note.getCreatedAt());
         dto.setUpdatedAt(note.getUpdatedAt());
+        dto.setSemester(note.getSemester());
+        dto.setSubject(note.getSubject());
 
         // Autor
         dto.setAuthorId(note.getAuthor().getId());
