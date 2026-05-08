@@ -15,7 +15,7 @@ public class PasswordChangeDto {
 
     @NotBlank(message = "{user.password.notBlank}")
     @Size(min = 8, message = "Hasło musi zawierać minimum 8 znaków")
-    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$", message = "Hasło musi zawierać: wielką literę, małą literę, cyfrę i znak specjalny (@$!%*?&)")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$#!%*?&])[A-Za-z\\d@$#!%*?&]{8,}$", message = "Hasło musi zawierać: wielką literę, małą literę, cyfrę i znak specjalny (@$#!%*?&)")
     private String newPassword;
 
     @NotBlank(message = "Potwierdzenie hasła jest wymagane")

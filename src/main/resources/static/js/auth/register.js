@@ -8,13 +8,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const passwordInput = document.getElementById('password');
     const passwordRequirements = document.getElementById('passwordRequirements');
 
-    // Password validation requirements
+    // wymagania walidacji hasla
     const requirements = {
         length: { regex: /.{8,}/, id: 'req-length' },
         uppercase: { regex: /[A-Z]/, id: 'req-uppercase' },
         lowercase: { regex: /[a-z]/, id: 'req-lowercase' },
         number: { regex: /\d/, id: 'req-number' },
-        special: { regex: /[@$!%*?&]/, id: 'req-special' }
+        special: { regex: /[@$#!%*?&]/, id: 'req-special' }
     };
 
     function updatePasswordRequirements() {
@@ -48,6 +48,10 @@ document.addEventListener('DOMContentLoaded', () => {
         updatePasswordRequirements();
     });
 
+    // Inicjalizacja podglądu haseł
+    initPasswordToggle('password', 'togglePassword');
+    initPasswordToggle('password-confirm', 'togglePasswordConfirm');
+
     registerForm.addEventListener('submit', async (event) => {
         event.preventDefault();
 
@@ -55,29 +59,33 @@ document.addEventListener('DOMContentLoaded', () => {
         errorMessageContainer.innerHTML = '';
         errorMessageContainer.className = "form-message";
 
-        const firstName = document.getElementById('imie').value;
-        const lastName = document.getElementById('nazwisko').value;
+        const firstName = document.getElementById('imie').value.trim();
+        const lastName = document.getElementById('nazwisko').value.trim();
         const email = document.getElementById('email').value.trim();
         const password = passwordInput.value;
         const passwordConfirm = document.getElementById('password-confirm').value;
-        // const role = document.getElementById('role').value;
-        // const nrAlbumu = document.getElementById('nrAlbumu').value;
 
-        // sprawdzenie czy hasla sa identyczne
+        // 1. Sprawdzenie czy pola nie sa puste
+        if (!firstName || !lastName || !email || !password || !passwordConfirm){
+            displaySafeMessage(errorMessageContainer, 'Wszystkie pola formularza są wymagane. Proszę uzupełnić brakujące informacje.');
+            return;
+        }
+
+        // 2. Sprawdzenie czy hasla sa identyczne
         if (password !== passwordConfirm){
-            displayMessage(errorMessageContainer, 'Wprowadzone hasła nie są identyczne. Upewnij się, że oba pola zawierają to samo hasło.');
+            displaySafeMessage(errorMessageContainer, 'Wprowadzone hasła nie są identyczne. Upewnij się, że oba pola zawierają to samo hasło.');
             return;
         }
 
-        // sprawdzenie czy pola nie sa puste
-        if (!firstName || !lastName || !email || !password /*|| !role || !nrAlbumu*/){
-            displayMessage(errorMessageContainer, 'Wszystkie pola formularza są wymagane. Proszę uzupełnić brakujące informacje.');
+        // 3. Sprawdzenie siły hasła (KRYTYCZNE ZABEZPIECZENIE)
+        if (!validateStrongPassword(password)) {
+            displaySafeMessage(errorMessageContainer, 'Hasło nie spełnia wszystkich wymogów bezpieczeństwa. Upewnij się, że zawiera minimum 8 znaków, wielką i małą literę, cyfrę oraz znak specjalny.');
             return;
         }
 
-        // sprawdzenie formatu email
+        // 4. Sprawdzenie formatu email
         if(!validateStudentEmail(email)){
-            displayMessage(errorMessageContainer, 'Adres e-mail jest nieprawidłowy. Użyj formatu: numer_albumu@student.kpu.krosno.pl (np. 123456@student.kpu.krosno.pl)');
+            displaySafeMessage(errorMessageContainer, 'Adres e-mail jest nieprawidłowy. Użyj formatu: numer_albumu@student.kpu.krosno.pl (np. 123456@student.kpu.krosno.pl)');
             return;
         }
 
@@ -86,8 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
             lastName: lastName,
             email: email,
             password: password
-            // role: role,
-            // nrAlbumu: parseInt(nrAlbumu, 10)
         };
 
         try{
@@ -98,31 +104,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-
                 body: JSON.stringify(data)
             });
+
+            const result = await response.json().catch(() => ({}));
 
             // obsluga odpowiedzi HTTP
             if(response.ok){
                 displayMessage(errorMessageContainer, 'Rejestracja przebiegła pomyślnie! Na podany adres e-mail został wysłany link aktywacyjny.', true);
                 
-                // przekierowanie na strone logowania
-                redirectAfterDelay('/login');
+                // przekierowanie na strone logowania (bezpieczne replace)
+                redirectAfterDelay('/login', 2000);
             }
             else{
-                const errorData = await response.json();
-                console.error('Błąd rejestracji:', errorData);
-
-                const errorMsg = getErrorMessage(response, errorData);
+                const errorMsg = getErrorMessage(response, result);
                 displayMessage(errorMessageContainer, errorMsg);
             }
-        } 
+        }
         catch (error){
             console.error('Błąd sieci:', error);
-            displayMessage(errorMessageContainer, 'Nie udało się nawiązać połączenia z serwerem. Spróbuj ponownie za chwilę.');
+            displaySafeMessage(errorMessageContainer, 'Nie udało się nawiązać połączenia z serwerem. Spróbuj ponownie za chwilę.');
         }
         finally{
-            enableButton(registerButton, 'Zarejestruj się');
+            enableButton(registerButton, '<span>Utwórz konto</span>');
         }
     });
 });

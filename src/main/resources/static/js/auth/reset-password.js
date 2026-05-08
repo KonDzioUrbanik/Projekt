@@ -16,27 +16,31 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
+    // Inicjalizacja podglądu haseł
+    initPasswordToggle('newPassword', 'toggleNewPassword');
+    initPasswordToggle('confirmPassword', 'toggleConfirmPassword');
+
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
         const newPassword = newPasswordInput.value.trim();
         const confirmPassword = confirmPasswordInput.value.trim();
 
-        // Walidacja pól
+        // 1. Walidacja pól
         if (!newPassword || !confirmPassword) {
-            displayMessage(message, "Wszystkie pola są wymagane.");
+            displaySafeMessage(message, "Wszystkie pola są wymagane.");
             return;
         }
 
-        // Sprawdzenie minimalnej długości hasła
-        if (newPassword.length < 6) {
-            displayMessage(message, "Hasło musi zawierać co najmniej 6 znaków.");
-            return;
-        }
-
-        // Sprawdzenie zgodności haseł
+        // 2. Sprawdzenie zgodności haseł
         if (newPassword !== confirmPassword) {
-            displayMessage(message, "Hasła nie są zgodne.");
+            displaySafeMessage(message, "Hasła nie są zgodne.");
+            return;
+        }
+
+        // 3. Sprawdzenie siły hasła (Ujednolicona polityka)
+        if (!validateStrongPassword(newPassword)) {
+            displaySafeMessage(message, "Hasło nie spełnia wymogów bezpieczeństwa (min. 8 znaków, duża i mała litera, cyfra oraz znak specjalny).");
             return;
         }
 
@@ -56,20 +60,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 }),
             });
 
-            let data = {};
-            try {
-                data = await response.json();
-            } catch {
-                data = {};
-            }
+            const data = await response.json().catch(() => ({}));
 
             if (response.ok) {
                 displayMessage(message, "Hasło zostało pomyślnie zmienione. Za chwilę zostaniesz przekierowany do strony logowania.", true);
                 
-                // Przekierowanie do logowania po 2 sekundach
-                setTimeout(() => {
-                    window.location.href = "/login";
-                }, 2000);
+                // Przekierowanie do logowania (bezpieczne replace)
+                redirectAfterDelay("/login", 2000);
             } else {
                 const errorMsg = getErrorMessage(response, data);
                 displayMessage(message, errorMsg);
@@ -77,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } catch (err) {
             console.error("Błąd połączenia:", err);
-            displayMessage(message, "Nie udało się nawiązać połączenia z serwerem. Sprawdź swoje połączenie internetowe i spróbuj ponownie.");
+            displaySafeMessage(message, "Nie udało się nawiązać połączenia z serwerem. Spróbuj ponownie za chwilę.");
         } finally {
             enableButton(button, '<i class="fas fa-key"></i><span>Ustaw nowe hasło</span>');
         }

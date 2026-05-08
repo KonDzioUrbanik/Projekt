@@ -7,39 +7,49 @@ const CONFIG = {
     }
 };
 
+// Inicjalizacja podglądu haseł (dla wszystkich 3 pól)
+initPasswordToggle('currentPassword', 'toggleCurrentPassword');
+initPasswordToggle('newPassword', 'toggleNewPassword');
+initPasswordToggle('confirmPassword', 'toggleConfirmPassword');
+
 document.querySelector('form').addEventListener('submit', async function(e) {
     e.preventDefault();
-    
-    const currentPassword = document.querySelector('input[name="currentPassword"]').value;
-    const newPassword = document.querySelector('input[name="newPassword"]').value;
-    const confirmPassword = document.querySelector('input[name="confirmPassword"]').value;
+   
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
     const messageContainer = document.getElementById('changePasswordMessage') || document.createElement('div');
-    
+   
     // Upewnij się, że kontener komunikatów istnieje
     if (!messageContainer.id) {
         messageContainer.id = 'changePasswordMessage';
         messageContainer.className = 'form-message';
         this.insertBefore(messageContainer, this.firstChild);
     }
-    
-    // walidacja po stronie klienta
+   
+    // 1. Walidacja zgodności
     if(newPassword !== confirmPassword){
-        displayMessage(messageContainer, 'Wprowadzone hasła nie są identyczne. Upewnij się, że oba pola zawierają to samo hasło.');
+        displaySafeMessage(messageContainer, 'Wprowadzone hasła nie są identyczne. Upewnij się, że oba pola zawierają to samo hasło.');
         return;
     }
-    
-    if(newPassword.length < CONFIG.VALIDATION.MIN_PASSWORD_LENGTH){
-        displayMessage(messageContainer, `Hasło musi zawierać minimum ${CONFIG.VALIDATION.MIN_PASSWORD_LENGTH} znaków.`);
+   
+    // 2. Walidacja siły hasła (Ujednolicona polityka)
+    if(!validateStrongPassword(newPassword)){
+        displaySafeMessage(messageContainer, 'Nowe hasło nie spełnia wymogów bezpieczeństwa (min. 8 znaków, duża i mała litera, cyfra oraz znak specjalny).');
         return;
     }
-    
+   
     const passwordData = {
         currentPassword: currentPassword,
         newPassword: newPassword,
         confirmPassword: confirmPassword
     };
-    
+   
+    const submitBtn = this.querySelector('button[type="submit"]');
+
     try{
+        disableButton(submitBtn, 'Zmienianie...');
+
         const response = await fetch(CONFIG.API.CHANGE_PASSWORD, {
             method: 'PUT',
             headers: {
@@ -47,20 +57,22 @@ document.querySelector('form').addEventListener('submit', async function(e) {
             },
             body: JSON.stringify(passwordData)
         });
-        
+       
         if(response.ok){
             displayMessage(messageContainer, 'Hasło zostało pomyślnie zmienione! Zostaniesz przekierowany za chwilę...', true);
             
-            // Przeniesienie użytkownika po 2 sekundach (daje czas na przeczytanie komunikatu)
-            redirectAfterDelay('/home');
+            // Bezpieczne przekierowanie
+            redirectAfterDelay('/home', 2000);
         } else {
-            const error = await response.text();
-            displayMessage(messageContainer, error || 'Wystąpił błąd podczas zmiany hasła.');
+            const errorData = await response.json().catch(() => ({}));
+            const errorMsg = getErrorMessage(response, errorData);
+            displayMessage(messageContainer, errorMsg);
         }
-        
-    } 
-    catch (error){
+       
+    } catch (error){
         console.error('Błąd zmiany hasła:', error);
-        displayMessage(messageContainer, 'Wystąpił błąd podczas zmiany hasła. Sprawdź połączenie internetowe i spróbuj ponownie.');
+        displaySafeMessage(messageContainer, 'Wystąpił błąd podczas zmiany hasła. Spróbuj ponownie później.');
+    } finally {
+        enableButton(submitBtn, '<span>Zmień hasło</span>');
     }
-});
+});
