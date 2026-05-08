@@ -482,16 +482,20 @@ public class SurveyServiceImpl implements SurveyService {
                 .setParameter("userId", userId)
                 .executeUpdate();
 
-        // 2. Usunięcie ankiet (i kaskadowo ich opcji/głosów) utworzonych przez użytkownika (np. starostę)
-        List<Long> surveyIds = entityManager.createQuery("SELECT s.id FROM Survey s WHERE s.author.id = :userId", Long.class)
+        // 2. Usunięcie głosów w ankietach utworzonych przez użytkownika (cudze głosy w moich ankietach)
+        entityManager.createQuery("DELETE FROM SurveyVote v WHERE v.option.survey.id IN (SELECT s.id FROM Survey s WHERE s.author.id = :userId)")
                 .setParameter("userId", userId)
-                .getResultList();
+                .executeUpdate();
 
-        for (Long id : surveyIds) {
-            surveyVoteRepository.deleteBySurvey_Id(id);
-            surveyOptionRepository.deleteBySurvey_Id(id);
-            surveyRepository.deleteById(id);
-        }
+        // 3. Usunięcie opcji w ankietach utworzonych przez użytkownika
+        entityManager.createQuery("DELETE FROM SurveyOption o WHERE o.survey.id IN (SELECT s.id FROM Survey s WHERE s.author.id = :userId)")
+                .setParameter("userId", userId)
+                .executeUpdate();
+
+        // 4. Usunięcie samych ankiet
+        entityManager.createQuery("DELETE FROM Survey s WHERE s.author.id = :userId")
+                .setParameter("userId", userId)
+                .executeUpdate();
     }
 }
 

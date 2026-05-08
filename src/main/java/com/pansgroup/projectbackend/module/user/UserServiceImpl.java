@@ -508,25 +508,6 @@ public class UserServiceImpl implements UserService {
         entityManager.createNativeQuery("DELETE FROM password_reset_token WHERE user_id = :uid")
                 .setParameter("uid", userId).executeUpdate();
 
-        // --- 2.1 BEZWZGLĘDNE USUNIĘCIE POWIADOMIEŃ (GENERYCZNE WYKRYWANIE) ---
-        // Używamy zapytania, które znajdzie kolumnę łączącą 'notifications' z 'users'
-        // niezależnie od tego, jak Hibernate nazwał klucz obcy (FK).
-        try {
-            String columnName = (String) entityManager.createNativeQuery(
-                "SELECT kcu.column_name FROM information_schema.table_constraints AS tc " +
-                "JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name " +
-                "JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name " +
-                "WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_name='notifications' AND ccu.table_name='users' LIMIT 1"
-            ).getSingleResult();
-
-            if (columnName != null) {
-                entityManager.createNativeQuery("DELETE FROM notifications WHERE " + columnName + " = :uid")
-                        .setParameter("uid", userId).executeUpdate();
-            }
-        } catch (Exception e) {
-            // Jeśli tabela nie istnieje lub nie ma powiązań, ignorujemy błąd, by dokończyć usuwanie usera
-        }
-
         // --- 3. AMNEZJA HIBERNATE ---
         // Synchronizujemy zmiany SQL z sesją JPA i czyścimy cache L1, 
         // aby finałowe delete nie widziało już starych powiązań (np. z tokenami).
