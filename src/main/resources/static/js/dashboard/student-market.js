@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentSort === 'price_asc') sortParam = 'price,asc';
             if (currentSort === 'price_desc') sortParam = 'price,desc';
 
-            let url = `/api/market/ads?page=${page}&size=${pageSize}&sort=${sortParam}`;
+            let url = `/api/market/offers?page=${page}&size=${pageSize}&sort=${sortParam}`;
             if (search) url += `&search=${encodeURIComponent(search)}`;
             if (cat) url += `&category=${cat}`;
             if (cond) url += `&condition=${cond}`;
@@ -136,6 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             
             if (data.content) {
+                isLastPage = data.last;
                 if (append) {
                     allAds = [...allAds, ...data.content];
                     appendNewAds(data.content);
@@ -143,7 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     allAds = data.content;
                     render();
                 }
-                isLastPage = data.last;
             } else {
                 allAds = data;
                 isLastPage = true;
@@ -163,11 +163,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const loader = document.getElementById('pageLoader');
             if (loader && !append) loader.style.display = 'flex';
 
-            const res = await fetch(`/api/market/my-ads?page=${page}&size=${pageSize}&sort=createdAt,desc`);
+            const res = await fetch(`/api/market/my-offers?page=${page}&size=${pageSize}&sort=createdAt,desc`);
             if (!res.ok) throw new Error('Błąd ładowania Twoich ogłoszeń');
             const data = await res.json();
 
             if (data.content) {
+                isLastPage = data.last;
                 if (append) {
                     allAds = [...allAds, ...data.content];
                     appendNewAds(data.content);
@@ -175,7 +176,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     allAds = data.content;
                     render();
                 }
-                isLastPage = data.last;
             } else {
                 allAds = data;
                 isLastPage = true;
@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentStats = await res.json();
             
             if (document.getElementById('statTotal')) document.getElementById('statTotal').textContent = currentStats.totalActive;
-            if (document.getElementById('statMine')) document.getElementById('statMine').textContent = currentStats.myAds;
+            if (document.getElementById('statMine')) document.getElementById('statMine').textContent = currentStats.myOffers;
             if (document.getElementById('statToday')) document.getElementById('statToday').textContent = currentStats.addedToday;
             if (document.getElementById('statCategories')) document.getElementById('statCategories').textContent = currentStats.categoriesCount;
             
@@ -289,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const ownerBadge = ad.isOwner ? `<span class="owner-badge">Twoje</span>` : '';
 
         return `
-            <article class="ad-card${resolved ? ' resolved' : ''}" role="listitem" aria-label="Ogłoszenie: ${esc(ad.title)}" data-id="${ad.id}" style="cursor: pointer;">
+            <article class="market-card${resolved ? ' resolved' : ''}" role="listitem" aria-label="Ogłoszenie: ${esc(ad.title)}" data-id="${ad.id}" style="cursor: pointer;">
                 ${resolved ? '<div class="resolved-stamp" aria-hidden="true">ZREALIZOWANE</div>' : ''}
                 <div class="card-top">
                     <span class="card-badge ${meta.badge}" aria-label="Kategoria: ${meta.label}">${esc(meta.label)}</span>
@@ -316,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function render() {
         const ads = getFilteredSorted();
-        const grid = document.getElementById('adsGrid');
+        const grid = document.getElementById('marketGrid');
         const count = document.getElementById('resultsCount');
         if (!grid || !count) return;
 
@@ -335,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateLoadMoreButton() {
-        const grid = document.getElementById('adsGrid');
+        const grid = document.getElementById('marketGrid');
         // Usuń stary kontener przycisku jeśli istnieje
         const oldBtn = document.getElementById('loadMoreContainer');
         if (oldBtn) oldBtn.remove();
@@ -350,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function appendNewAds(newAds) {
-        const grid = document.getElementById('adsGrid');
+        const grid = document.getElementById('marketGrid');
         if (!grid) return;
 
         // Usuń stary przycisk przed dodaniem nowych kart
@@ -371,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── EVENT DELEGATION (card actions) ──
-    const gridEl = document.getElementById('adsGrid');
+    const gridEl = document.getElementById('marketGrid');
     if (gridEl) {
         gridEl.addEventListener('click', e => {
             // Obsługa load more
@@ -388,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const btn = e.target.closest('[data-action]');
             if (!btn) {
                 // Jeśli kliknięto kartę, ale nie w żaden konkretny przycisk akcji - pokaż modal ze szczegółami
-                const card = e.target.closest('.ad-card');
+                const card = e.target.closest('.market-card');
                 if (card) {
                     const id = Number(card.dataset.id);
                     openDetailsModal(id);
@@ -401,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (action === 'resolve') {
                 showConfirmModal('Oznaczyć to ogłoszenie jako zrealizowane?', false, async () => {
                     try {
-                        const res = await fetch(`/api/market/ads/${id}/resolve`, { 
+                        const res = await fetch(`/api/market/offers/${id}/resolve`, { 
                             method: 'PATCH',
                             headers: getCsrfHeaders()
                         });
@@ -420,7 +420,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (action === 'delete') {
                 showConfirmModal('Czy na pewno usunąć to ogłoszenie? Operacja jest nieodwracalna.', true, async () => {
                     try {
-                        const res = await fetch(`/api/market/ads/${id}`, { 
+                        const res = await fetch(`/api/market/offers/${id}`, { 
                             method: 'DELETE',
                             headers: getCsrfHeaders()
                         });
@@ -447,7 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const nameEl = document.getElementById('contactName');
                 if (nameEl) nameEl.textContent = authorName;
                 
-                const titleEl = document.getElementById('contactAdTitle');
+                const titleEl = document.getElementById('contactOfferTitle');
                 if (titleEl) titleEl.textContent = 'Ogłoszenie: ' + title;
                 
                 const msgEl = document.getElementById('contactMsg');
@@ -513,7 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const nameEl = document.getElementById('contactName');
                 if (nameEl) nameEl.textContent = ad.authorName;
                 
-                const titleEl = document.getElementById('contactAdTitle');
+                const titleEl = document.getElementById('contactOfferTitle');
                 if (titleEl) titleEl.textContent = 'Ogłoszenie: ' + ad.title;
                 
                 const msgEl = document.getElementById('contactMsg');
@@ -584,10 +584,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ── ADD AD MODAL ──
-    const addAdBtn = document.getElementById('addAdBtn');
+    const addAdBtn = document.getElementById('addOfferBtn');
     if (addAdBtn) {
         addAdBtn.addEventListener('click', () => {
-            document.getElementById('addAdForm')?.reset();
+            document.getElementById('addOfferForm')?.reset();
             if (document.getElementById('titleLen')) document.getElementById('titleLen').textContent = '0';
             if (document.getElementById('descLen')) document.getElementById('descLen').textContent = '0';
             const formMsg = document.getElementById('addFormMsg');
@@ -633,9 +633,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    document.getElementById('submitAdBtn')?.addEventListener('click', async (e) => {
+    document.getElementById('submitOfferBtn')?.addEventListener('click', async (e) => {
         e.preventDefault(); // Zatrzymaj klasyczny submit
-        const form = document.getElementById('addAdForm');
+        const form = document.getElementById('addOfferForm');
         if (!form || !form.checkValidity()) {
             form.reportValidity();
             return;
@@ -661,14 +661,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (price !== null && (isNaN(price) || price < 0)) { msg.className='market-form-message error'; msg.textContent='Podaj prawidłową cenę.'; return; }
 
-        const btn = document.getElementById('submitAdBtn');
+        const btn = document.getElementById('submitOfferBtn');
         btn.disabled = true;
         btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.8s" repeatCount="indefinite"/></path></svg> Publikowanie...';
 
         const data = { title, category, condition, price, description };
 
         try {
-            const res = await fetch('/api/market/ads', {
+            const res = await fetch('/api/market/offers', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -706,7 +706,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.disabled = true;
         
         // Integracja z panelem Czat
-        const adTitle = document.getElementById('contactAdTitle').textContent.replace('Ogłoszenie: ', '');
+        const adTitle = document.getElementById('contactOfferTitle').textContent.replace('Ogłoszenie: ', '');
         window.location.href = `/student/chat?userId=${pendingContactAuthorId}&subject=${encodeURIComponent('Ogłoszenie: ' + adTitle)}&message=${encodeURIComponent(msgTxt)}`;
         
         // Zamykamy modal (strona i tak się przeładuje, ale dla bezpieczeństwa)

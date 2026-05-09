@@ -19,7 +19,7 @@
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                             Co wkrótce?
                         </button>
-                        <button class="market-btn-primary" id="addAdBtn" aria-haspopup="dialog">
+                        <button class="market-btn-primary" id="addOfferBtn" aria-haspopup="dialog">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                             Dodaj ogłoszenie
                         </button>
@@ -87,7 +87,7 @@
                     </div>
                 </div>
 
-                <div id="adsGrid" class="ads-grid" role="list" aria-label="Lista ogłoszeń">
+                <div id="marketGrid" class="market-grid" role="list" aria-label="Lista ogłoszeń">
                     <div id="pageLoader">
                         <div class="market-spinner"></div>
                         <span>Ładowanie ogłoszeń...</span>
@@ -118,7 +118,7 @@
                                 </div>
                             </div>
                     
-                            <form id="addAdForm" novalidate>
+                            <form id="addOfferForm" novalidate>
                                 <div class="market-form-group">
                                     <label class="market-form-label" for="formTitle">Tytuł <span>*</span></label>
                                     <input type="text" class="market-form-input" id="formTitle" maxlength="80" placeholder="np. Notatki z anatomii (I rok), Książka 'Wstęp do Javy', Szukam współlokatora" required minlength="5">
@@ -167,7 +167,7 @@
                         </div>
                         <div class="market-modal-foot">
                             <button class="market-btn-outline" data-close="addModal">Anuluj</button>
-                            <button class="market-btn-primary" id="submitAdBtn" type="submit" form="addAdForm">
+                            <button class="market-btn-primary" id="submitOfferBtn" type="submit" form="addOfferForm">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
                                 Opublikuj ogłoszenie
                             </button>
@@ -186,7 +186,7 @@
                                 <div class="contact-avatar" id="contactAvatar">?</div>
                                 <div class="contact-details">
                                     <div class="contact-name" id="contactName">—</div>
-                                    <div class="contact-ad-title" id="contactAdTitle">—</div>
+                                    <div class="contact-offer-title" id="contactOfferTitle">—</div>
                                 </div>
                             </div>
                             <div class="market-form-group">

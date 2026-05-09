@@ -10,7 +10,10 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "market_ads")
+@Table(name = "market_ads", indexes = {
+        @Index(name = "idx_market_status", columnList = "status"),
+        @Index(name = "idx_market_author", columnList = "author_id")
+})
 @Getter
 @Setter
 public class MarketAd {
