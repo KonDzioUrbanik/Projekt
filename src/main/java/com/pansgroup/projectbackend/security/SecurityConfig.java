@@ -232,6 +232,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/users/me", "/api/notes/**").authenticated()
                 .requestMatchers("/home", "/profile", "/settings").hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
                 .requestMatchers("/student/chat/**", "/api/chat/**").hasAnyRole("STUDENT", "STAROSTA")
+                .requestMatchers("/student/student-market", "/api/market/**").hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
 
                 .anyRequest().authenticated());
 

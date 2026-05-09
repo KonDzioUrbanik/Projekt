@@ -1,14 +1,325 @@
 <!DOCTYPE html>
 <html layout:decorate="~{layout/main-layout}">
     <head>
-        <title>Giełda studencka - PANSportal</title>
+        <title>Giełda studencka</title>
+        <link rel="stylesheet" th:href="@{/css/dashboard/student-market.css(v=${#dates.createNow().getTime()})}">
     </head>
     <body>
         <div layout:fragment="content">
-            <div class="feature-under-development">
-                <h2>Giełda studencka</h2>
-                <p>Funkcja w przygotowaniu.<br>Moduł giełdy studenckiej (oferty, wymiana materiałów, pomoc) jest obecnie w fazie rozwoju.<br>Przepraszamy za czasowe niedogodności.</p>
+            <div class="market-wrapper" id="main">
+                <h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);">Giełda studencka - lista ogłoszeń</h2>
+
+                <div class="market-header">
+                    <div>
+                        <h1 class="page-title">Giełda studencka</h1>
+                        <p class="page-subtitle">Wymiana materiałów, sprzętu, informacji i pomocy między studentami.</p>
+                    </div>
+                    <div class="market-header-right" style="display: flex; gap: 10px;">
+                        <button class="market-btn-outline" id="roadmapBtn" aria-haspopup="dialog" style="display: flex; align-items: center; gap: 6px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                            Co wkrótce?
+                        </button>
+                        <button class="market-btn-primary" id="addAdBtn" aria-haspopup="dialog">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Dodaj ogłoszenie
+                        </button>
+                    </div>
+                </div>
+
+                <div class="stats-bar" role="region" aria-label="Statystyki giełdy">
+                    <div class="stat-item">
+                        <div class="stat-value" id="statTotal">0</div>
+                        <div class="stat-label">Aktywnych ogłoszeń</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statMine">0</div>
+                        <div class="stat-label">Moich ogłoszeń</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statToday">0</div>
+                        <div class="stat-label">Dodanych dziś</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statCategories">0</div>
+                        <div class="stat-label">Kategorii</div>
+                    </div>
+                </div>
+
+                <div class="tabs-row" role="tablist" aria-label="Widok ogłoszeń">
+                    <button class="tab-btn active" data-tab="all" role="tab" aria-selected="true">Wszystkie</button>
+                    <button class="tab-btn" data-tab="mine" role="tab" aria-selected="false">Moje ogłoszenia</button>
+                </div>
+
+                <div class="my-ads-banner" id="myAdsBanner" style="display:none" role="status">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    Widzisz tylko swoje ogłoszenia. Możesz je oznaczyć jako zrealizowane lub usunąć.
+                </div>
+
+                <div class="filters-row" role="search" aria-label="Filtry ogłoszeń">
+                    <div class="search-wrap">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="search" class="market-input-field" id="searchInput" placeholder="Szukaj tytułu lub opisu..." aria-label="Szukaj ogłoszeń">
+                    </div>
+                    <select class="market-select-field" id="catFilter" aria-label="Filtruj po kategorii">
+                        <option value="">Wszystkie kategorie</option>
+                        <option value="BOOKS_NOTES">Podręczniki i notatki</option>
+                        <option value="HOUSING">Pokoje i mieszkania</option>
+                        <option value="TUTORING_HELP">Korepetycje i pomoc</option>
+                        <option value="ELECTRONICS">Sprzęt i elektronika</option>
+                        <option value="LOST_FOUND">Zgubiono / Znaleziono</option>
+                        <option value="GIVEAWAY">Oddam za darmo</option>
+                        <option value="PROJECT_PARTNER">Szukam do projektu</option>
+                    </select>
+                    <select class="market-select-field" id="condFilter" aria-label="Filtruj po stanie">
+                        <option value="">Stan (dowolny)</option>
+                        <option value="NEW">Nowe</option>
+                        <option value="USED">Używane</option>
+                        <option value="NOT_APPLICABLE">Nie dotyczy</option>
+                    </select>
+                </div>
+
+                <div class="sort-row">
+                    <p class="results-count" id="resultsCount"><strong>0</strong> ogłoszeń</p>
+                    <div class="sort-options" role="group" aria-label="Sortowanie">
+                        <button class="sort-btn active" data-sort="newest">Najnowsze</button>
+                        <button class="sort-btn" data-sort="price_asc">Cena ↑</button>
+                        <button class="sort-btn" data-sort="price_desc">Cena ↓</button>
+                    </div>
+                </div>
+
+                <div id="adsGrid" class="ads-grid" role="list" aria-label="Lista ogłoszeń">
+                    <div id="pageLoader">
+                        <div class="market-spinner"></div>
+                        <span>Ładowanie ogłoszeń...</span>
+                    </div>
+                </div>
+
+                <div class="market-modal-overlay" id="addModal" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
+                    <div class="market-modal-box">
+                        <div class="market-modal-head">
+                            <h2 id="addModalTitle">Nowe ogłoszenie</h2>
+                            <button class="market-btn-close" data-close="addModal" aria-label="Zamknij">×</button>
+                        </div>
+                        <div class="market-modal-body">
+                            <div class="limit-bar" aria-label="Twoje limity publikacji">
+                                <div class="limit-item">
+                                    <span class="limit-label">Aktywne ogłoszenia</span>
+                                    <div class="limit-track" role="progressbar" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0">
+                                        <div class="limit-fill" id="activeLimitFill" style="width:0%"></div>
+                                    </div>
+                                    <span class="limit-value"><strong id="activeCount">0</strong> / 5</span>
+                                </div>
+                                <div class="limit-item">
+                                    <span class="limit-label">Dzisiaj dodane</span>
+                                    <div class="limit-track" role="progressbar" aria-valuemin="0" aria-valuemax="3" aria-valuenow="0">
+                                        <div class="limit-fill" id="todayLimitFill" style="width:0%"></div>
+                                    </div>
+                                    <span class="limit-value"><strong id="todayCount">0</strong> / 3</span>
+                                </div>
+                            </div>
+                    
+                            <form id="addAdForm" novalidate>
+                                <div class="market-form-group">
+                                    <label class="market-form-label" for="formTitle">Tytuł <span>*</span></label>
+                                    <input type="text" class="market-form-input" id="formTitle" maxlength="80" placeholder="np. Notatki z anatomii (I rok), Książka 'Wstęp do Javy', Szukam współlokatora" required minlength="5">
+                                    <div class="market-char-count"><span id="titleLen">0</span>/80</div>
+                                </div>
+                        
+                                <div class="market-form-2col">
+                                    <div class="market-form-group">
+                                        <label class="market-form-label" for="formCategory">Kategoria <span>*</span></label>
+                                        <select class="market-form-select" id="formCategory" required>
+                                            <option value="" disabled selected>Wybierz kategorię...</option>
+                                            <option value="BOOKS_NOTES">Podręczniki i notatki</option>
+                                            <option value="HOUSING">Pokoje i mieszkania</option>
+                                            <option value="TUTORING_HELP">Korepetycje i pomoc</option>
+                                            <option value="ELECTRONICS">Sprzęt i elektronika</option>
+                                            <option value="LOST_FOUND">Zgubiono / Znaleziono</option>
+                                            <option value="GIVEAWAY">Oddam za darmo</option>
+                                            <option value="PROJECT_PARTNER">Szukam do projektu</option>
+                                            <option value="OTHER">Inne</option>
+                                        </select>
+                                    </div>
+                                    <div class="market-form-group">
+                                        <label class="market-form-label" for="formCondition">Stan <span>*</span></label>
+                                        <select class="market-form-select" id="formCondition" required>
+                                            <option value="USED" selected>Używane</option>
+                                            <option value="NEW">Nowe</option>
+                                            <option value="NOT_APPLICABLE">Nie dotyczy</option>
+                                        </select>
+                                    </div>
+                                </div>
+                        
+                                <div class="market-form-group" id="priceGroup">
+                                    <label class="market-form-label" for="formPrice">Cena (zł)</label>
+                                    <input type="number" class="market-form-input" id="formPrice" step="0.01" min="0" max="999999" placeholder="np. 35.00">
+                                    <p class="market-form-hint">Zostaw puste przy kategoriach "Oddam za darmo", "Zgubiono", "Szukam do projektu"</p>
+                                </div>
+                        
+                                <div class="market-form-group">
+                                    <label class="market-form-label" for="formDescription">Opis <span>*</span></label>
+                                    <textarea class="market-form-textarea" id="formDescription" maxlength="2000" minlength="20" required placeholder="Opisz dokładnie swój przedmiot: stan (np. nieliczne notatki ołówkiem), ewentualne wady oraz preferowany sposób przekazania (np. odbiór na uczelni)."></textarea>
+                                    <div class="market-char-count"><span id="descLen">0</span>/2000</div>
+                                </div>
+                        
+                                <div class="market-form-message" id="addFormMsg" role="alert"></div>
+                            </form>
+                        </div>
+                        <div class="market-modal-foot">
+                            <button class="market-btn-outline" data-close="addModal">Anuluj</button>
+                            <button class="market-btn-primary" id="submitAdBtn" type="submit" form="addAdForm">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                                Opublikuj ogłoszenie
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="market-modal-overlay" id="contactModal" role="dialog" aria-modal="true" aria-labelledby="contactModalTitle">
+                    <div class="market-modal-box">
+                        <div class="market-modal-head">
+                            <h2 id="contactModalTitle">Napisz wiadomość</h2>
+                            <button class="market-btn-close" data-close="contactModal" aria-label="Zamknij">×</button>
+                        </div>
+                        <div class="market-modal-body">
+                            <div class="contact-info-row">
+                                <div class="contact-avatar" id="contactAvatar">?</div>
+                                <div class="contact-details">
+                                    <div class="contact-name" id="contactName">—</div>
+                                    <div class="contact-ad-title" id="contactAdTitle">—</div>
+                                </div>
+                            </div>
+                            <div class="market-form-group">
+                                <label class="market-form-label" for="contactMsg">Twoja wiadomość</label>
+                                <textarea class="market-form-textarea" id="contactMsg" placeholder="Cześć! Jestem zainteresowany/a Twoim ogłoszeniem..." rows="4"></textarea>
+                            </div>
+                        </div>
+                        <div class="market-modal-foot">
+                            <button class="market-btn-outline" data-close="contactModal">Anuluj</button>
+                            <button class="market-btn-primary" id="sendContactBtn">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                Wyślij wiadomość
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="market-modal-overlay" id="confirmActionModal" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+                    <div class="market-modal-box" style="max-width: 400px;">
+                        <div class="market-modal-head" style="border-bottom: none; padding-bottom: 0;">
+                            <h2 id="confirmModalTitle" style="font-size: 1.25rem;">Czy na pewno?</h2>
+                            <button class="market-btn-close" data-close="confirmActionModal" aria-label="Zamknij">×</button>
+                        </div>
+                        <div class="market-modal-body" style="padding-top: 15px;">
+                            <p id="confirmModalMessage" style="margin: 0; color: var(--text-muted);">Czy na pewno chcesz wykonać tę akcję?</p>
+                        </div>
+                        <div class="market-modal-foot" style="border-top: none; padding-top: 5px;">
+                            <button class="market-btn-outline" data-close="confirmActionModal">Anuluj</button>
+                            <button class="market-btn-primary" id="confirmActionBtn">Potwierdź</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DETAILS MODAL -->
+                <div class="market-modal-overlay" id="detailsModal" role="dialog" aria-modal="true" aria-labelledby="detailsModalTitle">
+                    <div class="market-modal-box">
+                        <div class="market-modal-head">
+                            <h2 id="detailsModalTitle">Szczegóły ogłoszenia</h2>
+                            <button class="market-btn-close" data-close="detailsModal" aria-label="Zamknij">×</button>
+                        </div>
+                        <div class="market-modal-body">
+                            <div class="contact-info-row" style="margin-bottom: 20px; align-items: center; justify-content: space-between;">
+                                <div class="details-author-row">
+                                    <div class="contact-avatar" id="detailsAvatar">?</div>
+                                    <div class="contact-details">
+                                        <div class="contact-name" id="detailsAuthor">—</div>
+                                        <div class="contact-ad-title" id="detailsDate">—</div>
+                                    </div>
+                                </div>
+                                <a href="#" id="detailsProfileLink" class="market-btn-outline" style="padding: 6px 12px; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                    Profil
+                                </a>
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <h3 id="detailsTitle" style="margin: 0 0 10px 0; color: var(--market-text-h); font-size: 1.2rem;">—</h3>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px;">
+                                    <span class="card-badge badge-books" id="detailsCategory">—</span>
+                                    <span class="card-badge details-condition-badge" id="detailsCondition">—</span>
+                                    <span class="details-price-val" id="detailsPrice">—</span>
+                                </div>
+                                <p id="detailsDescription" style="white-space: pre-wrap; color: var(--market-text-body); font-size: 0.95rem; line-height: 1.6;"></p>
+                            </div>
+                        </div>
+                        <div class="market-modal-foot">
+                            <button class="market-btn-outline" data-close="detailsModal">Zamknij</button>
+                            <button class="market-btn-primary" id="detailsContactBtn">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                Napisz wiadomość
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ROADMAP MODAL -->
+                <div class="market-modal-overlay" id="roadmapModal" role="dialog" aria-modal="true" aria-labelledby="roadmapModalTitle">
+                    <div class="market-modal-box">
+                        <div class="market-modal-head">
+                            <h2 id="roadmapModalTitle" style="display: flex; align-items: center; gap: 8px;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                                Nadchodzące funkcjonalności
+                            </h2>
+                            <button class="market-btn-close" data-close="roadmapModal" aria-label="Zamknij">×</button>
+                        </div>
+                        <div class="market-modal-body">
+                            <p style="color: var(--market-text-body); margin-bottom: 20px; font-size: 0.95rem;">Moduł Giełdy Studenckiej jest stale rozwijany. Oto, co planujemy dodać w najbliższych aktualizacjach:</p>
+                            
+                            <ul class="roadmap-list">
+                                <li class="roadmap-item">
+                                    <div class="roadmap-icon primary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div>
+                                    <div>
+                                        <strong class="roadmap-title">Galeria Zdjęć (Image Upload)</strong>
+                                        <span class="roadmap-desc">Możliwość wrzucenia od 1 do 3 zdjęć przedmiotu (np. stan notatek czy książki). Zdjęcia będą wyświetlane w formie intuicyjnej karuzeli (Slider) w podglądzie ogłoszenia.</span>
+                                    </div>
+                                </li>
+                                
+                                <li class="roadmap-item">
+                                    <div class="roadmap-icon danger"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg></div>
+                                    <div>
+                                        <strong class="roadmap-title">Zapisz na później (Ulubione)</strong>
+                                        <span class="roadmap-desc">Ikonka serduszka przy każdym ogłoszeniu, pozwalająca zapisać interesujące oferty (szczególnie przydatne przy szukaniu stancji lub materiałów do konkretnych przedmiotów).</span>
+                                    </div>
+                                </li>
+                                
+                                <li class="roadmap-item">
+                                    <div class="roadmap-icon warning"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg></div>
+                                    <div>
+                                        <strong class="roadmap-title">Zgłaszanie naruszeń (Report Ad)</strong>
+                                        <span class="roadmap-desc">Dedykowany przycisk z flagą pozwalający na przesłanie sygnału do moderatora w przypadku spamu, powielonych ofert czy niewłaściwych treści.</span>
+                                    </div>
+                                </li>
+                                
+                                <li class="roadmap-item">
+                                    <div class="roadmap-icon success"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
+                                    <div>
+                                        <strong class="roadmap-title">Wskaźnik aktywności (Online)</strong>
+                                        <span class="roadmap-desc">Dynamiczna zielona kropka obok avatara wskazująca, że student jest "Dostępny" w portalu w tej samej chwili, wspierana przez WebSockety.</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="market-modal-foot">
+                            <button class="market-btn-primary" data-close="roadmapModal" style="width: 100%; display: flex; justify-content: center;">Zrozumiałem, czekam z niecierpliwością!</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="toast-area" id="toastArea" aria-live="polite" aria-label="Powiadomienia"></div>
             </div>
         </div>
+
+        <th:block layout:fragment="page-scripts">
+            <script th:src="@{/js/dashboard/student-market.js(v=${#dates.createNow().getTime()})}" defer></script>
+        </th:block>
     </body>
 </html>
