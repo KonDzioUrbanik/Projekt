@@ -16,46 +16,93 @@
                     <h1>Changelog</h1>
                     <p>Zapis zmian wprowadzonych w systemie PANSportal<br>uszeregowany według wersji.</p>
                 </div>
-
                 <div class="timeline">
-                    <!-- Maj 2026 - Premium Schedule & Architectural Optimization -->
-                    <details id="v1-5-1" class="version-block latest" open>
+                    <!-- Maj 2026 - Student Market & Performance Optimization -->
+                    <details id="v1-5-2" class="version-block latest" open>
                         <summary class="version-summary-header">
                             <div class="version-title">
-                                <span class="version-number">Maj 2026 - v1.5.1</span>
+                                <span class="version-number">Maj 2026 - v1.5.2</span>
                                 <span class="latest-badge" style="margin-left: 0.5rem;">Aktualna wersja</span>
                             </div>
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </summary>
                         <div class="version-content">
                             <div class="version-desc">
-                                Aktualizacja ulepszająca architekturę modułu harmonogramu oraz optymalizująca wydajność zapytań bazodanowych. Skupiono się na ujednoliceniu interfejsu dla wszystkich ról użytkowników oraz poprawie stabilności systemów analitycznych i bezpieczeństwa.
+                                Wdrożenie modułu Giełdy Studenckiej oraz optymalizacja wydajności warstwy danych dla dużej skali ogłoszeń.
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
                                 <ul class="change-list added">
-                                    <li><strong>Ujednolicone kontrolki nawigacji:</strong> Wdrożenie standardowych przycisków sterowania oraz selektora trybu widoku (tydzień/semestr) w całym module harmonogramu.</li>
-                                    <li><strong>Walidacja ram czasowych:</strong> Implementacja technicznych ograniczeń nawigacji w harmonogramie do granic zdefiniowanego roku akademickiego.</li>
-                                    <li><strong>Mechanizm Cache (Caffeine):</strong> Integracja profesjonalnej pamięci podręcznej w module analityki w celu optymalizacji obciążenia serwera i stabilizacji rate-limitera.</li>
+                                    <li><strong>Moduł Giełdy Studenckiej:</strong> Platforma ogłoszeniowa (Kupno, Sprzedaż, Korepetycje, Projekty) zintegrowana z profilem użytkownika.</li>
+                                    <li><strong>System Powiadomień (Live):</strong> Powiadomienia WebSocket o wygasających ofertach i aktywnościach systemowych z panelem personalizacji.</li>
+                                    <li><strong>Moduł Rozrywki (Wordle):</strong> Implementacja gry logicznej z globalnym rankingiem i statystykami.</li>
+                                    <li><strong>Filtrowanie Server-side:</strong> Zaawansowana wyszukiwarka ogłoszeń z filtrami kategorii, stanu i treści.</li>
+                                    <li><strong>Limity Aktywności (Anty-Spam):</strong> Mechanizm ograniczający liczbę aktywnych ogłoszeń (max 5) oraz wpisów na dobę (max 3) z resetem o północy.</li>
+                                    <li><strong>Szybki Kontakt:</strong> Integracja z modułem czatu umożliwiająca bezpośrednią komunikację z autorem ogłoszenia.</li>
+                                    <li><strong>Rozbudowa Ankiet:</strong> Obsługa pytań wielokrotnego wyboru oraz funkcjonalność edycji opublikowanych treści.</li>
                                 </ul>
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
                                 <ul class="change-list changed">
-                                    <li><strong>Standaryzacja stylistyki:</strong> Ujednolicenie arkuszy stylów CSS dla paneli studenta i administratora, zapewniające identyczne zachowanie elementów UI.</li>
-                                    <li><strong>Logika dopasowania kierunków:</strong> Przejście na precyzyjne dopasowanie nazw bazowych kierunków, eliminujące błędy w filtrowaniu przy nazwach o wspólnych przedrostkach.</li>
-                                    <li><strong>Optymalizacja warstwy danych:</strong> Refaktoryzacja zapytań JPA (eliminacja problemu N+1) oraz przeniesienie procesów archiwizacji bezpośrednio do bazy danych (UPDATE).</li>
-                                    <li><strong>Korekta kontrastu:</strong> Dostosowanie parametrów wizualnych aktywnego dnia w trybie ciemnym w celu poprawy parametrów czytelności.</li>
+                                    <li><strong>Wydajność Paginacji:</strong> Optymalizacja ładowania elementów (insertAdjacentHTML) redukująca zbędne przeładowania widoku.</li>
+                                    <li><strong>Architektura Danych:</strong> Implementacja EntityGraph w warstwie JPA; eliminacja problemu N+1 i przyspieszenie ładowania list o ok. 40%.</li>
+                                    <li><strong>Logika Limitów:</strong> Przejście na model doby kalendarzowej dla cyklu odświeżania uprawnień użytkownika.</li>
                                 </ul>
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
                                 <ul class="change-list fixed">
-                                    <li><strong>Parametryzacja Hikari:</strong> Korekta czasu życia połączeń (max-lifetime) w celu zapewnienia ciągłości komunikacji z bazą PostgreSQL.</li>
-                                    <li><strong>Stabilność DOM Monitor:</strong> Wyeliminowanie błędów typu "Illegal invocation" w module monitorowania integralności interfejsu.</li>
+                                    <li><strong>Sanityzacja XSS:</strong> Wzmocnienie filtrów Jsoup po stronie serwera oraz zabezpieczenie renderowania treści na frontendzie.</li>
+                                    <li><strong>Responsywność Kart:</strong> Poprawki układu dla treści zawierających bardzo długie ciągi znaków (np. linki zewnętrzne).</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- Maj 2026 - Premium Schedule & Architectural Optimization -->
+                    <details id="v1-5-1" class="version-block">
+                        <summary class="version-summary-header">
+                            <div class="version-title">
+                                <span class="version-number">Maj 2026 - v1.5.1</span>
+                            </div>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </summary>
+                        <div class="version-content">
+                            <div class="version-desc">
+                                Optymalizacja architektury modułu harmonogramu oraz ujednolicenie interfejsu użytkownika i systemów analitycznych.
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
+                                <ul class="change-list added">
+                                    <li><strong>Kontrolki Harmonogramu:</strong> Ujednolicone przyciski sterowania oraz selektor trybu widoku (tydzień/semestr).</li>
+                                    <li><strong>Walidacja Czasowa:</strong> Ograniczenie nawigacji w harmonogramie do granic zdefiniowanego roku akademickiego.</li>
+                                    <li><strong>Warstwa Cache:</strong> Integracja pamięci podręcznej Caffeine w module analityki dla optymalizacji obciążenia serwera.</li>
+                                    <li><strong>Przeglądanie Forum:</strong> System paginacji i filtrowania wątków według kategorii dyskusji.</li>
+                                    <li><strong>Notatki Feedbacku:</strong> Funkcjonalność komentarzy administracyjnych ułatwiająca procesowanie zgłoszeń studentów.</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
+                                <ul class="change-list changed">
+                                    <li><strong>Ujednolicenie UI:</strong> Standaryzacja arkuszy CSS zapewniająca spójne zachowanie elementów dla wszystkich ról użytkowników.</li>
+                                    <li><strong>Filtrowanie Kierunków:</strong> Poprawa precyzji dopasowania nazw bazowych (eliminacja błędów przy wspólnych przedrostkach).</li>
+                                    <li><strong>Warstwa Danych:</strong> Refaktoryzacja zapytań JPA i migracja procesów archiwizacji na poziom SQL (UPDATE).</li>
+                                    <li><strong>Tryb Ciemny:</strong> Korekta kontrastu i parametrów czytelności aktywnego dnia w kalendarzu.</li>
+                                    <li><strong>Zarządzanie Forum:</strong> Przebudowa interfejsu dyskusji i wdrożenie modułu post-control.js.</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
+                                <ul class="change-list fixed">
+                                    <li><strong>Stabilność Połączeń:</strong> Optymalizacja parametrów HikariCP (max-lifetime) dla bazy PostgreSQL.</li>
+                                    <li><strong>Monitor DOM:</strong> Wyeliminowanie błędów "Illegal invocation" w module monitorowania integralności interfejsu.</li>
                                 </ul>
                             </div>
                         </div>
@@ -71,33 +118,39 @@
                         </summary>
                         <div class="version-content">
                             <div class="version-desc">
-                                Oddajemy w Wasze ręce długo wyczekiwany <strong>Dysk Grupowy</strong>! Od teraz każda sekcja na studenckim portalu ma swoje własne, chmurowe archiwum. Zadbaliśmy o to, by dzielenie się notatkami czy prezentacjami było nie tylko wygodne, ale i bezpieczne.
+                                Wdrożenie modułu Dysku Grupowego oraz rozbudowa funkcjonalności społecznościowych na forum.
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title added"><i class="fas fa-plus"></i> Dodano</div>
                                 <ul class="change-list added">
-                                    <li><strong>Przestrzeń dla każdej grupy:</strong> Wspólny pulpit plików z podziałem na Notatki, Projekty, Prezentacje do łatwej organizacji nauki w obrębie danego kierunku.</li>
-                                    <li><strong>Ochrona antywirusowa:</strong> System rozpoznaje rozszerzenia plików (np. zamaskowane wirusy) i automatycznie blokuje niepewne załączniki przed wysyłką.</li>
-                                    <li><strong>Wizualny limit miejsca:</strong> Dodaliśmy interaktywne paski pokazujące ile miejsca z 2GB puli zużyła grupa, a także ile Ty wykorzystałeś ze swoich 512MB.</li>
-                                    <li><strong>Inteligentne przesyłanie plików:</strong> Wrzucaj nawet po 20 notatek na raz! System sam w tle wyśle pliczki pokazując Ci estetyczny zielony pasek postępu, a w razie kłopotów z siecią – wciśnij nową opcję "Spróbuj ponownie".</li>
+                                    <li><strong>Dysk Grupowy:</strong> Wspólna przestrzeń plików z podziałem na Notatki, Projekty i Prezentacje dla każdego kierunku.</li>
+                                    <li><strong>System Głosowania na Forum:</strong> Ocena wartości merytorycznej wątków i komentarzy przez społeczność.</li>
+                                    <li><strong>Załączniki w Dyskusjach:</strong> Możliwość przesyłania dokumentów i obrazów bezpośrednio w module forum.</li>
+                                    <li><strong>Aktualizacje Live:</strong> Dynamiczne odświeżanie treści w wątkach forum bez konieczności przeładowania strony.</li>
+                                    <li><strong>Onboarding Użytkownika:</strong> Interaktywne okno powitalne wprowadzające w kluczowe funkcje portalu.</li>
+                                    <li><strong>Walidacja Załączników:</strong> Weryfikacja typów MIME i blokada niebezpiecznych rozszerzeń plików.</li>
+                                    <li><strong>Zarządzanie Przestrzenią:</strong> Wizualne wskaźniki wykorzystania limitów dyskowych dla grup (2GB) i użytkowników (512MB).</li>
+                                    <li><strong>Masowy Upload:</strong> Przesyłanie wielu plików jednocześnie z asynchronicznym paskiem postępu i opcją ponowienia.</li>
                                 </ul>
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title changed"><i class="fas fa-edit"></i> Zmieniono</div>
                                 <ul class="change-list changed">
-                                    <li><strong>Szybciej i płynniej:</strong> Usunęliśmy wszelkie mruganie strony podczas wyszukiwania i zmieniania stron plików. Otwierane okienka zamykają się teraz naturalnie (np. klawiszem ESC).</li>
-                                    <li><strong>Dokładność zliczania przesyłu:</strong> Nieważne, jak szybko wrzucisz sto plików – liczniki zajmowanego miejsca nigdy się nie pomylą.</li>
-                                    <li><strong>Mocniejszy transfer:</strong> Zoptymalizowano użycie sieci, aby pliki wgrywały się 3x płynniej, wykorzystując maksimum możliwości Twojego łącza w sposób uporządkowany.</li>
+                                    <li><strong>Płynność Widoku:</strong> Optymalizacja nawigacji w module plików (eliminacja efektu migotania przy zmianie stron).</li>
+                                    <li><strong>Moderacja Własna:</strong> Funkcjonalność usuwania własnych wypowiedzi na forum dyskusyjnym.</li>
+                                    <li><strong>Optymalizacja Przesyłu:</strong> Usprawnienie równoległego transferu danych zwiększające wydajność wgrywania plików.</li>
+                                    <li><strong>Responsywność:</strong> Poprawki UI/UX dla urządzeń o niestandardowych rozdzielczościach ekranu.</li>
                                 </ul>
                             </div>
 
                             <div class="change-category">
                                 <div class="category-title fixed"><i class="fas fa-wrench"></i> Naprawiono</div>
                                 <ul class="change-list fixed">
-                                    <li><strong>Poprawki nawigacji:</strong> Puste strzałki oraz błędy "braku wyników wyszukiwania" przy klikaniu kolejnych stron wyeliminowane.</li>
-                                    <li><strong>Płodność systemu:</strong> Załataliśmy problemy z awariami zapytań o wadliwych typach oraz unieszkodliwiliśmy sztuczki "dziwnych nazw rzucających błędy w oknach".</li>
+                                    <li><strong>Nawigacja Paginacji:</strong> Wyeliminowanie błędów wyświetlania pustych stron przy filtrowaniu wyników.</li>
+                                    <li><strong>Ujednolicenie Komunikatów:</strong> Korekta błędów językowych i ujednolicenie stylu powiadomień w module społecznościowym.</li>
+                                    <li><strong>Stabilność Zapytań:</strong> Załatanie wyjątków przy zapytaniach o niezgodnych typach danych w oknach dialogowych.</li>
                                 </ul>
                             </div>
                         </div>

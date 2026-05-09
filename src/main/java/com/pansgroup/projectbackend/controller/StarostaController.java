@@ -1,6 +1,5 @@
 package com.pansgroup.projectbackend.controller;
 
-import com.pansgroup.projectbackend.module.user.User;
 import com.pansgroup.projectbackend.module.user.UserService;
 import com.pansgroup.projectbackend.module.user.dto.UserResponseDto;
 import org.springframework.security.access.prepost.PreAuthorize;

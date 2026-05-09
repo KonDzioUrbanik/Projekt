@@ -6,6 +6,7 @@ import com.pansgroup.projectbackend.exception.UsernameNotFoundException;
 import com.pansgroup.projectbackend.module.user.dto.UserResponseDto;
 
 import com.pansgroup.projectbackend.module.note.dto.*;
+import com.pansgroup.projectbackend.module.note.dto.ShareNoteRequest;
 import com.pansgroup.projectbackend.module.user.User;
 import com.pansgroup.projectbackend.module.user.UserRepository;
 import org.springframework.security.core.Authentication;

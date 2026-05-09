@@ -216,15 +216,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Auto open from URL (conversationId or userId)
     const urlParams = new URLSearchParams(window.location.search);
     const userIdParam = urlParams.get('userId');
+    const subjectParam = urlParams.get('subject');
+    const messageParam = urlParams.get('message');
     const openConvId = document.getElementById('openConversationId')?.getAttribute('content');
+
+    const handleUrlMessage = () => {
+        if (subjectParam || messageParam) {
+            setTimeout(() => {
+                let prefill = "";
+                if (subjectParam) prefill += subjectParam + '\n\n';
+                if (messageParam) prefill += messageParam;
+                if (prefill && !DOM.input.value) {
+                    DOM.input.value = prefill;
+                    DOM.input.dispatchEvent(new Event('input'));
+                }
+            }, 600); // Małe opóźnienie na wyrenderowanie DOM czatu
+        }
+    };
 
     if (openConvId && openConvId !== 'null' && openConvId !== '') {
         // Find in already loaded list
         const list = await refreshConversationList(); // Returns list from cache/fetch
         const c = list.find(x => String(x.id) === openConvId);
-        if (c) openConversation(c);
+        if (c) {
+            openConversation(c);
+            handleUrlMessage();
+        }
     } else if (userIdParam) {
-        startConversationWith({ id: userIdParam });
+        startConversationWith({ id: userIdParam }).then(() => {
+            handleUrlMessage();
+        });
     }
 });
 

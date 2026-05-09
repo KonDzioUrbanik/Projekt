@@ -1,6 +1,7 @@
 package com.pansgroup.projectbackend.module.note;
 
 import com.pansgroup.projectbackend.module.note.dto.*;
+import com.pansgroup.projectbackend.module.note.dto.ShareNoteRequest;
 import com.pansgroup.projectbackend.module.user.dto.UserResponseDto;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
