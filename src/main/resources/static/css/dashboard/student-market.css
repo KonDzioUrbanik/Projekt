@@ -66,13 +66,6 @@
     border: 1px solid var(--market-border);
 }
 
-@media (max-width: 768px) {
-    .market-wrapper {
-        padding: 15px;
-        margin: 10px auto;
-    }
-}
-
 /* PAGE HEADER */
 .market-header {
     display: flex;
@@ -315,15 +308,15 @@
     background: var(--market-accent-bg);
 }
 
-/* GRID */
-.ads-grid {
+/* GRID - Zmniejszono bazową szerokość karty dla telefonów */
+.market-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 20px;
 }
 
 /* AD CARD */
-.ad-card {
+.market-card {
     background: var(--market-bg-card);
     border: 1px solid var(--market-border);
     border-radius: var(--market-radius);
@@ -335,7 +328,7 @@
     overflow: hidden;
 }
 
-.ad-card::before {
+.market-card::before {
     content: '';
     position: absolute;
     top: 0;
@@ -346,17 +339,17 @@
     transition: background var(--market-transition);
 }
 
-.ad-card:hover {
+.market-card:hover {
     transform: translateY(-3px);
     box-shadow: var(--market-shadow-hover);
     border-color: var(--market-border-strong);
 }
 
-.ad-card:hover::before {
+.market-card:hover::before {
     background: var(--market-accent);
 }
 
-.ad-card.resolved {
+.market-card.resolved {
     opacity: 0.55;
 }
 
@@ -1190,7 +1183,7 @@
 /* ── LOADING ── */
 .skeleton-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 20px;
 }
 
@@ -1275,7 +1268,7 @@
     font-size: 0.95rem;
 }
 
-.contact-ad-title {
+.contact-offer-title {
     font-size: 0.82rem;
     color: var(--market-text-muted);
     white-space: nowrap;
@@ -1312,5 +1305,145 @@
 @keyframes spin {
     to {
         transform: rotate(360deg);
+    }
+}
+
+/* =========================================================
+   RESPONSYWNOŚĆ (MOBILE & TABLET)
+   ========================================================= */
+@media (max-width: 768px) {
+
+    /* Główny kontener - mniejsze marginesy na małych ekranach */
+    .market-wrapper {
+        padding: 16px;
+        margin: 10px auto;
+        border-radius: 8px;
+    }
+
+    /* Nagłówek - ułożenie w kolumnie, rozciągnięcie przycisków */
+    .market-header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+    }
+
+    .market-header-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .market-btn-outline,
+    .market-btn-primary {
+        flex: 1;
+        /* Przyciski zajmują równe połowy ekranu */
+        justify-content: center;
+    }
+
+    /* Statystyki - ułożenie w kolumnie, zamiana ramek pionowych na poziome */
+    .stats-bar {
+        flex-direction: column;
+    }
+
+    .stat-item {
+        border-right: none;
+        border-bottom: 1px solid var(--market-border);
+        padding: 12px;
+    }
+
+    .stat-item:last-child {
+        border-bottom: none;
+    }
+
+    /* Filtry i wyszukiwarka - rozciągnięcie na pełną szerokość */
+    .filters-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .search-wrap,
+    .market-select-field {
+        width: 100%;
+    }
+
+    /* Sortowanie - rozłożenie przycisków równomiernie */
+    .sort-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .sort-options {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .sort-btn {
+        flex: 1;
+        text-align: center;
+    }
+
+    /* Formularz dodawania - zniesienie podziału na 2 kolumny */
+    .market-form-2col {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    /* Modale - maksymalne dopasowanie do ekranu komórki */
+    .market-modal-overlay {
+        padding: 10px;
+        /* Zmniejszony margines zewnętrzny */
+    }
+
+    .market-modal-box {
+        max-height: 95vh;
+        border-radius: var(--market-radius-sm);
+    }
+
+    .market-modal-head,
+    .market-modal-body,
+    .market-modal-foot {
+        padding: 16px;
+        /* Zmniejszone paddingi wewnątrz dla odzyskania przestrzeni */
+    }
+
+    .market-modal-head h2 {
+        font-size: 1.2rem;
+        /* Mniejszy tytuł na komórkach */
+    }
+
+    /* Dopasowanie paska z przyciskami w modalach */
+    .market-modal-foot {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .market-modal-foot button {
+        width: 100%;
+        /* Przyciski akcji (Potwierdź/Anuluj) na pełną szerokość */
+        justify-content: center;
+    }
+}
+
+/* Dostosowanie dla naprawdę małych ekranów (np. stare iPhone'y) */
+@media (max-width: 380px) {
+    .page-title {
+        font-size: 2rem;
+        /* Zapobiega łamaniu słów w głównym tytule */
+    }
+
+    .card-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .card-footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .card-actions {
+        width: 100%;
+        justify-content: flex-end;
     }
 }

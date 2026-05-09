@@ -22,7 +22,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -46,12 +45,13 @@ public class MarketAdServiceImpl implements MarketAdService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<MarketAdResponseDto> getAllActiveAds(String currentUserEmail, AdCategory category, AdCondition condition, String search, Pageable pageable) {
+    public Page<MarketAdResponseDto> getAllActiveAds(String currentUserEmail, AdCategory category,
+            AdCondition condition, String search, Pageable pageable) {
         User currentUser = userRepository.findByEmail(currentUserEmail)
                 .orElseThrow(() -> new UserNotFoundException("Użytkownik nie istnieje"));
-        
-        String searchParam = (search != null && !search.trim().isEmpty()) 
-                ? "%" + search.trim().toLowerCase() + "%" 
+
+        String searchParam = (search != null && !search.trim().isEmpty())
+                ? "%" + search.trim().toLowerCase() + "%"
                 : null;
 
         return marketAdRepository.findFilteredAds(AdStatus.ACTIVE, category, condition, searchParam, pageable)
@@ -65,20 +65,21 @@ public class MarketAdServiceImpl implements MarketAdService {
                 .orElseThrow(() -> new UserNotFoundException("Użytkownik nie istnieje"));
 
         // 1. Walidacja Ceny vs Kategoria
-        boolean priceOptional = dto.category() == AdCategory.GIVEAWAY || 
-                                dto.category() == AdCategory.LOST_FOUND || 
-                                dto.category() == AdCategory.PROJECT_PARTNER;
-        
+        boolean priceOptional = dto.category() == AdCategory.GIVEAWAY ||
+                dto.category() == AdCategory.LOST_FOUND ||
+                dto.category() == AdCategory.PROJECT_PARTNER;
+
         if (!priceOptional && (dto.price() == null)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cena jest wymagana dla wybranej kategorii.");
         }
 
         // 2. Rate Limiting: Max 3 ogłoszenia na dobę (kalendarzową)
-        LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
+        LocalDateTime startOfToday = LocalDate.now(java.time.ZoneId.of("Europe/Warsaw")).atStartOfDay();
         long adsToday = marketAdRepository.countByAuthorIdAndCreatedAtAfter(currentUser.getId(), startOfToday);
         if (adsToday >= MAX_ADS_PER_DAY) {
             throw new TooManyRequestsException(
-                    "Osiągnięto limit ogłoszeń na dzisiaj (max " + MAX_ADS_PER_DAY + "). Nowy limit dostępny od jutra.");
+                    "Osiągnięto limit ogłoszeń na dzisiaj (max " + MAX_ADS_PER_DAY
+                            + "). Nowy limit dostępny od jutra.");
         }
 
         long activeAds = marketAdRepository.countByAuthorIdAndStatus(currentUser.getId(), AdStatus.ACTIVE);
@@ -91,10 +92,12 @@ public class MarketAdServiceImpl implements MarketAdService {
         String safeDescription = Jsoup.clean(dto.description(), Safelist.basic()).trim();
 
         if (safeTitle.length() < 5) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tytuł po oczyszczeniu jest zbyt krótki (min. 5 znaków).");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Tytuł po oczyszczeniu jest zbyt krótki (min. 5 znaków).");
         }
         if (safeDescription.length() < 20) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Opis po oczyszczeniu jest zbyt krótki (min. 20 znaków).");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Opis po oczyszczeniu jest zbyt krótki (min. 20 znaków).");
         }
 
         MarketAd ad = new MarketAd();
@@ -170,22 +173,22 @@ public class MarketAdServiceImpl implements MarketAdService {
                 .orElseThrow(() -> new UserNotFoundException("Użytkownik nie istnieje"));
 
         long totalActive = marketAdRepository.countByStatus(AdStatus.ACTIVE);
-        long myAds = marketAdRepository.countByAuthorIdAndStatus(currentUser.getId(), AdStatus.ACTIVE);
-        long addedToday = marketAdRepository.countAllByCreatedAtAfter(LocalDate.now().atStartOfDay());
+        long myOffers = marketAdRepository.countByAuthorIdAndStatus(currentUser.getId(), AdStatus.ACTIVE);
+        long addedToday = marketAdRepository.countAllByCreatedAtAfter(LocalDate.now(java.time.ZoneId.of("Europe/Warsaw")).atStartOfDay());
         long categoriesCount = marketAdRepository.countDistinctCategoriesByStatus(AdStatus.ACTIVE);
-        
-        long myActiveCount = myAds;
-        long myAddedToday = marketAdRepository.countByAuthorIdAndCreatedAtAfter(currentUser.getId(), 
-                LocalDate.now().atStartOfDay());
 
-        return new MarketAdStatsDto(totalActive, myAds, addedToday, categoriesCount, myActiveCount, myAddedToday);
+        long myActiveCount = myOffers;
+        long myAddedToday = marketAdRepository.countByAuthorIdAndCreatedAtAfter(currentUser.getId(),
+                LocalDate.now(java.time.ZoneId.of("Europe/Warsaw")).atStartOfDay());
+
+        return new MarketAdStatsDto(totalActive, myOffers, addedToday, categoriesCount, myActiveCount, myAddedToday);
     }
 
     @Override
     @Transactional
     public void archiveExpiredAds() {
         List<MarketAd> expiredAds = marketAdRepository.findByStatusAndExpiresAtBefore(AdStatus.ACTIVE,
-                LocalDateTime.now());
+                LocalDateTime.now(java.time.ZoneId.of("Europe/Warsaw")));
 
         if (!expiredAds.isEmpty()) {
             for (MarketAd ad : expiredAds) {

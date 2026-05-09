@@ -222,15 +222,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const handleUrlMessage = () => {
         if (subjectParam || messageParam) {
-            setTimeout(() => {
-                let prefill = "";
-                if (subjectParam) prefill += subjectParam + '\n\n';
-                if (messageParam) prefill += messageParam;
-                if (prefill && !DOM.input.value) {
-                    DOM.input.value = prefill;
-                    DOM.input.dispatchEvent(new Event('input'));
-                }
-            }, 600); // Małe opóźnienie na wyrenderowanie DOM czatu
+            let prefill = "";
+            if (subjectParam) prefill += subjectParam + '\n\n';
+            if (messageParam) prefill += messageParam;
+            if (prefill && !DOM.input.value) {
+                DOM.input.value = prefill;
+                DOM.input.dispatchEvent(new Event('input'));
+                DOM.input.focus();
+            }
         }
     };
 
