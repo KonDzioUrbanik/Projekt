@@ -50,7 +50,7 @@ public interface AnalyticsEventRepository extends JpaRepository<AnalyticsEvent, 
 
        // --- Statystyki per użytkownik ---
        @Query("SELECT e.userId, COUNT(DISTINCT e.sessionId), COUNT(e) " +
-                     "FROM AnalyticsEvent e GROUP BY e.userId ORDER BY COUNT(e) DESC")
+                     "FROM AnalyticsEvent e WHERE e.userId IS NOT NULL GROUP BY e.userId ORDER BY COUNT(e) DESC")
        List<Object[]> findUserActivitySummary(Pageable pageable);
 
        // --- Łączna liczba unikalnych sesji (30 dni) ---

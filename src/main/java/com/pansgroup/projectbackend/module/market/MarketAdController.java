@@ -48,8 +48,12 @@ public class MarketAdController {
     }
 
     @GetMapping("/my-offers")
-    public ResponseEntity<Page<MarketAdResponseDto>> getMyAds(Pageable pageable, Principal principal) {
-        return ResponseEntity.ok(marketAdService.getMyAds(principal.getName(), pageable));
+    public ResponseEntity<Page<MarketAdResponseDto>> getMyAds(
+            @RequestParam(required = false) AdCategory category,
+            @RequestParam(required = false) AdCondition condition,
+            @RequestParam(required = false) String search,
+            Pageable pageable, Principal principal) {
+        return ResponseEntity.ok(marketAdService.getMyAds(principal.getName(), category, condition, search, pageable));
     }
 
     @GetMapping("/stats")

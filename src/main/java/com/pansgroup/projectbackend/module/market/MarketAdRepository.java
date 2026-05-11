@@ -33,6 +33,21 @@ public interface MarketAdRepository extends JpaRepository<MarketAd, Long> {
                                    Pageable pageable);
 
     @EntityGraph(attributePaths = "author")
+    @Query(value = "SELECT m FROM MarketAd m WHERE m.author.id = :authorId " +
+           "AND (:category IS NULL OR m.category = :category) " +
+           "AND (:condition IS NULL OR m.condition = :condition) " +
+           "AND (:search IS NULL OR LOWER(m.title) LIKE :search OR LOWER(m.description) LIKE :search)",
+           countQuery = "SELECT COUNT(m) FROM MarketAd m WHERE m.author.id = :authorId " +
+           "AND (:category IS NULL OR m.category = :category) " +
+           "AND (:condition IS NULL OR m.condition = :condition) " +
+           "AND (:search IS NULL OR LOWER(m.title) LIKE :search OR LOWER(m.description) LIKE :search)")
+    Page<MarketAd> findMyFilteredAds(@Param("authorId") Long authorId,
+                                     @Param("category") AdCategory category,
+                                     @Param("condition") AdCondition condition,
+                                     @Param("search") String search,
+                                     Pageable pageable);
+
+    @EntityGraph(attributePaths = "author")
     Page<MarketAd> findAllByAuthorIdOrderByCreatedAtDesc(Long authorId, Pageable pageable);
     List<MarketAd> findByStatusAndExpiresAtBefore(AdStatus status, LocalDateTime date);
     

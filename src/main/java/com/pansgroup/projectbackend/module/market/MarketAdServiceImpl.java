@@ -159,10 +159,15 @@ public class MarketAdServiceImpl implements MarketAdService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<MarketAdResponseDto> getMyAds(String currentUserEmail, Pageable pageable) {
+    public Page<MarketAdResponseDto> getMyAds(String currentUserEmail, AdCategory category, AdCondition condition, String search, Pageable pageable) {
         User currentUser = userRepository.findByEmail(currentUserEmail)
                 .orElseThrow(() -> new UserNotFoundException("Użytkownik nie istnieje"));
-        return marketAdRepository.findAllByAuthorIdOrderByCreatedAtDesc(currentUser.getId(), pageable)
+
+        String searchParam = (search != null && !search.trim().isEmpty())
+                ? "%" + search.trim().toLowerCase() + "%"
+                : null;
+
+        return marketAdRepository.findMyFilteredAds(currentUser.getId(), category, condition, searchParam, pageable)
                 .map(ad -> mapToResponseDto(ad, currentUser));
     }
 

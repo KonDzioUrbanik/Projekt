@@ -13,7 +13,7 @@ public interface MarketAdService {
     MarketAdResponseDto createAd(MarketAdCreateDto dto, String currentUserEmail);
     void deleteAd(Long adId, String currentUserEmail);
     void resolveAd(Long adId, String currentUserEmail);
-    Page<MarketAdResponseDto> getMyAds(String currentUserEmail, Pageable pageable);
+    Page<MarketAdResponseDto> getMyAds(String currentUserEmail, AdCategory category, AdCondition condition, String search, Pageable pageable);
     MarketAdStatsDto getMarketStats(String currentUserEmail);
     void archiveExpiredAds();
 }

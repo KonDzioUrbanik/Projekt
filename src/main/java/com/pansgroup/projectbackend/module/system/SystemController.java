@@ -28,15 +28,21 @@ public class SystemController {
             "global_maintenance",
             "registration_enabled",
             "login_enabled",
+            "module_portal_home",
+            "module_student_dashboard",
             "module_notes",
             "module_schedule",
             "module_announcements",
             "module_calendar",
             "module_attendance",
             "module_forum",
+            "module_community",
+            "module_wordle",
             "module_university_calendar",
             "module_semester_progress",
+            "module_starosta_dashboard",
             "module_starosta_announcements",
+            "module_starosta_schedule",
             "module_analytics",
             "module_chat",
             "module_group_drive",
@@ -51,12 +57,16 @@ public class SystemController {
      * ich status nie powinien być ujawniany bez autoryzacji.
      */
     private static final Set<String> PUBLIC_MODULE_KEYS = Set.of(
+            "module_portal_home",
+            "module_student_dashboard",
             "module_notes",
             "module_schedule",
             "module_announcements",
             "module_calendar",
             "module_attendance",
             "module_forum",
+            "module_community",
+            "module_wordle",
             "module_university_calendar",
             "module_semester_progress",
             "module_analytics",
@@ -64,7 +74,9 @@ public class SystemController {
             "module_group_drive",
             "module_student_market",
             "module_surveys",
-            "module_starosta_announcements");
+            "module_starosta_dashboard",
+            "module_starosta_announcements",
+            "module_starosta_schedule");
 
     private static final int BANNER_MAX_LENGTH = 500;
 

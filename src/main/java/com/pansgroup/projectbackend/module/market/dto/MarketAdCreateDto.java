@@ -21,7 +21,6 @@ public record MarketAdCreateDto(
         @NotNull(message = "Stan przedmiotu jest wymagany")
         AdCondition condition,
 
-        @NotNull(message = "Cena jest wymagana. Wpisz 0 dla ofert bezpłatnych.")
         @DecimalMin(value = "0.0", message = "Cena nie może być ujemna")
         @Digits(integer = 6, fraction = 2, message = "Nieprawidłowy format ceny")
         BigDecimal price

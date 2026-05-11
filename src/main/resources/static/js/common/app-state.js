@@ -217,9 +217,19 @@
         var name = el.getAttribute('data-track');
         if (!name) {
             var label = (el.getAttribute('title') || el.getAttribute('aria-label') || el.id || el.innerText || '').trim();
+            
+            // Rezerwowy mechanizm dla przycisków ikonowych bez tekstu i ID (v1.5.0)
+            if (!label) {
+                var icon = el.querySelector('i[class*="fa-"]');
+                if (icon) {
+                    var match = icon.className.match(/fa-([a-z0-9-]+)/);
+                    if (match) label = 'icon-' + match[1];
+                }
+            }
+
             if (el.tagName === 'A') {
                 var href = el.getAttribute('href') || '';
-                name = 'link:' + (label || sanitize(href, 50));
+                name = 'link:' + (label || sanitize(href, 50) || 'unnamed');
                 if (href.indexOf('logout') !== -1) {
                     reportTimeOnPage(); // Raportuj czas PRZED wylogowaniem
                     localStorage.removeItem(SESSION_KEY);

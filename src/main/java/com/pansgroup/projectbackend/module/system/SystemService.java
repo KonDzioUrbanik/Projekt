@@ -30,6 +30,8 @@ public class SystemService {
                 "Globalny tryb konserwacji - blokuje dostęp wszystkim poza adminami");
         createSettingIfAbsent("registration_enabled", "true", "Zezwalaj na rejestrację nowych użytkowników");
         createSettingIfAbsent("login_enabled", "true", "Zezwalaj na logowanie do platformy");
+        createSettingIfAbsent("module_portal_home", "true", "Status Strony głównej portalu");
+        createSettingIfAbsent("module_student_dashboard", "true", "Status Dashboardu studenta");
         createSettingIfAbsent("module_notes", "true", "Status modułu Notatki");
         createSettingIfAbsent("module_schedule", "true", "Status modułu Harmonogram zajęć");
         createSettingIfAbsent("module_announcements", "true", "Status modułu Ogłoszenia grupy");
@@ -38,6 +40,9 @@ public class SystemService {
         createSettingIfAbsent("module_forum", "true", "Status modułu Forum");
         createSettingIfAbsent("module_university_calendar", "true", "Status modułu Kalendarz akademicki");
         createSettingIfAbsent("module_semester_progress", "true", "Status modułu Postęp semestru");
+        createSettingIfAbsent("module_wordle", "true", "Status modułu Wordle");
+        createSettingIfAbsent("module_community", "true", "Status modułu Społeczność");
+        createSettingIfAbsent("module_starosta_dashboard", "true", "Status Dashboardu Starosty");
         createSettingIfAbsent("module_starosta_announcements", "true", "Status modułu Ogłoszeń Starosty");
         createSettingIfAbsent("module_starosta_schedule", "true", "Status modułu Harmonogramu zajęć Starosty");
         createSettingIfAbsent("module_analytics", "true", "Status modułu Telemetrii analitycznej");
