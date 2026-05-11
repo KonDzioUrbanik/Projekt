@@ -639,6 +639,8 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     private Set<StudentGroup> resolveGroups(List<Long> groupIds) {
+        if (groupIds == null)
+            return Collections.emptySet();
         Set<StudentGroup> groups = new HashSet<>();
         for (Long groupId : groupIds) {
             StudentGroup group = studentGroupRepository.findById(groupId)

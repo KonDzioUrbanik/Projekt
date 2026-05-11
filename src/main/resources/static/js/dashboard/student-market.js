@@ -1,6 +1,7 @@
 'use strict';
 
 document.addEventListener('DOMContentLoaded', () => {
+    if (!document.getElementById('marketGrid')) return;
     // ── ZMIENNE GŁÓWNE I STAN ──
     const CURRENT_USER_EMAIL = document.getElementById('userEmail')?.value || ''; // Jeśli masz w layout, w przeciwnym razie mock
     let allAds = [];
@@ -36,16 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return (token && header) ? { [header]: token } : {};
     }
 
-    // ── TOAST ──
     function showToast(msg, type = 'success') {
-        const area = document.getElementById('toastArea');
-        if (!area) return;
-        const t = document.createElement('div');
-        t.className = `market-toast ${type}`;
-        t.textContent = msg;
-        t.setAttribute('role', 'status');
-        area.appendChild(t);
-        setTimeout(() => t.remove(), 3500);
+        Utils.showToast(msg, type);
     }
 
     // ── MODAL ──
@@ -163,7 +156,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const loader = document.getElementById('pageLoader');
             if (loader && !append) loader.style.display = 'flex';
 
-            const res = await fetch(`/api/market/my-offers?page=${page}&size=${pageSize}&sort=createdAt,desc`);
+            const search = document.getElementById('searchInput')?.value || '';
+            const cat = document.getElementById('catFilter')?.value || '';
+            const cond = document.getElementById('condFilter')?.value || '';
+
+            let sortParam = 'createdAt,desc';
+            if (currentSort === 'price_asc') sortParam = 'price,asc';
+            if (currentSort === 'price_desc') sortParam = 'price,desc';
+
+            let url = `/api/market/my-offers?page=${page}&size=${pageSize}&sort=${sortParam}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (cat) url += `&category=${cat}`;
+            if (cond) url += `&condition=${cond}`;
+
+            const res = await fetch(url);
             if (!res.ok) throw new Error('Błąd ładowania Twoich ogłoszeń');
             const data = await res.json();
 
@@ -687,7 +693,6 @@ document.addEventListener('DOMContentLoaded', () => {
             closeModal('addModal');
             fetchStats();
             render();
-            showToast('Ogłoszenie zostało opublikowane!');
         } catch (error) {
             msg.className='market-form-message error';
             msg.textContent = error.message;

@@ -136,17 +136,57 @@
     background: rgba(245, 158, 11, 0.1);
 }
 
-/* GRID LAYOUT */
-.system-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+/* COLUMN LAYOUT (Masonry-like) - used in system.html */
+.system-columns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+.system-column {
+    flex: 1;
+    min-width: 380px;
+    display: flex;
+    flex-direction: column;
     gap: 1.5rem;
 }
 
-/* Poprawa dla bardzo szerokich ekranów */
-@media (min-width: 1400px) {
+/* Responsiveness for columns */
+@media (max-width: 1200px) {
+    .system-column {
+        min-width: calc(50% - 0.75rem);
+    }
+}
+
+@media (max-width: 850px) {
+    .system-column {
+        min-width: 100%;
+    }
+}
+
+/* GRID LAYOUT - used in other admin pages (e.g. resources) */
+.system-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+}
+
+@media (max-width: 1200px) {
     .system-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 850px) {
+    .system-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Reset spans on mobile */
+    .system-grid .system-card {
+        grid-column: span 1 !important;
     }
 }
 
@@ -231,15 +271,35 @@
     box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
 }
 
-/* MODULE ITEMS */
 .system-group-divider {
+    display: flex !important;
+    align-items: center;
+    margin: 2rem 0 1.5rem !important;
+    color: var(--text-muted, #64748b);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    width: 100%;
+}
+
+.system-group-divider::before,
+.system-group-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border, #cbd5e1);
+    opacity: 0.5;
+}
+
+.system-group-divider span {
+    padding: 0 1rem;
+}
+
+.system-group-divider:not(:has(span)) {
+    height: 1px;
+    background: var(--border, #cbd5e1);
     display: block !important;
-    height: 1px !important;
-    background-color: var(--border, #cbd5e1) !important;
-    margin: 1.5rem 0 !important;
-    width: 100% !important;
-    opacity: 1 !important;
-    visibility: visible !important;
 }
 
 .modules-list {

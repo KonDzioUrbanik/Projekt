@@ -151,8 +151,26 @@ public class SystemMaintenanceFilter extends OncePerRequestFilter {
             if (checkModuleBlock(request, response, path, "/student/student-market", "module_student_market",
                     "Giełda studencka"))
                 return;
+            if (checkModuleBlock(request, response, path, "/student/friends", "module_community",
+                    "Społeczność"))
+                return;
+            if (checkModuleBlock(request, response, path, "/student/wordle", "module_wordle",
+                    "Wordle"))
+                return;
+            if (checkModuleBlock(request, response, path, "/student/dashboard", "module_student_dashboard",
+                    "Dashboard Studenta"))
+                return;
+            if (checkModuleBlock(request, response, path, "/starosta/dashboard", "module_starosta_dashboard",
+                    "Dashboard Starosty"))
+                return;
+            if (checkModuleBlock(request, response, path, "/starosta/schedule-management", "module_starosta_schedule",
+                    "Zarządzanie planem Starosty"))
+                return;
             if (checkModuleBlock(request, response, path, "/starosta/announcements", "module_starosta_announcements",
                     "Ogłoszenia starosty"))
+                return;
+            if (checkModuleBlock(request, response, path, "/home", "module_portal_home",
+                    "Strona główna portalu"))
                 return;
             if (checkChatBlock(request, response, path))
                 return;

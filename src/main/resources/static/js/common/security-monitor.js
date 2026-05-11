@@ -142,9 +142,18 @@
                     if (node.nodeType === 1) { // Element
                         if (node.tagName === 'SCRIPT' || node.tagName === 'IFRAME') {
                             // Ignoruj jeśli to nasze własne skrypty (można rozszerzyć o listę zaufanych domen)
-                            const src = node.src || '';
-                            const trustedDomains = ['cdn.jsdelivr.net', 'cdnjs.cloudflare.com', 'unpkg.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
-                            const isTrusted = trustedDomains.some(domain => src.includes(domain));
+                            const src = node.src || node.getAttribute('src') || '';
+                            const trustedDomains = [
+                                'cdn.jsdelivr.net', 
+                                'cdnjs.cloudflare.com', 
+                                'unpkg.com', 
+                                'fonts.googleapis.com', 
+                                'fonts.gstatic.com',
+                                'cdn.tiny.cloud',
+                                'www.googletagmanager.com',
+                                'www.google-analytics.com'
+                            ];
+                            const isTrusted = trustedDomains.some(domain => src.indexOf(domain) !== -1);
                             
                             if (src && !src.includes(window.location.hostname) && !src.startsWith('/') && !src.startsWith('data:') && !isTrusted) {
                                 sendThreatLog('CODE_INJECTION', `Wstrzyknięto podejrzany element ${node.tagName}: src=${src}`);
@@ -169,9 +178,10 @@
 
     // 3. Monitorowanie błędów krytycznych (Frontend Error Leak)
     window.addEventListener('error', (event) => {
-        // Ignorujemy błędy rozszerzeń lub banalne 
-        if (!event.message || event.message.includes('Extension')) return;
+        // Ignorujemy błędy rozszerzeń, banalne błędy nawigacji lub błędy "null/undefined" wynikające z braku elementów na stronie
+        const msg = event.message || '';
+        if (msg.includes('Extension') || msg.includes('null') || msg.includes('undefined')) return;
         
-        sendThreatLog('FRONTEND_ERROR', `Błąd JS: ${event.message} w ${event.filename || 'unknown'}:${event.lineno || 0}`);
+        sendThreatLog('FRONTEND_ERROR', `Błąd JS: ${msg} w ${event.filename || 'unknown'}:${event.lineno || 0}`);
     });
 })();

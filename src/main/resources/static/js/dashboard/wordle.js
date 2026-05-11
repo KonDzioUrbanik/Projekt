@@ -9,6 +9,8 @@
     const WORD_LENGTH  = 5;
 
     // ─── DOM references ──────────────────────────────────
+    if (!document.getElementById('wordleBoard')) return;
+
     const board       = document.getElementById('wordleBoard');
     const keyboard    = document.getElementById('wordleKeyboard');
     const msgEl       = document.getElementById('wordleMessage');
