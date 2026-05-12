@@ -151,6 +151,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function fetchFavoriteAds(page = 0, append = false) {
+        try {
+            const loader = document.getElementById('pageLoader');
+            if (loader && !append) loader.style.display = 'flex';
+
+            let url = `/api/market/favorites?page=${page}&size=${pageSize}&sort=createdAt,desc`;
+
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('Błąd ładowania ulubionych');
+            const data = await res.json();
+
+            if (data.content) {
+                isLastPage = data.last;
+                if (append) {
+                    allAds = [...allAds, ...data.content];
+                    appendNewAds(data.content);
+                } else {
+                    allAds = data.content;
+                    render();
+                }
+            } else {
+                allAds = data;
+                isLastPage = true;
+                render();
+            }
+        } catch (error) {
+            console.error(error);
+            showToast('Nie udało się pobrać Twoich ulubionych.', 'error');
+        } finally {
+            const loader = document.getElementById('pageLoader');
+            if (loader) loader.style.display = 'none';
+        }
+    }
+
     async function fetchMyAds(page = 0, append = false) {
         try {
             const loader = document.getElementById('pageLoader');
@@ -287,9 +321,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
                 </button>`;
         } else {
-            actions = `<button class="btn-card contact" data-action="contact" data-id="${ad.id}" data-author-id="${ad.authorId}" data-author-name="${esc(ad.authorName)}" data-title="${esc(ad.title)}" title="Napisz do autora" aria-label="Napisz do ${esc(ad.authorName)}">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            </button>`;
+            actions = `
+                <button class="btn-card fav ${ad.isFavorite ? 'active' : ''}" data-action="favorite" data-id="${ad.id}" title="${ad.isFavorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}" aria-label="Ulubione">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="${ad.isFavorite ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                </button>
+                <button class="btn-card contact" data-action="contact" data-id="${ad.id}" data-author-id="${ad.authorId}" data-author-name="${esc(ad.authorName)}" data-title="${esc(ad.title)}" title="Napisz do autora" aria-label="Napisz do ${esc(ad.authorName)}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>`;
         }
 
         const ownerBadge = ad.isOwner ? `<span class="owner-badge">Twoje</span>` : '';
@@ -387,6 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.disabled = true;
                 btn.innerHTML = 'Ładowanie...';
                 if (currentTab === 'mine') fetchMyAds(currentPage, true);
+                else if (currentTab === 'fav') fetchFavoriteAds(currentPage, true);
                 else fetchAds(currentPage, true);
                 return;
             }
@@ -461,7 +500,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 openModal('contactModal');
             }
+            if (action === 'favorite') {
+                e.stopPropagation(); // nie otwieraj modala szczegółów
+                toggleFav(id, btn);
+            }
         });
+    }
+
+    async function toggleFav(id, btn) {
+        try {
+            const res = await fetch(`/api/market/favorites/${id}`, {
+                method: 'POST',
+                headers: getCsrfHeaders()
+            });
+            if (!res.ok) throw new Error('Błąd zmiany ulubionych');
+            const isFav = await res.json();
+            
+            // 1. Aktualizacja stanu w źródle prawdy (tablica allAds)
+            const ad = allAds.find(a => a.id === id);
+            if (ad) ad.isFavorite = isFav;
+            
+            // 2. Jeśli jesteśmy w zakładce 'fav', a właśnie usunięto z ulubionych - usuwamy z tablicy
+            if (currentTab === 'fav' && !isFav) {
+                allAds = allAds.filter(a => a.id !== id);
+            }
+            
+            // 3. Renderowanie całego widoku na podstawie nowego stanu
+            render();
+            
+            showToast(isFav ? 'Dodano do ulubionych' : 'Usunięto z ulubionych');
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
     }
 
     // ── MODAL SZCZEGÓŁÓW ──
@@ -566,11 +636,13 @@ document.addEventListener('DOMContentLoaded', () => {
             currentTab = btn.dataset.tab;
             
             const banner = document.getElementById('myAdsBanner');
-            if (banner) banner.style.display = currentTab === 'mine' ? 'flex' : 'none';
+                        if (banner) banner.style.display = currentTab === 'mine' ? 'flex' : 'none';
             
             currentPage = 0; // reset paginacji po zmianie zakładki
             if (currentTab === 'mine') {
                 fetchMyAds(0, false);
+            } else if (currentTab === 'fav') {
+                fetchFavoriteAds(0, false);
             } else {
                 fetchAds(0, false);
             }

@@ -16,4 +16,6 @@ public interface MarketAdService {
     Page<MarketAdResponseDto> getMyAds(String currentUserEmail, AdCategory category, AdCondition condition, String search, Pageable pageable);
     MarketAdStatsDto getMarketStats(String currentUserEmail);
     void archiveExpiredAds();
+    boolean toggleFavorite(Long adId, String currentUserEmail);
+    Page<MarketAdResponseDto> getFavoriteAds(String currentUserEmail, Pageable pageable);
 }

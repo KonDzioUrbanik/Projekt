@@ -19,6 +19,7 @@ public record MarketAdResponseDto(
         String authorName,
         LocalDateTime createdAt,
         LocalDateTime expiresAt,
-        boolean isOwner
+        boolean isOwner,
+        boolean isFavorite
 ) {
 }

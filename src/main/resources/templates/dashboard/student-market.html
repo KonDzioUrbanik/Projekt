@@ -12,7 +12,7 @@
                 <div class="market-header">
                     <div>
                         <h1 class="page-title">Giełda studencka</h1>
-                        <p class="page-subtitle">Wymiana materiałów, sprzętu, informacji i pomocy między studentami.</p>
+                        <p class="page-subtitle">Wymiana materiałów, sprzętu, informacji, usług i pomocy między studentami.</p>
                     </div>
                     <div class="market-header-right" style="display: flex; gap: 10px;">
                         <button class="market-btn-outline" id="roadmapBtn" aria-haspopup="dialog" style="display: flex; align-items: center; gap: 6px;">
@@ -47,6 +47,7 @@
 
                 <div class="tabs-row" role="tablist" aria-label="Widok ogłoszeń">
                     <button class="tab-btn active" data-tab="all" role="tab" aria-selected="true">Wszystkie</button>
+                    <button class="tab-btn" data-tab="fav" role="tab" aria-selected="false">Ulubione</button>
                     <button class="tab-btn" data-tab="mine" role="tab" aria-selected="false">Moje ogłoszenia</button>
                 </div>
 
@@ -283,11 +284,14 @@
                                     </div>
                                 </li>
                                 
-                                <li class="roadmap-item">
-                                    <div class="roadmap-icon danger"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg></div>
+                                <li class="roadmap-item done" style="border-left: 4px solid var(--market-success);">
+                                    <div class="roadmap-icon success"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg></div>
                                     <div>
-                                        <strong class="roadmap-title">Zapisz na później (Ulubione)</strong>
-                                        <span class="roadmap-desc">Ikonka serduszka przy każdym ogłoszeniu, pozwalająca zapisać interesujące oferty (szczególnie przydatne przy szukaniu stancji lub materiałów do konkretnych przedmiotów).</span>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <strong class="roadmap-title">Zapisz na później (Ulubione)</strong>
+                                            <span class="card-badge badge-help" style="font-size: 0.6rem; padding: 2px 6px;">Gotowe!</span>
+                                        </div>
+                                        <span class="roadmap-desc">Ikonka serduszka przy każdym ogłoszeniu, pozwalająca zapisać interesujące oferty. Dostępne w nowej zakładce "Ulubione".</span>
                                     </div>
                                 </li>
                                 
