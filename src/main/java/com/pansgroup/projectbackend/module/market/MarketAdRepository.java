@@ -49,6 +49,9 @@ public interface MarketAdRepository extends JpaRepository<MarketAd, Long> {
 
     @EntityGraph(attributePaths = "author")
     Page<MarketAd> findAllByAuthorIdOrderByCreatedAtDesc(Long authorId, Pageable pageable);
+    
+    List<MarketAd> findByAuthorId(Long authorId);
+
     List<MarketAd> findByStatusAndExpiresAtBefore(AdStatus status, LocalDateTime date);
     
     long countByAuthorIdAndStatus(Long authorId, AdStatus status);

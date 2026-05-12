@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentTab = 'all';
     let currentSort = 'newest';
     let pendingContactAuthorId = null;
+    let pendingReportAdId = null;
 
     const CATEGORY_META = {
         BOOKS_NOTES:    { label:'Podręczniki', badge:'badge-books', icon:'' },
@@ -322,9 +323,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>`;
         } else {
             actions = `
+                <button class="btn-card report" data-action="report" data-id="${ad.id}" data-title="${esc(ad.title)}" title="Zgłoś naruszenie" aria-label="Zgłoś naruszenie">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+                </button>
                 <button class="btn-card fav ${ad.isFavorite ? 'active' : ''}" data-action="favorite" data-id="${ad.id}" title="${ad.isFavorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}" aria-label="Ulubione">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="${ad.isFavorite ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                </button>
+                </button>   
                 <button class="btn-card contact" data-action="contact" data-id="${ad.id}" data-author-id="${ad.authorId}" data-author-name="${esc(ad.authorName)}" data-title="${esc(ad.title)}" title="Napisz do autora" aria-label="Napisz do ${esc(ad.authorName)}">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 </button>`;
@@ -500,6 +504,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 openModal('contactModal');
             }
+            if (action === 'report') {
+                e.stopPropagation();
+                const adTitle = btn.dataset.title;
+                pendingReportAdId = id;
+                const titleEl = document.getElementById('reportAdTitle');
+                if (titleEl) titleEl.textContent = adTitle;
+                document.getElementById('reportReason').value = '';
+                document.getElementById('reportDetails').value = '';
+                
+                const counter = document.getElementById('reportDetailsLen');
+                if (counter) counter.textContent = '0';
+                
+                const msg = document.getElementById('reportFormMsg');
+                if (msg) msg.className = 'market-form-message'; // Reset
+                
+                openModal('reportModal');
+            }
             if (action === 'favorite') {
                 e.stopPropagation(); // nie otwieraj modala szczegółów
                 toggleFav(id, btn);
@@ -602,6 +623,65 @@ document.addEventListener('DOMContentLoaded', () => {
         openModal('detailsModal');
     }
 
+    // ── REPORT SUBMIT ──
+    document.getElementById('submitReportBtn')?.addEventListener('click', async () => {
+        const msg = document.getElementById('reportFormMsg');
+        if (msg) msg.className = 'market-form-message'; // Reset
+
+        const reason = document.getElementById('reportReason').value;
+        const details = document.getElementById('reportDetails').value.trim();
+        
+        if (!reason) {
+            if (msg) {
+                msg.className = 'market-form-message error';
+                msg.textContent = 'Proszę wybrać powód zgłoszenia.';
+            } else {
+                showToast('Proszę wybrać powód zgłoszenia.', 'warn');
+            }
+            return;
+        }
+
+        const btn = document.getElementById('submitReportBtn');
+        btn.disabled = true;
+        const originalText = btn.textContent;
+        btn.textContent = 'Wysyłanie...';
+
+        try {
+            const res = await fetch(`/api/market/offers/${pendingReportAdId}/report`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getCsrfHeaders()
+                },
+                body: JSON.stringify({ reason, details })
+            });
+
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.message || 'Nie udało się wysłać zgłoszenia.');
+            }
+
+            if (msg) {
+                msg.className = 'market-form-message success';
+                msg.textContent = 'Dziękujemy. Zgłoszenie zostało wysłane i zostanie rozpatrzone przez moderatora.';
+                setTimeout(() => closeModal('reportModal'), 2000);
+            } else {
+                showToast('Zgłoszenie zostało wysłane.', 'success');
+                closeModal('reportModal');
+            }
+        } catch (err) {
+            if (msg) {
+                msg.className = 'market-form-message error';
+                msg.textContent = err.message;
+            } else {
+                showToast(err.message, 'error');
+            }
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    });
+
     // ── ROADMAP MODAL ──
     const roadmapBtn = document.getElementById('roadmapBtn');
     if (roadmapBtn) {
@@ -679,6 +759,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('formDescription')?.addEventListener('input', function() {
         document.getElementById('descLen').textContent = this.value.length;
+    });
+    document.getElementById('reportDetails')?.addEventListener('input', function() {
+        const el = document.getElementById('reportDetailsLen');
+        if (el) el.textContent = this.value.length;
     });
 
     const noPriceCategories = new Set(['GIVEAWAY','LOST_FOUND','PROJECT_PARTNER']);
@@ -777,7 +861,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── CONTACT SEND ──
     document.getElementById('sendContactBtn')?.addEventListener('click', async () => {
         const msgTxt = document.getElementById('contactMsg').value.trim();
-        if (!msgTxt) { showToast('Napisz wiadomość przed wysłaniem.', 'warn'); return; }
+        const msgEl = document.getElementById('contactFormMsg');
+        
+        if (!msgTxt) { 
+            if (msgEl) {
+                msgEl.className = 'market-form-message error';
+                msgEl.textContent = 'Napisz wiadomość przed wysłaniem.';
+            } else {
+                showToast('Napisz wiadomość przed wysłaniem.', 'warn'); 
+            }
+            return; 
+        }
         
         const btn = document.getElementById('sendContactBtn');
         btn.disabled = true;
@@ -793,5 +887,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Wczytaj dane początkowe
     fetchStats();
-    fetchAds(0, false);
+    fetchAds(0, false).then(() => {
+        // Sprawdź czy w URL jest adId (przydatne dla linków z panelu admina)
+        const urlParams = new URLSearchParams(window.location.search);
+        const adIdParam = urlParams.get('adId');
+        if (adIdParam) {
+            const adId = Number(adIdParam);
+            // Jeśli ogłoszenie jest już w allAds, otwórz modal
+            const ad = allAds.find(a => a.id === adId);
+            if (ad) {
+                openDetailsModal(adId);
+            } else {
+                // Jeśli nie ma go w pierwszej stronie, pobierzemy je osobno (opcjonalnie)
+                // Na razie szukamy tylko w pobranych
+                console.log('Ad not found in current view:', adId);
+            }
+        }
+    });
 });

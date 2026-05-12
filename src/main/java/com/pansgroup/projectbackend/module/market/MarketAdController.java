@@ -70,4 +70,13 @@ public class MarketAdController {
     public ResponseEntity<Page<MarketAdResponseDto>> getFavorites(Pageable pageable, Principal principal) {
         return ResponseEntity.ok(marketAdService.getFavoriteAds(principal.getName(), pageable));
     }
+
+    @PostMapping("/offers/{id}/report")
+    public ResponseEntity<Void> reportAd(
+            @PathVariable Long id,
+            @Valid @RequestBody com.pansgroup.projectbackend.module.market.dto.MarketAdReportDto dto,
+            Principal principal) {
+        marketAdService.reportAd(id, dto, principal.getName());
+        return ResponseEntity.ok().build();
+    }
 }

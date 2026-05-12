@@ -700,6 +700,12 @@
     background: var(--market-navy);
 }
 
+.btn-card.report:hover {
+    color: var(--market-accent);
+    border-color: var(--market-accent);
+    background: var(--market-accent-bg);
+}
+
 .btn-card.fav:hover {
     color: var(--market-danger);
     border-color: var(--market-danger);

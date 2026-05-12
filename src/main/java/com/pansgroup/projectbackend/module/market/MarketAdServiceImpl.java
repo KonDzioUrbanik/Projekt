@@ -37,6 +37,7 @@ import org.springframework.security.access.AccessDeniedException;
 public class MarketAdServiceImpl implements MarketAdService {
     private final MarketAdRepository marketAdRepository;
     private final MarketFavoriteRepository marketFavoriteRepository;
+    private final MarketAdReportRepository marketAdReportRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final EntityManager entityManager;
@@ -126,6 +127,7 @@ public class MarketAdServiceImpl implements MarketAdService {
     @Override
     @Transactional
     public void deleteAd(Long adId, String currentUserEmail) {
+        // Sprawdzamy, czy ogłoszenie w ogóle istnieje
         MarketAd ad = marketAdRepository.findById(adId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ogłoszenie nie istnieje"));
 
@@ -136,7 +138,13 @@ public class MarketAdServiceImpl implements MarketAdService {
             throw new AccessDeniedException("Brak uprawnień do usunięcia tego ogłoszenia");
         }
 
-        marketAdRepository.delete(ad);
+        // 1. Kaskadowe usunięcie powiązań (wymuszone prosto na bazie danych)
+        marketFavoriteRepository.deleteAllByAdId(adId);
+        marketAdReportRepository.deleteAllByAdId(adId);
+        
+        // 2. Bezpieczne usunięcie ogłoszenia po jego ID (zapobiega błędom Detached Entity / State Conflict)
+        marketAdRepository.deleteById(adId);
+        
         log.info("[Market] Ad deleted: ID={}, DeletedBy={}", adId, currentUserEmail);
     }
 
@@ -160,7 +168,8 @@ public class MarketAdServiceImpl implements MarketAdService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<MarketAdResponseDto> getMyAds(String currentUserEmail, AdCategory category, AdCondition condition, String search, Pageable pageable) {
+    public Page<MarketAdResponseDto> getMyAds(String currentUserEmail, AdCategory category, AdCondition condition,
+            String search, Pageable pageable) {
         User currentUser = userRepository.findByEmail(currentUserEmail)
                 .orElseThrow(() -> new UserNotFoundException("Użytkownik nie istnieje"));
 
@@ -180,7 +189,8 @@ public class MarketAdServiceImpl implements MarketAdService {
 
         long totalActive = marketAdRepository.countByStatus(AdStatus.ACTIVE);
         long myOffers = marketAdRepository.countByAuthorIdAndStatus(currentUser.getId(), AdStatus.ACTIVE);
-        long addedToday = marketAdRepository.countAllByCreatedAtAfter(LocalDate.now(java.time.ZoneId.of("Europe/Warsaw")).atStartOfDay());
+        long addedToday = marketAdRepository
+                .countAllByCreatedAtAfter(LocalDate.now(java.time.ZoneId.of("Europe/Warsaw")).atStartOfDay());
         long categoriesCount = marketAdRepository.countDistinctCategoriesByStatus(AdStatus.ACTIVE);
 
         long myActiveCount = myOffers;
@@ -215,7 +225,7 @@ public class MarketAdServiceImpl implements MarketAdService {
     public boolean toggleFavorite(Long adId, String currentUserEmail) {
         User currentUser = userRepository.findByEmail(currentUserEmail)
                 .orElseThrow(() -> new UserNotFoundException("Użytkownik nie istnieje"));
-        
+
         MarketAd ad = marketAdRepository.findById(adId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ogłoszenie nie istnieje"));
 
@@ -238,15 +248,138 @@ public class MarketAdServiceImpl implements MarketAdService {
                 .orElseThrow(() -> new UserNotFoundException("Użytkownik nie istnieje"));
 
         return marketFavoriteRepository.findFavoriteAdsByUser(currentUser, pageable)
-                .map(ad -> mapToResponseDto(ad, currentUser));
+                .map(fav -> mapToResponseDto(fav.getAd(), currentUser));
+    }
+
+    @Override
+    @Transactional
+    public void reportAd(Long adId, com.pansgroup.projectbackend.module.market.dto.MarketAdReportDto dto,
+            String reporterEmail) {
+        User reporter = userRepository.findByEmail(reporterEmail)
+                .orElseThrow(() -> new UserNotFoundException("Zgłaszający nie istnieje"));
+
+        MarketAd ad = marketAdRepository.findById(adId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ogłoszenie nie istnieje"));
+
+        // 1. Nie można zgłosić własnego ogłoszenia
+        if (ad.getAuthor().getId().equals(reporter.getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nie możesz zgłosić własnego ogłoszenia.");
+        }
+
+        // 2. Jeden użytkownik może zgłosić dane ogłoszenie tylko raz
+        if (marketAdReportRepository.existsByAdIdAndReporterId(adId, reporter.getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Już zgłosiłeś to ogłoszenie.");
+        }
+
+        // 3. Rate limiting: Max 5 zgłoszeń na dobę na użytkownika
+        LocalDateTime startOfToday = LocalDate.now(java.time.ZoneId.of("Europe/Warsaw")).atStartOfDay();
+        long reportsToday = marketAdReportRepository.countByReporterIdAndCreatedAtAfter(reporter.getId(), startOfToday);
+        if (reportsToday >= 5) {
+            throw new TooManyRequestsException("Osiągnięto dzienny limit zgłoszeń (5). Spróbuj ponownie jutro.");
+        }
+
+        MarketAdReport report = new MarketAdReport(ad, reporter, dto.reason(),
+                dto.details() != null ? Jsoup.clean(dto.details(), Safelist.none()) : null);
+
+        marketAdReportRepository.save(report);
+        log.info("[Market] Ad {} reported by {} for reason {}", adId, reporterEmail, dto.reason());
+
+        // 4. Alert dla admina przy dużej liczbie zgłoszeń (np. 3+)
+        long activeReports = marketAdReportRepository.countByAdIdAndResolvedFalse(adId);
+        if (activeReports >= 3) {
+            log.warn("[Market] Ad {} has {} active reports! Investigation recommended.", adId, activeReports);
+
+            // Pobierz dowolnego admina (lub wszystkich) i wyślij powiadomienie
+            userRepository.findByRole("ADMIN").stream().findFirst().ifPresent(admin -> {
+                notificationService.createNotification(
+                        admin,
+                        NotificationType.SYSTEM,
+                        "Ogłoszenie \"" + ad.getTitle() + "\" otrzymało już " + activeReports
+                                + " zgłoszenia! Wymagana weryfikacja.",
+                        "/admin/post-control?tab=market");
+            });
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<com.pansgroup.projectbackend.module.market.dto.MarketAdReportResponseDto> getAllUnresolvedReports() {
+        return marketAdReportRepository.findByResolvedFalseOrderByCreatedAtDesc().stream()
+                .map(this::mapToReportResponseDto)
+                .toList();
+    }
+
+    private com.pansgroup.projectbackend.module.market.dto.MarketAdReportResponseDto mapToReportResponseDto(
+            MarketAdReport report) {
+        return new com.pansgroup.projectbackend.module.market.dto.MarketAdReportResponseDto(
+                report.getId(),
+                report.getAd().getId(),
+                report.getAd().getTitle(),
+                report.getReporter().getFirstName() + " " + report.getReporter().getLastName(),
+                report.getReporter().getEmail(),
+                report.getReason(),
+                report.getDetails(),
+                report.getCreatedAt(),
+                report.isResolved());
+    }
+
+    @Override
+    @Transactional
+    public void resolveReport(Long reportId) {
+        MarketAdReport report = marketAdReportRepository.findById(reportId)
+                .orElseThrow(() -> new ResourceNotFoundException("Zgłoszenie nie istnieje"));
+        report.setResolved(true);
+        report.setResolvedAt(LocalDateTime.now());
+        marketAdReportRepository.save(report);
+    }
+
+    @Override
+    @Transactional
+    public void deleteAdByAdmin(Long adId, Long reportId) {
+        // Sprawdzamy, czy ogłoszenie w ogóle istnieje
+        if (!marketAdRepository.existsById(adId)) {
+            throw new ResourceNotFoundException("Ogłoszenie nie istnieje");
+        }
+
+        // 1. Kaskadowe usunięcie powiązań (wymuszone prosto na bazie danych)
+        // Nie modyfikujemy raportów w pamięci Javy, po prostu je niszczymy!
+        marketFavoriteRepository.deleteAllByAdId(adId);
+        marketAdReportRepository.deleteAllByAdId(adId);
+
+        // 2. Bezpieczne usunięcie ogłoszenia po jego ID (zapobiega błędom Detached Entity)
+        marketAdRepository.deleteById(adId);
+
+        log.info("[Market] Ad {} deleted by admin due to report {}", adId, reportId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MarketAdResponseDto getAdForAdmin(Long adId) {
+        MarketAd ad = marketAdRepository.findById(adId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ogłoszenie nie istnieje w bazie"));
+        return mapToResponseDto(ad, null); // null, bo admina nie obchodzi isOwner/isFavorite
     }
 
     @EventListener
     @Transactional
     public void onUserDeleted(UserDeletedEvent event) {
         Long userId = event.getUser().getId();
+
+        // 1. Usuń wszystkie "lajki" i zgłoszenia wykonane przez tego użytkownika
+        marketFavoriteRepository.deleteAllByUserId(userId);
+        marketAdReportRepository.deleteAllByReporterId(userId);
+
+        // 2. Pobierz ogłoszenia użytkownika, aby wyczyścić ich powiązania
+        List<MarketAd> userAds = marketAdRepository.findByAuthorId(userId);
+        for (MarketAd ad : userAds) {
+            marketFavoriteRepository.deleteAllByAdId(ad.getId());
+            marketAdReportRepository.deleteAllByAdId(ad.getId());
+        }
+
+        // 3. Teraz można bezpiecznie usunąć ogłoszenia
         marketAdRepository.deleteAllByAuthorId(userId);
-        log.info("[Market] Deleted all ads for removed user ID={}", userId);
+
+        log.info("[Market] Cleaned up all market activities and ads for removed user ID={}", userId);
     }
 
     private MarketAdResponseDto mapToResponseDto(MarketAd ad, User currentUser) {

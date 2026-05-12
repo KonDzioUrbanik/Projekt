@@ -194,6 +194,7 @@
                                 <label class="market-form-label" for="contactMsg">Twoja wiadomość</label>
                                 <textarea class="market-form-textarea" id="contactMsg" placeholder="Cześć! Jestem zainteresowany/a Twoim ogłoszeniem..." rows="4"></textarea>
                             </div>
+                            <div class="market-form-message" id="contactFormMsg" role="alert"></div>
                         </div>
                         <div class="market-modal-foot">
                             <button class="market-btn-outline" data-close="contactModal">Anuluj</button>
@@ -262,6 +263,42 @@
                     </div>
                 </div>
 
+                <!-- REPORT MODAL -->
+                <div class="market-modal-overlay" id="reportModal" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle">
+                    <div class="market-modal-box" style="max-width: 450px;">
+                        <div class="market-modal-head">
+                            <h2 id="reportModalTitle" style="color: var(--market-danger);">Zgłoś naruszenie</h2>
+                            <button class="market-btn-close" data-close="reportModal" aria-label="Zamknij">×</button>
+                        </div>
+                        <div class="market-modal-body">
+                            <p style="font-size: 0.9rem; color: var(--market-text-muted); margin-bottom: 15px;">
+                                Pomóż nam dbać o jakość Giełdy. Wybierz powód zgłoszenia dla ogłoszenia: <br>
+                                <strong id="reportAdTitle" style="color: var(--market-text-h);">—</strong>
+                            </p>
+                            <div class="market-form-group">
+                                <label class="market-form-label" for="reportReason">Powód zgłoszenia <span>*</span></label>
+                                <select class="market-form-select" id="reportReason" required>
+                                    <option value="" disabled selected>Wybierz powód...</option>
+                                    <option value="SPAM">Spam / Powielona oferta</option>
+                                    <option value="INAPPROPRIATE_CONTENT">Nieodpowiednie treści</option>
+                                    <option value="DUPLICATE">Duplikat ogłoszenia</option>
+                                    <option value="WRONG_CATEGORY">Błędna kategoria</option>
+                                    <option value="OTHER">Inny powód (opis poniżej)</option>
+                                </select>
+                            </div>
+                            <div class="market-form-group">
+                                <textarea class="market-form-textarea" id="reportDetails" rows="3" maxlength="500" placeholder="Dodatkowe informacje dla moderatora..."></textarea>
+                                <div class="market-char-count"><span id="reportDetailsLen">0</span>/500</div>
+                            </div>
+                            <div class="market-form-message" id="reportFormMsg" role="alert"></div>
+                        </div>
+                        <div class="market-modal-foot">
+                            <button class="market-btn-outline" data-close="reportModal">Anuluj</button>
+                            <button class="market-btn-danger" id="submitReportBtn">Wyślij zgłoszenie</button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- ROADMAP MODAL -->
                 <div class="market-modal-overlay" id="roadmapModal" role="dialog" aria-modal="true" aria-labelledby="roadmapModalTitle">
                     <div class="market-modal-box">
@@ -295,11 +332,14 @@
                                     </div>
                                 </li>
                                 
-                                <li class="roadmap-item">
-                                    <div class="roadmap-icon warning"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg></div>
+                                <li class="roadmap-item done" style="border-left: 4px solid var(--market-success);">
+                                    <div class="roadmap-icon success"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg></div>
                                     <div>
-                                        <strong class="roadmap-title">Zgłaszanie naruszeń (Report Ad)</strong>
-                                        <span class="roadmap-desc">Dedykowany przycisk z flagą pozwalający na przesłanie sygnału do moderatora w przypadku spamu, powielonych ofert czy niewłaściwych treści.</span>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <strong class="roadmap-title">Zgłaszanie naruszeń (Report Ad)</strong>
+                                            <span class="card-badge badge-help" style="font-size: 0.6rem; padding: 2px 6px;">Gotowe!</span>
+                                        </div>
+                                        <span class="roadmap-desc">Dedykowany przycisk z flagą pozwalający na przesłanie sygnału do moderatora w przypadku spamu czy niewłaściwych treści.</span>
                                     </div>
                                 </li>
                                 
