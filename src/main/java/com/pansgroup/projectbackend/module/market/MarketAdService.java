@@ -18,4 +18,9 @@ public interface MarketAdService {
     void archiveExpiredAds();
     boolean toggleFavorite(Long adId, String currentUserEmail);
     Page<MarketAdResponseDto> getFavoriteAds(String currentUserEmail, Pageable pageable);
+    void reportAd(Long adId, com.pansgroup.projectbackend.module.market.dto.MarketAdReportDto dto, String reporterEmail);
+    List<com.pansgroup.projectbackend.module.market.dto.MarketAdReportResponseDto> getAllUnresolvedReports();
+    void resolveReport(Long reportId);
+    void deleteAdByAdmin(Long adId, Long reportId);
+    MarketAdResponseDto getAdForAdmin(Long adId);
 }

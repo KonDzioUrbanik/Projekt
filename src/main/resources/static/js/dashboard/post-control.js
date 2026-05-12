@@ -686,6 +686,11 @@
         },
 
         closeDeleteModal() {
+            // Zdejmuje focus z klikniętego przycisku zapobiegając błędom aria-hidden
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
+
             this.els.deleteModal?.classList.remove('active');
             this.els.deleteModal?.setAttribute('aria-hidden', 'true');
             this.state.pendingDeleteAction = null;
@@ -1317,17 +1322,335 @@
         }
     };
 
-    document.addEventListener('DOMContentLoaded', () => Forum.init());
+    const ModerationTabs = {
+        init() {
+            const tabs = document.querySelectorAll('.moderation-tab-btn');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const target = tab.dataset.tab;
+                    this.switchTab(target);
+                });
+            });
+
+            // Check URL for tab
+            const urlParams = new URLSearchParams(window.location.search);
+            const tab = urlParams.get('tab');
+            if (tab === 'market') {
+                this.switchTab('market');
+            }
+        },
+
+        switchTab(tabName) {
+            const tabs = document.querySelectorAll('.moderation-tab-btn');
+            tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === tabName));
+
+            document.getElementById('forumModSection').classList.toggle('mod-section-hidden', tabName !== 'forum');
+            document.getElementById('marketModSection').classList.toggle('mod-section-hidden', tabName !== 'market');
+
+            if (tabName === 'market') {
+                MarketAdmin.init();
+            }
+        }
+    };
+
+    const MarketAdmin = {
+        state: {
+            isInitialized: false,
+            reports: []
+        },
+
+        init() {
+            if (this.state.isInitialized) return;
+            
+            // Przenosimy modale do body, aby uniknąć problemów z uwięzieniem ich 
+            // w kontenerze z niższym z-index niż nagłówek (tzw. stacking context).
+            const modals = document.querySelectorAll('.forum-modal-overlay');
+            modals.forEach(modal => {
+                if (modal.parentNode !== document.body) {
+                    document.body.appendChild(modal);
+                }
+            });
+
+            this.fetchReports();
+            this.state.isInitialized = true;
+        },
+
+        async fetchReports() {
+            const reportsBody = document.getElementById('reportsBody');
+            const reportsLoader = document.getElementById('reportsLoader');
+            const reportsTable = document.getElementById('reportsTable');
+            const emptyReports = document.getElementById('emptyReports');
+
+            try {
+                const res = await fetch('/api/admin/market/reports');
+                if (!res.ok) throw new Error('Błąd ładowania zgłoszeń');
+                const reports = await res.json();
+                this.state.reports = reports;
+                
+                reportsLoader.style.display = 'none';
+                if (reports.length === 0) {
+                    reportsTable.style.display = 'none';
+                    emptyReports.style.display = 'block';
+                    return;
+                }
+
+                emptyReports.style.display = 'none';
+                reportsTable.style.display = 'table';
+                reportsBody.innerHTML = reports.map(report => this.renderReportRow(report)).join('');
+            } catch (error) {
+                console.error(error);
+                if (window.Utils && Utils.showToast) Utils.showToast('Nie udało się pobrać zgłoszeń.', 'error');
+            }
+        },
+
+        renderReportRow(report) {
+            const date = new Date(report.createdAt).toLocaleString('pl-PL');
+            return `
+                <tr onclick="MarketAdmin.showReportDetails(${report.id})">
+                    <td data-label="ID"><span>${report.id}</span></td>
+                    <td data-label="Ogłoszenie">
+                        <div>
+                            <div style="font-weight: 600;">${this.esc(report.adTitle)}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">ID: ${report.adId}</div>
+                        </div>
+                    </td>
+                    <td data-label="Powód"><span><span class="reason-badge ${this.getReasonClass(report.reason)}">${this.getReasonLabel(report.reason)}</span></span></td>
+                    <td data-label="Szczegóły"><div><div class="truncate-text" style="max-width: 200px;" title="${this.esc(report.details)}">${this.esc(report.details) || '—'}</div></div></td>
+                    <td data-label="Zgłaszający">
+                        <div>
+                            <div style="font-weight: 500;">${this.esc(report.reporterName)}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">${this.esc(report.reporterEmail)}</div>
+                        </div>
+                    </td>
+                    <td data-label="Data"><span>${date}</span></td>
+                    <td data-label="Akcje">
+                        <div class="action-buttons" onclick="event.stopPropagation()">
+                            <button class="btn-action btn-resolve" onclick="MarketAdmin.resolveReport(${report.id})" title="Zignoruj">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn-action btn-delete" onclick="MarketAdmin.deleteAd(${report.adId}, ${report.id})" title="Usuń ogłoszenie">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        },
+
+        getReasonLabel(reason) {
+            const labels = { SPAM:'Spam', INAPPROPRIATE_CONTENT:'Niewłaściwe', DUPLICATE:'Duplikat', WRONG_CATEGORY:'Błędna kat.', OTHER:'Inne' };
+            return labels[reason] || reason;
+        },
+
+        getReasonClass(reason) {
+            const classes = { SPAM:'reason-spam', INAPPROPRIATE_CONTENT:'reason-inappropriate', DUPLICATE:'reason-duplicate', WRONG_CATEGORY:'reason-wrong-category', OTHER:'reason-other' };
+            return classes[reason] || '';
+        },
+
+        showReportDetails(reportId) {
+            const report = this.state.reports.find(r => r.id === reportId);
+            if (!report) return;
+
+            const modal = document.getElementById('marketReportModal');
+            const content = document.getElementById('marketReportContent');
+
+            const date = new Date(report.createdAt).toLocaleString('pl-PL');
+
+            content.innerHTML = `
+                <div class="report-detail-grid">
+                    <div>
+                        <label class="report-detail-label">Zgłoszone ogłoszenie</label>
+                        <div class="report-ad-box">
+                            <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 4px;">${this.esc(report.adTitle)}</div>
+                            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 10px;">ID ogłoszenia: ${report.adId}</div>
+                            <button type="button" onclick="MarketAdmin.previewAd(${report.adId})" class="forum-btn ghost" style="font-size: 0.8rem; padding: 6px 12px;">
+                                <i class="fas fa-eye" style="margin-right: 6px;"></i>Podgląd ogłoszenia
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="report-detail-row">
+                        <div>
+                            <label class="report-detail-label">Powód zgłoszenia</label>
+                            <span class="reason-badge ${this.getReasonClass(report.reason)}">${this.getReasonLabel(report.reason)}</span>
+                        </div>
+                        <div>
+                            <label class="report-detail-label">Data zgłoszenia</label>
+                            <div style="font-weight: 500;">${date}</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="report-detail-label">Szczegóły / Treść zgłoszenia</label>
+                        <div class="report-details-box">
+                            ${this.esc(report.details) || '<i style="color: var(--text-muted);">Brak dodatkowych szczegółów</i>'}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="report-detail-label">Zgłaszający</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 36px; height: 36px; background: var(--color-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700;">
+                                ${report.reporterName.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <div style="font-weight: 600;">${this.esc(report.reporterName)}</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">${this.esc(report.reporterEmail)}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="report-modal-footer" style="display: flex; gap: 12px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                    <button class="forum-btn secondary" data-action="resolve-from-modal">
+                        <i class="fas fa-check" style="margin-right: 6px;"></i>Rozstrzygnij
+                    </button>
+                    <button class="forum-btn danger" data-action="delete-from-modal">
+                        <i class="fas fa-trash" style="margin-right: 6px;"></i>Usuń ogłoszenie
+                    </button>
+                </div>
+            `;
+
+            modal.setAttribute('aria-hidden', 'false');
+            
+            // Znajdź przyciski
+            const resolveBtn = modal.querySelector('[data-action="resolve-from-modal"]');
+            const deleteBtn = modal.querySelector('[data-action="delete-from-modal"]');
+            
+            // CZYSTE ODPIĘCIE STARYCH ZDARZEŃ (Klonowanie eliminuje wyciek listenerów)
+            const newResolveBtn = resolveBtn.cloneNode(true);
+            resolveBtn.parentNode.replaceChild(newResolveBtn, resolveBtn);
+            
+            const newDeleteBtn = deleteBtn.cloneNode(true);
+            deleteBtn.parentNode.replaceChild(newDeleteBtn, deleteBtn);
+            
+            // Dodaj zdarzenia do czystych przycisków
+            newResolveBtn.addEventListener('click', () => {
+                this.resolveReport(reportId);
+            });
+            
+            newDeleteBtn.addEventListener('click', () => {
+                this.deleteAd(report.adId, reportId);
+            });
+        },
+
+        closeModal() {
+            // Zwalniamy fokus z przycisków przed zamknięciem, aby uniknąć błędów aria-hidden
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
+            const modal = document.getElementById('marketReportModal');
+            if (modal) {
+                modal.setAttribute('aria-hidden', 'true');
+            }
+            // Zamykamy również modal potwierdzenia jeśli jest otwarty
+            Forum.closeDeleteModal();
+        },
+
+        async previewAd(adId) {
+            const btn = document.querySelector('.report-ad-box button');
+            if (!btn) return;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 6px;"></i>Pobieranie...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`/api/admin/market/ads/${adId}`);
+                if (!res.ok) throw new Error('Nie udało się pobrać szczegółów ogłoszenia. Może zostało już fizycznie usunięte.');
+                const ad = await res.json();
+
+                // Tworzymy "Pływający podgląd" wewnątrz istniejącego modala
+                const reportContent = document.getElementById('marketReportContent');
+                
+                // Sprawdzamy czy podgląd już istnieje
+                const existingPreview = document.getElementById('adminAdPreviewBox');
+                if (existingPreview) existingPreview.remove();
+
+                const previewHtml = `
+                    <div id="adminAdPreviewBox" style="margin-top: 20px; padding: 15px; background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 8px; animation: slideDown 0.3s ease;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h4 style="margin: 0; color: var(--text-main); font-size: 1rem;"><i class="fas fa-search"></i> Podgląd treści</h4>
+                            <span class="reason-badge" style="background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-secondary);">Status: ${this.esc(ad.status)}</span>
+                        </div>
+                        <h3 style="margin: 0 0 10px 0; font-size: 1.1rem; color: var(--text-main);">${this.esc(ad.title)}</h3>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+                            Kategoria: <strong>${ad.category}</strong> | Stan: <strong>${ad.condition}</strong> | Cena: <strong>${ad.price ? ad.price + ' zł' : 'Brak'}</strong>
+                        </div>
+                        <p style="white-space: pre-wrap; font-size: 0.9rem; line-height: 1.5; color: var(--text-main); margin: 0; max-height: 250px; overflow-y: auto; padding-right: 5px;">${this.esc(ad.description)}</p>
+                    </div>
+                `;
+
+                reportContent.insertAdjacentHTML('beforeend', previewHtml);
+                
+                // Scrollujemy modal w dół
+                const modalBody = document.getElementById('marketReportModal').querySelector('.forum-modal-card');
+                modalBody.scrollTop = modalBody.scrollHeight;
+
+            } catch (error) {
+                Utils.showToast(error.message, 'error');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        },
+
+        async resolveReport(id) {
+            this.showConfirm('Oznaczyć to zgłoszenie jako rozstrzygnięte? Ogłoszenie pozostanie na Giełdzie.', async () => {
+                try {
+                    const res = await fetch(`/api/admin/market/reports/${id}/resolve`, {
+                        method: 'POST',
+                        headers: this.getCsrfHeaders()
+                    });
+                    if (!res.ok) throw new Error('Błąd serwera podczas rozstrzygania zgłoszenia');
+                    
+                    this.closeModal();
+                    Utils.showToast('Zgłoszenie zostało oznaczone jako rozstrzygnięte.', 'success');
+                    this.fetchReports();
+                } catch (error) {
+                    Utils.showToast(error.message, 'error');
+                }
+            });
+        },
+
+        async deleteAd(adId, reportId) {
+            this.showConfirm('USUNĄĆ ogłoszenie? Tej akcji nie da się cofnąć i wszystkie zgłoszenia z nim powiązane zostaną zamknięte.', async () => {
+                try {
+                    const res = await fetch(`/api/admin/market/reports/${reportId}/ads/${adId}`, {
+                        method: 'DELETE',
+                        headers: this.getCsrfHeaders()
+                    });
+                    if (!res.ok) throw new Error('Błąd serwera podczas usuwania ogłoszenia');
+                    
+                    this.closeModal();
+                    Utils.showToast('Ogłoszenie zostało usunięte.', 'success');
+                    this.fetchReports();
+                } catch (error) {
+                    Utils.showToast(error.message, 'error');
+                }
+            });
+        },
+
+        showConfirm(message, action) {
+            Forum.openDeleteModal(message, action);
+        },
+
+        esc(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        },
+
+        getCsrfHeaders() {
+            const token = document.querySelector('meta[name="_csrf"]')?.content;
+            const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+            return (token && header) ? { [header]: token } : {};
+        },
+
+    };
+
+    window.MarketAdmin = MarketAdmin;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        Forum.init();
+        ModerationTabs.init();
+        MarketAdmin.init();
+    });
 })();
-
-
-
-
-
-
-
-
-
-
-
-
