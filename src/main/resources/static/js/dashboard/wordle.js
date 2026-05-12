@@ -9,7 +9,7 @@
     const WORD_LENGTH  = 5;
 
     // ─── DOM references ──────────────────────────────────
-    if (!document.getElementById('wordleBoard')) return;
+    if (!document.getElementById('wordleBoard') && !document.getElementById('wordleAdminPanel')) return;
 
     const board       = document.getElementById('wordleBoard');
     const keyboard    = document.getElementById('wordleKeyboard');
@@ -483,19 +483,18 @@
         const revealBtn = document.getElementById('adminRevealBtn');
         const wordSpan = document.getElementById('adminCurrentWord');
         if (revealBtn && wordSpan) {
-            revealBtn.addEventListener('click', () => {
-                if (wordSpan.style.filter === 'none') {
-                    wordSpan.style.filter = 'blur(5px)';
-                    revealBtn.innerHTML = '<i class="fas fa-eye"></i> Pokaż';
-                } else {
+            const toggleReveal = () => {
+                const isHidden = wordSpan.style.filter.includes('blur') || wordSpan.style.filter === '';
+                if (isHidden) {
                     wordSpan.style.filter = 'none';
                     revealBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Ukryj';
+                } else {
+                    wordSpan.style.filter = 'blur(5px)';
+                    revealBtn.innerHTML = '<i class="fas fa-eye"></i> Pokaż';
                 }
-            });
-            wordSpan.addEventListener('click', () => {
-                wordSpan.style.filter = wordSpan.style.filter === 'none' ? 'blur(5px)' : 'none';
-                revealBtn.innerHTML = wordSpan.style.filter === 'none' ? '<i class="fas fa-eye-slash"></i> Ukryj' : '<i class="fas fa-eye"></i> Pokaż';
-            });
+            };
+            revealBtn.addEventListener('click', toggleReveal);
+            wordSpan.addEventListener('click', toggleReveal);
         }
     }
 
@@ -506,7 +505,7 @@
                 const data = await res.json();
                 document.getElementById('adminCurrentWord').textContent = data.currentWord;
                 document.getElementById('adminGameDate').textContent = data.gameDate;
-                document.getElementById('adminPoolSize').textContent = data.wordPoolSize;
+                document.getElementById('adminPoolSize').textContent = data.wordPoolSize !== undefined ? data.wordPoolSize : 0;
                 
                 const validWordsEl = document.getElementById('adminValidWordsSize');
                 if (validWordsEl) validWordsEl.textContent = data.validWordsSize || 0;
