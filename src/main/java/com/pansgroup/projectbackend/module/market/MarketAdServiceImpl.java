@@ -36,6 +36,7 @@ import org.springframework.security.access.AccessDeniedException;
 @Transactional
 public class MarketAdServiceImpl implements MarketAdService {
     private final MarketAdRepository marketAdRepository;
+    private final MarketFavoriteRepository marketFavoriteRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final EntityManager entityManager;
@@ -209,6 +210,37 @@ public class MarketAdServiceImpl implements MarketAdService {
         }
     }
 
+    @Override
+    @Transactional
+    public boolean toggleFavorite(Long adId, String currentUserEmail) {
+        User currentUser = userRepository.findByEmail(currentUserEmail)
+                .orElseThrow(() -> new UserNotFoundException("Użytkownik nie istnieje"));
+        
+        MarketAd ad = marketAdRepository.findById(adId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ogłoszenie nie istnieje"));
+
+        var favoriteOpt = marketFavoriteRepository.findByUserAndAd(currentUser, ad);
+        if (favoriteOpt.isPresent()) {
+            marketFavoriteRepository.delete(favoriteOpt.get());
+            log.info("[Market] Ad {} removed from favorites by {}", adId, currentUserEmail);
+            return false;
+        } else {
+            marketFavoriteRepository.save(new MarketFavorite(currentUser, ad));
+            log.info("[Market] Ad {} added to favorites by {}", adId, currentUserEmail);
+            return true;
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<MarketAdResponseDto> getFavoriteAds(String currentUserEmail, Pageable pageable) {
+        User currentUser = userRepository.findByEmail(currentUserEmail)
+                .orElseThrow(() -> new UserNotFoundException("Użytkownik nie istnieje"));
+
+        return marketFavoriteRepository.findFavoriteAdsByUser(currentUser, pageable)
+                .map(ad -> mapToResponseDto(ad, currentUser));
+    }
+
     @EventListener
     @Transactional
     public void onUserDeleted(UserDeletedEvent event) {
@@ -230,6 +262,7 @@ public class MarketAdServiceImpl implements MarketAdService {
                 ad.getAuthor().getFirstName() + " " + ad.getAuthor().getLastName(),
                 ad.getCreatedAt(),
                 ad.getExpiresAt(),
-                currentUser != null && ad.getAuthor().getId().equals(currentUser.getId()));
+                currentUser != null && ad.getAuthor().getId().equals(currentUser.getId()),
+                currentUser != null && marketFavoriteRepository.existsByUserAndAd(currentUser, ad));
     }
 }

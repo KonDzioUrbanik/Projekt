@@ -60,4 +60,14 @@ public class MarketAdController {
     public ResponseEntity<MarketAdStatsDto> getStats(Principal principal) {
         return ResponseEntity.ok(marketAdService.getMarketStats(principal.getName()));
     }
+
+    @PostMapping("/favorites/{id}")
+    public ResponseEntity<Boolean> toggleFavorite(@PathVariable Long id, Principal principal) {
+        return ResponseEntity.ok(marketAdService.toggleFavorite(id, principal.getName()));
+    }
+
+    @GetMapping("/favorites")
+    public ResponseEntity<Page<MarketAdResponseDto>> getFavorites(Pageable pageable, Principal principal) {
+        return ResponseEntity.ok(marketAdService.getFavoriteAds(principal.getName(), pageable));
+    }
 }

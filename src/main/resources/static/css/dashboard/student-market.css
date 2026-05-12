@@ -700,6 +700,28 @@
     background: var(--market-navy);
 }
 
+.btn-card.fav:hover {
+    color: var(--market-danger);
+    border-color: var(--market-danger);
+    background: var(--market-danger-bg);
+}
+
+.btn-card.fav.active {
+    color: #ef4444;
+    border-color: #fca5a5;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.btn-card.fav.active svg {
+    animation: heartPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes heartPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.4); }
+    100% { transform: scale(1); }
+}
+
 [data-theme="dark"] .btn-card:hover {
     background: var(--market-bg-hover);
 }
