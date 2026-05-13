@@ -360,8 +360,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
                 <div class="card-footer">
-                    <div class="card-author">
-                        <div class="author-avatar" aria-hidden="true">${initials}</div>
+                    <div class="card-author" data-user-email="${esc(ad.authorEmail || '').toLowerCase()}">
+                        <div class="author-avatar avatar-wrapper" aria-hidden="true">
+                            ${initials}
+                            <span class="presence-dot" title="Użytkownik jest offline"></span>
+                        </div>
                         <span class="author-name">${esc(ad.authorName)}</span>
                         ${ownerBadge}
                     </div>
@@ -385,6 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             grid.innerHTML = ads.map(buildCard).join('');
             updateLoadMoreButton();
+            if (window.UserPresence) window.UserPresence.refreshUI();
         }
 
         updateLimitBars();
@@ -418,6 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Dodaj nowy przycisk na końcu
         updateLoadMoreButton();
+        if (window.UserPresence) window.UserPresence.refreshUI();
         
         // Zaktualizuj licznik wyników
         const count = document.getElementById('resultsCount');
@@ -581,6 +586,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const profileLink = document.getElementById('detailsProfileLink');
         if (profileLink) {
             profileLink.href = `/profile/user?userId=${ad.authorId}`;
+        }
+        
+        const authorRow = document.getElementById('detailsAuthorRow');
+        if (authorRow) {
+            authorRow.setAttribute('data-user-email', (ad.authorEmail || '').toLowerCase());
+            // Wyzwól odświeżenie kropki dla tego elementu
+            if (window.UserPresence) UserPresence.refreshUI();
         }
         
         const catBadge = document.getElementById('detailsCategory');

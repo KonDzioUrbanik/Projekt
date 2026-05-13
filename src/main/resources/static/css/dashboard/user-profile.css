@@ -73,8 +73,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    overflow: visible;
     box-shadow: var(--shadow-md);
+    position: relative;
+}
+
+.up-avatar-img, .up-avatar-initials {
+    border-radius: 16px;
 }
 
 .up-avatar-img {

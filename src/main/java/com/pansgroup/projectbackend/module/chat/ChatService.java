@@ -148,6 +148,7 @@ public class ChatService {
                 conv.getId(),
                 other.getId(),
                 other.getFirstName() + " " + other.getLastName(),
+                other.getEmail(),
                 other.getFieldOfStudy(),
                 other.getYearOfStudy(),
                 other.getRole(),

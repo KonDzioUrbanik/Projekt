@@ -493,33 +493,26 @@ public class UserServiceImpl implements UserService {
             throw new IllegalStateException("Nie można usunąć konta administratora.");
         }
 
-        // --- 1. EVENT DRIVEN CLEANUP ---
-        // Najpierw informujemy Notatki i Dysk (korzystamy z usera w pamięci)
+        // --- 1. EVENT DRIVEN CLEANUP (Zewnętrzne moduły np. Giełda) ---
         eventPublisher.publishEvent(new UserDeletedEvent(this, user));
 
-        // --- 2. TWARDE CIĘCIE CYKLU (NATIVE SQL) ---
-        // Zerujemy klucze bezpośrednio w bazie
-        entityManager.createNativeQuery("UPDATE users SET confirmation_token_id = NULL WHERE id = :uid")
-                .setParameter("uid", userId).executeUpdate();
-
-        entityManager.createNativeQuery("DELETE FROM confirmation_token WHERE user_id = :uid")
-                .setParameter("uid", userId).executeUpdate();
-                
-        entityManager.createNativeQuery("DELETE FROM password_reset_token WHERE user_id = :uid")
-                .setParameter("uid", userId).executeUpdate();
-
-        // --- 3. AMNEZJA HIBERNATE ---
-        // Synchronizujemy zmiany SQL z sesją JPA i czyścimy cache L1, 
-        // aby finałowe delete nie widziało już starych powiązań (np. z tokenami).
+        // --- 2. BEZWZGLĘDNE CZYSZCZENIE WEWNĘTRZNE (Native SQL) ---
+        // Wykonuje natychmiastowe strzały DELETE prosto do bazy PostgreSQL,
+        // omijając asynchroniczną kolejkę akcji Hibernate'a.
+        confirmationTokenRepository.forceDeleteByUserId(userId);
+        passwordResetTokenRepository.forceDeleteByUserId(userId);
+        
+        // --- 3. SYNCHRONIZACJA STANU ---
+        // Ponieważ usunęliśmy wiersze za plecami Hibernate'a, czyścimy jego pamięć
         entityManager.flush();
         entityManager.clear();
 
-        // --- 4. FINALNE USUNIĘCIE ---
+        // --- 4. FINALNE USUNIĘCIE KONTA ---
+        // Musimy załadować usera ponownie po clear(), inaczej Hibernate rzuci błędem Detached Entity
         User cleanUser = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
                 
         userRepository.delete(cleanUser);
-        userRepository.flush();
     }
 
     @Override

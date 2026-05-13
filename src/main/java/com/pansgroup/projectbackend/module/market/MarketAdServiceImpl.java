@@ -487,6 +487,7 @@ public class MarketAdServiceImpl implements MarketAdService {
                 ad.getCondition(),
                 ad.getAuthor().getId(),
                 ad.getAuthor().getFirstName() + " " + ad.getAuthor().getLastName(),
+                ad.getAuthor().getEmail(),
                 ad.getCreatedAt(),
                 ad.getExpiresAt(),
                 currentUser != null && ad.getAuthor().getId().equals(currentUser.getId()),

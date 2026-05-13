@@ -367,6 +367,8 @@
     gap: 3px;
     font-size: 0.8rem;
     color: var(--text-muted);
+    width: 100%;
+    margin-bottom: 2px;
 }
 
 .typing-dot {
@@ -614,6 +616,7 @@
 /* Input */
 .chat-input-area {
     display: flex;
+    flex-wrap: wrap;
     align-items: flex-end;
     gap: 0.5rem;
     padding: 0.85rem 1.25rem;

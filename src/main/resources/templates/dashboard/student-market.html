@@ -244,8 +244,11 @@
                         </div>
                         <div class="market-modal-body">
                             <div class="contact-info-row" style="margin-bottom: 20px; align-items: center; justify-content: space-between;">
-                                <div class="details-author-row">
-                                    <div class="contact-avatar" id="detailsAvatar">?</div>
+                                <div class="details-author-row" id="detailsAuthorRow">
+                                    <div class="contact-avatar avatar-wrapper" id="detailsAvatar">
+                                        ?
+                                        <span class="presence-dot"></span>
+                                    </div>
                                     <div class="contact-details">
                                         <div class="contact-name" id="detailsAuthor">—</div>
                                         <div class="contact-ad-title" id="detailsDate">—</div>
@@ -369,10 +372,13 @@
                                     </div>
                                 </li>
                                 
-                                <li class="roadmap-item">
+                                <li class="roadmap-item done" style="border-left: 4px solid var(--market-success);">
                                     <div class="roadmap-icon success"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
                                     <div>
-                                        <strong class="roadmap-title">Wskaźnik aktywności (online)</strong>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <strong class="roadmap-title">Wskaźnik aktywności (online)</strong>
+                                            <span class="card-badge badge-help" style="font-size: 0.6rem; padding: 2px 6px;">Gotowe!</span>
+                                        </div>
                                         <span class="roadmap-desc">Dynamiczna zielona kropka obok avatara wskazująca, że student jest "Dostępny" w portalu w tej samej chwili, wspierana przez WebSockety.</span>
                                     </div>
                                 </li>

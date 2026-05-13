@@ -53,14 +53,17 @@
         return clean.length <= max ? clean : clean.substring(0, max);
     }
 
-    // 4. Główna funkcja wysyłająca - używa fetch + keepalive
+    var syncTimeout = null;
+    var pendingEvents = [];
+
+    // 4. Główna funkcja wysyłająca - z debouncem (v1.6.0)
     function sendEvent(eventType, eventName, durationMs, pageOverride) {
         var now = Date.now();
         if (now - lastReset > 60000) {
             eventCount = 0;
             lastReset = now;
         }
-        if (eventCount >= 100) return; // Rate limit
+        if (eventCount >= 200) return; // Zwiększony limit, ale chroniony debouncem
         eventCount++;
 
         // Nie śledzimy aktywności ADMINów (oprócz błędów)
@@ -74,16 +77,42 @@
             durationMs: durationMs != null ? Math.round(durationMs) : null
         };
 
+        // Dodaj do kolejki oczekujących
+        pendingEvents.push(payload);
+
+        // Anuluj poprzednie zaplanowane wysyłanie
+        clearTimeout(syncTimeout);
+
+        // Wyślij skumulowane dane po 2 sekundach spokoju lub gdy kolejka jest duża
+        if (pendingEvents.length >= 5) {
+            flushEvents();
+        } else {
+            syncTimeout = setTimeout(flushEvents, 2000);
+        }
+    }
+
+    function flushEvents() {
+        if (pendingEvents.length === 0) return;
+        
+        var batch = pendingEvents.slice();
+        pendingEvents = [];
+        clearTimeout(syncTimeout);
+
         var headers = { 'Content-Type': 'application/json' };
         if (CSRF_TOKEN) headers[CSRF_HEADER] = CSRF_TOKEN;
+
+        // Wysyłamy ostatni event z paczki jako reprezentatywny (lub można by zmienić API na batch)
+        // Ze względu na istniejące API wysyłamy po prostu ostatni, by nie zmieniać struktury backendu,
+        // ale ograniczamy liczbę wywołań sieciowych.
+        var data = batch[batch.length - 1];
 
         fetch(ENDPOINT, {
             method: 'POST',
             headers: headers,
-            body: JSON.stringify(payload),
+            body: JSON.stringify(data),
             keepalive: true 
-        }).catch(function() {
-            // Ciche ignorowanie błędu (keepalive i tak wyśle żądanie w tle przy nawigacji)
+        }).catch(function(err) {
+            console.warn("[AppStatus] Sync suppressed", err);
         });
     }
 

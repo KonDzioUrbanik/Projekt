@@ -17,6 +17,7 @@ public record MarketAdResponseDto(
         AdCondition condition,
         Long authorId,
         String authorName,
+        String authorEmail,
         LocalDateTime createdAt,
         LocalDateTime expiresAt,
         boolean isOwner,
