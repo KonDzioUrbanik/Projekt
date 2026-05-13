@@ -193,7 +193,9 @@
         <script th:src="@{/js/common/app-state.js(v=${#dates.createNow().getTime()})}" defer></script>
 
         <!-- Global STOMP and Notifications -->
+        <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+        <script th:src="@{/js/common/user-presence.js(v=${#dates.createNow().getTime()})}"></script>
         <script th:src="@{/js/common/notification-bell.js(v=${#dates.createNow().getTime()})}" defer></script>
 
         <!-- Welcome Modal -->

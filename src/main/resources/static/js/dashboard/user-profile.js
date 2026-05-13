@@ -17,6 +17,7 @@ class UserProfileModule {
             userEmail: document.getElementById('userEmail'),
             userAvatar: document.getElementById('userAvatar'),
             userInitials: document.getElementById('userInitials'),
+            upAvatarWrapper: document.getElementById('upAvatarWrapper'),
             userField: document.getElementById('userField'),
             userYear: document.getElementById('userYear'),
             userBio: document.getElementById('userBio'),
@@ -74,6 +75,11 @@ class UserProfileModule {
         this.DOM.userName.textContent = fullName;
         this.DOM.userRole.textContent = user.role || 'Słuchacz';
         this.DOM.userEmail.textContent = user.email;
+        
+        if (this.DOM.upAvatarWrapper) {
+            this.DOM.upAvatarWrapper.setAttribute('data-user-email', (user.email || '').toLowerCase());
+            if (window.UserPresence) window.UserPresence.refreshUI();
+        }
         
         // Avatar
         const avatarUrl = `/api/users/${user.id}/avatar`;

@@ -223,6 +223,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // Show toast if utils is available
             if (typeof Utils !== 'undefined' && Utils.showToast) {
+                // Skip toast if it's a chat message and we're already on the chat page
+                if (notif.type === 'CHAT_MESSAGE' && window.location.pathname.includes('/student/chat')) {
+                    return;
+                }
                 Utils.showToast(notif.message, 'info');
             }
         }

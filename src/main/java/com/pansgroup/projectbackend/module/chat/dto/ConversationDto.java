@@ -6,6 +6,7 @@ public record ConversationDto(
         Long id,
         Long otherUserId,
         String otherUserName,
+        String otherUserEmail,
         String fieldOfStudy,
         Integer yearOfStudy,
         String role,

@@ -24,6 +24,7 @@ export function refreshConversationList() {
                 return list;
             }
             list.forEach(conv => DOM.convList.appendChild(buildConvItem(conv)));
+            if (window.UserPresence) window.UserPresence.refreshUI();
             return list;
         })
         .catch((err) => {
@@ -40,7 +41,8 @@ function buildConvItem(conv) {
 
     // Build internally using strict elements
     const avatarWrap = document.createElement('div');
-    avatarWrap.className = 'chat-conv-avatar-wrap';
+    avatarWrap.className = 'chat-conv-avatar-wrap avatar-wrapper';
+    avatarWrap.setAttribute('data-user-email', conv.otherUserEmail.toLowerCase());
     const avatarInitials = document.createElement('span');
     avatarInitials.className = 'chat-avatar-initials';
     avatarInitials.style.width = '38px';
@@ -48,6 +50,11 @@ function buildConvItem(conv) {
     avatarInitials.style.fontSize = '.85rem';
     avatarInitials.textContent = initials(conv.otherUserName);
     avatarWrap.appendChild(avatarInitials);
+
+    const dot = document.createElement('span');
+    dot.className = 'presence-dot';
+    dot.title = 'Użytkownik jest offline';
+    avatarWrap.appendChild(dot);
 
     const info = document.createElement('div');
     info.className = 'conv-info';
@@ -111,12 +118,17 @@ export function openConversation(conv) {
     if (conv.fieldOfStudy) sub += conv.fieldOfStudy;
     if (conv.yearOfStudy) sub += (sub ? ', ' : '') + conv.yearOfStudy + '. rok';
     DOM.headerSub.textContent = sub;
+    const normalizedEmail = (conv.otherUserEmail || '').toLowerCase().trim();
+    DOM.headerAvatar.setAttribute('data-user-email', normalizedEmail);
     setAvatar(DOM.headerAvatarImg, DOM.headerInitials, conv.otherUserId, conv.otherUserName);
 
     DOM.infoName.textContent = conv.otherUserName;
     DOM.infoMeta.textContent = sub;
+    DOM.infoAvatarWrap.setAttribute('data-user-email', normalizedEmail);
     setAvatar(DOM.infoAvatarImg, DOM.infoInitials, conv.otherUserId, conv.otherUserName);
     DOM.btnInfoProfile.href = '/profile/user?userId=' + conv.otherUserId;
+
+    if (window.UserPresence) window.UserPresence.refreshUI();
 
     // Reset friendship button to avoid flicker
     const btnAddFriend = document.getElementById('btnAddFriend');

@@ -58,20 +58,15 @@
                         <button class="chat-back-btn" id="btnBackToSidebar" title="Wróć">
                             <i class="fas fa-arrow-left"></i>
                         </button>
-                        <div class="chat-header-avatar" id="chatHeaderAvatar">
+                        <div class="chat-header-avatar avatar-wrapper" id="chatHeaderAvatar">
                             <img src="" alt="" id="chatHeaderAvatarImg" class="chat-avatar">
                             <span class="chat-avatar-initials" id="chatHeaderInitials"></span>
+                            <span class="presence-dot" title="Użytkownik jest offline"></span>
                         </div>
                         <div class="chat-header-info">
                             <div class="chat-header-name" id="chatHeaderName"></div>
                             <div class="chat-header-sub">
                                 <span id="chatHeaderSub"></span>
-                                <span class="chat-typing-indicator" id="typingIndicator" style="display:none;">
-                                    <span class="typing-dot"></span>
-                                    <span class="typing-dot"></span>
-                                    <span class="typing-dot"></span>
-                                    pisze…
-                                </span>
                             </div>
                         </div>
                         <div class="chat-header-actions">
@@ -93,6 +88,12 @@
                     </div>
 
                     <div class="chat-input-area">
+                        <div class="chat-typing-indicator" id="typingIndicator" style="display:none;">
+                            <span class="typing-dot"></span>
+                            <span class="typing-dot"></span>
+                            <span class="typing-dot"></span>
+                            pisze…
+                        </div>
                         <textarea id="chatInput" class="chat-input" rows="1"
                                   placeholder="Napisz wiadomość…"
                                   maxlength="4000"></textarea>
@@ -111,9 +112,10 @@
                     </button>
                 </div>
                 <div class="chat-info-body" id="chatInfoBody">
-                    <div class="chat-info-avatar-wrap">
+                    <div class="chat-info-avatar-wrap avatar-wrapper" id="infoAvatarWrap">
                         <img src="" alt="" id="infoAvatarImg" class="chat-info-avatar">
                         <span class="chat-info-initials" id="infoInitials"></span>
+                        <span class="presence-dot" title="Użytkownik jest offline"></span>
                     </div>
                     <div class="chat-info-name" id="infoName"></div>
                     <div class="chat-info-meta" id="infoMeta"></div>
