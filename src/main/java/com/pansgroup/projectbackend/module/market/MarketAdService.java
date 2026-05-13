@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface MarketAdService {
     Page<MarketAdResponseDto> getAllActiveAds(String currentUserEmail, AdCategory category, AdCondition condition, String search, Pageable pageable);
-    MarketAdResponseDto createAd(MarketAdCreateDto dto, String currentUserEmail);
+    MarketAdResponseDto createAd(MarketAdCreateDto dto, String currentUserEmail, org.springframework.web.multipart.MultipartFile[] images);
     void deleteAd(Long adId, String currentUserEmail);
     void resolveAd(Long adId, String currentUserEmail);
     Page<MarketAdResponseDto> getMyAds(String currentUserEmail, AdCategory category, AdCondition condition, String search, Pageable pageable);
@@ -23,4 +23,5 @@ public interface MarketAdService {
     void resolveReport(Long reportId);
     void deleteAdByAdmin(Long adId, Long reportId);
     MarketAdResponseDto getAdForAdmin(Long adId);
+    MarketAdImage getImage(Long imageId);
 }

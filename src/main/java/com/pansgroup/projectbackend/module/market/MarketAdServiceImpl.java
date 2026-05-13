@@ -38,9 +38,11 @@ public class MarketAdServiceImpl implements MarketAdService {
     private final MarketAdRepository marketAdRepository;
     private final MarketFavoriteRepository marketFavoriteRepository;
     private final MarketAdReportRepository marketAdReportRepository;
+    private final MarketAdImageRepository marketAdImageRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final EntityManager entityManager;
+    private final org.apache.tika.Tika tika; // Weryfikacja Magic Bytes (OWASP: Unrestricted File Upload)
 
     private static final int MAX_ACTIVE_ADS = 5;
     private static final int MAX_ADS_PER_DAY = 3;
@@ -62,7 +64,8 @@ public class MarketAdServiceImpl implements MarketAdService {
 
     @Override
     @Transactional
-    public MarketAdResponseDto createAd(MarketAdCreateDto dto, String currentUserEmail) {
+    public MarketAdResponseDto createAd(MarketAdCreateDto dto, String currentUserEmail,
+            org.springframework.web.multipart.MultipartFile[] images) {
         User currentUser = userRepository.findByEmail(currentUserEmail)
                 .orElseThrow(() -> new UserNotFoundException("Użytkownik nie istnieje"));
 
@@ -75,7 +78,7 @@ public class MarketAdServiceImpl implements MarketAdService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cena jest wymagana dla wybranej kategorii.");
         }
 
-        // 2. Rate Limiting: Max 3 ogłoszenia na dobę (kalendarzową)
+        // 2. Rate Limiting
         LocalDateTime startOfToday = LocalDate.now(java.time.ZoneId.of("Europe/Warsaw")).atStartOfDay();
         long adsToday = marketAdRepository.countByAuthorIdAndCreatedAtAfter(currentUser.getId(), startOfToday);
         if (adsToday >= MAX_ADS_PER_DAY) {
@@ -112,8 +115,79 @@ public class MarketAdServiceImpl implements MarketAdService {
         ad.setStatus(AdStatus.ACTIVE);
 
         MarketAd saved = marketAdRepository.save(ad);
-        log.info("[Market] New ad created: ID={}, Title={}, Author={}", saved.getId(), saved.getTitle(),
-                currentUserEmail);
+
+        // 3. Obsługa zdjęć (max 3)
+        if (images != null && images.length > 0) {
+            if (images.length > 3) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Możesz dodać maksymalnie 3 zdjęcia.");
+            }
+
+            long totalImagesSize = 0;
+            for (org.springframework.web.multipart.MultipartFile file : images) {
+                if (file.isEmpty())
+                    continue;
+
+                // Bezpieczeństwo: oczyszczenie nazwy pliku (Path Traversal prevention)
+                String originalName = org.springframework.util.StringUtils.cleanPath(
+                        file.getOriginalFilename() != null ? file.getOriginalFilename() : "image");
+
+                // Jawna blokada rozszerzeń: .jfif, .jpe itp. mają magic bytes JPEG, ale nie są
+                // obsługiwanym formatem. Ta kontrola chroni przed bezpośrednimi wywołaniami API (curl/Postman).
+                String fileExt = originalName.contains(".")
+                        ? originalName.substring(originalName.lastIndexOf('.') + 1).toLowerCase()
+                        : "";
+                if (!java.util.Set.of("jpg", "jpeg", "png", "webp").contains(fileExt)) {
+                    log.warn("[Market][Security] Odrzucono plik '{}' - niedozwolone rozszerzenie: {}", originalName, fileExt);
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Rozszerzenie pliku nie jest dozwolone. Użyj .jpg, .jpeg, .png lub .webp.");
+                }
+
+                // Walidacja Magic Bytes przez Apache Tika (ignoruje nagłówek Content-Type kontrolowany przez klienta)
+                String detectedType;
+                try {
+                    detectedType = tika.detect(file.getBytes());
+                } catch (java.io.IOException e) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nie udało się zweryfikować zawartości pliku.");
+                }
+                if (!java.util.List.of("image/jpeg", "image/png", "image/webp").contains(detectedType)) {
+                    log.warn("[Market][Security] Odrzucono plik '{}' - wykryty typ: {}", originalName, detectedType);
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Zawartość pliku nie odpowiada dozwolonemu formatowi obrazu (JPEG, PNG, WEBP).");
+                }
+
+                // Pobierz Content-Type z Tika (nie z nagłówka HTTP - jest wiarygodny)
+                String contentType = detectedType;
+
+                // Limit rozmiaru (5MB)
+                if (file.getSize() > 5 * 1024 * 1024) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Rozmiar zdjęcia nie może przekraczać 5MB.");
+                }
+
+                try {
+                    MarketAdImage img = new MarketAdImage(saved, originalName, contentType, file.getSize(),
+                            file.getBytes());
+                    marketAdImageRepository.save(img);
+                    saved.getImages().add(img);
+                    totalImagesSize += file.getSize();
+                } catch (java.io.IOException e) {
+                    log.error("[Market] Error saving image", e);
+                }
+            }
+
+            // Aktualizacja usedStorage — atomowa operacja z limitem w JPQL
+            if (totalImagesSize > 0) {
+                int updated = userRepository.incrementUsedStorage(currentUser.getId(), totalImagesSize);
+                if (updated == 0) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Przekroczono limit miejsca na dysku (Storage). Usuń nieużywane pliki i spróbuj ponownie.");
+                }
+                log.info("[Market] Storage incremented by {} bytes for user {}", totalImagesSize, currentUser.getId());
+            }
+        }
+
+        log.info("[Market] New ad created: ID={}, Title={}, Images={}", saved.getId(), saved.getTitle(),
+                saved.getImages().size());
 
         notificationService.createNotification(
                 currentUser,
@@ -138,13 +212,24 @@ public class MarketAdServiceImpl implements MarketAdService {
             throw new AccessDeniedException("Brak uprawnień do usunięcia tego ogłoszenia");
         }
 
-        // 1. Kaskadowe usunięcie powiązań (wymuszone prosto na bazie danych)
+        // 1. Oblicz rozmiar zdjęć przed usunięciem, by zwrócić miejsce właścicielowi
+        long imagesSize = marketAdImageRepository.sumFileSizeByAdId(adId);
+        Long authorId = ad.getAuthor().getId();
+
+        // 2. Kaskadowe usunięcie powiązań (wymuszone prosto na bazie danych)
         marketFavoriteRepository.deleteAllByAdId(adId);
         marketAdReportRepository.deleteAllByAdId(adId);
-        
-        // 2. Bezpieczne usunięcie ogłoszenia po jego ID (zapobiega błędom Detached Entity / State Conflict)
+
+        // 3. Bezpieczne usunięcie ogłoszenia po jego ID (zapobiega błędom Detached
+        // Entity / State Conflict)
         marketAdRepository.deleteById(adId);
-        
+
+        // 4. Zwrot miejsca na dysku właścicielowi
+        if (imagesSize > 0) {
+            userRepository.decrementUsedStorage(authorId, imagesSize);
+            log.info("[Market] Storage decremented by {} bytes for user {}", imagesSize, authorId);
+        }
+
         log.info("[Market] Ad deleted: ID={}, DeletedBy={}", adId, currentUserEmail);
     }
 
@@ -337,17 +422,25 @@ public class MarketAdServiceImpl implements MarketAdService {
     @Transactional
     public void deleteAdByAdmin(Long adId, Long reportId) {
         // Sprawdzamy, czy ogłoszenie w ogóle istnieje
-        if (!marketAdRepository.existsById(adId)) {
-            throw new ResourceNotFoundException("Ogłoszenie nie istnieje");
-        }
+        MarketAd ad = marketAdRepository.findById(adId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ogłoszenie nie istnieje"));
 
-        // 1. Kaskadowe usunięcie powiązań (wymuszone prosto na bazie danych)
-        // Nie modyfikujemy raportów w pamięci Javy, po prostu je niszczymy!
+        // 1. Oblicz rozmiar zdjęć przed usunięciem, by zwrócić miejsce właścicielowi
+        long imagesSize = marketAdImageRepository.sumFileSizeByAdId(adId);
+        Long authorId = ad.getAuthor().getId();
+
+        // 2. Kaskadowe usunięcie powiązań
         marketFavoriteRepository.deleteAllByAdId(adId);
         marketAdReportRepository.deleteAllByAdId(adId);
 
-        // 2. Bezpieczne usunięcie ogłoszenia po jego ID (zapobiega błędom Detached Entity)
+        // 3. Bezpieczne usunięcie ogłoszenia
         marketAdRepository.deleteById(adId);
+
+        // 4. Zwrot miejsca na dysku właścicielowi
+        if (imagesSize > 0) {
+            userRepository.decrementUsedStorage(authorId, imagesSize);
+            log.info("[Market] Storage decremented by {} bytes for user {} (admin delete)", imagesSize, authorId);
+        }
 
         log.info("[Market] Ad {} deleted by admin due to report {}", adId, reportId);
     }
@@ -374,6 +467,7 @@ public class MarketAdServiceImpl implements MarketAdService {
         for (MarketAd ad : userAds) {
             marketFavoriteRepository.deleteAllByAdId(ad.getId());
             marketAdReportRepository.deleteAllByAdId(ad.getId());
+            marketAdImageRepository.deleteAllByAdId(ad.getId()); // Kaskada zdjęć - @Modifying pomija CascadeType.ALL
         }
 
         // 3. Teraz można bezpiecznie usunąć ogłoszenia
@@ -396,6 +490,14 @@ public class MarketAdServiceImpl implements MarketAdService {
                 ad.getCreatedAt(),
                 ad.getExpiresAt(),
                 currentUser != null && ad.getAuthor().getId().equals(currentUser.getId()),
-                currentUser != null && marketFavoriteRepository.existsByUserAndAd(currentUser, ad));
+                currentUser != null && marketFavoriteRepository.existsByUserAndAd(currentUser, ad),
+                ad.getImages().stream().map(MarketAdImage::getId).toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MarketAdImage getImage(Long imageId) {
+        return marketAdImageRepository.findById(imageId)
+                .orElseThrow(() -> new ResourceNotFoundException("Zdjęcie nie istnieje"));
     }
 }

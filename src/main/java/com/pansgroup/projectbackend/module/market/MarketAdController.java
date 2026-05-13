@@ -28,11 +28,21 @@ public class MarketAdController {
         return ResponseEntity.ok(marketAdService.getAllActiveAds(principal.getName(), category, condition, search, pageable));
     }
 
-    @PostMapping("/offers")
+    @PostMapping(value = "/offers", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MarketAdResponseDto> createAd(
-            @Valid @RequestBody MarketAdCreateDto dto,
+            @RequestPart("ad") @Valid MarketAdCreateDto dto,
+            @RequestPart(value = "images", required = false) org.springframework.web.multipart.MultipartFile[] images,
             Principal principal) {
-        return ResponseEntity.ok(marketAdService.createAd(dto, principal.getName()));
+        return ResponseEntity.ok(marketAdService.createAd(dto, principal.getName(), images));
+    }
+
+    @GetMapping("/images/{imageId}")
+    public ResponseEntity<byte[]> getImage(@PathVariable Long imageId) {
+        MarketAdImage image = marketAdService.getImage(imageId);
+        return ResponseEntity.ok()
+                .cacheControl(org.springframework.http.CacheControl.maxAge(30, java.util.concurrent.TimeUnit.DAYS).cachePublic())
+                .contentType(org.springframework.http.MediaType.parseMediaType(image.getContentType()))
+                .body(image.getImageData());
     }
 
     @DeleteMapping("/offers/{id}")

@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentSort = 'newest';
     let pendingContactAuthorId = null;
     let pendingReportAdId = null;
+    let selectedFiles = [];
+    let currentSlideIndex = 0;
 
     const CATEGORY_META = {
         BOOKS_NOTES:    { label:'Podręczniki', badge:'badge-books', icon:'' },
@@ -336,9 +338,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const ownerBadge = ad.isOwner ? `<span class="owner-badge">Twoje</span>` : '';
 
+        const firstImageId = ad.imageIds && ad.imageIds.length > 0 ? ad.imageIds[0] : null;
+        const imageHtml = firstImageId 
+            ? `<div class="card-image-wrap"><img src="/api/market/images/${firstImageId}" alt="${esc(ad.title)}" loading="lazy"></div>`
+            : `<div class="card-image-wrap"><div class="card-image-placeholder"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg><span>Brak zdjęcia</span></div></div>`;
+
         return `
             <article class="market-card${resolved ? ' resolved' : ''}" role="listitem" aria-label="Ogłoszenie: ${esc(ad.title)}" data-id="${ad.id}" style="cursor: pointer;">
                 ${resolved ? '<div class="resolved-stamp" aria-hidden="true">ZREALIZOWANE</div>' : ''}
+                ${imageHtml}
                 <div class="card-top">
                     <span class="card-badge ${meta.badge}" aria-label="Kategoria: ${meta.label}">${esc(meta.label)}</span>
                     <time class="card-date" datetime="${esc(ad.createdAt)}">${formatDate(ad.createdAt)}</time>
@@ -620,7 +628,72 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         }
 
+        initCarousel(ad.imageIds);
         openModal('detailsModal');
+    }
+
+    function initCarousel(imageIds) {
+        const carousel = document.getElementById('detailsCarousel');
+        const track = document.getElementById('carouselTrack');
+        const indicators = document.getElementById('carouselIndicators');
+        
+        if (!carousel || !track || !indicators) return;
+
+        if (!imageIds || imageIds.length === 0) {
+            carousel.style.display = 'none';
+            return;
+        }
+
+        carousel.style.display = 'block';
+        currentSlideIndex = 0;
+        track.style.transform = 'translateX(0)';
+        
+        track.innerHTML = imageIds.map(id => `
+            <div class="carousel-slide">
+                <img src="/api/market/images/${id}" alt="Zdjęcie ogłoszenia" loading="lazy">
+            </div>
+        `).join('');
+
+        indicators.innerHTML = imageIds.map((_, i) => `
+            <div class="indicator ${i === 0 ? 'active' : ''}" data-index="${i}"></div>
+        `).join('');
+
+        const updateCarousel = () => {
+            track.style.transform = `translateX(-${currentSlideIndex * 100}%)`;
+            indicators.querySelectorAll('.indicator').forEach((ind, i) => {
+                ind.classList.toggle('active', i === currentSlideIndex);
+            });
+        };
+
+        const prevBtn = document.getElementById('carouselPrev');
+        const nextBtn = document.getElementById('carouselNext');
+
+        if (imageIds.length <= 1) {
+            if (prevBtn) prevBtn.style.display = 'none';
+            if (nextBtn) nextBtn.style.display = 'none';
+            if (indicators) indicators.style.display = 'none';
+        } else {
+            if (prevBtn) prevBtn.style.display = 'flex';
+            if (nextBtn) nextBtn.style.display = 'flex';
+            if (indicators) indicators.style.display = 'flex';
+
+            prevBtn.onclick = () => {
+                currentSlideIndex = (currentSlideIndex - 1 + imageIds.length) % imageIds.length;
+                updateCarousel();
+            };
+
+            nextBtn.onclick = () => {
+                currentSlideIndex = (currentSlideIndex + 1) % imageIds.length;
+                updateCarousel();
+            };
+
+            indicators.onclick = (e) => {
+                if (e.target.classList.contains('indicator')) {
+                    currentSlideIndex = parseInt(e.target.dataset.index);
+                    updateCarousel();
+                }
+            };
+        }
     }
 
     // ── REPORT SUBMIT ──
@@ -795,6 +868,84 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // ── OBSŁUGA ZDJĘĆ ──
+    const fileInput = document.getElementById('formImages');
+    const previewsContainer = document.getElementById('imagePreviews');
+
+    function showAddFormMsg(text, type = 'error') {
+        const msg = document.getElementById('addFormMsg');
+        if (!msg) return;
+        msg.className = `market-form-message ${type}`;
+        msg.textContent = text;
+        clearTimeout(msg._clearTimer);
+        msg._clearTimer = setTimeout(() => {
+            msg.className = 'market-form-message';
+            msg.textContent = '';
+        }, 4000);
+    }
+
+    fileInput?.addEventListener('change', e => {
+        const files = Array.from(e.target.files);
+        if (selectedFiles.length + files.length > 3) {
+            showAddFormMsg('Możesz dodać maksymalnie 3 zdjęcia.');
+            fileInput.value = '';
+            return;
+        }
+
+        let hasError = false;
+        const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
+        files.forEach(file => {
+            if (file.size > 5 * 1024 * 1024) {
+                showAddFormMsg(`Plik "${file.name}" jest za duży (maks. 5 MB).`);
+                hasError = true;
+                return;
+            }
+            if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+                showAddFormMsg(`Format pliku "${file.name}" nie jest obsługiwany (JPEG, PNG, WEBP).`);
+                hasError = true;
+                return;
+            }
+            // Jawna blokada rozszerzeń: .jfif, .jpe, .jif itp. raportują image/jpeg w MIME,
+            // ale nie są obsługiwanym formatem wymiany zdjęć.
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!ALLOWED_EXTENSIONS.includes(ext)) {
+                showAddFormMsg(`Rozszerzenie ".${ext}" nie jest dozwolone. Użyj pliku .jpg, .jpeg, .png lub .webp.`);
+                hasError = true;
+                return;
+            }
+            selectedFiles.push(file);
+        });
+        renderPreviews();
+        fileInput.value = ''; // reset
+    });
+
+    function renderPreviews() {
+        if (!previewsContainer) return;
+        previewsContainer.innerHTML = '';
+        selectedFiles.forEach((file, index) => {
+            const reader = new FileReader();
+            const item = document.createElement('div');
+            item.className = 'image-preview-item';
+            
+            reader.onload = e => {
+                item.innerHTML = `
+                    <img src="${e.target.result}" alt="Podgląd">
+                    <button type="button" class="image-preview-remove" data-index="${index}">×</button>
+                `;
+            };
+            reader.readAsDataURL(file);
+            previewsContainer.appendChild(item);
+        });
+    }
+
+    previewsContainer?.addEventListener('click', e => {
+        if (e.target.classList.contains('image-preview-remove')) {
+            const index = parseInt(e.target.dataset.index);
+            selectedFiles.splice(index, 1);
+            renderPreviews();
+        }
+    });
+
     document.getElementById('submitOfferBtn')?.addEventListener('click', async (e) => {
         e.preventDefault(); // Zatrzymaj klasyczny submit
         const form = document.getElementById('addOfferForm');
@@ -829,14 +980,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const data = { title, category, condition, price, description };
 
+        const formData = new FormData();
+        formData.append('ad', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+        selectedFiles.forEach(file => {
+            formData.append('images', file);
+        });
+
         try {
             const res = await fetch('/api/market/offers', {
                 method: 'POST',
                 headers: { 
-                    'Content-Type': 'application/json',
                     ...getCsrfHeaders()
                 },
-                body: JSON.stringify(data)
+                body: formData
             });
 
             if (!res.ok) {
@@ -844,11 +1000,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(err.message || 'Wystąpił błąd przy dodawaniu ogłoszenia.');
             }
 
-            const newAd = await res.json();
-            allAds.unshift(newAd);
+            selectedFiles = []; // Wyczyść pliki
+            renderPreviews();
             closeModal('addModal');
-            fetchStats();
-            render();
+            // Wzorzec "Refetch on Mutate" — pobieramy świeże dane ze źródła prawdy (bazy),
+            // zamiast ręcznie mutować tablicę niekompletnym DTO (bez pełnych imageIds).
+            await Promise.all([fetchStats(), fetchAds(0, false)]);
+            showToast('Ogłoszenie zostało opublikowane!', 'success');
         } catch (error) {
             msg.className='market-form-message error';
             msg.textContent = error.message;

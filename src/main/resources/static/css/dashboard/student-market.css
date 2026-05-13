@@ -792,6 +792,199 @@
     color: var(--market-navy);
 }
 
+/* IMAGE UPLOAD & GALLERY */
+.image-upload-wrapper {
+    margin-top: 10px;
+}
+
+.image-upload-trigger {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 24px;
+    border: 2px dashed var(--market-border-strong);
+    border-radius: var(--market-radius);
+    background: var(--market-bg-hover);
+    color: var(--market-text-muted);
+    cursor: pointer;
+    transition: var(--market-transition);
+}
+
+.image-upload-trigger:hover {
+    border-color: var(--market-navy);
+    color: var(--market-navy);
+    background: rgba(27, 45, 79, 0.03);
+}
+
+[data-theme="dark"] .image-upload-trigger:hover {
+    border-color: var(--market-accent);
+    color: var(--market-accent-2);
+}
+
+.image-previews-container {
+    display: flex;
+    gap: 12px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.image-preview-item {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: var(--market-radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--market-border);
+    box-shadow: var(--market-shadow-card);
+}
+
+.image-preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-preview-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.image-preview-remove:hover {
+    background: var(--market-danger);
+}
+
+/* CAROUSEL */
+.market-carousel {
+    position: relative;
+    width: 100%;
+    border-radius: var(--market-radius);
+    overflow: hidden;
+    background: #000;
+}
+
+.carousel-track-container {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+}
+
+.carousel-track {
+    display: flex;
+    height: 100%;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.carousel-slide {
+    min-width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.carousel-slide img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    z-index: 2;
+}
+
+.carousel-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.carousel-btn.prev { left: 15px; }
+.carousel-btn.next { right: 15px; }
+
+.carousel-indicators {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 2;
+}
+
+.indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.indicator.active {
+    background: white;
+    transform: scale(1.3);
+}
+
+/* KARTA Z MINIATURKĄ */
+.card-image-wrap {
+    width: 100%;
+    height: 160px;
+    background: var(--market-bg-hover);
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--market-border);
+}
+
+.card-image-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.market-card:hover .card-image-wrap img {
+    transform: scale(1.08);
+}
+
+.card-image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--market-text-faint);
+    gap: 8px;
+}
+
 .market-btn-primary {
     display: inline-flex;
     align-items: center;

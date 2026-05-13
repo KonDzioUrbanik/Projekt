@@ -1565,6 +1565,17 @@
                 const existingPreview = document.getElementById('adminAdPreviewBox');
                 if (existingPreview) existingPreview.remove();
 
+                const imagesPreviewHtml = (ad.imageIds && ad.imageIds.length > 0)
+                    ? `<div style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                           <div style="font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em;">
+                               <i class="fas fa-images" style="margin-right: 5px;"></i>Zdjęcia (${ad.imageIds.length})
+                           </div>
+                           <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px;">
+                               ${ad.imageIds.map(id => `<a href="/api/market/images/${id}" target="_blank" title="Otwórz pełny rozmiar" style="flex-shrink: 0;"><img src="/api/market/images/${id}" style="height: 110px; width: auto; max-width: 200px; border-radius: 6px; border: 1px solid var(--border-color); object-fit: cover; cursor: zoom-in;" alt="Załącznik" loading="lazy"></a>`).join('')}
+                           </div>
+                       </div>`
+                    : `<div style="margin-top: 15px; padding-top: 12px; border-top: 1px solid var(--border-color); font-size: 0.82rem; color: var(--text-muted);"><i class="fas fa-image" style="margin-right: 6px;"></i>Brak załączonych zdjęć</div>`;
+
                 const previewHtml = `
                     <div id="adminAdPreviewBox" style="margin-top: 20px; padding: 15px; background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 8px; animation: slideDown 0.3s ease;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -1576,6 +1587,7 @@
                             Kategoria: <strong>${ad.category}</strong> | Stan: <strong>${ad.condition}</strong> | Cena: <strong>${ad.price ? ad.price + ' zł' : 'Brak'}</strong>
                         </div>
                         <p style="white-space: pre-wrap; font-size: 0.9rem; line-height: 1.5; color: var(--text-main); margin: 0; max-height: 250px; overflow-y: auto; padding-right: 5px;">${this.esc(ad.description)}</p>
+                        ${imagesPreviewHtml}
                     </div>
                 `;
 

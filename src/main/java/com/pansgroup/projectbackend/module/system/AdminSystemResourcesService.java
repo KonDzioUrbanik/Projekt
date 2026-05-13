@@ -61,8 +61,15 @@ public class AdminSystemResourcesService {
         // 1. Sync for all users
         List<com.pansgroup.projectbackend.module.user.User> allUsers = userRepository.findAll();
         for (com.pansgroup.projectbackend.module.user.User user : allUsers) {
-            Long actualSize = groupDriveFileRepository.sumSizeByUploaderAndDeletedFalse(user.getId());
-            long newSize = (actualSize != null) ? actualSize : 0L;
+            Long driveSize = groupDriveFileRepository.sumSizeByUploaderAndDeletedFalse(user.getId());
+            
+            // Dodajemy rozmiar zdjęć z giełdy do kwoty użytkownika
+            Long marketSizeRes = jdbcTemplate.queryForObject(
+                "SELECT COALESCE(SUM(i.file_size), 0) FROM market_ad_images i " +
+                "JOIN market_ads a ON i.ad_id = a.id WHERE a.author_id = ?", Long.class, user.getId());
+            
+            long newSize = (driveSize != null ? driveSize : 0L) + (marketSizeRes != null ? marketSizeRes : 0L);
+            
             if (user.getUsedStorage() != newSize) {
                 log.info("Sync User {}: {} -> {}", user.getEmail(), user.getUsedStorage(), newSize);
                 user.setUsedStorage(newSize);
@@ -133,8 +140,16 @@ public class AdminSystemResourcesService {
             long forumCount = (forumThreadCount != null ? forumThreadCount : 0) + (forumCommentCount != null ? forumCommentCount : 0);
             long forumSize = (forumThreadSize != null ? forumThreadSize : 0) + (forumCommentSize != null ? forumCommentSize : 0);
 
-            stats.setAttachmentLogicalSize(annSize + fbSize + driveSize + forumSize);
-            stats.setAttachmentCount(annCount + fbCount + driveCount + forumCount);
+            // 7. LOGICAL: Market Ad Images
+            Long marketImgCountRes = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM market_ad_images", Long.class);
+            long marketImgCount = marketImgCountRes != null ? marketImgCountRes : 0L;
+            Long marketImgSizeRes = jdbcTemplate.queryForObject(
+                "SELECT COALESCE(SUM(file_size), 0) FROM market_ad_images", Long.class);
+            long marketImgSize = marketImgSizeRes != null ? marketImgSizeRes : 0L;
+
+            stats.setAttachmentLogicalSize(annSize + fbSize + driveSize + forumSize + marketImgSize);
+            stats.setAttachmentCount(annCount + fbCount + driveCount + forumCount + marketImgCount);
 
             // 5. Totals
             stats.setTotalLogicalSize(stats.getAvatarLogicalSize() + stats.getAttachmentLogicalSize());
@@ -210,7 +225,11 @@ public class AdminSystemResourcesService {
             " UNION ALL " +
             "SELECT 'Forum Comment' as source, comment_id::text, file_name, " +
             "file_size, 'database' " +
-            "FROM portal_forum_comment_attachments";
+            "FROM portal_forum_comment_attachments" +
+            " UNION ALL " +
+            "SELECT 'Market Ad' as source, ad_id::text, file_name, " +
+            "file_size, 'database' " +
+            "FROM market_ad_images";
         
         try {
             return jdbcTemplate.queryForList(sql);
@@ -249,6 +268,9 @@ public class AdminSystemResourcesService {
             "    UNION ALL\n" +
             "    -- Forum Comments\n" +
             "    SELECT fc.author_id, fca.file_size, 'ATTACHMENT' FROM portal_forum_comment_attachments fca JOIN forum_comments fc ON fca.comment_id = fc.id\n" +
+            "    UNION ALL\n" +
+            "    -- Market Ad Images\n" +
+            "    SELECT ma.author_id, mai.file_size, 'ATTACHMENT' FROM market_ad_images mai JOIN market_ads ma ON mai.ad_id = ma.id\n" +
             ")\n" +
             "SELECT \n" +
             "    u.id, u.email, u.first_name as \"firstName\", u.last_name as \"lastName\",\n" +

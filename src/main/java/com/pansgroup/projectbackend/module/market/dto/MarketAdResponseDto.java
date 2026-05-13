@@ -20,6 +20,7 @@ public record MarketAdResponseDto(
         LocalDateTime createdAt,
         LocalDateTime expiresAt,
         boolean isOwner,
-        boolean isFavorite
+        boolean isFavorite,
+        java.util.List<Long> imageIds
 ) {
 }
