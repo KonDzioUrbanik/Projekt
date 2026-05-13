@@ -52,6 +52,10 @@ public class MarketAd {
 
     private LocalDateTime expiresAt;
 
+    @OneToMany(mappedBy = "ad", cascade = CascadeType.ALL, orphanRemoval = true)
+    @org.hibernate.annotations.BatchSize(size = 20)
+    private java.util.List<MarketAdImage> images = new java.util.ArrayList<>();
+
     @PrePersist
     protected void onCreate() {
         this.updatedAt = LocalDateTime.now();

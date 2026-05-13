@@ -162,6 +162,19 @@
                                     <textarea class="market-form-textarea" id="formDescription" maxlength="2000" minlength="20" required placeholder="Opisz dokładnie swój przedmiot: stan (np. nieliczne notatki ołówkiem), ewentualne wady oraz preferowany sposób przekazania (np. odbiór na uczelni)."></textarea>
                                     <div class="market-char-count"><span id="descLen">0</span>/2000</div>
                                 </div>
+
+                                <div class="market-form-group">
+                                    <label class="market-form-label">Zdjęcia (maks. 3)</label>
+                                    <div class="image-upload-wrapper">
+                                        <label for="formImages" class="image-upload-trigger">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                                            <span>Dodaj zdjęcia</span>
+                                            <input type="file" id="formImages" multiple accept="image/jpeg,image/png,image/webp" style="display: none;">
+                                        </label>
+                                        <div id="imagePreviews" class="image-previews-container"></div>
+                                    </div>
+                                    <p class="market-form-hint">Możesz dodać do 3 zdjęć (JPEG, PNG, WEBP), max 5MB każde.</p>
+                                </div>
                         
                                 <div class="market-form-message" id="addFormMsg" role="alert"></div>
                             </form>
@@ -243,6 +256,16 @@
                                     Profil
                                 </a>
                             </div>
+                            
+                            <div id="detailsCarousel" class="market-carousel" style="display: none; margin-bottom: 20px;">
+                                <div class="carousel-track-container">
+                                    <div class="carousel-track" id="carouselTrack"></div>
+                                </div>
+                                <button class="carousel-btn prev" id="carouselPrev" aria-label="Poprzednie">❮</button>
+                                <button class="carousel-btn next" id="carouselNext" aria-label="Następne">❯</button>
+                                <div class="carousel-indicators" id="carouselIndicators"></div>
+                            </div>
+
                             <div style="margin-bottom: 20px;">
                                 <h3 id="detailsTitle" style="margin: 0 0 10px 0; color: var(--market-text-h); font-size: 1.2rem;">—</h3>
                                 <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px;">
@@ -250,7 +273,7 @@
                                     <span class="card-badge details-condition-badge" id="detailsCondition">—</span>
                                     <span class="details-price-val" id="detailsPrice">—</span>
                                 </div>
-                                <p id="detailsDescription" style="white-space: pre-wrap; color: var(--market-text-body); font-size: 0.95rem; line-height: 1.6;"></p>
+                                <p id="detailsDescription" style="white-space: pre-wrap; color: var(--market-text-body); font-size: 0.95rem; line-height: 1.6; overflow-wrap: break-word; word-break: break-word;"></p>
                             </div>
                         </div>
                         <div class="market-modal-foot">
@@ -313,11 +336,14 @@
                             <p style="color: var(--market-text-body); margin-bottom: 20px; font-size: 0.95rem;">Moduł Giełdy Studenckiej jest stale rozwijany. Oto, co planujemy dodać w najbliższych aktualizacjach:</p>
                             
                             <ul class="roadmap-list">
-                                <li class="roadmap-item">
-                                    <div class="roadmap-icon primary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div>
+                                <li class="roadmap-item done" style="border-left: 4px solid var(--market-success);">
+                                    <div class="roadmap-icon success"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div>
                                     <div>
-                                        <strong class="roadmap-title">Galeria Zdjęć (Image Upload)</strong>
-                                        <span class="roadmap-desc">Możliwość wrzucenia od 1 do 3 zdjęć przedmiotu (np. stan notatek czy książki). Zdjęcia będą wyświetlane w formie intuicyjnej karuzeli (Slider) w podglądzie ogłoszenia.</span>
+                                         <div style="display: flex; align-items: center; gap: 8px;">
+                                             <strong class="roadmap-title">Galeria Zdjęć (Image Upload)</strong>
+                                             <span class="card-badge badge-help" style="font-size: 0.6rem; padding: 2px 6px;">Gotowe!</span>
+                                         </div>
+                                         <span class="roadmap-desc">Możliwość wrzucenia od 1 do 3 zdjęć przedmiotu (np. stan notatek czy książki). Zdjęcia będą wyświetlane w formie intuicyjnej karuzeli (Slider) w podglądzie ogłoszenia.</span>
                                     </div>
                                 </li>
                                 
@@ -346,7 +372,7 @@
                                 <li class="roadmap-item">
                                     <div class="roadmap-icon success"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
                                     <div>
-                                        <strong class="roadmap-title">Wskaźnik aktywności (Online)</strong>
+                                        <strong class="roadmap-title">Wskaźnik aktywności (online)</strong>
                                         <span class="roadmap-desc">Dynamiczna zielona kropka obok avatara wskazująca, że student jest "Dostępny" w portalu w tej samej chwili, wspierana przez WebSockety.</span>
                                     </div>
                                 </li>
