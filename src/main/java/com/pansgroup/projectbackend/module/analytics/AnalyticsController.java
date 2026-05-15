@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import com.pansgroup.projectbackend.module.system.SystemService;
 
 @Slf4j
@@ -27,11 +28,10 @@ public class AnalyticsController {
      * Dostępny dla STUDENT i STAROSTA. ADMIN jest odrzucany w serwisie.
      */
     @PostMapping("/sync")
-    @PreAuthorize("permitAll()") // Pozwalamy na logowanie zdarzeń (np. wejście na stronę logowania) dla anonimów
+    @PreAuthorize("permitAll()")
     public ResponseEntity<?> track(@Valid @RequestBody AnalyticsEventDto dto,
             Authentication auth) {
         if (!systemService.isModuleEnabled("module_analytics")) {
-            // Zwracamy ciche 200 OK, aby nie spamować konsoli błędami po stronie klienta
             return ResponseEntity.ok().build();
         }
         try {
@@ -42,6 +42,37 @@ public class AnalyticsController {
             return ResponseEntity.internalServerError().body("Error: " + e.getMessage() + " | Cause: "
                     + (e.getCause() != null ? e.getCause().getMessage() : "none"));
         }
+    }
+
+    /**
+     * Batch endpoint — przyjmuje całą tablicę zdarzeń w jednym żądaniu.
+     * Zastępuje wielokrotne wywołania /sync. Limit: 20 zdarzeń na batch (DoS guard).
+     */
+    @PostMapping("/sync/batch")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<?> trackBatch(
+            @RequestBody List<AnalyticsEventDto> events,
+            Authentication auth) {
+        if (!systemService.isModuleEnabled("module_analytics")) {
+            return ResponseEntity.ok().build();
+        }
+        if (events == null || events.isEmpty()) {
+            return ResponseEntity.ok().build();
+        }
+        // Hard cap — ochrona przed DoS przez ogromny payload
+        var limited = events.size() > 20 ? events.subList(0, 20) : events;
+        int saved = 0;
+        for (AnalyticsEventDto dto : limited) {
+            try {
+                service.saveEvent(dto, auth);
+                saved++;
+            } catch (Exception e) {
+                // dto.eventType() — record accessor (nie getEventType())
+                log.warn("Batch: pominięto zdarzenie ({}): {}", dto.eventType(), e.getMessage());
+            }
+        }
+        log.debug("Batch analityki: zapisano {}/{} zdarzeń", saved, limited.size());
+        return ResponseEntity.ok().build();
     }
 
     /**

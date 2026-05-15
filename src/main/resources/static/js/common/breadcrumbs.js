@@ -98,6 +98,11 @@
             href: '/student/student-market',
             parent: 'student-panel'
         },
+        deadlines: {
+            label: 'Terminarz',
+            href: '/student/deadlines',
+            parent: 'student-panel'
+        },
         surveys: {
             label: 'Ankiety i Głosowania',
             href: '/student/surveys',

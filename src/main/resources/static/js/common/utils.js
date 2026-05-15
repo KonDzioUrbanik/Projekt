@@ -407,12 +407,15 @@ const Utils = {
         });
     },
 
-    /* Globalny interceptor dla fetch - obsługuje tryb konserwacji (503) */
+    /* Globalny interceptor dla fetch:
+       1. Auto-iniekcja tokenu CSRF dla wszystkich żądań mutujących (POST/PUT/PATCH/DELETE).
+       2. Redirect do strony konserwacji przy odpowiedzi 503.
+       Działa transparentnie dla CAŁEGO projektu — Chat, Forum, Giełda, Notatki, Terminarz
+       i wszystkie przyszłe moduły są chronione bez żadnych zmian w ich kodzie. */
     initFetchInterceptor() {
         const originalFetch = window.fetch;
+        const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
-        // Ścieżki stron modułów — tylko z nich interceptor robi pełny redirect.
-        // Na pozostałych stronach (np. /home) 503 jest obsługiwane przez kod strony.
         const MODULE_PAGE_PREFIXES = [
             '/student/notes',
             '/student/schedule',
@@ -430,9 +433,62 @@ const Utils = {
             return MODULE_PAGE_PREFIXES.some(prefix => path.startsWith(prefix));
         };
 
+        /** Odczytuje token CSRF z ciastka XSRF-TOKEN (Spring CookieCsrfTokenRepository). */
+        const getCsrfFromCookie = () => {
+            const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+            return match ? decodeURIComponent(match[1]) : '';
+        };
+
         window.fetch = async (...args) => {
+            let [resource, options = {}] = args;
+
+            // ─── KEEPALIVE BYPASS ─────────────────────────────────────────────────
+            // keepalive:true żądania (np. analityka przy zamknięciu strony) muszą trafić
+            // bezpośrednio do originalFetch. Przeglądarka anuluje keepalive jeśli
+            // pomiędzy jest async/await (wrapper nie zwróci zanim strona zniknie).
+            // Dodajemy tylko CSRF token i przekazujemy natychmiast.
+            if (options.keepalive) {
+                const method = (options.method || 'GET').toUpperCase();
+                if (MUTATING_METHODS.has(method)) {
+                    const csrfToken = getCsrfFromCookie();
+                    if (csrfToken) {
+                        const existingHeaders = options.headers || {};
+                        const hasToken = typeof existingHeaders.get === 'function'
+                            ? existingHeaders.get('X-CSRF-TOKEN')
+                            : existingHeaders['X-CSRF-TOKEN'];
+                        if (!hasToken) {
+                            options = {
+                                ...options,
+                                headers: { 'X-CSRF-TOKEN': csrfToken, ...existingHeaders }
+                            };
+                        }
+                    }
+                }
+                return originalFetch(resource, options); // bez async-wrap
+            }
+
+            // ─── CSRF: auto-inject dla metod mutujących ───────────────────────────
+            const method = (options.method || 'GET').toUpperCase();
+            if (MUTATING_METHODS.has(method)) {
+                const csrfToken = getCsrfFromCookie();
+                if (csrfToken) {
+                    const existingHeaders = options.headers || {};
+                    const hasToken = typeof existingHeaders.get === 'function'
+                        ? existingHeaders.get('X-CSRF-TOKEN')
+                        : existingHeaders['X-CSRF-TOKEN'];
+
+                    if (!hasToken) {
+                        options = {
+                            ...options,
+                            headers: { 'X-CSRF-TOKEN': csrfToken, ...existingHeaders }
+                        };
+                    }
+                }
+            }
+
+            // ─── 503 / Maintenance redirect ───────────────────────────────────────
             try {
-                const response = await originalFetch(...args);
+                const response = await originalFetch(resource, options);
 
                 if (response.status === 503 && isOnModulePage()) {
                     const contentType = response.headers.get('content-type');
@@ -457,7 +513,7 @@ const Utils = {
 
     /* Przenosi modale (.modal-overlay) z wnętrza .navbar-middle na document.body, żeby nie były przycinane przez overflow: hidden na .dashboard-container */
     portalModals() {
-        const SELECTOR = '.navbar-middle .modal-overlay, .navbar-middle .modal';
+        const SELECTOR = '.navbar-middle .modal-overlay, .navbar-middle .modal, .navbar-middle .dl-modal-backdrop';
 
         const moveModals = () => {
             document.querySelectorAll(SELECTOR).forEach(overlay => {
@@ -475,7 +531,8 @@ const Utils = {
                 for (const mutation of mutations) {
                     for (const node of mutation.addedNodes) {
                         if (node.nodeType === 1 && node.classList &&
-                            (node.classList.contains('modal-overlay') || node.classList.contains('modal'))) {
+                            (node.classList.contains('modal-overlay') || node.classList.contains('modal')
+                             || node.classList.contains('dl-modal-backdrop'))) {
                             document.body.appendChild(node);
                         }
                     }
@@ -505,12 +562,60 @@ const Utils = {
         } catch (e) {
             console.error('Błąd podczas raportowania do analityki:', e);
         }
+    },
+
+    /**
+     * Centralny wrapper dla fetch API.
+     * Automatycznie dołącza token CSRF z ciastka XSRF-TOKEN do metod mutujących.
+     * Rzuca Error z treścią błędu z API (lub HTTP status) gdy odpowiedź nie jest ok.
+     */
+    async apiFetch(url, options = {}) {
+        const method = (options.method || 'GET').toUpperCase();
+        const mutating = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
+
+        const headers = { ...(options.headers || {}) };
+
+        if (mutating) {
+            // Pobierz CSRF z ciastka XSRF-TOKEN (Spring CookieCsrfTokenRepository)
+            const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+            const csrfToken = match ? decodeURIComponent(match[1]) : '';
+            if (csrfToken) headers['X-CSRF-TOKEN'] = csrfToken;
+        }
+
+        const response = await fetch(url, { ...options, headers });
+
+        if (!response.ok) {
+            let message = `HTTP ${response.status}`;
+            try {
+                const ct = response.headers.get('content-type') || '';
+                if (ct.includes('application/json')) {
+                    const data = await response.json();
+                    message = data.message || data.error || message;
+                } else {
+                    message = await response.text() || message;
+                }
+            } catch (_) { /* ignoruj błąd parsowania */ }
+            throw new Error(message);
+        }
+
+        if (response.status === 204) return null;
+
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+            return response.json();
+        }
+        return response.text();
     }
 };
 
-// Automatyczne odpalenie przyjaznych globalnych skryptów interfejsu
+// SYNCHRONICZNA inicjalizacja interceptora CSRF — musi się wykonać natychmiast po zaladowaniu
+// utils.js, zanim inne skrypty (security-monitor.js, app-state.js) zdążą wywołać fetch().
+// Gdyby było w DOMContentLoaded, mogłoby wystąpić Race Condition (skrypt bezpieczeństwa
+// wysyła fetch() do /api/security/report-threat przed patche'owaniem window.fetch).
+Utils.initFetchInterceptor();
+
+// Pozostałe inicjalizacje UI — bezpieczne w DOMContentLoaded (nie używają fetch)
 document.addEventListener('DOMContentLoaded', () => {
-    Utils.initFetchInterceptor();
     Utils.initGoToTop();
     Utils.portalModals();
 });

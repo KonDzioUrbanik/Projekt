@@ -160,6 +160,9 @@ public class SystemMaintenanceFilter extends OncePerRequestFilter {
             if (checkModuleBlock(request, response, path, "/student/dashboard", "module_student_dashboard",
                     "Dashboard Studenta"))
                 return;
+            if (checkModuleBlock(request, response, path, "/student/deadlines", "module_deadlines",
+                    "Terminarz"))
+                return;
             if (checkModuleBlock(request, response, path, "/starosta/dashboard", "module_starosta_dashboard",
                     "Dashboard Starosty"))
                 return;

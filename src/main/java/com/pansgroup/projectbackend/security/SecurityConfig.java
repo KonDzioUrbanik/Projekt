@@ -24,6 +24,8 @@ import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 import java.util.List;
 
@@ -129,7 +131,7 @@ public class SecurityConfig {
         CorsConfiguration cfg = new CorsConfiguration();
         cfg.setAllowedOrigins(List.of(originsRaw.split(",")));
         cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        cfg.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Captcha-Token", "X-Requested-With"));
+        cfg.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "X-CSRF-TOKEN"));
         cfg.setAllowCredentials(true);
         cfg.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -145,7 +147,30 @@ public class SecurityConfig {
                                             RateLimitingFilter rateLimitingFilter)
                                             throws Exception {
 
-        http.csrf(AbstractHttpConfigurer::disable);
+        // CSRF: CookieCsrfTokenRepository zapisuje token do ciastka "XSRF-TOKEN"
+        // (httpOnly=false, żeby JS mógł go odczytać). Frontend wysyła go w headerze
+        // X-CSRF-TOKEN dla każdego żądania mutującego (POST/PUT/DELETE/PATCH).
+        //
+        // Wyjątki od CSRF (ignoringRequestMatchers):
+        //   /api/auth/** — endpointy "przed sesją" (login, register, reset-password).
+        //     Użytkownik nie ma jeszcze sesji którą można przejąć → CSRF semantycznie
+        //     nie ma zastosowania. To standardowe podejście (Spring Security domyślnie
+        //     też nie wymaga CSRF dla formularza /login).
+        //   /logout — obsługiwane przez Spring Security, ma własny mechanizm weryfikacji.
+        CookieCsrfTokenRepository csrfRepo = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        csrfRepo.setCookieName("XSRF-TOKEN");
+        csrfRepo.setHeaderName("X-CSRF-TOKEN");
+        CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
+        requestHandler.setCsrfRequestAttributeName(null); // wymagane dla Spring Security 6
+        http.csrf(csrf -> csrf
+                .csrfTokenRepository(csrfRepo)
+                .csrfTokenRequestHandler(requestHandler)
+                // /api/auth/** — pre-auth endpointy (login, register, reset-password) — brak sesji do przełączenia
+                // /logout — obsługiwany przez Spring Security (bezpieczne przez mechanizm sesji)
+                // /api/security/** — security-monitor.js działa przed inicjalizacją interceptora utils.js
+                // /api/feedback — strona /contact jest publiczna, nie ładuje utils.js
+                .ignoringRequestMatchers("/api/auth/**", "/logout", "/api/security/**", "/api/feedback")
+        );
         http.httpBasic(AbstractHttpConfigurer::disable);
         http.cors(Customizer.withDefaults());
 
@@ -161,7 +186,9 @@ public class SecurityConfig {
         );
 
         http.logout(logout -> logout
-                .logoutUrl("/logout")
+                // Jawnie tylko GET — app-state.js używa window.location.href (GET).
+                // Spring Security 6 domyślnie obsługuje tylko POST, stąd wcześniejszy 404.
+                .logoutRequestMatcher(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/logout", "GET"))
                 .logoutSuccessUrl("/login?logout")
                 .permitAll());
 
@@ -233,6 +260,9 @@ public class SecurityConfig {
                 .requestMatchers("/home", "/profile", "/settings").hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
                 .requestMatchers("/student/chat/**", "/api/chat/**").hasAnyRole("STUDENT", "STAROSTA")
                 .requestMatchers("/student/student-market", "/api/market/**").hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
+
+                // Terminarz
+                .requestMatchers("/student/deadlines", "/api/deadlines/**").hasAnyRole("STUDENT", "STAROSTA", "ADMIN")
 
                 .anyRequest().authenticated());
 

@@ -6,17 +6,25 @@
     var userRole = roleMeta ? roleMeta.getAttribute('content') : '';
     var isAdmin = (userRole === 'ROLE_ADMIN' || userRole === 'ADMIN');
 
-    // 2. Konfiguracja i Cache CSRF (pobierany raz na starcie)
+    // 2. Konfiguracja i CSRF
     var ENDPOINT = '/api/preferences/sync';
     var SESSION_KEY = 'pans_state_sid';
     var SESSION_TS_KEY = 'pans_state_ts';
     var SESSION_TTL = 30 * 60 * 1000;
     var IDLE_TIMEOUT = 5 * 60 * 1000;
-    
-    var csrfMeta = document.querySelector('meta[name="_csrf"]');
-    var csrfHeaderMeta = document.querySelector('meta[name="_csrf_header"]');
-    var CSRF_TOKEN = csrfMeta ? csrfMeta.getAttribute('content') : '';
-    var CSRF_HEADER = csrfHeaderMeta ? csrfHeaderMeta.getAttribute('content') : 'X-CSRF-TOKEN';
+
+    // CSRF — czytamy token z ciastka XSRF-TOKEN (ustawianego przez Spring CookieCsrfTokenRepository).
+    // httpOnly=false oznacza, że JS może je odczytać.
+    function getCsrfToken() {
+        var match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+        return match ? decodeURIComponent(match[1]) : '';
+    }
+    var CSRF_HEADER = 'X-CSRF-TOKEN';
+    // Zachowujemy wsteczną kompatybilność ze starymi modułami
+    window.AppState = window.AppState || {};
+    window.AppState.getCsrfToken = getCsrfToken;
+    window.AppState.csrfHeader   = CSRF_HEADER;
+
 
     // 3. Stan sesji i liczników
     var sessionId = getOrCreateSession();
@@ -93,26 +101,26 @@
 
     function flushEvents() {
         if (pendingEvents.length === 0) return;
-        
+
         var batch = pendingEvents.slice();
         pendingEvents = [];
         clearTimeout(syncTimeout);
 
+        var csrfToken = getCsrfToken();
         var headers = { 'Content-Type': 'application/json' };
-        if (CSRF_TOKEN) headers[CSRF_HEADER] = CSRF_TOKEN;
+        if (csrfToken) headers[CSRF_HEADER] = csrfToken;
 
-        // Wysyłamy ostatni event z paczki jako reprezentatywny (lub można by zmienić API na batch)
-        // Ze względu na istniejące API wysyłamy po prostu ostatni, by nie zmieniać struktury backendu,
-        // ale ograniczamy liczbę wywołań sieciowych.
-        var data = batch[batch.length - 1];
-
-        fetch(ENDPOINT, {
+        // Wysyłamy CAŁĄ tablicę jako jeden request do batch endpointu.
+        // keepalive:true — przeżywa zamknięcie strony / wylogowanie.
+        // Interceptor w utils.js wykrywa keepalive i nie opakowuje w async/await,
+        // dzięki czemu przeglądarka nie anuluje żądania przy nawigacji.
+        fetch(ENDPOINT + '/batch', {
             method: 'POST',
             headers: headers,
-            body: JSON.stringify(data),
-            keepalive: true 
+            body: JSON.stringify(batch),
+            keepalive: true
         }).catch(function(err) {
-            console.warn("[AppStatus] Sync suppressed", err);
+            console.warn('[AppStatus] Batch sync suppressed', err);
         });
     }
 
