@@ -98,7 +98,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             "/api/feedback/**", "/api/chat/messages/**",
             "/api/users/**", "/api/groups/**", "/api/announcements/**",
             "/api/schedule/**", "/api/surveys/**", "/api/calendar/**",
-            "/api/preferences/sync"
+            "/api/preferences/sync", "/api/preferences/sync/batch"
     };
 
     private boolean matchesAny(String path, String[] patterns) {

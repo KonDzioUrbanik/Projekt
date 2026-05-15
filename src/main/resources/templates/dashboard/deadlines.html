@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pl"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+
+    <head>
+        <title>Terminarz</title>
+        <th:block layout:fragment="page-styles">
+            <link rel="stylesheet" th:href="@{/css/dashboard/deadlines.css(v=${#dates.createNow().getTime()})}">
+        </th:block>
+    </head>
+
+    <body>
+        <div layout:fragment="content">
+
+            <div class="dl-page-body">
+
+                <div class="dl-page-header">
+                    <div>
+                        <h1 class="dl-page-title">Terminarz</h1>
+                        <p class="dl-page-subtitle" id="dlPageSubtitle">Nadchodzące egzaminy, projekty, zadania i kolokwia</p>
+                    </div>
+                    <button class="dl-btn-add" id="openAddModal">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <line x1="7" y1="1" x2="7" y2="13"/>
+                            <line x1="1" y1="7" x2="13" y2="7"/>
+                        </svg>
+                        Dodaj termin
+                    </button>
+                </div>
+
+                <div class="dl-stats-row" id="dlStatsRow">
+                    <div class="dl-stat-card danger">
+                        <div class="dl-stat-label">Najbliższe</div>
+                        <div class="dl-stat-value" id="statCritical">—</div>
+                    </div>
+                    <div class="dl-stat-card warning">
+                        <div class="dl-stat-label">Ten tydzień</div>
+                        <div class="dl-stat-value" id="statWeek">—</div>
+                    </div>
+                    <div class="dl-stat-card neutral">
+                        <div class="dl-stat-label">Grupowe</div>
+                        <div class="dl-stat-value" id="statGroup">—</div>
+                    </div>
+                    <div class="dl-stat-card ok">
+                        <div class="dl-stat-label">Prywatne</div>
+                        <div class="dl-stat-value" id="statPrivate">—</div>
+                    </div>
+                </div>
+
+                <div class="dl-filters-row">
+                    <div class="dl-filter-pills" id="filterPills">
+                        <button class="dl-pill active" data-filter="ALL">Wszystkie</button>
+                        <button class="dl-pill" data-filter="GROUP">Grupowe</button>
+                        <button class="dl-pill" data-filter="PRIVATE">Prywatne</button>
+                        <button class="dl-pill" data-filter="DONE">Ukończone</button>
+                    </div>
+                    <div class="dl-controls-right">
+                        <div class="dl-view-toggle" id="viewToggle">
+                            <button class="dl-view-btn active" data-view="grid" title="Widok siatki">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                            </button>
+                            <button class="dl-view-btn" data-view="list" title="Widok listy">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                            </button>
+                        </div>
+                        <select class="dl-sort-select" id="sortSelect">
+                            <option value="date">Sortuj: Termin</option>
+                            <option value="urgent">Sortuj: Pilność</option>
+                            <option value="type">Sortuj: Typ</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="dl-timeline" id="deadlinesList">
+                    <div class="dl-skeleton"></div>
+                    <div class="dl-skeleton"></div>
+                    <div class="dl-skeleton"></div>
+                </div>
+
+                <div class="dl-empty-state" id="emptyState" style="display:none;">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.25">
+                        <rect x="6" y="8" width="36" height="36" rx="4"/>
+                        <line x1="16" y1="4" x2="16" y2="12"/>
+                        <line x1="32" y1="4" x2="32" y2="12"/>
+                        <line x1="6" y1="20" x2="42" y2="20"/>
+                        <line x1="16" y1="30" x2="32" y2="30"/>
+                    </svg>
+                    <p id="emptyMsg">Brak terminów w tej kategorii</p>
+                </div>
+
+            </div>
+
+            <div class="dl-modal-backdrop" id="addDeadlineModal">
+                <div class="dl-modal" role="dialog" aria-modal="true" aria-labelledby="dlModalTitle">
+                    <div class="dl-modal-header">
+                        <h2 class="dl-modal-title" id="dlModalTitle">Nowy termin</h2>
+                        <button class="dl-modal-close" id="closeAddModal" aria-label="Zamknij">
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <line x1="4" y1="4" x2="14" y2="14"/>
+                                <line x1="14" y1="4" x2="4" y2="14"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <form id="addDeadlineForm" novalidate>
+                        <div class="dl-form-group">
+                            <label class="dl-form-label" for="dl-title">Tytuł <span class="dl-required">*</span></label>
+                            <input type="text" id="dl-title" class="dl-form-input"
+                                placeholder="np. Projekt z Frontendu - React" maxlength="120" required>
+                        </div>
+
+                        <div class="dl-form-row">
+                            <div class="dl-form-group">
+                                <label class="dl-form-label" for="dl-type">Typ <span class="dl-required">*</span></label>
+                                <select class="dl-form-select" id="dl-type">
+                                    <option value="EXAM">Egzamin</option>
+                                    <option value="TEST">Kolokwium</option>
+                                    <option value="PROJECT" selected>Projekt</option>
+                                    <option value="HOMEWORK">Zadanie</option>
+                                    <option value="OTHER">Inne</option>
+                                </select>
+                            </div>
+                            <div class="dl-form-group">
+                                <label class="dl-form-label" for="dl-course">Przedmiot</label>
+                                <input type="text" id="dl-course" class="dl-form-input"
+                                    placeholder="np. Aplikacje webowe" maxlength="80">
+                            </div>
+                        </div>
+
+                        <div class="dl-form-row">
+                            <div class="dl-form-group">
+                                <label class="dl-form-label" for="dl-date">Data <span class="dl-required">*</span></label>
+                                <input type="date" id="dl-date" class="dl-form-input" required>
+                            </div>
+                            <div class="dl-form-group">
+                                <label class="dl-form-label" for="dl-time">Godzina</label>
+                                <input type="time" id="dl-time" class="dl-form-input" value="23:59">
+                            </div>
+                        </div>
+
+                        <div class="dl-form-group">
+                            <label class="dl-form-label">Widoczność</label>
+                            <div class="dl-vis-toggle">
+                                <div class="dl-vis-option dl-vis-private selected" id="visPrivate">
+                                    <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+                                        <rect x="2" y="6" width="10" height="7" rx="1.5"/>
+                                        <path d="M5 6V4a2 2 0 014 0v2"/>
+                                    </svg>
+                                    Prywatny
+                                </div>
+                                <div class="dl-vis-option dl-vis-group" id="visGroup">
+                                    <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+                                        <circle cx="5" cy="4.5" r="2"/>
+                                        <circle cx="9" cy="4.5" r="2"/>
+                                        <path d="M1 12c0-2.21 1.79-4 4-4"/>
+                                        <path d="M9 8c2.21 0 4 1.79 4 4"/>
+                                    </svg>
+                                    Grupowy
+                                </div>
+                            </div>
+                            <input type="hidden" id="dl-visibility" value="PRIVATE">
+                        </div>
+
+                        <div class="dl-form-group">
+                            <label class="dl-form-label" for="dl-desc">Opis <span class="dl-optional">(opcjonalnie)</span></label>
+                            <textarea id="dl-desc" class="dl-form-input dl-form-textarea"
+                                    placeholder="np. Zakres: rozdziały 4-7..." maxlength="500" rows="2"></textarea>
+                        </div>
+
+                        <div class="dl-modal-actions">
+                            <div class="dl-rate-limit" id="rateLimitNotice" style="display:none;">
+                                Limit: 10 terminów grupowych / 24h
+                            </div>
+                            <button type="button" class="dl-btn-cancel" id="cancelAddModal">Anuluj</button>
+                            <button type="submit" class="dl-btn-submit" id="submitDeadline">Dodaj termin</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal szczegółów terminu -->
+            <div class="dl-detail-modal-backdrop" id="detailModal">
+                <div class="dl-detail-modal" role="dialog" aria-modal="true" aria-labelledby="detailModalTitle">
+                    <div class="dl-detail-stripe" id="detailStripe"></div>
+                    <div class="dl-detail-inner">
+                        <div class="dl-detail-header">
+                            <h2 class="dl-detail-title" id="detailModalTitle"></h2>
+                            <button class="dl-detail-close" id="closeDetailModal" aria-label="Zamknij">
+                                <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="4" y1="4" x2="14" y2="14"/><line x1="14" y1="4" x2="4" y2="14"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="dl-detail-badges" id="detailBadges"></div>
+                        <div class="dl-detail-grid">
+                            <div class="dl-detail-field">
+                                <div class="dl-detail-field-label">Termin</div>
+                                <div class="dl-detail-field-value" id="detailDate"></div>
+                            </div>
+                            <div class="dl-detail-field">
+                                <div class="dl-detail-field-label">Pozostało</div>
+                                <div class="dl-detail-field-value" id="detailCountdown"></div>
+                            </div>
+                            <div class="dl-detail-field" id="detailCourseBox">
+                                <div class="dl-detail-field-label">Przedmiot</div>
+                                <div class="dl-detail-field-value" id="detailCourse"></div>
+                            </div>
+                            <div class="dl-detail-field" id="detailAuthorBox">
+                                <div class="dl-detail-field-label">Autor</div>
+                                <div class="dl-detail-field-value" id="detailAuthor"></div>
+                            </div>
+                        </div>
+                        <div class="dl-detail-desc-box" id="detailDescBox" style="display:none;">
+                            <div class="dl-detail-desc-label">Opis</div>
+                            <div class="dl-detail-desc-text" id="detailDesc"></div>
+                        </div>
+                        <div class="dl-detail-actions">
+                            <button type="button" class="dl-btn-cancel" id="detailMarkDone">Oznacz ukończone</button>
+                            <button type="button" class="dl-btn-submit" id="detailDeleteBtn" style="background:#ef4444;">Usuń</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal potwierdzający usunięcie -->
+            <div class="dl-confirm-backdrop" id="confirmDeleteModal">
+                <div class="dl-confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle">
+                    <div class="dl-confirm-header">
+                        <div class="dl-confirm-icon">
+                            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <polyline points="3,6 17,6"/>
+                                <path d="M7 6V4h6v2"/>
+                                <path d="M5 6l1 12h8l1-12"/>
+                            </svg>
+                        </div>
+                        <span class="dl-confirm-title" id="confirmTitle">Usuń termin</span>
+                    </div>
+                    <div class="dl-confirm-body">
+                        <p class="dl-confirm-message">Czy na pewno chcesz usunąć ten termin? Tej operacji nie można cofnąć.</p>
+                        <span class="dl-confirm-name" id="confirmDeadlineName"></span>
+                    </div>
+                    <div class="dl-confirm-footer">
+                        <button type="button" class="dl-confirm-btn-cancel" id="confirmCancelBtn">Anuluj</button>
+                        <button type="button" class="dl-confirm-btn-delete" id="confirmDeleteBtn">Usuń</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <th:block layout:fragment="page-scripts">
+            <script th:src="@{/js/dashboard/deadlines.js(v=${#dates.createNow().getTime()})}"></script>
+        </th:block>
+    </body>
+</html>

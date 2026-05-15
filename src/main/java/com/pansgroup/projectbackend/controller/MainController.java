@@ -257,6 +257,12 @@ public class MainController {
         return "dashboard/student-market";
     }
 
+    @GetMapping("/student/deadlines")
+    public String deadlinesView(Model model) {
+        model.addAttribute("activePage", "deadlines");
+        return "dashboard/deadlines";
+    }
+
     @GetMapping("/student/surveys")
     public String surveysView(Model model) {
         model.addAttribute("activePage", "surveys");

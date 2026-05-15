@@ -83,6 +83,11 @@
                     <span class="link-text">Giełda studencka</span>
                 </a>
 
+                <a th:href="@{/student/deadlines}" class="btn-navbar-left" th:classappend="${activePage == 'deadlines'} ? 'active'">
+                    <i class="fas fa-calendar-check"></i>
+                    <span class="link-text">Terminarz</span>
+                </a>
+
                 <a th:href="@{/student/announcements}" class="btn-navbar-left" th:classappend="${activePage == 'student-announcements'} ? 'active'">
                     <i class="fas fa-bullhorn"></i>
                     <span class="link-text">Ogłoszenia grupy</span>

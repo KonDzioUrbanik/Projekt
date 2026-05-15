@@ -294,6 +294,21 @@ public class GlobalExceptionHandler {
         return pd(status, status.getReasonPhrase(), detail, req, "response_status");
     }
 
+    /* ====== Klient przerwał połączenie (False Positive) ====== */
+    // ClientAbortException / AsyncRequestNotUsableException to standardowe zdarzenia
+    // sieciowe: przeglądarka zamknęła socket TCP zanim serwer dokonćył wysyłki odpowiedzi
+    // (np. użytkownik kliknął inny link, zamknął kartę). Są całkowicie nieszkodliwe.
+    @ExceptionHandler({
+        org.apache.catalina.connector.ClientAbortException.class,
+        org.springframework.web.context.request.async.AsyncRequestNotUsableException.class
+    })
+    public void handleClientAbort(Exception ex, HttpServletRequest req) {
+        log.warn("[Network] Klient przerwał połączenie na {}: {}",
+                req != null ? req.getRequestURI() : "unknown",
+                ex.getMessage() != null ? ex.getMessage().split("\n")[0] : "connection reset");
+        // Brak odpowiedzi — połączenie i tak jest zerwane
+    }
+
     /* ====== 500: fallback ====== */
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleGeneral(Exception ex, HttpServletRequest req) {

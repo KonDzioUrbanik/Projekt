@@ -33,6 +33,7 @@ public class SystemService {
         createSettingIfAbsent("module_portal_home", "true", "Status Strony głównej portalu");
         createSettingIfAbsent("module_student_dashboard", "true", "Status Dashboardu studenta");
         createSettingIfAbsent("module_notes", "true", "Status modułu Notatki");
+        createSettingIfAbsent("module_deadlines", "true", "Status modułu Terminarz");
         createSettingIfAbsent("module_schedule", "true", "Status modułu Harmonogram zajęć");
         createSettingIfAbsent("module_announcements", "true", "Status modułu Ogłoszenia grupy");
         createSettingIfAbsent("module_calendar", "true", "Status modułu Kalendarz");
